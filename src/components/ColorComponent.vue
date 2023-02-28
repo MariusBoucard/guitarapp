@@ -15,6 +15,20 @@
         </div>
       </li>
     </ul>
+    <form>
+
+      <h1> {{ this.selectedforchange }}</h1>
+      <label> Note to change color</label>
+  
+              <select class="selectnote" v-model=this.selectedforchange>
+  
+                <option v-for="option in this.dictionnairecouleur" :value="option.note" :key="option.note">{{ option.note }}</option>
+  
+              </select>
+
+    </form>
+      
+
   </div>
 </template>
 <script>
@@ -25,7 +39,7 @@ export default {
   ,
   data() {
     return {
-
+      selectedforchange : 'A',
       dictionnairecouleur: this.couleurdict,
     };
   },
