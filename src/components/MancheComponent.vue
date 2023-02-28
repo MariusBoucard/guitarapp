@@ -3,27 +3,30 @@
     <p>{{ this.tuningintra }}</p>
 
     <div>
+</div>
+<div width="300px">
 
-    </div>
+
     <ul>
-        <li class="horizontalli" :style="{  width : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
+        <li class="horizontalli frette" :style="{  width : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
             
             <ul>
                 <li class="lettre" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId">
-                    <div display="flex" v-if="isChoosed(note, index)">
-                            <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index), backgroundColor  :calcBack(renderChoosen(note, index)) }">
-                             <p>{{ renderChoosen(note, index) }}</p>
-                             </div>      
+                    <div display="flex case" v-if="isChoosed(note, index)">
+                        <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index),  backgroundColor  :calcBack(renderChoosen(note, index)) }">
+                            <p>{{ renderChoosen(note, index) }}</p>
+                        </div>      
                     </div>
                     <div v-else>
                         <p style="margin:0;padding:0;" >-</p>
                     </div>
                 </li>
-
+                
             </ul>
             <p style="margin:0;padding:0;">F: {{ index }}</p>
         </li>
     </ul>
+</div>
     <!-- <li  v-for="note in this.tuningintra" :key="note.cordeId">
            
 
@@ -81,9 +84,7 @@ export default {
     methods: {
         isChoosed(corde, index) {
           
-            console.log(corde.tuning + "caca" + index)
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
-            console.log(note)
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
             return enabledornot.enabled
             // var find = this.listeNotes.find((note) => note.id === frette )
@@ -94,9 +95,7 @@ export default {
         },
         renderChoosen(corde, index) {
            
-            console.log(corde.cordeId + "caca" + index)
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
-            console.log(note)
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
             return enabledornot.note
         },
@@ -120,7 +119,7 @@ export default {
                 var intWidth = width.substring(0,width.length-2)
                 var intHeight = height.substring(0,height.length-2)
                 console.log("height"+Math.min(intWidth, intHeight))
-                return Math.min(intWidth, intHeight)
+                return Math.min(intWidth, intHeight)+"px"
         },
         calcHeight(){
             return Math.round(300/this.nbCordes)+"px"
@@ -142,12 +141,9 @@ export default {
         cordeListe() {
             var cordeListe = []
             for (var corde = 0; corde < this.tuningintra.length; corde++) {
-                console.log(this.tuningintra[corde].tuning)
                 var notesCorde = []
                 var note = this.tuningintra[corde].tuning
-                console.log("note dans coredliste" + note);
                 var idnotedepart = this.listeNotes.find((notes) => notes.note === note)
-                console.log(idnotedepart)
                 for (var i = 0; i < 24; i++) {
                     notesCorde.push((i + idnotedepart.id ) % 12)
                 }
@@ -164,20 +160,29 @@ export default {
 .lettre{
     padding:0;
     width: 100%;
-    border-right: 1px solid black;
+    border-right: 5px solid rgb(255, 255, 255);
 
     }
 .circle {
-  
+    margin: 0 auto;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
+.case {
+    width: 100%;
+    height:100px;
+  align-items: center;
+}
 .circle p {
   color: #fff;
   font-size: 24px;
   font-weight: bold;
+}
+.frette {
+    background-image: url('../assets/frettebackground.jpeg');
+    border-right: 1px solid rgb(255, 255, 255);
+
 }
 </style>
