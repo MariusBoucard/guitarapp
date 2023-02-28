@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex; background-color: wheat;">
+  <div style="display: flex;  padding-top: 40px;">
     <div display="block">
       <h1> Select the notes you want to display</h1>
 

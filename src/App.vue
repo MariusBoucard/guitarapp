@@ -1,7 +1,7 @@
 <template>
    <div class="row">
   <div class="column">
-    <div style="background-color: red; display: flex;">
+    <div style=" display: flex;">
       <MancheComponent :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
     </div>
     <div class="row">

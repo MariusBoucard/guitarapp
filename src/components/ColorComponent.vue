@@ -15,17 +15,25 @@
         </div>
       </li>
     </ul>
-    <form>
-
-      <h1> {{ this.selectedforchange }}</h1>
-      <label> Note to change color</label>
+    <form 
+         @submit.prevent="onSubmit" >
+    
   
-              <select class="selectnote" v-model=this.selectedforchange>
+      <h1> {{ this.selectedforchange }}</h1>
+      <h1> Note to change color</h1>
+  
+              <select class="selectnotechange" v-model=this.selectedforchange>
   
                 <option v-for="option in this.dictionnairecouleur" :value="option.note" :key="option.note">{{ option.note }}</option>
   
               </select>
-
+              <input
+      type="text"
+    
+      autocomplete="off"
+          v-model="label" />
+          <!-- Thanks to v-label there's a 2 way binding with the data property -->
+    <button type="submit">Change</button>
     </form>
       
 
@@ -41,11 +49,19 @@ export default {
     return {
       selectedforchange : 'A',
       dictionnairecouleur: this.couleurdict,
+      label:""
     };
   },
   methods: {
     getColor(couleur) {
       return couleur.color
+    },
+    onSubmit(){
+ 
+        var find = this.couleurdict.find((entree) => entree.note === this.selectedforchange)
+        find.color = this.label
+        this.label = ""
+
     }
   }
 }
@@ -67,5 +83,14 @@ export default {
 .columnhalf {
   float: left;
   width: 50%;
+}
+.selectnotechange{
+  width:80px;
+  height: 40px;
+
+  border: none;
+  text-align: center;
+  border-radius: 5px;
+
 }
 </style>

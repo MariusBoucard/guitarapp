@@ -1,7 +1,7 @@
 <template>
     <div>
-    <h1>Voila le manche de la guitare</h1>
-    <p>{{ this.tuningintra }}</p>
+    <h1>Guitar's neck</h1>
+    <!-- <p>{{ this.tuningintra }}</p> -->
 
     <div>
 </div>

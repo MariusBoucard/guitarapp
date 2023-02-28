@@ -1,6 +1,6 @@
 <template>
-  <div style="display: flex; background-color: green;">
-    <div style="display:block">
+  <div style="display: flex; ">
+    <div style="display:block; width:20%">
 
       <p>Nombre de cordes de ton enorme instrument :</p>
 
@@ -13,8 +13,8 @@
       <ul>
         <li class="horizontallicorde" v-for="corde in tuningList" :key="corde.cordeId">
 
-          <div style="display: block;">
-            <label>{{ corde.cordeId }} </label>
+          <div style="display: block;position: relative;">
+            <label style="display: block;">{{ corde.cordeId }} </label>
             <select class="selectnote" :style="{ backgroundColor : colorFromNote(corde.tuning)}" @change="onChangeTune($event, corde.cordeId)">
               <option selected="selected">
                 {{ corde.tuning }}
@@ -122,8 +122,8 @@ li:hover {
   border-radius: 5px;
 }
 .selectnote{
-  width: 40px;
-  height: 20px;
+  width: 60px;
+  height: 40px;
   color: black;
   border: none;
   text-align: center;
