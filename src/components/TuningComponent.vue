@@ -1,10 +1,25 @@
 <template>
-<div>
-c est le tuning du caca
-<p>Nombre de cordes de ton enorme instrument : {{ this.nbCordes }}</p>
+<div style="display:flex; background-color: green;">
+<p>Nombre de cordes de ton enorme instrument :</p>
+
+<button @click="this.delCorde()"> - </button> <h1>{{ this.nbCordes }} </h1><button @click=this.addCorde()> + </button>
+
+
 <ul >
     <li class="horizontalli" v-for="corde in tuningList" :key="corde.cordeId">
-      {{corde.cordeId}} : {{ corde.tuning }}
+
+      <div>
+            <label>{{corde.cordeId}} </label>
+            <select name="cars" id="cars">  
+              <option v-for="option in this.nbnotes" :value="option.note" :key="option.id">{{option}}</option>
+               
+            </select>
+
+
+      </div>
+   
+   
+   
     </li> 
   </ul>
 </div>
@@ -14,13 +29,24 @@ c est le tuning du caca
 export default {
     props : {
         cordesNumber : { required : true , type : Number },
-        tuningList : { required : true , type :  [Object] }
+        tuningList : { required : true , type :  [Object] },
+        notesnumber : {required : true , type : [Object]}
     },
     methods: {
+        addCorde(){
         
+          this.listTuning.push({ cordeId : this.nbCordes , tuning : "A" })
+          this.nbCordes ++
+        },
+        delCorde(){
+          this.listTuning.pop()
+          this.nbCordes --
+        }
+
     },
     data () {
         return {
+            nbnotes : this.notesnumber,
             nbCordes : this.cordesNumber,
             listTuning : this.tuningList,
         };

@@ -1,5 +1,6 @@
 <template>
-    <div>Manchecomp</div>
+    <div>
+    <h1>Voila le manche de la guitare</h1>
     <p>{{ this.tuningintra }}</p>
 
     <div>
@@ -8,22 +9,39 @@
 
 
     <ul>
+        <li class="horizontalli ">
+            <ul>
+                <li style=" width: 40px" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"> 
+                    
+                    {{note.tuning}}
+                    <div display="flex case">
+                        
+                    </div>
+                   
+                </li>
+                
+            </ul>
+        </li>
+
+        
         <li class="horizontalli frette" :style="{  width : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
             
             <ul>
                 <li class="lettre" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId">
-                    <div display="flex case" v-if="isChoosed(note, index)">
+                    <div display="flex" class="cord" v-if="isChoosed(note, index)">
+                        <hr class="line" :style="{  width : calcWidth(index) }" >
                         <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index),  backgroundColor  :calcBack(renderChoosen(note, index)) }">
                             <p>{{ renderChoosen(note, index) }}</p>
                         </div>      
                     </div>
-                    <div v-else>
-                        <p style="margin:0;padding:0;" >-</p>
+                    <div display="flex" class="cord" v-else>
+                        <hr class="line" :style="{  width : calcWidth(index) }">
+                             
                     </div>
                 </li>
                 
             </ul>
-            <p style="margin:0;padding:0;">F: {{ index }}</p>
+            <p style="margin:0;padding:0;color : white"> {{ index }}</p>
         </li>
     </ul>
 </div>
@@ -44,6 +62,7 @@
                 </div>                    
             </li> 
             </div> -->
+            </div>
 </template>
 <script>
 
@@ -77,7 +96,7 @@ export default {
             nbCordes : 6,
             notesSelectedIntra: this.notesSelected,
             couleursnotes: this.colorNotes,
-            diapason : this.diap*3
+            diapason : this.diap*2.8
         }
 
     },
@@ -169,11 +188,14 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  position :relative;
+  z-index: 99;
 }
 .case {
     width: 100%;
     height:100px;
   align-items: center;
+  justify-content: center;
 }
 .circle p {
   color: #fff;
@@ -184,5 +206,15 @@ export default {
     background-image: url('../assets/frettebackground.jpeg');
     border-right: 1px solid rgb(255, 255, 255);
 
+}
+.cord{
+    position: flex;
+}
+.line{
+    position: absolute;
+    
+    margin: 25px 0 0 0;
+    /* width:  100%; */
+    color:white;
 }
 </style>

@@ -1,58 +1,78 @@
 <template>
-    <div>
-        <p>Select the choosen notes : </p>
-         <ul >
-            <li class="horizontalli" v-for="note in this.localNoteList" :key="note.note">
-           
+  <div style="display: flex; background-color: wheat;">
+    <div display="block">
+      <h1> Select the notes you want to display</h1>
 
-                <label class="container">{{ note.note }}
-                <input class="checkbox" @change="userChecked(note)" type="checkbox" :checked="isChecked(note.note)"/>
-                <span class="checkmark"></span>
-                </label>
-            </li> 
-        </ul>
-        
-       
-    
     </div>
+    <div display="block">
+
+      <ul>
+        <li class="horizontalli" v-for="note in this.localNoteList" :key="note.note">
+          
+          
+          <!-- <label class="container">{{ note.note }}
+            <input class="checkbox" @change="userChecked(note)" type="checkbox" :checked="isChecked(note.note)"/>
+            <span class="checkmark"></span>
+          </label> -->
+          <button class="button" :style="{ backgroundColor : backGroundColor(note.note)}" type="button" @click=userChecked(note)>
+            {{ note.note }}
+          </button>
+          
+        </li>
+      </ul>
+    </div>
+  </div>
+
+
 </template>
 <script>
 export default {
-    props : {
-        listNotes : { required : true , type : [Object]},
-        
-    },
-    data(){
-        return{
-            localNoteList : this.listNotes,
-        }
-    },
-    methods : {
-        
-        userChecked(note) {
-            const find = this.listNotes.find((notes) => notes.note === note.note)
-            find.enabled = !find.enabled
-            var yolo = find
-            console.log("Find das userc" + yolo)
-            this.$emit('note-checked', yolo);
-            
-}, isChecked(note){
-            const find = this.listNotes.find((notes) => notes.note === note)
-            return find.enabled
-
-        }
-    },
-    compute : {
-       
+  props: {
+    listNotes: { required: true, type: [Object] },
+    colorNotes : { required: true, type: [Object] }
+  },
+  data() {
+    return {
+      localNoteList: this.listNotes,
+      colornoteList : this.colorNotes
     }
+  },
+  methods: {
+
+    userChecked(note) {
+      const find = this.listNotes.find((notes) => notes.note === note.note)
+      find.enabled = !find.enabled
+      var yolo = find
+      console.log("Find das userc" + yolo)
+      this.$emit('note-checked', yolo);
+
+    }, isChecked(note) {
+      const find = this.listNotes.find((notes) => notes.note === note)
+      return find.enabled
+
+    },
+    backGroundColor(note){
+      console.log(note + "back")
+      const find = this.listNotes.find((notes) => notes.note === note)
+      if (find.enabled){
+        var couleur =  this.colornoteList.find((color) => color.note === find.note)
+          return couleur.color
+      }else{
+        return "lightgrey"
+      }
+    }
+  },
+  compute: {
+
+  }
 
 }
 
 </script>
 
 <style>
- /* Customize the label (the container) */
- .container {
+/* Customize the label (the container) */
+.container {
   display: block;
   position: relative;
   padding-left: 35px;
@@ -85,12 +105,12 @@ export default {
 }
 
 /* On mouse-over, add a grey background color */
-.container:hover input ~ .checkmark {
+.container:hover input~.checkmark {
   background-color: #ccc;
 }
 
 /* When the checkbox is checked, add a blue background */
-.container input:checked ~ .checkmark {
+.container input:checked~.checkmark {
   background-color: #2196F3;
 }
 
@@ -102,7 +122,7 @@ export default {
 }
 
 /* Show the checkmark when checked */
-.container input:checked ~ .checkmark:after {
+.container input:checked~.checkmark:after {
   display: block;
 }
 
@@ -117,7 +137,7 @@ export default {
   -webkit-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);
-} 
+}
 
 ul {
   list-style-type: none;
@@ -138,5 +158,18 @@ li a {
 
 li a:hover {
   background-color: #111111;
+}
+
+
+.button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  padding: 15px 32px;
+  margin : 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 5px;
 }
 </style>

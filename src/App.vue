@@ -1,10 +1,20 @@
 <template>
    <div class="row">
   <div class="column">
-    <MancheComponent :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
-    <NotesSelectedComponent :listNotes=this.noteSlectedList
+    <div style="background-color: red; display: flex;">
+      <MancheComponent :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
+    </div>
+    <div class="row">
+      <div class="columnhalf"> 
+        <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
     @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
-    <TuningComponent :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+      </div>
+      <div class="columnhalf">
+        <TuningComponent :notesnumber=this.nbnotes :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+
+      </div>
+    </div>
+   
   </div>
   <div class="columnd">
     <ColorComponent :couleurdict=this.colors ></ColorComponent>
@@ -32,14 +42,29 @@ export default {
     return {
       nbfrettes : 24,
       diapason : 648,
-      nbStrings: 6,
+      nbStrings: 7,
+      nbnotes: [
+                { id: 0, note: "A" },
+                { id: 1, note: "AS" },
+                { id: 2, note: "B" },
+                { id: 3, note: "C" },
+                { id: 4, note: "CS" },
+                { id: 5, note: "D" },
+                { id: 6, note: "DS" },
+                { id: 7, note: "E" },
+                { id: 8, note: "F" },
+                { id: 9, note: "FS" },
+                { id: 10, note: "G" },
+                { id: 11, note: "GS" },
+            ],
       tuningList: [
         {cordeId: 0,tuning : 'E'},
-        {cordeId: 1,tuning : 'A'},
-        {cordeId: 2,tuning : 'D'},
-        {cordeId: 3,tuning : 'G'},
-        {cordeId: 4,tuning : 'B'},
-        {cordeId: 5,tuning : 'E'}
+        {cordeId: 1,tuning : 'B'},
+        {cordeId: 2,tuning : 'G'},
+        {cordeId: 3,tuning : 'D'},
+        {cordeId: 4,tuning : 'A'},
+        {cordeId: 5,tuning : 'E'},
+        {cordeId: 6,tuning : 'A'}
       
       ],
       noteSlectedList: 
