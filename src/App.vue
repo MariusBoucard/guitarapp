@@ -10,7 +10,7 @@
     @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
       </div>
       <div class="columnhalf">
-        <TuningComponent :notesnumber=this.nbnotes :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+        <TuningComponent :notesColor=this.colors :notesnumber=this.nbnotes :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
 
       </div>
     </div>

@@ -1,56 +1,78 @@
 <template>
-<div style="display:flex; background-color: green;">
-<p>Nombre de cordes de ton enorme instrument :</p>
+  <div style="display: flex; background-color: green;">
+    <div style="display:block">
 
-<button @click="this.delCorde()"> - </button> <h1>{{ this.nbCordes }} </h1><button @click=this.addCorde()> + </button>
+      <p>Nombre de cordes de ton enorme instrument :</p>
 
+      <button @click="this.delCorde()" class="cordeplus"> - </button>
+      <h1>{{ this.nbCordes }} </h1><button class="cordeplus" @click=this.addCorde()> + </button>
 
-<ul >
-    <li class="horizontalli" v-for="corde in tuningList" :key="corde.cordeId">
+    </div>
+    <div style="display:block">
 
-      <div>
-            <label>{{corde.cordeId}} </label>
-            <select name="cars" id="cars">  
-              <option v-for="option in this.nbnotes" :value="option.note" :key="option.id">{{option}}</option>
-               
+      <ul>
+        <li class="horizontallicorde" v-for="corde in tuningList" :key="corde.cordeId">
+
+          <div style="display: block;">
+            <label>{{ corde.cordeId }} </label>
+            <select class="selectnote" :style="{ backgroundColor : colorFromNote(corde.tuning)}" @change="onChangeTune($event, corde.cordeId)">
+              <option selected="selected">
+                {{ corde.tuning }}
+              </option>
+
+              <option v-for="option in this.nbnotes" :value="option.note" :key="option.id">{{ option.note }}</option>
+
             </select>
 
 
-      </div>
-   
-   
-   
-    </li> 
-  </ul>
-</div>
+          </div>
 
+
+
+        </li>
+      </ul>
+    </div>
+  </div>
 </template>
 <script>
 export default {
-    props : {
-        cordesNumber : { required : true , type : Number },
-        tuningList : { required : true , type :  [Object] },
-        notesnumber : {required : true , type : [Object]}
-    },
-    methods: {
-        addCorde(){
-        
-          this.listTuning.push({ cordeId : this.nbCordes , tuning : "A" })
-          this.nbCordes ++
-        },
-        delCorde(){
-          this.listTuning.pop()
-          this.nbCordes --
-        }
+  props: {
+    cordesNumber: { required: true, type: Number },
+    tuningList: { required: true, type: [Object] },
+    notesnumber: { required: true, type: [Object] },
+    notesColor : { required : true, type : [Object]}
+  },
+  methods: {
+    addCorde() {
 
+      this.listTuning.push({ cordeId: this.nbCordes, tuning: "A" })
+      this.nbCordes++
     },
-    data () {
-        return {
-            nbnotes : this.notesnumber,
-            nbCordes : this.cordesNumber,
-            listTuning : this.tuningList,
-        };
+    delCorde() {
+      this.listTuning.pop()
+      this.nbCordes--
+    },
+    onChangeTune(event, corde) {
+
+      var found = this.listTuning.find((cor) => cor.cordeId === corde)
+      found.tuning = event.target.value
+    },
+    colorFromNote(tuning){
+      console.log(tuning)
+
+      var find = this.couleurnoteliste.find((col) => col.note === tuning)
+      return find.color
     }
+
+  },
+  data() {
+    return {
+      nbnotes: this.notesnumber,
+      nbCordes: this.cordesNumber,
+      listTuning: this.tuningList,
+      couleurnoteliste : this.notesColor
+    };
+  }
 
 }
 
@@ -64,20 +86,50 @@ ul {
 
 }
 
-.horizontalli {
+.horizontallicorde {
   float: left;
   width: flex;
+  position: relative;
+  margin: 20px 0;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-left: 1px solid white;
 }
 
-li a{
+li a {
   display: block;
   color: white;
   text-align: center;
-  
+
   text-decoration: none;
 }
 
 li:hover {
   background-color: #111111;
+}
+
+.cordeplus {
+  background-color: aqua;
+  width: 40px;
+  height: 40px;
+  color: white;
+  border: none;
+
+
+  text-align: center;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 5px;
+}
+.selectnote{
+  width: 40px;
+  height: 20px;
+  color: black;
+  border: none;
+  text-align: center;
+  border-radius: 5px;
+
+
+
 }
 </style>
