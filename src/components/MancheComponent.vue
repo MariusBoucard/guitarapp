@@ -1,0 +1,183 @@
+<template>
+    <div>Manchecomp</div>
+    <p>{{ this.tuningintra }}</p>
+
+    <div>
+
+    </div>
+    <ul>
+        <li class="horizontalli" :style="{  width : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
+            
+            <ul>
+                <li class="lettre" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId">
+                    <div display="flex" v-if="isChoosed(note, index)">
+                            <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index), backgroundColor  :calcBack(renderChoosen(note, index)) }">
+                             <p>{{ renderChoosen(note, index) }}</p>
+                             </div>      
+                    </div>
+                    <div v-else>
+                        <p style="margin:0;padding:0;" >-</p>
+                    </div>
+                </li>
+
+            </ul>
+            <p style="margin:0;padding:0;">F: {{ index }}</p>
+        </li>
+    </ul>
+    <!-- <li  v-for="note in this.tuningintra" :key="note.cordeId">
+           
+
+              
+                    <p>{{  note.tuning }}</p>
+                    <p>{{ test() }}</p>
+                <div> 
+                
+                 <div v-if="isChoosed(note,index)" >
+                    <p>{{ renderChoosen(note,index) }}</p>
+
+                </div>
+                <div v-else>
+                    <p>caca</p>
+                </div>                    
+            </li> 
+            </div> -->
+</template>
+<script>
+
+export default {
+    props: {
+        //Peut etre qu'on peut definir un array de note ici
+        tuning: { required: true, type: [Object] },
+        notesSelected: { required: true, type: [Object] },
+        colorNotes: { required: true, type: [Object] },
+        nbFrettes: { required: true, type: Number },
+        diap : { required : true, type : Number}
+    },
+    data() {
+        return {
+            nbfrettes: this.nbFrettes,
+            tuningintra: this.tuning,
+            listeNotes: [
+                { id: 0, note: "A" },
+                { id: 1, note: "AS" },
+                { id: 2, note: "B" },
+                { id: 3, note: "C" },
+                { id: 4, note: "CS" },
+                { id: 5, note: "D" },
+                { id: 6, note: "DS" },
+                { id: 7, note: "E" },
+                { id: 8, note: "F" },
+                { id: 9, note: "FS" },
+                { id: 10, note: "G" },
+                { id: 11, note: "GS" },
+            ],
+            nbCordes : 6,
+            notesSelectedIntra: this.notesSelected,
+            couleursnotes: this.colorNotes,
+            diapason : this.diap*3
+        }
+
+    },
+    methods: {
+        isChoosed(corde, index) {
+          
+            console.log(corde.tuning + "caca" + index)
+            var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
+            console.log(note)
+            var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
+            return enabledornot.enabled
+            // var find = this.listeNotes.find((note) => note.id === frette )
+            // // console.log(find)
+            // var test = this.notesSelectedIntra.find((notes) => notes.note === find.note)
+            // // console.log(test)
+            // return test.enabled
+        },
+        renderChoosen(corde, index) {
+           
+            console.log(corde.cordeId + "caca" + index)
+            var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
+            console.log(note)
+            var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
+            return enabledornot.note
+        },
+        test() {
+
+            console.log(this.nbfrettes)
+        },
+        calcWidth(index){
+            var diaprestant = this.diapason
+            var taillecase =0
+            for(var i =0; i<index;i++){
+
+                taillecase = diaprestant/17.817
+                diaprestant = diaprestant-taillecase
+            }
+            return Math.round(taillecase)+"px"
+        },
+        heightCircle(index){
+                var height = this.calcHeight()
+                var width = this.calcWidth(index)
+                var intWidth = width.substring(0,width.length-2)
+                var intHeight = height.substring(0,height.length-2)
+                console.log("height"+Math.min(intWidth, intHeight))
+                return Math.min(intWidth, intHeight)
+        },
+        calcHeight(){
+            return Math.round(300/this.nbCordes)+"px"
+        },
+        calcBack(lettre){
+           console.log(lettre)
+
+            var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
+            return couleur.color
+        }
+        
+    },
+
+
+    computed: {
+        caca() {
+            return 2
+        },
+        cordeListe() {
+            var cordeListe = []
+            for (var corde = 0; corde < this.tuningintra.length; corde++) {
+                console.log(this.tuningintra[corde].tuning)
+                var notesCorde = []
+                var note = this.tuningintra[corde].tuning
+                console.log("note dans coredliste" + note);
+                var idnotedepart = this.listeNotes.find((notes) => notes.note === note)
+                console.log(idnotedepart)
+                for (var i = 0; i < 24; i++) {
+                    notesCorde.push((i + idnotedepart.id ) % 12)
+                }
+                cordeListe.push(notesCorde)
+            }
+            return cordeListe
+        },
+        
+    },
+}
+
+</script>
+<style>
+.lettre{
+    padding:0;
+    width: 100%;
+    border-right: 1px solid black;
+
+    }
+.circle {
+  
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.circle p {
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+}
+</style>
