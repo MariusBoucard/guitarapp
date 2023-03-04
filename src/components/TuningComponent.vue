@@ -1,44 +1,49 @@
 <template>
-  <div style="display: flex; ">
-    <div style="display:block; width:20%">
+  <div>
+    <h1>Accordage de l'instrument</h1>
+    <div style="display:flex;">
 
-      <p>Nombre de cordes de ton enorme instrument :</p>
-
-      <button @click="this.delCorde()" class="cordeplus"> - </button>
-      <h1>{{ this.nbCordes }} </h1><button class="cordeplus" @click=this.addCorde()> + </button>
-
-    </div>
-    <div style="display:block">
-
-      <ul>
-        <li class="horizontallicorde" v-for="corde in tuningList" :key="corde.cordeId">
-
-          <div style="display: block;position: relative;">
-            <label style="display: block;">{{ corde.cordeId }} </label>
-            <select class="selectnote" :style="{ backgroundColor : colorFromNote(corde.tuning)}" @change="onChangeTune($event, corde.cordeId)">
-              <option selected="selected">
-                {{ corde.tuning }}
-              </option>
-
-              <option v-for="option in this.nbnotes" :value="option.note" :key="option.id">{{ option.note }}</option>
-
-            </select>
-
-
-          </div>
-
-
-
-        </li>
-      </ul>
-    </div>
       <div style="display:block; width:20%">
 
-      <p>Diapason de ton énorme manche : </p>
+        <p>Nombre de cordes de ton enorme instrument :</p>
 
-      <button @click="this.diapasonMoins()" class="cordeplus"> - </button>
-      <h1>{{ this.diap }} </h1><button class="cordeplus" @click=this.diapasonPlus()> + </button>
+        <button @click="this.delCorde()" class="cordeplus"> - </button>
+        <h1>{{ this.nbCordes }} </h1><button class="cordeplus" @click=this.addCorde()> + </button>
 
+      </div>
+      <div style="display:block">
+
+        <ul>
+          <li class="horizontallicorde" v-for="corde in tuningList" :key="corde.cordeId">
+
+            <div style="display: block;position: relative;">
+              <label style="display: block;">{{ corde.cordeId }} </label>
+              <select class="selectnote" :style="{ backgroundColor: colorFromNote(corde.tuning) }"
+                @change="onChangeTune($event, corde.cordeId)">
+                <option selected="selected">
+                  {{ corde.tuning }}
+                </option>
+
+                <option v-for="option in this.nbnotes" :value="option.note" :key="option.id">{{ option.note }}</option>
+
+              </select>
+
+
+            </div>
+
+
+
+          </li>
+        </ul>
+      </div>
+      <!-- <div style="display:block; width:20%">
+
+        <p>Diapason de ton énorme manche : </p>
+
+        <button @click="this.diapasonMoins()" class="cordeplus"> - </button>
+        <h1>{{ this.diap }} </h1><button class="cordeplus" @click=this.diapasonPlus()> + </button>
+
+      </div> -->
     </div>
   </div>
 </template>
@@ -46,10 +51,10 @@
 export default {
   props: {
     cordesNumber: { required: true, type: Number },
-    diapason : { required: true, type: Number },
+    diapason: { required: true, type: Number },
     tuningList: { required: true, type: [Object] },
     notesnumber: { required: true, type: [Object] },
-    notesColor : { required : true, type : [Object]}
+    notesColor: { required: true, type: [Object] }
   },
   methods: {
     addCorde() {
@@ -66,21 +71,21 @@ export default {
       var found = this.listTuning.find((cor) => cor.cordeId === corde)
       found.tuning = event.target.value
     },
-    colorFromNote(tuning){
+    colorFromNote(tuning) {
       console.log(tuning)
 
       var find = this.couleurnoteliste.find((col) => col.note === tuning)
       return find.color
     },
-    diapasonPlus(){
-        this.diap +=10
-        this.$emit('diap', this.diap);
+    diapasonPlus() {
+      this.diap += 10
+      this.$emit('diap', this.diap);
 
     },
-    diapasonMoins(){
-      this.diap -=10
+    diapasonMoins() {
+      this.diap -= 10
       console.log("diapmoins")
-      
+
       console.log("Find das userc" + this.diap)
       this.$emit('diap', this.diap);
     }
@@ -88,11 +93,11 @@ export default {
   },
   data() {
     return {
-      diap : this.diapason,
+      diap: this.diapason,
       nbnotes: this.notesnumber,
       nbCordes: this.cordesNumber,
       listTuning: this.tuningList,
-      couleurnoteliste : this.notesColor
+      couleurnoteliste: this.notesColor
     };
   }
 
@@ -126,7 +131,7 @@ li a {
   text-decoration: none;
 }
 
-li:hover {
+.lithium:hover {
   background-color: #111111;
 }
 
@@ -143,7 +148,8 @@ li:hover {
   font-size: 16px;
   border-radius: 5px;
 }
-.selectnote{
+
+.selectnote {
   width: 60px;
   height: 40px;
   color: black;

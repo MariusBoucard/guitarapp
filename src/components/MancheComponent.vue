@@ -27,7 +27,7 @@
         <li class="horizontalli frette yolo" :style="{  '--mondiap' : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
             
             <ul>
-                <li class="lettre" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"  v-on:click="chooseNote(note,index)" >
+                <li class="lettre lithium" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"  v-on:click="chooseNote(note,index)" >
                     <div display="flex" class="cord" v-if="isChoosed(note, index)">
                         <hr class="line" :style="{  width : calcWidth(index) }" >
                         <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index),  backgroundColor  :calcBack(renderChoosen(note, index)) }">
