@@ -93,9 +93,8 @@ export default {
             })
 
         },
-     generateScales(notes) {
+        generateScales(notes) {
   const scales = [];
-
 
   // pour chaque note dans le tableau de notes
   for (let i = 0; i < notes.length; i++) {
@@ -106,16 +105,16 @@ export default {
       // ajouter la note de départ à l'échelle
       const noteName = this.scaleTypes[j].noteName ? this.scaleTypes[j].noteName : notes[i];
       const scaleName = `${noteName} ${this.scaleTypes[j].name}`;
-      scale.push(notes[i]);
+      scale.push(noteName);
 
-      let currentIndex = i;
+      let currentIndex = notes.indexOf(noteName);
 
       // générer l'échelle en fonction des intervalles du type
       for (let interval of this.scaleTypes[j].intervals) {
         currentIndex += interval;
 
         // ajouter un demi-ton si nécessaire
-        if (currentIndex < notes.length - 1 && interval < this.scaleTypes[j].intervals[this.scaleTypes[j].intervals.length - 1]) {
+        if (currentIndex < notes.length && interval < this.scaleTypes[j].intervals[this.scaleTypes[j].intervals.length - 1]) {
           currentIndex++;
         }
 
@@ -133,7 +132,7 @@ export default {
 
       // vérifier si l'échelle contient toutes les notes en entrée
       if (notes.every(note => scale.includes(note))) {
-        scales.push({name: scaleName, root: notes[i], notes: scale});
+        scales.push({name: scaleName, root: noteName, notes: scale});
       }
     }
   }
@@ -141,7 +140,6 @@ export default {
   // retourner le tableau d'objets contenant le nom complet de l'échelle, la note fondamentale et les notes de l'échelle
   return scales;
 }
-
 ,
 listeGammesFunc(){
             var notes = []
