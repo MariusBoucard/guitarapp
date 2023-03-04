@@ -1,0 +1,155 @@
+<template>
+    <div style="height:100px;width:100px, ; background-color: red;">
+        <ul>
+
+            <li v-for="gammes in this.listeGammesFunc()" :key="gammes"  >
+                <div v-if="gammes !== undefined">
+                    <p>{{ gammes.name }}</p>
+                    <p>{{ gammes.root }}</p>
+                    <ul>
+                        <li v-for="notes in gammes.notes" :key="notes">
+                            <p>{{ notes }}</p>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div>
+</template>
+
+<script>
+
+
+export default {
+    props: {
+        //Peut etre qu'on peut definir un array de note ici
+        notesSelected: { required: true, type: [Object] },
+    },
+    data() {
+        return {
+            notesSelectionnees: this.notesSelected,
+
+            listeNotes: [
+                { id: 0, note: "A" },
+                { id: 1, note: "AS" },
+                { id: 2, note: "B" },
+                { id: 3, note: "C" },
+                { id: 4, note: "CS" },
+                { id: 5, note: "D" },
+                { id: 6, note: "DS" },
+                { id: 7, note: "E" },
+                { id: 8, note: "F" },
+                { id: 9, note: "FS" },
+                { id: 10, note: "G" },
+                { id: 11, note: "GS" },
+            ],
+            listeGammes : []
+            
+          
+        }
+    },
+    methods : {
+           // generateScales(this.notesSelectionnees)
+    
+     generateScales(notes) {
+  const scales = [];
+  const scaleTypes = [
+    {name: 'Major', noteName: '', intervals: [0, 2, 4, 5, 7, 9, 11], notes: []},
+    {name: 'Natural Minor', noteName: '', intervals: [0, 2, 3, 5, 7, 8, 10], notes: []},
+    {name: 'Harmonic Minor', noteName: '', intervals: [0, 2, 3, 5, 7, 8, 11], notes: []},
+    {name: 'Melodic Minor', noteName: '', intervals: [0, 2, 3, 5, 7, 9, 11], notes: []},
+    {name: 'Dorian', noteName: 'D', intervals: [0, 2, 3, 5, 7, 9, 10], notes: []},
+    {name: 'Phrygian', noteName: 'E', intervals: [0, 1, 3, 5, 7, 8, 10], notes: []},
+    {name: 'Hirojoshi', noteName: 'C', intervals: [0, 2, 3, 7, 8], notes: []}
+  ];
+
+  // pour chaque note dans le tableau de notes
+  for (let i = 0; i < notes.length; i++) {
+    // pour chaque type d'échelle
+    for (let j = 0; j < scaleTypes.length; j++) {
+      const scale = [];
+
+      // ajouter la note de départ à l'échelle
+      const noteName = scaleTypes[j].noteName ? scaleTypes[j].noteName : notes[i];
+      const scaleName = `${noteName} ${scaleTypes[j].name}`;
+      scale.push(notes[i]);
+
+      let currentIndex = i;
+
+      // générer l'échelle en fonction des intervalles du type
+      for (let interval of scaleTypes[j].intervals) {
+        currentIndex += interval;
+
+        // ajouter un demi-ton si nécessaire
+        if (currentIndex < notes.length - 1 && interval < scaleTypes[j].intervals[scaleTypes[j].intervals.length - 1]) {
+          currentIndex++;
+        }
+
+        // si l'indice dépasse la longueur du tableau de notes, revenir au début
+        if (currentIndex >= notes.length) {
+          currentIndex = currentIndex - notes.length;
+        }
+
+        // ajouter la note à l'échelle
+        scale.push(notes[currentIndex]);
+      }
+
+      // ajouter les notes de l'échelle au type d'échelle
+      scaleTypes[j].notes.push(scale);
+
+      // vérifier si l'échelle contient toutes les notes en entrée
+      if (notes.every(note => scale.includes(note))) {
+        scales.push({name: scaleName, root: notes[i], notes: scale});
+      }
+    }
+  }
+
+  // retourner le tableau d'objets contenant le nom complet de l'échelle, la note fondamentale et les notes de l'échelle
+  return scales;
+}
+
+,
+
+// obtenir l'intervalle en fonction de l'étape et du type d'échelle
+ getInterval(step, scaleType) {
+    if (scaleType === 'major') {
+        return [0, 2, 4, 5, 7, 9, 11][step];
+    } else if (scaleType === 'natural minor') {
+        return [0, 2, 3, 5, 7, 8, 10][step];
+    } else if (scaleType === 'harmonic minor') {
+        return [0, 2, 3, 5, 7, 8, 11][step];
+    } else if (scaleType === 'melodic minor') {
+        if (step < 6) {
+            return [0, 2, 3, 5, 7, 9, 11][step];
+        } else {
+            return [0, 2, 4, 5, 7, 9, 10][step];
+        }
+    }
+},
+listeGammesFunc(){
+            var notes = []
+        console.log(this.notesSelected)
+        this.notesSelectionnees.forEach(element => {
+            if(element.enabled){
+                notes.push(element.note)
+            }
+        });
+        const scales = this.generateScales(notes);
+        console.log(scales)
+        this.listeGammes=scales
+            return scales
+        }
+    }
+
+
+    
+       
+
+
+
+
+
+}
+
+
+</script>

@@ -24,17 +24,17 @@
         </li>
 
         
-        <li class="horizontalli frette" :style="{  width : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
+        <li class="horizontalli frette yolo" :style="{  '--mondiap' : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
             
             <ul>
-                <li class="lettre" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId">
+                <li class="lettre" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"  v-on:click="chooseNote(note,index)" >
                     <div display="flex" class="cord" v-if="isChoosed(note, index)">
                         <hr class="line" :style="{  width : calcWidth(index) }" >
                         <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index),  backgroundColor  :calcBack(renderChoosen(note, index)) }">
                             <p>{{ renderChoosen(note, index) }}</p>
                         </div>      
                     </div>
-                    <div display="flex" class="cord" v-else>
+                    <div display="flex" class="cord"  v-else>
                         <hr class="line" :style="{  width : calcWidth(index) }">
                              
                     </div>
@@ -96,7 +96,7 @@ export default {
             nbCordes : 6,
             notesSelectedIntra: this.notesSelected,
             couleursnotes: this.colorNotes,
-            diapason : this.diap*2.8
+            diapason : this.diap*2.3
         }
 
     },
@@ -112,6 +112,13 @@ export default {
             // // console.log(test)
             // return test.enabled
         },
+        chooseNote(corde,index){
+
+            var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
+            var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
+            console.log('caca')
+            enabledornot.enabled = !enabledornot.enabled
+        },
         renderChoosen(corde, index) {
            
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
@@ -120,7 +127,17 @@ export default {
         },
         test() {
 
-            console.log(this.nbfrettes)
+            // console.log(this.nbfrettes)
+        },
+        
+        calcBack(lettre){
+        //    console.log(lettre)
+
+            var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
+            return couleur.color
+        },
+        calcHeight(){
+            return Math.round(300/this.nbCordes)+"px"
         },
         calcWidth(index){
             var diaprestant = this.diapason
@@ -137,19 +154,10 @@ export default {
                 var width = this.calcWidth(index)
                 var intWidth = width.substring(0,width.length-2)
                 var intHeight = height.substring(0,height.length-2)
-                console.log("height"+Math.min(intWidth, intHeight))
+                // console.log("height"+Math.min(intWidth, intHeight))
                 return Math.min(intWidth, intHeight)+"px"
         },
-        calcHeight(){
-            return Math.round(300/this.nbCordes)+"px"
-        },
-        calcBack(lettre){
-           console.log(lettre)
-
-            var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
-            return couleur.color
-        }
-        
+       
     },
 
 
@@ -176,6 +184,9 @@ export default {
 
 </script>
 <style>
+:root {
+  --mondiap: #ffffff;
+}
 .lettre{
     padding:0;
     width: 100%;
@@ -205,6 +216,7 @@ export default {
 .frette {
     background-image: url('../assets/frettebackground.jpeg');
     border-right: 1px solid rgb(255, 255, 255);
+    background-color: rgb(71,47,23);
 
 }
 .cord{
@@ -216,5 +228,8 @@ export default {
     margin: 25px 0 0 0;
     /* width:  100%; */
     color:white;
+}
+.yolo{
+    width: var(--mondiap);
 }
 </style>

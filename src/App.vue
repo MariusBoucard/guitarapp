@@ -10,7 +10,7 @@
     @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
       </div>
       <div class="columnhalf">
-        <TuningComponent :notesColor=this.colors :notesnumber=this.nbnotes :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+        <TuningComponent @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
 
       </div>
     </div>
@@ -18,6 +18,7 @@
   </div>
   <div class="columnd">
     <ColorComponent :couleurdict=this.colors ></ColorComponent>
+    <GammeFinderComponent :notesSelected="this.noteSlectedList"></GammeFinderComponent>
   </div>
 </div> 
   
@@ -29,6 +30,7 @@ import MancheComponent from './components/MancheComponent.vue'
 import NotesSelectedComponent from './components/NotesSelectedComponent.vue';
 import TuningComponent from './components/TuningComponent.vue';
 import ColorComponent from './components/ColorComponent.vue';
+import GammeFinderComponent from './components/GammeFinderComponent.vue';
 
 export default {
   name: 'App',
@@ -36,7 +38,8 @@ export default {
     MancheComponent,
     NotesSelectedComponent,
     TuningComponent,
-    ColorComponent
+    ColorComponent,
+    GammeFinderComponent
   },
   data () {
     return {
@@ -108,6 +111,10 @@ export default {
       const find = this.noteSlectedList.find((notes) => notes.note == note.note )
       find.enabled = note.enabled
        console.log(find)
+    },
+    changeDiap(diap){
+      console.log("diap "+diap)
+      this.diapason = diap
     }
   }
 

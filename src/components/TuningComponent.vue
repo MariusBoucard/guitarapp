@@ -32,12 +32,21 @@
         </li>
       </ul>
     </div>
+      <div style="display:block; width:20%">
+
+      <p>Diapason de ton énorme manche : </p>
+
+      <button @click="this.diapasonMoins()" class="cordeplus"> - </button>
+      <h1>{{ this.diap }} </h1><button class="cordeplus" @click=this.diapasonPlus()> + </button>
+
+    </div>
   </div>
 </template>
 <script>
 export default {
   props: {
     cordesNumber: { required: true, type: Number },
+    diapason : { required: true, type: Number },
     tuningList: { required: true, type: [Object] },
     notesnumber: { required: true, type: [Object] },
     notesColor : { required : true, type : [Object]}
@@ -62,11 +71,24 @@ export default {
 
       var find = this.couleurnoteliste.find((col) => col.note === tuning)
       return find.color
+    },
+    diapasonPlus(){
+        this.diap +=10
+        this.$emit('diap', this.diap);
+
+    },
+    diapasonMoins(){
+      this.diap -=10
+      console.log("diapmoins")
+      
+      console.log("Find das userc" + this.diap)
+      this.$emit('diap', this.diap);
     }
 
   },
   data() {
     return {
+      diap : this.diapason,
       nbnotes: this.notesnumber,
       nbCordes: this.cordesNumber,
       listTuning: this.tuningList,

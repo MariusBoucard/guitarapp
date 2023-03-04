@@ -15,7 +15,7 @@
   "dependencies": {
     "core-js": "^3.8.3",
     "lodash.uniqueid": "^4.0.1",
-    "vue": "^3.2.13"
+    "vue": "^3.2.47"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
@@ -44,6 +44,12 @@
     },
     "rules": {}
   },
+  "extraFiles": [
+    {
+      "from": "src/assets",
+      "to": "./app/img"
+    }
+  ],
   "browserslist": [
     "> 1%",
     "last 2 versions",
