@@ -84,6 +84,8 @@ export default {
             var type2 = fonda+" "+type
             console.log(type2)
             var gamme = this.generateGammes(type2,fonda)
+            console.log("gamme generee "+gamme)
+            console.log(gamme)
             this.notesSelectionnees.forEach(n => n.enabled =false)
             gamme.notes.forEach(note => {
                 var find = this.notesSelectionnees.find(notesel => notesel.note===note)
@@ -141,23 +143,6 @@ export default {
 }
 
 ,
-
-// obtenir l'intervalle en fonction de l'étape et du type d'échelle
- getInterval(step, scaleType) {
-    if (scaleType === 'major') {
-        return [0, 2, 4, 5, 7, 9, 11][step];
-    } else if (scaleType === 'natural minor') {
-        return [0, 2, 3, 5, 7, 8, 10][step];
-    } else if (scaleType === 'harmonic minor') {
-        return [0, 2, 3, 5, 7, 8, 11][step];
-    } else if (scaleType === 'melodic minor') {
-        if (step < 6) {
-            return [0, 2, 3, 5, 7, 9, 11][step];
-        } else {
-            return [0, 2, 4, 5, 7, 9, 10][step];
-        }
-    }
-},
 listeGammesFunc(){
             var notes = []
         this.notesSelectionnees.forEach(element => {
@@ -165,6 +150,7 @@ listeGammesFunc(){
                 notes.push(element.note)
             }
         });
+        console.log("yeah"+notes)
         const scales = this.generateScales(notes);
         console.log(scales)
         this.listeGammes = []
