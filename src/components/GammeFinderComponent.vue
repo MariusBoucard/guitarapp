@@ -105,17 +105,20 @@ export default {
       // ajouter la note de départ à l'échelle
       const noteName = this.scaleTypes[j].noteName ? this.scaleTypes[j].noteName : notes[i];
       const scaleName = `${noteName} ${this.scaleTypes[j].name}`;
-      scale.push(noteName);
+      scale.push(notes[i]);
 
-      let currentIndex = notes.indexOf(noteName);
+      let currentIndex = notes.indexOf(notes[i]);
 
       // générer l'échelle en fonction des intervalles du type
       for (let interval of this.scaleTypes[j].intervals) {
         currentIndex += interval;
 
         // ajouter un demi-ton si nécessaire
-        if (currentIndex < notes.length && interval < this.scaleTypes[j].intervals[this.scaleTypes[j].intervals.length - 1]) {
-          currentIndex++;
+        if (currentIndex < notes.length - 1 && interval < this.scaleTypes[j].intervals[this.scaleTypes[j].intervals.length - 1]) {
+          const nextNote = notes[currentIndex + 1];
+          if (nextNote.indexOf("S") === -1) {
+            currentIndex++;
+          }
         }
 
         // si l'indice dépasse la longueur du tableau de notes, revenir au début
@@ -132,7 +135,7 @@ export default {
 
       // vérifier si l'échelle contient toutes les notes en entrée
       if (notes.every(note => scale.includes(note))) {
-        scales.push({name: scaleName, root: noteName, notes: scale});
+        scales.push({name: scaleName, root: notes[i], notes: scale});
       }
     }
   }
