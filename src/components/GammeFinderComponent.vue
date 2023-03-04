@@ -5,7 +5,7 @@
 
             <li v-for="gammes in this.listeGammesFunc()" :key="gammes"  >
                 <div v-if="gammes !== undefined">
-                    <button class="buttonstyle" @click="this.setGamme(gammes.fonda, gammes.type)">{{gammes.fonda }} - {{ gammes.type }}</button>
+                    <button class="buttonstyle" @click="this.setGamme(gammes.root, gammes.name)">{{gammes.root }} - {{ gammes.name }}</button>
                   
                     <ul >
                         <li class="notesgammes" v-for="notes in gammes.notes" :key="notes">
@@ -80,12 +80,9 @@ export default {
     },
     methods : {
         setGamme(fonda,type){
-            console.log("setgamme")
-            var type2 = fonda+" "+type
-            console.log(type2)
-            var gamme = this.generateGammes(type2,fonda)
-            console.log("gamme generee "+gamme)
-            console.log(gamme)
+          
+            var gamme = this.generateGammes(type,fonda)
+          
             this.notesSelectionnees.forEach(n => n.enabled =false)
             gamme.notes.forEach(note => {
                 var find = this.notesSelectionnees.find(notesel => notesel.note===note)
@@ -93,58 +90,101 @@ export default {
             })
 
         },
-         generateScales(notes) {
-  const noteIndexes = {
-    A: 0, AS: 1, B: 2, BS: 3, C: 4, CS: 5,
-    D: 6, DS: 7, E: 8, F: 9, FS: 10, G: 11
-  };
-
-  const scales = [];
-
-  for (let i = 0; i < notes.length; i++) {
-    // Tri des notes en entrée par ordre croissant
-    const sortedNotes = [...notes].sort((a, b) => noteIndexes[a] - noteIndexes[b]);
-
-    for (let j = 0; j < this.scaleTypes.length; j++) {
-      const scaleType = this.scaleTypes[j];
-      const scale = [];
-
-      // Trouver l'index de la note de départ
-      let startIndex = noteIndexes[scaleType.noteName || sortedNotes[0]];
-      let currentIndex = startIndex;
-
-      // Ajouter la note de départ à l'échelle
-      scale.push(Object.keys(noteIndexes)[startIndex]);
-
-      // Générer l'échelle en fonction des intervalles du type
-      for (let interval of scaleType.intervals) {
-        currentIndex = (startIndex + interval) % 12;
-
-        // Ajouter un demi-ton si nécessaire
-        if (interval === 1 || interval === 3 || interval === 6 || interval === 8 || interval === 10) {
-          currentIndex = (currentIndex + 1) % 12;
+        generatePopulation(nomGamme){
+            console.log("pute")
+            var genScale = this.scaleTypes.find(gamme => gamme.name===nomGamme)
+            var soluce = []
+            this.listeNotes.forEach( note =>
+            {
+                var tabNotes = []
+                genScale.intervals.forEach(
+                    step => {
+                        tabNotes.push(this.listeNotes.find(caca => caca.id===((step+note.id)%12)).note)
+                    }
+                )
+                soluce.push({name: nomGamme,root : note.note, notes : tabNotes})
+            })
+            console.log("popul "+soluce)
+            return soluce
         }
 
-        // Ajouter la note à l'échelle
-        scale.push(Object.keys(noteIndexes)[currentIndex]);
+
+
+        ,
+
+        generateScales(notes){
+            const scalesfinal = [];
+            notes.sort();
+            console.log(notes)
+            for(let i = 0; i<this.scaleTypes.length;i++){
+                
+                var population = this.generatePopulation(this.scaleTypes[i].name)
+                population.forEach(elem =>{
+                        if(notes.every(val => elem.notes.includes(val))){
+                            scalesfinal.push(elem)
+                        }
+
+                }
+                 )
+                //Generer l'ensemble des 12 mêmes gammes en fonction du type
+                //check pour lesquelles nos notes sont dedans, et les garder
+            }
+            console.log(scalesfinal)
+            return scalesfinal
+
+
+        },
+
+
+         generateScalesChat(notes) {
+  const scales = [];
+
+  // trier les notes par ordre alphabétique
+  notes.sort();
+
+
+
+
+  // pour chaque note dans le tableau de notes
+  for (let i = 0; i < notes.length; i++) {
+    // pour chaque type d'échelle
+    for (let j = 0; j < this.scaleTypes.length; j++) {
+      const scale = [];
+
+      // ajouter la note de départ à l'échelle
+      const noteName = this.scaleTypes[j].noteName ? this.scaleTypes[j].noteName : notes[i];
+      const scaleName = `${noteName} ${this.scaleTypes[j].name}`;
+      scale.push(notes[i]);
+
+      let currentIndex = i;
+
+      // générer l'échelle en fonction des intervalles du type
+      for (let interval of this.scaleTypes[j].intervals) {
+        currentIndex += interval;
+
+        // ajouter un demi-ton si nécessaire
+        if (currentIndex < notes.length - 1 && interval < this.scaleTypes[j].intervals[this.scaleTypes[j].intervals.length - 1]) {
+          currentIndex++;
+        }
+
+        // si l'indice dépasse la longueur du tableau de notes, revenir au début
+        if (currentIndex >= notes.length) {
+          currentIndex = currentIndex - notes.length;
+        }
+
+        // ajouter la note à l'échelle
+        scale.push(notes[currentIndex]);
       }
 
-      // Vérifier si l'échelle contient toutes les notes en entrée
-      if (sortedNotes.every((note, index) => {
-        const interval = (noteIndexes[note] - noteIndexes[sortedNotes[index]] + 12) % 12;
-        return scale.includes(Object.keys(noteIndexes)[interval]);
-      })) {
-        const scaleName = `${scale[0]} ${scaleType.name}`;
-        scales.push({name: scaleName, root: scale[0], notes: scale});
+      // vérifier si l'échelle contient toutes les notes en entrée
+      if (notes.every(note => scale.includes(note))) {
+        scales.push({name: scaleName, root: notes[i], notes: scale});
       }
     }
   }
 
+  // retourner le tableau d'objets contenant le nom complet de l'échelle, la note fondamentale et les notes de l'échelle
   return scales;
-}
-
-, rotateArray(array, count) {
-  return [...array.slice(count), ...array.slice(0, count)];
 }
 
 ,
@@ -155,26 +195,32 @@ listeGammesFunc(){
                 notes.push(element.note)
             }
         });
+
         console.log("yeah"+notes)
         const scales = this.generateScales(notes);
         console.log(scales)
         this.listeGammes = []
         scales.forEach(gamme => {
-            this.listeGammes.push(this.generateGammes(gamme.name,gamme.root))
+            this.listeGammes.push(gamme)
         })
             return this.listeGammes
         },
          generateGammes(type,rootnote){
            
-                var find = this.scaleTypes.find(scale => scale.name== type.substr(type.indexOf(" ") + 1))
-                var note = this.listeNotes.find(elem => rootnote === elem.note)
-                var scale = {}
-                scale.fonda = rootnote
-                scale.type = type.substr(type.indexOf(" ") + 1)
+           
+            var genScale = this.scaleTypes.find(gamme => gamme.name===type)
+            var soluce = {}
+            var notefonda = this.listeNotes.find(n => n.note === rootnote)
+           
                 var tabNotes = []
-                find.intervals.forEach(offset => tabNotes.push(this.notesTab[((note.id+offset)%12)]) )
-                scale.notes = tabNotes
-                return scale
+                genScale.intervals.forEach(
+                    step => {
+                        tabNotes.push(this.listeNotes.find(caca => caca.id===((step+notefonda.id)%12)).note)
+                    }
+                )
+                
+            console.log("gamme generated "+soluce)
+            return {notes : tabNotes, name : type, root : rootnote}
 
         }
     }
