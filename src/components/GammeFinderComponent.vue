@@ -93,56 +93,60 @@ export default {
             })
 
         },
-        generateScales(notes) {
+         generateScales(notes) {
+  const noteIndexes = {
+    A: 0, AS: 1, B: 2, BS: 3, C: 4, CS: 5,
+    D: 6, DS: 7, E: 8, F: 9, FS: 10, G: 11
+  };
+
   const scales = [];
 
-  // pour chaque note dans le tableau de notes
   for (let i = 0; i < notes.length; i++) {
-    // pour chaque type d'échelle
+    // Tri des notes en entrée par ordre croissant
+    const sortedNotes = [...notes].sort((a, b) => noteIndexes[a] - noteIndexes[b]);
+
     for (let j = 0; j < this.scaleTypes.length; j++) {
+      const scaleType = this.scaleTypes[j];
       const scale = [];
 
-      // ajouter la note de départ à l'échelle
-      const noteName = this.scaleTypes[j].noteName ? this.scaleTypes[j].noteName : notes[i];
-      const scaleName = `${noteName} ${this.scaleTypes[j].name}`;
-      scale.push(notes[i]);
+      // Trouver l'index de la note de départ
+      let startIndex = noteIndexes[scaleType.noteName || sortedNotes[0]];
+      let currentIndex = startIndex;
 
-      let currentIndex = notes.indexOf(notes[i]);
+      // Ajouter la note de départ à l'échelle
+      scale.push(Object.keys(noteIndexes)[startIndex]);
 
-      // générer l'échelle en fonction des intervalles du type
-      for (let interval of this.scaleTypes[j].intervals) {
-        currentIndex += interval;
+      // Générer l'échelle en fonction des intervalles du type
+      for (let interval of scaleType.intervals) {
+        currentIndex = (startIndex + interval) % 12;
 
-        // ajouter un demi-ton si nécessaire
-        if (currentIndex < notes.length - 1 && interval < this.scaleTypes[j].intervals[this.scaleTypes[j].intervals.length - 1]) {
-          const nextNote = notes[currentIndex + 1];
-          if (nextNote.indexOf("S") === -1) {
-            currentIndex++;
-          }
+        // Ajouter un demi-ton si nécessaire
+        if (interval === 1 || interval === 3 || interval === 6 || interval === 8 || interval === 10) {
+          currentIndex = (currentIndex + 1) % 12;
         }
 
-        // si l'indice dépasse la longueur du tableau de notes, revenir au début
-        if (currentIndex >= notes.length) {
-          currentIndex = currentIndex - notes.length;
-        }
-
-        // ajouter la note à l'échelle
-        scale.push(notes[currentIndex]);
+        // Ajouter la note à l'échelle
+        scale.push(Object.keys(noteIndexes)[currentIndex]);
       }
 
-      // ajouter les notes de l'échelle au type d'échelle
-      this.scaleTypes[j].notes.push(scale);
-
-      // vérifier si l'échelle contient toutes les notes en entrée
-      if (notes.every(note => scale.includes(note))) {
-        scales.push({name: scaleName, root: notes[i], notes: scale});
+      // Vérifier si l'échelle contient toutes les notes en entrée
+      if (sortedNotes.every((note, index) => {
+        const interval = (noteIndexes[note] - noteIndexes[sortedNotes[index]] + 12) % 12;
+        return scale.includes(Object.keys(noteIndexes)[interval]);
+      })) {
+        const scaleName = `${scale[0]} ${scaleType.name}`;
+        scales.push({name: scaleName, root: scale[0], notes: scale});
       }
     }
   }
 
-  // retourner le tableau d'objets contenant le nom complet de l'échelle, la note fondamentale et les notes de l'échelle
   return scales;
 }
+
+, rotateArray(array, count) {
+  return [...array.slice(count), ...array.slice(0, count)];
+}
+
 ,
 listeGammesFunc(){
             var notes = []
