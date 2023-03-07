@@ -12,10 +12,13 @@
         <li class="horizontalli ">
             <ul>
                 <li style=" width: 40px" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"> 
-                    
-                    {{note.tuning}}
-                    <div display="flex case">
-                        
+                    <div class="circle" style="width:35px;height:35px" :style="{backgroundColor : calcBack(note.tuning) }" v-if="isChoosedTune(note)">
+                        {{note.tuning}}
+
+                    </div>
+                    <div v-else>
+                        {{note.tuning}}
+
                     </div>
                    
                 </li>
@@ -101,6 +104,12 @@ export default {
 
     },
     methods: {
+        isChoosedTune(note){
+            console.log(note.tuning)
+            var find = this.notesSelectedIntra.find(notes=> notes.note === note.tuning)
+            console.log(find)
+            return find.enabled
+        },  
         isChoosed(corde, index) {
           
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
