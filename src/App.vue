@@ -126,18 +126,27 @@ export default {
             console.log('Colors array changed!');
         },
         deep: true,
-    }},
+    },
+  
+  
+  
+  
+  },
     mounted(){
       this.colors.forEach(
-              col => col.color= localStorage.getItem(col.note)
+              col => {
+                if (localStorage.getItem(col.note)) {
+                col.color= localStorage.getItem(col.note)}
+
+              }
             )
+
+
+       
+            console.log(this.noteSlectedList)
   console.log('App Mounted');
 
-    if (localStorage.colors) {
-      console.log("cacaS");
-      this.colors= JSON.parse(localStorage.colors);
 
-    }
   }
 
 
