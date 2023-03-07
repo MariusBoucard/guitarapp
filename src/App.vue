@@ -107,36 +107,38 @@ export default {
   methods : {
 
     changeNoteSelection(note){
+      console.log('caca'+note);
       const find = this.noteSlectedList.find((notes) => notes.note == note.note )
       find.enabled = note.enabled
+       console.log(find)
     },
     changeDiap(diap){
+      console.log("diap "+diap)
       this.diapason = diap
     }
   },
   watch: {
     colors: {
         handler() {
-            for(var a in this.colors){
-              localStorage.setItem(a.note, a.color)
-            }
+            this.colors.forEach(
+              col => localStorage.setItem(col.note,col.color)
+            )
+            console.log('Colors array changed!');
         },
-        deep: false,
+        deep: true,
     }},
     mounted(){
+      this.colors.forEach(
+              col => col.color= localStorage.getItem(col.note)
+            )
   console.log('App Mounted');
-   
-      for(var a in this.colors){
-        if (localStorage.getItem(a.note)) {
-          console.log("found")
-            var kk = this.color.find(col => col.note === a.note)
-             kk.color = localStorage.getItem(a.note)
-            }
-     
-     
+
+    if (localStorage.colors) {
+      console.log("cacaS");
+      this.colors= JSON.parse(localStorage.colors);
 
     }
-    }
+  }
 
 
 

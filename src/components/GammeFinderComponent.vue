@@ -91,7 +91,6 @@ export default {
 
         },
         generatePopulation(nomGamme){
-            console.log("pute")
             var genScale = this.scaleTypes.find(gamme => gamme.name===nomGamme)
             var soluce = []
             this.listeNotes.forEach( note =>
@@ -104,7 +103,6 @@ export default {
                 )
                 soluce.push({name: nomGamme,root : note.note, notes : tabNotes})
             })
-            console.log("popul "+soluce)
             return soluce
         }
 
@@ -115,7 +113,6 @@ export default {
         generateScales(notes){
             const scalesfinal = [];
             notes.sort();
-            console.log(notes)
             for(let i = 0; i<this.scaleTypes.length;i++){
                 
                 var population = this.generatePopulation(this.scaleTypes[i].name)
@@ -129,7 +126,6 @@ export default {
                 //Generer l'ensemble des 12 mêmes gammes en fonction du type
                 //check pour lesquelles nos notes sont dedans, et les garder
             }
-            console.log(scalesfinal)
             return scalesfinal
 
 
@@ -196,9 +192,7 @@ listeGammesFunc(){
             }
         });
 
-        console.log("yeah"+notes)
         const scales = this.generateScales(notes);
-        console.log(scales)
         this.listeGammes = []
         scales.forEach(gamme => {
             this.listeGammes.push(gamme)
