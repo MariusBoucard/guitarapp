@@ -11,7 +11,7 @@
       </div>
       <div class="columnhalf">
         <TuningComponent @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
-
+        <TunerComponent></TunerComponent>
       </div>
     </div>
    
@@ -31,10 +31,12 @@ import NotesSelectedComponent from './components/NotesSelectedComponent.vue';
 import TuningComponent from './components/TuningComponent.vue';
 import ColorComponent from './components/ColorComponent.vue';
 import GammeFinderComponent from './components/GammeFinderComponent.vue';
+import TunerComponent from './components/TunerComponent.vue';
 
 export default {
   name: 'App',
   components: {
+    TunerComponent,
     MancheComponent,
     NotesSelectedComponent,
     TuningComponent,
@@ -132,6 +134,12 @@ export default {
   
   
   },
+  created(){
+
+    let recaptchaScript = document.createElement('script')
+      recaptchaScript.setAttribute('src', 'https://www.google.com/recaptcha/api.js')
+      document.head.appendChild(recaptchaScript)
+  },
     mounted(){
       this.colors.forEach(
               col => {
@@ -140,7 +148,6 @@ export default {
 
               }
             )
-
 
        
             console.log(this.noteSlectedList)
