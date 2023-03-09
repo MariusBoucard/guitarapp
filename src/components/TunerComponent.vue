@@ -16,14 +16,19 @@
 import { JsTunerUI, Recorder } from 'jstuner-ui';
 
 export default {
+  props : {
+    notePlayed : { required : true, type : String}
+  },
   data(){
     return{
-      note:"A"
+
+      note: this.notePlayed,
+      
 
     }},
     methods : {
       name() {
-              const names = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
+              const names = ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"];
               const note12 = (this.note >= 0) ? this.note % 12 : this.note % 12 + 12;
               var i = Math.floor((note12 + 0.5) % 12);
               return names[i];
@@ -35,7 +40,8 @@ export default {
   const recorder = new Recorder();
   recorder.onData = (wave, hz, note)=>{
     ui.draw(wave, hz, note);
-    this.note = hzs;
+    this.note = hz;
+    this.$emit('changenote', hz);
   }
   recorder.main();
   },

@@ -2,7 +2,7 @@
    <div class="row">
   <div class="column">
     <div style=" display: flex;">
-      <MancheComponent :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
+      <MancheComponent :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
     </div>
     <div class="row">
       <div class="columnhalf"> 
@@ -11,7 +11,7 @@
       </div>
       <div class="columnhalf">
         <TuningComponent @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
-        <TunerComponent></TunerComponent>
+        <TunerComponent @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
       </div>
     </div>
    
@@ -48,6 +48,7 @@ export default {
       nbfrettes : 24,
       diapason : 648,
       nbStrings: 7,
+      notePlayed : "",
       nbnotes: [
                 { id: 0, note: "A" },
                 { id: 1, note: "AS" },
@@ -107,7 +108,11 @@ export default {
 
   },
   methods : {
-
+    changeNote(note){
+      console.log("cacapute"+note)
+      this.notePlayed = this.name(note)
+      console.log("Nooote"+this.notePlayed)
+    },
     changeNoteSelection(note){
       console.log('caca'+note);
       const find = this.noteSlectedList.find((notes) => notes.note == note.note )
@@ -117,7 +122,13 @@ export default {
     changeDiap(diap){
       console.log("diap "+diap)
       this.diapason = diap
-    }
+    },
+    name(note) {
+              const names = ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"];
+              const note12 = (note >= 0) ? note % 12 : note % 12 + 12;
+              var i = Math.floor((note12 + 0.5) % 12);
+              return names[i];
+            }
   },
   watch: {
     colors: {
@@ -136,9 +147,6 @@ export default {
   },
   created(){
 
-    let recaptchaScript = document.createElement('script')
-      recaptchaScript.setAttribute('src', 'https://www.google.com/recaptcha/api.js')
-      document.head.appendChild(recaptchaScript)
   },
     mounted(){
       this.colors.forEach(

@@ -2,7 +2,7 @@
     <div>
     <h1>Guitar's neck</h1>
     <!-- <p>{{ this.tuningintra }}</p> -->
-
+        <h1>{{ this.notePlayed}}</h1>
     <div>
 </div>
 <div width="300px">
@@ -76,7 +76,8 @@ export default {
         notesSelected: { required: true, type: [Object] },
         colorNotes: { required: true, type: [Object] },
         nbFrettes: { required: true, type: Number },
-        diap : { required : true, type : Number}
+        diap : { required : true, type : Number},
+        notePlayed : { required : true, type : String}
     },
     data() {
         return {
@@ -99,7 +100,8 @@ export default {
             nbCordes : 6,
             notesSelectedIntra: this.notesSelected,
             couleursnotes: this.colorNotes,
-            diapason : this.diap*2.3
+            diapason : this.diap*2.3,
+            currentNote : this.notePlayed
         }
 
     },
@@ -141,9 +143,11 @@ export default {
         
         calcBack(lettre){
         //    console.log(lettre)
-
-            var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
-            return couleur.color
+            if(lettre === this.notePlayed){
+                return 'red'
+            }
+            else {var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
+            return couleur.color }
         },
         calcHeight(){
             return Math.round(300/this.nbCordes)+"px"
@@ -172,7 +176,7 @@ export default {
 
     computed: {
         caca() {
-            return 2
+            return this.currentNote
         },
         cordeListe() {
             var cordeListe = []
