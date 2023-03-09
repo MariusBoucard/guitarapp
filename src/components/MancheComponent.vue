@@ -3,6 +3,8 @@
     <h1>Guitar's neck</h1>
     <!-- <p>{{ this.tuningintra }}</p> -->
         <h1>{{ this.notePlayed}}</h1>
+        <p>Activer le sapin de noel :</p>
+        <button class="button" style="border : 1px solid black" @click="allumerSapin()" :style="{ backgroundColor : getStateButton()}">Sapinnnnn</button>
     <div>
 </div>
 <div width="300px">
@@ -101,7 +103,8 @@ export default {
             notesSelectedIntra: this.notesSelected,
             couleursnotes: this.colorNotes,
             diapason : this.diap*2.3,
-            currentNote : this.notePlayed
+            currentNote : this.notePlayed,
+            sapinNoel : false
         }
 
     },
@@ -140,14 +143,28 @@ export default {
 
             // console.log(this.nbfrettes)
         },
-        
+        getStateButton(){
+            if(this.sapinNoel){
+                return "grey"
+            }
+            return "white"
+        }
+        ,
+        allumerSapin(){
+            this.sapinNoel = ! this.sapinNoel
+        }
+        ,
         calcBack(lettre){
         //    console.log(lettre)
-            if(lettre === this.notePlayed){
-                return 'red'
+        if(this.sapinNoel){
+             if(lettre === this.notePlayed){
+                console.log("caca")
+                return 'red '
             }
-            else {var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
-            return couleur.color }
+        }
+           
+           var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
+            return couleur.color 
         },
         calcHeight(){
             return Math.round(300/this.nbCordes)+"px"
