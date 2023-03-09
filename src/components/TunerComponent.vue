@@ -7,7 +7,7 @@
 </template>
 
 <script>
-// import '../../jstuner/public/assets/bundle.js'
+import '../../jstuner/public/assets/bundle.js'
 import { JsTunerUI, Recorder } from 'jstuner-ui';
 
 export default {
