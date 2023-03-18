@@ -203,7 +203,7 @@ listeGammesFunc(){
            
            
             var genScale = this.scaleTypes.find(gamme => gamme.name===type)
-            var soluce = {}
+            // var soluce = {}
             var notefonda = this.listeNotes.find(n => n.note === rootnote)
            
                 var tabNotes = []
@@ -213,7 +213,7 @@ listeGammesFunc(){
                     }
                 )
                 
-            console.log("gamme generated "+soluce)
+            // console.log("gamme generated "+soluce)
             return {notes : tabNotes, name : type, root : rootnote}
 
         }

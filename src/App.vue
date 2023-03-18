@@ -18,7 +18,7 @@
   </div>
   <div class="columnd">
     <ColorComponent :couleurdict=this.colors ></ColorComponent>
-    <GammeFinderComponent :notesSelected="this.noteSlectedList"></GammeFinderComponent>
+    <!-- <GammeFinderComponent :notesSelected="this.noteSlectedList"></GammeFinderComponent> -->
   </div>
 </div> 
   
@@ -30,7 +30,7 @@ import MancheComponent from './components/MancheComponent.vue'
 import NotesSelectedComponent from './components/NotesSelectedComponent.vue';
 import TuningComponent from './components/TuningComponent.vue';
 import ColorComponent from './components/ColorComponent.vue';
-import GammeFinderComponent from './components/GammeFinderComponent.vue';
+// import GammeFinderComponent from './components/GammeFinderComponent.vue';
 import TunerComponent from './components/TunerComponent.vue';
 
 export default {
@@ -41,7 +41,7 @@ export default {
     NotesSelectedComponent,
     TuningComponent,
     ColorComponent,
-    GammeFinderComponent
+    // GammeFinderComponent
   },
   data () {
     return {
@@ -109,18 +109,18 @@ export default {
   },
   methods : {
     changeNote(note){
-      console.log("cacapute"+note)
+      // console.log("cacapute"+note)
       this.notePlayed = this.name(note)
-      console.log("Nooote"+this.notePlayed)
+      // console.log("Nooote"+this.notePlayed)
     },
     changeNoteSelection(note){
-      console.log('caca'+note);
+      // console.log('caca'+note);
       const find = this.noteSlectedList.find((notes) => notes.note == note.note )
       find.enabled = note.enabled
-       console.log(find)
+      //  console.log(find)
     },
     changeDiap(diap){
-      console.log("diap "+diap)
+      // console.log("diap "+diap)
       this.diapason = diap
     },
     name(note) {
@@ -151,14 +151,15 @@ export default {
     mounted(){
       this.colors.forEach(
               col => {
-                if (localStorage.getItem(col.note)) {
-                col.color= localStorage.getItem(col.note)}
+                if (localStorage.getItem(col.note)!=="null") {
+                  col.color= localStorage.getItem(col.note)
+                }
 
               }
             )
 
        
-            console.log(this.noteSlectedList)
+            // console.log(this.noteSlectedList)
   console.log('App Mounted');
 
 

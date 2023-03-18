@@ -72,7 +72,7 @@ export default {
       found.tuning = event.target.value
     },
     colorFromNote(tuning) {
-      console.log(tuning)
+      // console.log(tuning)
 
       var find = this.couleurnoteliste.find((col) => col.note === tuning)
       return find.color
@@ -84,9 +84,9 @@ export default {
     },
     diapasonMoins() {
       this.diap -= 10
-      console.log("diapmoins")
+      // console.log("diapmoins")
 
-      console.log("Find das userc" + this.diap)
+      // console.log("Find das userc" + this.diap)
       this.$emit('diap', this.diap);
     }
 
