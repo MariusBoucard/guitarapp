@@ -110,8 +110,10 @@ export default {
   methods : {
     changeNote(note){
       // console.log("cacapute"+note)
-      this.notePlayed = this.name(note)
-      // console.log("Nooote"+this.notePlayed)
+      if (this.name(note)!==undefined){
+
+        this.notePlayed = this.name(note)
+      }
     },
     changeNoteSelection(note){
       // console.log('caca'+note);

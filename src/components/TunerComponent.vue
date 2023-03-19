@@ -40,8 +40,10 @@ export default {
   const recorder = new Recorder();
   recorder.onData = (wave, hz, note)=>{
     ui.draw(wave, hz, note);
-    this.note = hz;
-    this.$emit('changenote', hz);
+    //this.note = hz;
+    this.base = 55;
+    this.note = Math.log(hz / this.base) / Math.log(2) * 12;
+    this.$emit('changenote', this.note);
   }
   recorder.main();
   },
