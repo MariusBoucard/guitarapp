@@ -11,10 +11,12 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 async function createWindow() {
+  
   // Create the browser window.
   const win = new BrowserWindow({
     width: 1600,
     height: 1200,
+    icon :  __dirname + '/public/favicon.png',
     webPreferences: {
       
       // Use pluginOptions.nodeIntegration, leave this alone
