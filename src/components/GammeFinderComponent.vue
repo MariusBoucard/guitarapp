@@ -3,7 +3,7 @@
         <h1>Scales you could use : </h1>
         <ul>
 
-            <li v-for="gammes in this.listeGammesFunc()" :key="gammes">
+            <li v-for="gammes in this.listeGammes" :key="gammes">
                 <div v-if="gammes !== undefined">
                     <button class="buttonstyle" @click="this.setGamme(gammes.root, gammes.name)">{{ gammes.root }} - {{
                         gammes.name }}</button>
@@ -68,7 +68,7 @@ export default {
                 { id: 11, note: "GS" },
             ],
             notesTab: ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"],
-            listeGammes: [],
+            // listeGammes: [],
             scaleTypes: [
                 { name: 'Major', noteName: '', intervals: [0, 2, 4, 5, 7, 9, 11], notes: [] },
                 { name: 'Natural Minor', noteName: '', intervals: [0, 2, 3, 5, 7, 8, 10], notes: [] },
@@ -82,9 +82,29 @@ export default {
 
         }
     },
+    computed : {
+        listeGammes(){
+            var notes = []
+            this.notesSelectionnees.forEach(element => {
+                if (element.enabled) {
+                    notes.push(element.note)
+                }
+            });
+
+             const scales = this.generateScales(notes);
+             console.log(scales)
+           
+            // scales.forEach(gamme => {
+            //     listeGammes.push(gamme)
+            // })
+            return scales
+
+        }
+
+    },
     methods: {
         setGamme(fonda, type) {
-
+            // console.log(fonda,type)
             var gamme = this.generateGammes(type, fonda)
 
             this.notesSelectionnees.forEach(n => n.enabled = false)
@@ -95,8 +115,10 @@ export default {
 
         },
         generatePopulation(nomGamme) {
+            // console.log(nomGamme)
             var genScale = this.scaleTypes.find(gamme => gamme.name === nomGamme)
             var soluce = []
+            var i =0
             this.listeNotes.forEach(note => {
                 var tabNotes = []
                 genScale.intervals.forEach(
@@ -104,7 +126,9 @@ export default {
                         tabNotes.push(this.listeNotes.find(caca => caca.id === ((step + note.id) % 12)).note)
                     }
                 )
-                soluce.push({ name: nomGamme, root: note.note, notes: tabNotes })
+
+                soluce.push({ id : i, name: nomGamme, root: note.note, notes: tabNotes })
+                i+=1
             })
             return soluce
         }
@@ -126,6 +150,7 @@ export default {
 
                  }
                 )
+
                 //Generer l'ensemble des 12 mêmes gammes en fonction du type
                 //check pour lesquelles nos notes sont dedans, et les garder
             
@@ -135,57 +160,7 @@ export default {
         },
 
 
-        // generateScalesChat(notes) {
-        //     const scales = [];
-
-        //     // trier les notes par ordre alphabétique
-        //     notes.sort();
-
-
-
-
-        //     // pour chaque note dans le tableau de notes
-        //     for (let i = 0; i < notes.length; i++) {
-        //         // pour chaque type d'échelle
-        //         for (let j = 0; j < this.scaleTypes.length; j++) {
-        //             const scale = [];
-
-        //             // ajouter la note de départ à l'échelle
-        //             const noteName = this.scaleTypes[j].noteName ? this.scaleTypes[j].noteName : notes[i];
-        //             const scaleName = `${noteName} ${this.scaleTypes[j].name}`;
-        //             scale.push(notes[i]);
-
-        //             let currentIndex = i;
-
-        //             // générer l'échelle en fonction des intervalles du type
-        //             for (let interval of this.scaleTypes[j].intervals) {
-        //                 currentIndex += interval;
-
-        //                 // ajouter un demi-ton si nécessaire
-        //                 if (currentIndex < notes.length - 1 && interval < this.scaleTypes[j].intervals[this.scaleTypes[j].intervals.length - 1]) {
-        //                     currentIndex++;
-        //                 }
-
-        //                 // si l'indice dépasse la longueur du tableau de notes, revenir au début
-        //                 if (currentIndex >= notes.length) {
-        //                     currentIndex = currentIndex - notes.length;
-        //                 }
-
-        //                 // ajouter la note à l'échelle
-        //                 scale.push(notes[currentIndex]);
-        //             }
-
-        //             // vérifier si l'échelle contient toutes les notes en entrée
-        //             if (notes.every(note => scale.includes(note))) {
-        //                 scales.push({ name: scaleName, root: notes[i], notes: scale });
-        //             }
-        //         }
-        //     }
-
-        //     // retourner le tableau d'objets contenant le nom complet de l'échelle, la note fondamentale et les notes de l'échelle
-        //     return scales;
-        // }
-
+       
         
         listeGammesFunc() {
             var notes = []
@@ -195,15 +170,15 @@ export default {
                 }
             });
 
-            const scales = this.generateScales(notes);
-            this.listeGammes = []
+             const scales = this.generateScales(notes);
+             console.log(scales)
+            this.listeGammes = scales
             scales.forEach(gamme => {
                 this.listeGammes.push(gamme)
             })
             return this.listeGammes
         },
         generateGammes(type, rootnote) {
-
 
             var genScale = this.scaleTypes.find(gamme => gamme.name === type)
             // var soluce = {}
@@ -223,48 +198,24 @@ export default {
     }
     ,
     mounted() {
-        // var scalesTot=[]
-        // this.scaleTypes.forEach(
-        //     scale => {
-        //         console.log("computing scale : " + scale)
-        //         var gen = this.generatePopulation(scale.name)
-        //          gen.forEach(a => scalesTot.push(a));
-        //             console.log('App Mounted');
-        //     });
-        //     const jsonString = JSON.stringify(scalesTot);
-
-        //     const blob = new Blob([jsonString], { type: 'application/json' });
-        //     saveAs(blob, 'scales.json');
-        //     console.log("sould have save")
-            // file written successfully
         
-        
-        //     fetch('./src/assets/scales.json')
-        //    .then(response => response.json())
-        //   .then(data => {
-        //      // Do something with the data
-        //      this.scalesTab = data
-        //         console.log(data);
-        //     })
-        //     .catch(error => {
-        //         console.error('Error loading data:', error);
-        //     });
-        
-
     },
     created() {
-    // fetch('./../mydata.json')
-    //   .then(response => response.json())
-    //   .then(data => {
-    //     this.myData = data;
-    //   })
-    //   .catch(error => {
-    //     console.error('Error loading data:', error);
-    //   });
+        // const fullgammes = []
+        // this.scaleTypes.forEach(scale => {
+        //     this.generatePopulation(scale.name).forEach(gamme => fullgammes.push(gamme))
+        // })
+
+        // // Then put fullgamme in a file
+        // var blob = new Blob([JSON.stringify(fullgammes)], {type: "text/json"});
+        // saveAs(blob, "mydata.json");
+
+
+
     this.scalestot = []
     for(var i=0;i<84;i++){
         this.scalestot.push(myKey[i])
-        console.log(myKey[i])
+        // console.log(myKey[i])
 
     }
   }
