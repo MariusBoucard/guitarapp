@@ -18,7 +18,7 @@
   </div>
   <div class="columnd">
     <ColorComponent :couleurdict=this.colors ></ColorComponent>
-    <!-- <GammeFinderComponent :notesSelected="this.noteSlectedList"></GammeFinderComponent> -->
+    <GammeFinderComponent :notesSelected="this.noteSlectedList"></GammeFinderComponent>
   </div>
 </div> 
   
@@ -30,7 +30,7 @@ import MancheComponent from './components/MancheComponent.vue'
 import NotesSelectedComponent from './components/NotesSelectedComponent.vue';
 import TuningComponent from './components/TuningComponent.vue';
 import ColorComponent from './components/ColorComponent.vue';
-// import GammeFinderComponent from './components/GammeFinderComponent.vue';
+import GammeFinderComponent from './components/GammeFinderComponent.vue';
 import TunerComponent from './components/TunerComponent.vue';
 
 export default {
@@ -41,7 +41,7 @@ export default {
     NotesSelectedComponent,
     TuningComponent,
     ColorComponent,
-    // GammeFinderComponent
+    GammeFinderComponent
   },
   data () {
     return {
