@@ -2,7 +2,7 @@
    <div class="row">
   <div class="column">
     <div style=" display: flex;">
-      <MancheComponent :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
+      <MancheComponent :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
     </div>
     <div class="row">
       <div class="columnhalf"> 

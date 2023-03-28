@@ -79,7 +79,8 @@ export default {
         colorNotes: { required: true, type: [Object] },
         nbFrettes: { required: true, type: Number },
         diap : { required : true, type : Number},
-        notePlayed : { required : true, type : String}
+        notePlayed : { required : true, type : String},
+        allnotes : {required : true, type :[Object]}
     },
     data() {
         return {
@@ -104,7 +105,8 @@ export default {
             couleursnotes: this.colorNotes,
             diapason : this.diap*2.3,
             currentNote : this.notePlayed,
-            sapinNoel : false
+            sapinNoel : false,
+            
         }
 
     },
@@ -209,10 +211,15 @@ export default {
             var cordeListe = []
             for (var corde = 0; corde < this.tuningintra.length; corde++) {
                 var notesCorde = []
-                var note = this.tuningintra[corde].tuning.slice(0,this.tuningintra[corde].tuning.length -1)
-                var idnotedepart = this.listeNotes.find((notes) => notes.note === note)
+                var note = this.tuningintra[corde].tuning
+                var idnotedepart = this.allnotes.find((notes) => notes.note === note)
                 for (var i = 0; i < 24; i++) {
-                    notesCorde.push((i + idnotedepart.id ) % 12)
+                    if(idnotedepart)
+                    notesCorde.push((i + idnotedepart.id) % 12)
+                    else{
+                        notesCorde.push((2 ) % 12)
+
+                    }
                 }
                 cordeListe.push(notesCorde)
             }
