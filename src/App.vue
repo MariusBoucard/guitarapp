@@ -24,7 +24,8 @@
   </div>
 </div> 
   
-  
+
+
 </template>
 
 <script>
@@ -151,9 +152,10 @@ export default {
     selectGamme(){
       console.log("damn")
       //Il faut ici selectionner les notes au dessus d'un certain nb d occurences en fct du dict
-    this.notesPlayedDict.forEach(a =>{
-  //TODO -> Find a way to only select the 7 most played notes
-  if(a.nb > 5){
+      var dick =this.notesPlayedDict.sort((a,b) => a.nb -b.nb)
+      dick.slice(Math.max(this.notesPlayedDict.length - 7, 0))
+    dick.forEach(a =>{
+  if(a.nb > 2){
    var find = this.noteSlectedList.find(note => note.note === a.note)
     find.enabled=true
   } else {
@@ -169,7 +171,7 @@ export default {
       //  console.log(find)
     },
     changeDiap(diap){
-      // console.log("diap "+diap)
+      console.log("diap "+diap)
       this.diapason = diap
     },
     name(note) {

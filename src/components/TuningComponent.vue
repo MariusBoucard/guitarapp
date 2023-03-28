@@ -36,14 +36,14 @@
           </li>
         </ul>
       </div>
-      <!-- <div style="display:block; width:20%">
+      <div style="display:block; width:20%">
 
         <p>Diapason de ton énorme manche : </p>
 
         <button @click="this.diapasonMoins()" class="cordeplus"> - </button>
         <h1>{{ this.diap }} </h1><button class="cordeplus" @click=this.diapasonPlus()> + </button>
 
-      </div> -->
+      </div>
     </div>
   </div>
 </template>

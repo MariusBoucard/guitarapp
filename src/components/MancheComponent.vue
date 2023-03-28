@@ -29,7 +29,7 @@
         </li>
 
         
-        <li class="horizontalli frette yolo" :style="{  '--mondiap' : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
+        <li class="horizontalli frette yolo" :style="{  width : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
             
             <ul>
                 <li class="lettre lithium" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"  v-on:click="chooseNote(note,index)" >
