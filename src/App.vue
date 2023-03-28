@@ -10,14 +10,16 @@
     @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
       </div>
       <div class="columnhalf">
-        <TuningComponent @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+        <TuningComponent v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
         <TunerComponent @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
       </div>
     </div>
    
   </div>
   <div class="columnd">
-    <ColorComponent :couleurdict=this.colors ></ColorComponent>
+    <button @click="$event => {this.autoGammeSelect = !this.autoGammeSelect}">Auto gamme select {{ this.autoGammeSelect }}</button>
+    <button @click="$event => { this.settingsView = !this.settingsView}">Color and TUning settings {{ this.settingsView }}</button>
+    <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
     <GammeFinderComponent :notesSelected="this.noteSlectedList"></GammeFinderComponent>
   </div>
 </div> 
@@ -49,6 +51,7 @@ export default {
       diapason : 648,
       nbStrings: 7,
       notePlayed : "",
+      notesPlayedList :[],
       nbnotes: [
                 { id: 0, note: "A" },
                 { id: 1, note: "AS" },
@@ -73,6 +76,24 @@ export default {
         {cordeId: 6,tuning : 'A'}
       
       ],
+      autoGammeSelect : false,
+      notesPlayedDict: 
+      [
+        { note : 'A',nb : 0},
+        { note : 'AS',nb : 0},
+        { note : 'B',nb : 0},
+        { note : 'C',nb : 0},
+        { note : 'CS',nb : 0},
+        { note : 'D',nb : 0},
+        { note : 'DS',nb : 0},
+        { note : 'E',nb : 0},
+        { note : 'F',nb : 0},
+        { note : 'FS',nb : 0},
+        { note : 'G',nb : 0},
+        { note : 'GS',nb : 0}
+    ],
+    settingsView : false
+,
       noteSlectedList: 
       [
         { note : 'A',enabled : false},
@@ -103,7 +124,8 @@ export default {
         {note : "GS",color:"Pink"},
       
       ],
-    };
+
+    }
 
 
   },
@@ -113,8 +135,33 @@ export default {
       if (this.name(note)!==undefined){
 
         this.notePlayed = this.name(note)
+        if(this.autoGammeSelect){
+          if(this.notesPlayedList.length >100){
+            var a = this.notesPlayedList.shift()
+            var find = this.notesPlayedDict.find(note => note.note === a)
+            find.nb = find.nb -1
+          }
+          this.notesPlayedList.push(this.notePlayed)
+          find = this.notesPlayedDict.find(note => note.note === this.notePlayed)
+          find.nb +=1
+          this.selectGamme()
+        }
       }
     },
+    selectGamme(){
+      console.log("damn")
+      //Il faut ici selectionner les notes au dessus d'un certain nb d occurences en fct du dict
+    this.notesPlayedDict.forEach(a =>{
+  //TODO -> Find a way to only select the 7 most played notes
+  if(a.nb > 5){
+   var find = this.noteSlectedList.find(note => note.note === a.note)
+    find.enabled=true
+  } else {
+    find = this.noteSlectedList.find(note => note.note === a.note)
+    find.enabled=false
+  }
+})
+},
     changeNoteSelection(note){
       // console.log('caca'+note);
       const find = this.noteSlectedList.find((notes) => notes.note == note.note )

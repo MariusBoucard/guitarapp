@@ -31,7 +31,14 @@ export default {
               const names = ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"];
               const note12 = (this.note >= 0) ? this.note % 12 : this.note % 12 + 12;
               var i = Math.floor((note12 + 0.5) % 12);
-              return names[i];
+              var ret = names[i]
+              if(names[i]!==undefined){
+
+                return names[i];
+              }
+              else{
+                return "-"
+              }
             }
     },
     mounted() {

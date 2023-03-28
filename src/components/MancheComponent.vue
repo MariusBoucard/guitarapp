@@ -110,9 +110,9 @@ export default {
     },
     methods: {
         isChoosedTune(note){
-            console.log(note.tuning)
+            // console.log(note.tuning)
             var find = this.notesSelectedIntra.find(notes=> notes.note === note.tuning)
-            console.log(find)
+            // console.log(find)
             return find.enabled
         },  
         isChoosed(corde, index) {
