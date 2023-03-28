@@ -171,7 +171,7 @@ export default {
             });
 
              const scales = this.generateScales(notes);
-             console.log(scales)
+            //  console.log(scales)
             this.listeGammes = scales
             scales.forEach(gamme => {
                 this.listeGammes.push(gamme)
