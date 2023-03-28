@@ -14,12 +14,12 @@
         <li class="horizontalli ">
             <ul>
                 <li style=" width: 40px" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"> 
-                    <div class="circle" style="width:35px;height:35px" :style="{backgroundColor : calcBack(note.tuning) }" v-if="isChoosedTune(note)">
-                        {{note.tuning}}
+                    <div class="circle" style="width:35px;height:35px" :style="{backgroundColor : calcBack( note.tuning.slice(0,note.tuning.length-1)) }" v-if="isChoosedTune(note)">
+                        {{ note.tuning.slice(0,note.tuning.length-1)}}
 
                     </div>
                     <div v-else>
-                        {{note.tuning}}
+                        {{ note.tuning.slice(0,note.tuning.length-1)}}
 
                     </div>
                    
@@ -111,7 +111,7 @@ export default {
     methods: {
         isChoosedTune(note){
             // console.log(note.tuning)
-            var find = this.notesSelectedIntra.find(notes=> notes.note === note.tuning)
+            var find = this.notesSelectedIntra.find(notes=> notes.note === note.tuning.slice(0,note.tuning.length-1))
             // console.log(find)
             return find.enabled
         },  
@@ -209,7 +209,7 @@ export default {
             var cordeListe = []
             for (var corde = 0; corde < this.tuningintra.length; corde++) {
                 var notesCorde = []
-                var note = this.tuningintra[corde].tuning
+                var note = this.tuningintra[corde].tuning.slice(0,this.tuningintra[corde].tuning.length -1)
                 var idnotedepart = this.listeNotes.find((notes) => notes.note === note)
                 for (var i = 0; i < 24; i++) {
                     notesCorde.push((i + idnotedepart.id ) % 12)

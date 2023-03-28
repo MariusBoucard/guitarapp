@@ -10,7 +10,7 @@
     @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
       </div>
       <div class="columnhalf">
-        <TuningComponent v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+        <TuningComponent :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
         <TunerComponent @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
       </div>
     </div>
@@ -22,6 +22,7 @@
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
     <GammeFinderComponent :notesSelected="this.noteSlectedList"></GammeFinderComponent>
   </div>
+  <p>{{ this.allNotes }}</p>
 </div> 
   
 
@@ -68,13 +69,13 @@ export default {
                 { id: 11, note: "GS" },
             ],
       tuningList: [
-        {cordeId: 0,tuning : 'E'},
-        {cordeId: 1,tuning : 'B'},
-        {cordeId: 2,tuning : 'G'},
-        {cordeId: 3,tuning : 'D'},
-        {cordeId: 4,tuning : 'A'},
-        {cordeId: 5,tuning : 'E'},
-        {cordeId: 6,tuning : 'A'}
+        {cordeId: 0,tuning : 'E5'},
+        {cordeId: 1,tuning : 'B4'},
+        {cordeId: 2,tuning : 'G4'},
+        {cordeId: 3,tuning : 'D4'},
+        {cordeId: 4,tuning : 'A3'},
+        {cordeId: 5,tuning : 'E3'},
+        {cordeId: 6,tuning : 'A2'}
       
       ],
       autoGammeSelect : false,
@@ -110,6 +111,7 @@ export default {
         { note : 'G',enabled : false},
         { note : 'GS',enabled : false}
     ],
+    allNotes : [],
       colors : [
         {note : "A",color:"blue"},
         {note : "AS",color:"DarkTurquoise"},
@@ -131,6 +133,23 @@ export default {
 
   },
   methods : {
+    allNotesComp(){
+      var a = []
+      
+      for (let i = 0; i <9; i++) { 
+
+          this.nbnotes.forEach(note =>
+          {
+            console.log(note)
+            a.push({id : (i*12+note.id) , note : note.note+i})
+          }
+
+          )
+         
+        }
+        return a
+      }
+    ,
     changeNote(note){
       // console.log("cacapute"+note)
       if (this.name(note)!==undefined){
@@ -208,6 +227,7 @@ export default {
 
               }
             )
+            this.allNotes = this.allNotesComp()
 
        
             // console.log(this.noteSlectedList)

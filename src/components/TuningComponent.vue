@@ -24,7 +24,7 @@
                   {{ corde.tuning }}
                 </option>
 
-                <option v-for="option in this.nbnotes" :value="option.note" :key="option.id">{{ option.note }}</option>
+                <option v-for="option in this.notesall" :value="option.note" :key="option.id">{{ option.note }}</option>
 
               </select>
 
@@ -35,6 +35,7 @@
 
           </li>
         </ul>
+        {{ this.notesall }}
       </div>
       <div style="display:block; width:20%">
 
@@ -50,6 +51,7 @@
 <script>
 export default {
   props: {
+    allNotes : {required : true, type : [Object]},
     cordesNumber: { required: true, type: Number },
     diapason: { required: true, type: Number },
     tuningList: { required: true, type: [Object] },
@@ -74,7 +76,7 @@ export default {
     colorFromNote(tuning) {
       // console.log(tuning)
 
-      var find = this.couleurnoteliste.find((col) => col.note === tuning)
+      var find = this.couleurnoteliste.find((col) => col.note === tuning.slice(0,tuning.length-1))
       return find.color
     },
     diapasonPlus() {
@@ -97,7 +99,8 @@ export default {
       nbnotes: this.notesnumber,
       nbCordes: this.cordesNumber,
       listTuning: this.tuningList,
-      couleurnoteliste: this.notesColor
+      couleurnoteliste: this.notesColor,
+      notesall : this.allNotes
     };
   }
 
