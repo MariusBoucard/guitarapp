@@ -35,7 +35,7 @@
                 <li class="lettre lithium" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"  v-on:click="chooseNote(note,index)" >
                     <div display="flex" class="cord" v-if="isChoosed(note, index)">
                         <hr class="line" :style="{  width : calcWidth(index) }" >
-                        <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index),  backgroundColor  :calcBack(renderChoosen(note, index)) }">
+                        <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index),  backgroundColor  : calcBackNote(renderChoosen(note, index),note,index) }">
                             <p>{{ renderChoosen(note, index) }}</p>
                         </div>      
                     </div>
@@ -49,6 +49,7 @@
             <p style="margin:0;padding:0;color : white"> {{ index }}</p>
         </li>
     </ul>
+    {{ this.cordeListe   }}
 </div>
     <!-- <li  v-for="note in this.tuningintra" :key="note.cordeId">
            
@@ -157,9 +158,28 @@ export default {
         }
         ,
         calcBack(lettre){
+            console.log(lettre)
         //    console.log(lettre)
         if(this.sapinNoel){
              if(lettre === this.notePlayed){
+                console.log("caca")
+                return 'red '
+            }
+        }
+           
+           var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
+            return couleur.color 
+        },
+        calcBackNote(lettre,corde,index){
+                console.log(corde)
+            console.log(lettre+index)
+            //find the id of the root note of the cord and add the nb of index
+            var find = this.allnotes.find(note => note.note === corde.tuning)
+            var newindex = find.id+1+index
+        //    console.log(lettre)
+        if(this.sapinNoel){
+            var noteoncase = this.allnotes.find(note => note.id === newindex)
+             if(noteoncase.note === this.notePlayed){
                 console.log("caca")
                 return 'red '
             }

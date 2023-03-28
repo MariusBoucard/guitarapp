@@ -151,10 +151,10 @@ export default {
       }
     ,
     changeNote(note){
-      // console.log("cacapute"+note)
-      if (this.name(note)!==undefined){
+     
+      if (this.name(note.note)!==undefined){
 
-        this.notePlayed = this.name(note)
+        this.notePlayed = this.name(note.note)+note.octave
         if(this.autoGammeSelect){
           if(this.notesPlayedList.length >100){
             var a = this.notesPlayedList.shift()

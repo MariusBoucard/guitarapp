@@ -50,7 +50,14 @@ export default {
     //this.note = hz;
     this.base = 55;
     this.note = Math.log(hz / this.base) / Math.log(2) * 12;
-    this.$emit('changenote', this.note);
+    var oct =0
+    var hz2 =hz
+    while(hz2>16.35){
+      hz2= hz2/2
+      oct= oct+1
+    }
+    this.oct = (oct-1)
+    this.$emit('changenote',{ note : this.note, octave :this.oct});
   }
   recorder.main();
   },
