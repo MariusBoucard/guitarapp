@@ -2,7 +2,7 @@
    <div class="row">
   <div class="column">
     <div style=" display: flex;">
-      <MancheComponent :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
+      <MancheComponent :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
     </div>
     <div class="row">
       <div class="columnhalf"> 
@@ -23,6 +23,7 @@
     <GammeFinderComponent :notesSelected="this.noteSlectedList"></GammeFinderComponent>
   </div>
   <p>{{ this.allNotes }}</p>
+  <p>{{this.allNotesC}}</p>
 </div> 
   
 
@@ -68,6 +69,20 @@ export default {
                 { id: 10, note: "G" },
                 { id: 11, note: "GS" },
             ],
+            nbnotesc: [
+                { id: 0, note: "C" },
+                { id: 1, note: "CS" },
+                { id: 2, note: "D" },
+                { id: 3, note: "DS" },
+                { id: 4, note: "E" },
+                { id: 5, note: "F" },
+                { id: 6, note: "FS" },
+                { id: 7, note: "G" },
+                { id: 8, note: "GS" },
+                { id: 9, note: "A" },
+                { id: 10, note: "AS" },
+                { id: 11, note: "B" },
+            ],
       tuningList: [
         {cordeId: 0,tuning : 'E5'},
         {cordeId: 1,tuning : 'B4'},
@@ -79,6 +94,7 @@ export default {
       
       ],
       autoGammeSelect : false,
+      allNotesC : [],
       notesPlayedDict: 
       [
         { note : 'A',nb : 0},
@@ -150,6 +166,22 @@ export default {
         return a
       }
     ,
+    allNotesCompc(){
+      var a = []
+      
+      for (let i = 0; i <9; i++) { 
+
+          this.nbnotesc.forEach(note =>
+          {
+            console.log(note)
+            a.push({id : (i*12+note.id) , note : note.note+i})
+          }
+
+          )
+         
+        }
+        return a
+      },
     changeNote(note){
      
       if (this.name(note.note)!==undefined){
@@ -228,6 +260,7 @@ export default {
               }
             )
             this.allNotes = this.allNotesComp()
+            this.allNotesC = this.allNotesCompc()
 
        
             // console.log(this.noteSlectedList)

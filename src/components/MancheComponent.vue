@@ -15,11 +15,11 @@
             <ul>
                 <li style=" width: 40px" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"> 
                     <div class="circle" style="width:35px;height:35px" :style="{backgroundColor : calcBack( note.tuning.slice(0,note.tuning.length-1)) }" v-if="isChoosedTune(note)">
-                        {{ note.tuning.slice(0,note.tuning.length-1)}}
+                        {{ note.tuning.slice(0,note.tuning.length)}}
 
                     </div>
                     <div v-else>
-                        {{ note.tuning.slice(0,note.tuning.length-1)}}
+                        {{ note.tuning.slice(0,note.tuning.length)}}
 
                     </div>
                    
@@ -35,7 +35,7 @@
                 <li class="lettre lithium" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"  v-on:click="chooseNote(note,index)" >
                     <div display="flex" class="cord" v-if="isChoosed(note, index)">
                         <hr class="line" :style="{  width : calcWidth(index) }" >
-                        <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index),  backgroundColor  : calcBackNote(renderChoosen(note, index),note,index) }">
+                        <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index),  backgroundColor  : calcBackNote(note,index) }">
                             <p>{{ renderChoosen(note, index) }}</p>
                         </div>      
                     </div>
@@ -50,6 +50,7 @@
         </li>
     </ul>
     {{ this.cordeListe   }}
+    {{ this.allnotesc }}
 </div>
     <!-- <li  v-for="note in this.tuningintra" :key="note.cordeId">
            
@@ -81,7 +82,8 @@ export default {
         nbFrettes: { required: true, type: Number },
         diap : { required : true, type : Number},
         notePlayed : { required : true, type : String},
-        allnotes : {required : true, type :[Object]}
+        allnotes : {required : true, type :[Object]},
+        allnotesc : {required : true, type :[Object]}
     },
     data() {
         return {
@@ -160,29 +162,52 @@ export default {
         calcBack(lettre){
             console.log(lettre)
         //    console.log(lettre)
-        if(this.sapinNoel){
-             if(lettre === this.notePlayed){
-                console.log("caca")
-                return 'red '
-            }
-        }
+        // if(this.sapinNoel){
+        //      if(lettre === this.notePlayed){
+        //         console.log("caca")
+        //         return 'red '
+        //     }
+        // }
            
            var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
             return couleur.color 
         },
-        calcBackNote(lettre,corde,index){
-                console.log(corde)
-            console.log(lettre+index)
+        calcBackNote(corde,index){
+            var lettre = this.renderChoosen(corde, index)
+            console.log(lettre)
+            console.log(corde,index)
             //find the id of the root note of the cord and add the nb of index
-            var find = this.allnotes.find(note => note.note === corde.tuning)
-            var newindex = find.id+1+index
+            var find = this.allnotesc.find(note => note.note === corde.tuning)
+            console.log(find)
+            //Calcul sur index attention §§§§ changement index c est nb decalage
+            //il faut trouver de combien tu es décallé dans ce tab :
+            var findcordliste = this.cordeListe[corde.cordeId]
+            console.log('findcordeliste',findcordliste)
+            var indexsurcorde1 = findcordliste.indexOf(index)
+            console.log(indexsurcorde1)
+
+            // var indexsurcorde2 = findcordliste.indexOf(index,2)
+
+            //trouver les numeros ou il Y a qq chose
+
+            var newindex = find.id+index
+
+            // var newindex2 = find.id+indexsurcorde2
+
         //    console.log(lettre)
         if(this.sapinNoel){
-            var noteoncase = this.allnotes.find(note => note.id === newindex)
+            var noteoncase = this.allnotesc.find(note => note.id === newindex)
+            console.log(noteoncase)
              if(noteoncase.note === this.notePlayed){
                 console.log("caca")
                 return 'red '
             }
+            // noteoncase = this.allnotesc.find(note => note.id === (newindex+12))
+            // console.log(noteoncase)
+            //  if(noteoncase.note === this.notePlayed){
+            //     console.log("caca")
+            //     return 'red '
+            // }
         }
            
            var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)

@@ -56,7 +56,7 @@ export default {
       hz2= hz2/2
       oct= oct+1
     }
-    this.oct = (oct-1)
+    this.oct = (oct)
     this.$emit('changenote',{ note : this.note, octave :this.oct});
   }
   recorder.main();
