@@ -166,10 +166,8 @@ export default {
            var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
             return couleur.color 
         },
-        calcHeight(){
-            return Math.round(300/this.nbCordes)+"px"
-        },
         calcWidth(index){
+            
             var diaprestant = this.diapason
             var taillecase =0
             for(var i =0; i<index;i++){
@@ -177,8 +175,12 @@ export default {
                 taillecase = diaprestant/17.817
                 diaprestant = diaprestant-taillecase
             }
-            return Math.round(taillecase)+"px"
+            return Math.round(taillecase)+'px'
         },
+        calcHeight(){
+            return Math.round(300/this.nbCordes)+"px"
+        },
+        
         heightCircle(index){
                 var height = this.calcHeight()
                 var width = this.calcWidth(index)
@@ -189,6 +191,14 @@ export default {
         },
        
     },
+    watch : {
+        diap : {
+            handler(){
+                this.diapason = this.diap*2.3
+                this.$forceUpdate()
+            }
+            }
+    }, 
 
 
     computed: {
@@ -208,6 +218,7 @@ export default {
             }
             return cordeListe
         },
+  
         
     },
 }
