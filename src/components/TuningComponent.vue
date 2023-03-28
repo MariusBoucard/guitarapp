@@ -93,6 +93,11 @@ export default {
     }
 
   },
+  computed : {
+    notesall() {
+      return this.allNotes
+    }
+  },
   data() {
     return {
       diap: this.diapason,
@@ -100,7 +105,7 @@ export default {
       nbCordes: this.cordesNumber,
       listTuning: this.tuningList,
       couleurnoteliste: this.notesColor,
-      notesall : this.allNotes
+      // notesall : this.allNotes
     };
   }
 
