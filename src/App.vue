@@ -22,8 +22,8 @@
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
     <GammeFinderComponent :notesSelected="this.noteSlectedList"></GammeFinderComponent>
   </div>
-  <p>{{ this.allNotes }}</p>
-  <p>{{this.allNotesC}}</p>
+
+
 </div> 
   
 
@@ -156,7 +156,7 @@ export default {
 
           this.nbnotes.forEach(note =>
           {
-            console.log(note)
+            // console.log(note)
             a.push({id : (i*12+note.id) , note : note.note+i})
           }
 
@@ -173,7 +173,7 @@ export default {
 
           this.nbnotesc.forEach(note =>
           {
-            console.log(note)
+            // console.log(note)
             a.push({id : (i*12+note.id) , note : note.note+i})
           }
 
@@ -193,18 +193,25 @@ export default {
             var find = this.notesPlayedDict.find(note => note.note === a)
             find.nb = find.nb -1
           }
-          this.notesPlayedList.push(this.notePlayed)
-          find = this.notesPlayedDict.find(note => note.note === this.notePlayed)
+          this.notesPlayedList.push(this.notePlayed.slice(0,this.notePlayed.length-1))
+          find = this.notesPlayedDict.find(note => note.note === this.notePlayed.slice(0,this.notePlayed.length-1))
           find.nb +=1
           this.selectGamme()
         }
       }
     },
     selectGamme(){
-      console.log("damn")
+      // console.log("damn")
       //Il faut ici selectionner les notes au dessus d'un certain nb d occurences en fct du dict
       var dick =this.notesPlayedDict.sort((a,b) => a.nb -b.nb)
-      dick.slice(Math.max(this.notesPlayedDict.length - 7, 0))
+      var dick2 = dick.slice(0,dick.length-7)
+
+       dick = dick.slice((dick.length-7),dick.length)
+       dick2.forEach(a => {
+        var find = this.noteSlectedList.find(note => note.note === a.note)
+        find.enabled=false
+       })
+       console.log(dick)
     dick.forEach(a =>{
   if(a.nb > 2){
    var find = this.noteSlectedList.find(note => note.note === a.note)

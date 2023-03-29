@@ -35,7 +35,7 @@
 
           </li>
         </ul>
-        {{ this.notesall }}
+        <!-- {{ this.notesall }} -->
       </div>
       <div style="display:block; width:20%">
 

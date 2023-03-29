@@ -21,6 +21,7 @@
           
         </li>
       </ul>
+      <button class="button" @click="this.reinit()">Reinitialliser les notes</button>
     </div>
   </div>
 </div>
@@ -40,7 +41,15 @@ export default {
     }
   },
   methods: {
+    reinit(){
+        this.listNotes.forEach(
+          note => {
+            note.enabled = false
+            this.$emit('note-checked', note);
 
+          }
+        )
+    },
     userChecked(note) {
       const find = this.listNotes.find((notes) => notes.note === note.note)
       find.enabled = !find.enabled

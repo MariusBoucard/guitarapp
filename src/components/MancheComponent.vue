@@ -49,8 +49,8 @@
             <p style="margin:0;padding:0;color : white"> {{ index }}</p>
         </li>
     </ul>
-    {{ this.cordeListe   }}
-    {{ this.allnotesc }}
+    <!-- {{ this.cordeListe   }} -->
+    <!-- {{ this.allnotesc }} -->
 </div>
     <!-- <li  v-for="note in this.tuningintra" :key="note.cordeId">
            
@@ -135,7 +135,7 @@ export default {
 
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
-            console.log('caca')
+            // console.log('caca')
             enabledornot.enabled = !enabledornot.enabled
         },
         renderChoosen(corde, index) {
@@ -160,7 +160,7 @@ export default {
         }
         ,
         calcBack(lettre){
-            console.log(lettre)
+            // console.log(lettre)
         //    console.log(lettre)
         // if(this.sapinNoel){
         //      if(lettre === this.notePlayed){
@@ -174,17 +174,17 @@ export default {
         },
         calcBackNote(corde,index){
             var lettre = this.renderChoosen(corde, index)
-            console.log(lettre)
-            console.log(corde,index)
+            // console.log(lettre)
+            // console.log(corde,index)
             //find the id of the root note of the cord and add the nb of index
             var find = this.allnotesc.find(note => note.note === corde.tuning)
-            console.log(find)
+            // console.log(find)
             //Calcul sur index attention §§§§ changement index c est nb decalage
             //il faut trouver de combien tu es décallé dans ce tab :
-            var findcordliste = this.cordeListe[corde.cordeId]
-            console.log('findcordeliste',findcordliste)
-            var indexsurcorde1 = findcordliste.indexOf(index)
-            console.log(indexsurcorde1)
+            // var findcordliste = this.cordeListe[corde.cordeId]
+            // console.log('findcordeliste',findcordliste)
+            // var indexsurcorde1 = findcordliste.indexOf(index)
+            // console.log(indexsurcorde1)
 
             // var indexsurcorde2 = findcordliste.indexOf(index,2)
 
