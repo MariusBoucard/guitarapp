@@ -1,6 +1,5 @@
 <template>
     <div>
-    <h1>Guitar's neck</h1>
     <!-- <p>{{ this.tuningintra }}</p> -->
         <h1>{{ this.notePlayed}}</h1>
         <p>Activer le sapin de noel :</p>

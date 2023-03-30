@@ -363,6 +363,12 @@ export default {
 .lianavbar a:hover {
   background-color: #111;
 }
-
+body {
+    background-image: url("../public/background.jpg");
+ 
+}
+h1,p,h3 {
+  color : white
+}
 
 </style>
