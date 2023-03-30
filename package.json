@@ -13,6 +13,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "@coderline/alphatab": "^1.2.3",
     "core-js": "^3.8.3",
     "file-saver": "^2.0.5",
     "FileSaver": "^0.10.0",
