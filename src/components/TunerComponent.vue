@@ -2,7 +2,7 @@
   <div>
     <h1>{{name()}}</h1>
 
-    <div id="tuner" style="background-color: red;">
+    <div id="tuner" class ="tun" style="background-color: none;">
         
     </div>
 
@@ -67,3 +67,8 @@ export default {
 
 }
 </script>
+
+<style>
+.tun ::p{
+color: white;
+}</style>

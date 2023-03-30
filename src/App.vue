@@ -28,7 +28,6 @@
       </div>
       <div class="columnhalf">
         <TuningComponent :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
-        <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
         <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
         <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
       </div>
@@ -36,7 +35,8 @@
     
   </div>
   <div class="columnd">
-   
+    <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
+
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
     <GammeFinderComponent v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
   </div>
@@ -73,10 +73,10 @@ export default {
 },
   data () {
     return {
-      mancheDisplay : false,
+      mancheDisplay : true,
       notesSelectedDisplay : true,
-      tunderDisplay : false,
-      pictureDisplay : false,
+      tunderDisplay : true,
+      pictureDisplay : true,
       soundDisplay : true,
       scalesDisplay : true,
       nbfrettes : 24,
