@@ -1,35 +1,52 @@
 <template>
-   <div class="row">
-  <div class="column">
-    <div style=" display: flex;">
-      <MancheComponent :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
-    </div>
+  <body style="margin : 0">
+
+    <ul class="ulnavbar">
+      <li class="linavbar"><a href="#home" @click="this.mancheDisplay = ! this.mancheDisplay">Manche</a></li>
+      <li class="linavbar"><a href="#news" @click="this.notesSelectedDisplay = ! this.notesSelectedDisplay" >Selection notes</a></li>
+      <li class="linavbar" ><a  style="{ backgroundColor: red;}" @click="$event => {this.autoGammeSelect = !this.autoGammeSelect}" > Auto gamme select</a></li>
+
+      <li class="linavbar"><a  @click="this.scalesDisplay = ! this.scalesDisplay">Scales</a></li>
+      <li class="linavbar" style="float:right"><a class="active" @click="this.settingsView = ! this.settingsView">Settings</a></li>
+      <li class="linavbar" style="float:right"><a class="active"  @click="this.tunderDisplay = ! this.tunderDisplay">Tuner</a></li>
+      <li class="linavbar" style="float:right"><a class="active" @click="this.pictureDisplay = ! this.pictureDisplay">Display Picture</a></li>
+      <li class="linavbar" style="float:right"><a class="active" @click="this.soundDisplay = ! this.soundDisplay">Play sound</a></li>
+      <li class="linavbar" style="float:right"><a class="active" href="#about">Play video</a></li>
+
+
+
+    </ul> 
+    <div class="row">
+      <div class="column">
+        <div style=" display: flex;">
+          <MancheComponent v-show="this.mancheDisplay" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
+        </div>
     <div class="row">
       <div class="columnhalf"> 
         <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
-    @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
+        @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
       </div>
       <div class="columnhalf">
         <TuningComponent :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
-        <TunerComponent @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
-        <PlaySoundComponent></PlaySoundComponent>
-        <LoadPictureComponent></LoadPictureComponent>
+        <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
+        <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
+        <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
       </div>
     </div>
-   
+    
   </div>
   <div class="columnd">
-    <button @click="$event => {this.autoGammeSelect = !this.autoGammeSelect}">Auto gamme select {{ this.autoGammeSelect }}</button>
-    <button @click="$event => { this.settingsView = !this.settingsView}">Color and TUning settings {{ this.settingsView }}</button>
+   
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
-    <GammeFinderComponent :notesSelected="this.noteSlectedList"></GammeFinderComponent>
+    <GammeFinderComponent v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
   </div>
-
-
-</div> 
   
+  
+</div> 
 
 
+
+</body>
 </template>
 
 <script>
@@ -56,6 +73,12 @@ export default {
 },
   data () {
     return {
+      mancheDisplay : false,
+      notesSelectedDisplay : true,
+      tunderDisplay : false,
+      pictureDisplay : false,
+      soundDisplay : true,
+      scalesDisplay : true,
       nbfrettes : 24,
       diapason : 648,
       nbStrings: 7,
@@ -314,6 +337,31 @@ export default {
   content: "";
   display: table;
   clear: both;
+}
+
+.ulnavbar {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+}
+
+.linavbar {
+  float: left;
+}
+
+.lianavbar {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+/* Change the link color to #111 (black) on hover */
+.lianavbar a:hover {
+  background-color: #111;
 }
 
 </style>

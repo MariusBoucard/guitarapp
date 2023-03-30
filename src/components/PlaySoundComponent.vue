@@ -1,4 +1,4 @@
-<template>
+  <template>
     <!-- <input
       type="range"
       min="0"
@@ -7,7 +7,7 @@
       v-model="seekValue"
       @change="onSeek"
     /> -->
-    <div>
+    <div style="text-align: center;">
         <div>
             <ul>
                 <li v-for="item in this.songPath" :key="item" @click="this.launchFile(item)">
@@ -18,8 +18,12 @@
         </div>
         <p>{{ this.songPlaying }}</p>
 
-
-    <input type="file" @change="onFileChange">
+        <div class="container">
+      <div class="button-wrap">
+        <label class="buttonbis" for="upload">Upload File</label>
+        <input id="upload" type="file" @change="onFileChange">
+      </div>
+    </div>
       <audio ref="audioPlayer" controls
     
       @timeupdate="onPlaying"
@@ -169,4 +173,40 @@ cursor: pointer;
 .slider input[type="range"]::-webkit-slider-thumb:hover {
 background: black;
 }
+
+.container {
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+      }
+      input[type="file"] {
+        z-index: -1;
+        top: 15px;
+        left: 20px;
+  margin-right: auto;
+  margin-left: auto;
+        font-size: 17px;
+        color: #b8b8b8;
+      }
+      .button-wrap {
+        position: relative;
+      }
+      .buttonbis {
+        position: relative;
+        display: inline-block;
+        background-color: #1d6355;
+        border-radius: 10px;
+        border: 4px double #cccccc;
+        color: #ffffff;
+        text-align: center;
+        font-size: 20px;
+  margin-right: auto;
+  margin-left: auto;
+        width: 100px;
+        transition: all 0.5s;
+        cursor: pointer;
+      }
+      .buttonbis:hover {
+        background-color: #00ab97;
+      }
 </style>
