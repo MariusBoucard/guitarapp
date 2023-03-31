@@ -1,9 +1,25 @@
 <template>
     <div style="width:100%;height : 100%">
-      <input type="file" @change="loadVideo">
+
+        <div>
+            <ol  class="ol-days" >
+                <li v-for="item in this.videoPath" :key="item" @click="this.launchFile(item)">
+                {{ item.name }}
+                </li>
+            </ol>
+
+        </div>
+
+        <div class="container">
+          <div class="button-wrap">
+            <label class="buttonbis" for="uploadVideo">Upload File</label>
+            <input id="uploadVideo" type="file" @change="loadVideo">
+          </div>
+        </div>
+     
       <video style="width:100%;height : 100%" ref="video" controls></video>
       <div>
-      <button class="button" @click="play">play</button>
+      <button class="button" @click="play(this.speed)">play</button>
       <button class="button"  @click="pause">pause</button>
       <button class="button" @click="stop">stop</button>
 
@@ -38,21 +54,46 @@
       playbackRate: 1.0
       };
     },
+    watch: {
+    speed(newValue) {
+      this.setSpeed(newValue);
+    },
+  },
     methods: {
+        async launchFile(file){
+            const videoURL = URL.createObjectURL(file);
+            this.$refs.video.src = videoURL;
+        this.$refs.video.addEventListener('loadedmetadata', () => {
+          URL.revokeObjectURL(videoURL);
+        //   this.play();
+        });
+        },
       async loadVideo(event) {
         const file = event.target.files[0];
         const videoURL = URL.createObjectURL(file);
-  
+        this.videoPath.push(file)
+
         this.$refs.video.src = videoURL;
         this.$refs.video.addEventListener('loadedmetadata', () => {
           URL.revokeObjectURL(videoURL);
-          this.play();
+        //   this.play();
         });
       },
-      play(playbackRate = 2) {
-      this.$refs.video.playbackRate = playbackRate;
+      play(playbackRate = 100) {
+      this.$refs.video.playbackRate = playbackRate/100;
       this.$refs.video.play();
     },
+    pause() {
+        this.$refs.video.pause();
+      },
+      stop() {
+        const { video } = this.$refs;
+        video.pause();
+        video.currentTime = 0;
+      },
+      setSpeed(speed) {
+        this.$refs.video.playbackRate = speed/100;
+      },
     }
   }
   </script>

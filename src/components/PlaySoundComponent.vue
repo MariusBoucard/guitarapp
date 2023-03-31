@@ -251,7 +251,7 @@ audio::-webkit-media-controls-toggle-closed-captions-button */
 	max-width: 100%;
 	margin-inline: auto;
 
-	flex-direction: column;
+	/* flex-direction: column; */
 	gap: 0.25em;
 	font-size: clamp(1rem, 5vw, 2rem);
 	color: hsl(0, 0%, 90%);
@@ -264,8 +264,10 @@ audio::-webkit-media-controls-toggle-closed-captions-button */
 	padding-inline: 1em;
   width: 100%;
   margin: 0;
+  padding: 0;
 	display: grid;
-	grid-template-columns: min-content min-content auto;
+  text-align: center;
+	grid-template-columns: 80% min-content ;
 	align-items: center;
 	background: linear-gradient(
 			hsla(0 0% 100% / 0.2),
@@ -273,7 +275,6 @@ audio::-webkit-media-controls-toggle-closed-captions-button */
 			hsla(0 0% 0% / 0.3)
 		),
 		var(--clr_bg);
-	text-align: right;
 	transition: transform 250ms ease;
   height: 70px;
 	cursor: default;

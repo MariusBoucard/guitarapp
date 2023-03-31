@@ -25,7 +25,7 @@
       <div class="columnhalf"> 
         <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
         @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
-      </div>
+        <VideoComponent></VideoComponent>    </div>
       <div class="columnhalf">
         <TuningComponent :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
         <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
@@ -58,6 +58,7 @@ import GammeFinderComponent from './components/GammeFinderComponent.vue';
 import TunerComponent from './components/TunerComponent.vue';
 import PlaySoundComponent from './components/PlaySoundComponent.vue';
 import LoadPictureComponent from './components/LoadPictureComponent.vue';
+import VideoComponent from './components/videoComponent.vue';
 
 export default {
   name: 'App',
@@ -69,7 +70,8 @@ export default {
     ColorComponent,
     GammeFinderComponent,
     PlaySoundComponent,
-    LoadPictureComponent
+    LoadPictureComponent,
+    VideoComponent
 },
   data () {
     return {
