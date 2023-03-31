@@ -25,7 +25,7 @@
       <div class="columnhalf"> 
         <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
         <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
-        @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
+        @note-checked="changeNoteSelection( $event)" @reinitSelected="reinit()"></NotesSelectedComponent> 
  
          </div>
       <div class="columnhalf">
@@ -84,6 +84,7 @@ export default {
       soundDisplay : true,
       scalesDisplay : true,
       videoDisplay : true,
+      reinitBool : false,
       nbfrettes : 24,
       diapason : 648,
       nbStrings: 7,
@@ -183,6 +184,10 @@ export default {
 
   },
   methods : {
+    reinit(){
+      this.notesPlayedList = []
+      this.notesPlayedDict.forEach( a => a.nb =0)
+    },
     allNotesComp(){
       var a = []
       

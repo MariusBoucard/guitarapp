@@ -45,6 +45,7 @@ export default {
         this.listNotes.forEach(
           note => {
             note.enabled = false
+            this.$emit('reinitSelected');
             this.$emit('note-checked', note);
 
           }
