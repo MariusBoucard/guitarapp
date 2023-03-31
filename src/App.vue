@@ -11,7 +11,7 @@
       <li class="linavbar" style="float:right"><a class="active"  @click="this.tunderDisplay = ! this.tunderDisplay">Tuner</a></li>
       <li class="linavbar" style="float:right"><a class="active" @click="this.pictureDisplay = ! this.pictureDisplay">Display Picture</a></li>
       <li class="linavbar" style="float:right"><a class="active" @click="this.soundDisplay = ! this.soundDisplay">Play sound</a></li>
-      <li class="linavbar" style="float:right"><a class="active" href="#about">Play video</a></li>
+      <li class="linavbar" style="float:right"><a class="active"  @click="this.videoDisplay = ! this.videoDisplay">Play video</a></li>
 
 
 
@@ -23,13 +23,15 @@
         </div>
     <div class="row">
       <div class="columnhalf"> 
+        <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
         <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
         @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
-        <VideoComponent></VideoComponent>    </div>
+ 
+         </div>
       <div class="columnhalf">
         <TuningComponent :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+        <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
         <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
-        <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
       </div>
     </div>
     
@@ -81,6 +83,7 @@ export default {
       pictureDisplay : true,
       soundDisplay : true,
       scalesDisplay : true,
+      videoDisplay : true,
       nbfrettes : 24,
       diapason : 648,
       nbStrings: 7,

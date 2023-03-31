@@ -28,8 +28,9 @@
       <h3 style="display: block;float: top">Playing rate</h3>
       <div class="slider" style="margin : auto">
 
-    <input type="range" min="0" max="300" oninput="rangeValue.innerText = this.value"  v-model="this.speed">
-    <p id="rangeValue">100</p>
+    <input type="range" min="0" max="300" oninput="rangeValueVideo.innerText = this.value"  v-model="this.speed">
+    <p id="rangeValueVideo">100</p>
+    
     </div>
     </div>
     </div>

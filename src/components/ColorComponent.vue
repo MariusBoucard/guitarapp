@@ -6,7 +6,7 @@
     <ul>
       <li v-for="couleur in dictionnairecouleur" :key="couleur.note">
         <div class="row">
-          <div class="columnhalf">
+          <div class="columnhalf" style="color : white">
             {{ couleur.note }}
           </div>
           <div class="columnhalf">
