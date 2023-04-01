@@ -13,7 +13,7 @@
         <li class="horizontalli ">
             <ul>
                 <li style=" width: 40px" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"> 
-                    <div class="circle" style="width:35px;height:35px" :style="{backgroundColor : calcBack( note.tuning.slice(0,note.tuning.length-1)) }" v-if="isChoosedTune(note)">
+                    <div class="circle" style="width:35px;height:35px" :style="{backgroundColor : calcBack2( note.tuning) }" v-if="isChoosedTune(note)">
                         {{ note.tuning.slice(0,note.tuning.length)}}
 
                     </div>
@@ -103,7 +103,7 @@ export default {
                 { id: 11, note: "GS" },
             ],
             nbCordes : 6,
-            notesSelectedIntra: this.notesSelected,
+            notesSelectedIntra2: this.notesSelected,
             couleursnotes: this.colorNotes,
             diapason : this.diap*2.3,
             currentNote : this.notePlayed,
@@ -136,6 +136,10 @@ export default {
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
             // console.log('caca')
             enabledornot.enabled = !enabledornot.enabled
+            this.notesSelectedIntra2.forEach(
+              col => {localStorage.setItem(col.note+"Selected",col.enabled)
+             console.log(col.enabled)}
+            )
         },
         renderChoosen(corde, index) {
            
@@ -169,6 +173,22 @@ export default {
         // }
            
            var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
+            return couleur.color 
+        },
+        calcBack2(lettre){
+            // console.log(lettre)
+        //    console.log(lettre)
+        // if(this.sapinNoel){
+        //      if(lettre === this.notePlayed){
+        //         console.log("caca")
+        //         return 'red '
+        //     }
+        // }
+        console.log(lettre,this.notePlayed)
+           if(lettre===this.notePlayed.slice(0,this.notePlayed.length)){
+            return "white"
+           }
+           var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre.slice(0,lettre.length-1))
             return couleur.color 
         },
         calcBackNote(corde,index){
@@ -248,6 +268,9 @@ export default {
 
 
     computed: {
+        notesSelectedIntra(){
+            return this.notesSelectedIntra2
+        },
         caca() {
             return this.currentNote
         },

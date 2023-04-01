@@ -19,7 +19,7 @@
     <div class="row">
       <div class="column">
         <div style=" display: flex;">
-          <MancheComponent v-show="this.mancheDisplay" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
+          <MancheComponent v-show="this.mancheDisplay" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
         </div>
     <div class="row">
       <div class="columnhalf"> 
@@ -38,7 +38,7 @@
   </div>
   <div class="columnd">
     <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
-
+    <VideoSettingsCOmponent :videoFolderAll="this.videoFolder"></VideoSettingsCOmponent>
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
     <GammeFinderComponent v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
   </div>
@@ -61,6 +61,7 @@ import TunerComponent from './components/TunerComponent.vue';
 import PlaySoundComponent from './components/PlaySoundComponent.vue';
 import LoadPictureComponent from './components/LoadPictureComponent.vue';
 import VideoComponent from './components/videoComponent.vue';
+import VideoSettingsCOmponent from './components/VideoSettingsCOmponent.vue';
 
 export default {
   name: 'App',
@@ -73,7 +74,8 @@ export default {
     GammeFinderComponent,
     PlaySoundComponent,
     LoadPictureComponent,
-    VideoComponent
+    VideoComponent,
+    VideoSettingsCOmponent
 },
   data () {
     return {
@@ -177,6 +179,7 @@ export default {
         {note : "GS",color:"Pink"},
       
       ],
+      videoFolder : ""
 
     }
 
@@ -260,6 +263,10 @@ export default {
       // console.log('caca'+note);
       const find = this.noteSlectedList.find((notes) => notes.note == note.note )
       find.enabled = note.enabled
+      this.noteSlectedList.forEach(
+              col => {localStorage.setItem(col.note+"Selected",col.enabled)
+             console.log(col.enabled)}
+            )
       //  console.log(find)
     },
     changeDiap(diap){
@@ -283,15 +290,37 @@ export default {
         },
         deep: true,
     },
+    noteSlectedList: {
+        handler() {
+            // this.noteSlectedList.forEach(
+            //   col => {localStorage.setItem(col.note+"Selected",JSON.stringify(col.enabled))
+            //  console.log(col.enabled)}
+            // )
+            console.log('selected changed!');
+            console.log(this.noteSlectedList)
+        },
+        deep: true,
+    },
+    
   
    
   
   
   },
   created(){
-
+    
   },
-    mounted(){
+ mounted(){
+      
+                  this.noteSlectedList.forEach(
+                    col => {
+                      if (localStorage.getItem(col.note+"Selected")!=="null") {
+                        col.enabled= localStorage.getItem(col.note+"Selected") === "true"? true : false
+                        console.log(col.enabled)
+                      }
+      
+                    }
+                  )
       this.colors.forEach(
               col => {
                 if (localStorage.getItem(col.note)!=="null") {
@@ -302,6 +331,7 @@ export default {
             )
             this.allNotes = this.allNotesComp()
             this.allNotesC = this.allNotesCompc()
+        
 
        
             // console.log(this.noteSlectedList)
@@ -310,7 +340,11 @@ export default {
 
   }
 
-
+,
+computed : {
+  noteselectedcomp()
+{return this.noteSlectedList}
+}
 
 
 
