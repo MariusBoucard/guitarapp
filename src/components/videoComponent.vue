@@ -73,6 +73,7 @@
         const file = event.target.files[0];
         const videoURL = URL.createObjectURL(file);
         this.videoPath.push(file)
+        this.speed = 100
 
         this.$refs.video.src = videoURL;
         this.$refs.video.addEventListener('loadedmetadata', () => {
