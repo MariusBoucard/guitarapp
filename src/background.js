@@ -44,6 +44,16 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+app.once('ready-to-show', () => {
+ protocol.interceptFileProtocol('file', (request, callback) => {
+      const filePath = request.url.replace('app://', '');
+      const url = request.url.includes('img/') ? filePath.normalize(`${__dirname}/${filePath}`) : filePath;
+
+      callback({ path: url });
+  }, err => {
+      if (err) console.error('Failed to register protocol');
+  });
+});
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the

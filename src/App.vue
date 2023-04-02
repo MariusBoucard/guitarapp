@@ -1,17 +1,21 @@
 <template>
-  <body style="margin : 0">
-
+  <body style="margin : 0  ;background-image: url(/assets/frettebackground.jpeg);" >
+    <div class="image-container">
+<img class="background-image" src="../public/sky.jpg">
+<div class="content">
     <ul class="ulnavbar">
-      <li class="linavbar"><a href="#home" @click="this.mancheDisplay = ! this.mancheDisplay">Manche</a></li>
-      <li class="linavbar"><a href="#news" @click="this.notesSelectedDisplay = ! this.notesSelectedDisplay" >Selection notes</a></li>
-      <li class="linavbar" ><a  style="{ backgroundColor: red;}" @click="$event => {this.autoGammeSelect = !this.autoGammeSelect}" > Auto gamme select</a></li>
+      <li class="linavbar" :class=" this.mancheDisplay ?  'enabled' :'disabled' " ><a href="#home" @click="this.mancheDisplay = ! this.mancheDisplay">Manche</a></li>
+      <li class="linavbar" :class=" this.notesSelectedDisplay ?  'enabled' :'disabled' "><a href="#news" @click="this.notesSelectedDisplay = ! this.notesSelectedDisplay" >Selection notes</a></li>
+      <li class="linavbar" :class=" this.autoGammeSelect ?  'enabled' :'disabled' " ><a  style="{ backgroundColor: red;}" @click="$event => {this.autoGammeSelect = !this.autoGammeSelect}" > Auto gamme select</a></li>
 
-      <li class="linavbar"><a  @click="this.scalesDisplay = ! this.scalesDisplay">Scales</a></li>
-      <li class="linavbar" style="float:right"><a class="active" @click="this.settingsView = ! this.settingsView">Settings</a></li>
-      <li class="linavbar" style="float:right"><a class="active"  @click="this.tunderDisplay = ! this.tunderDisplay">Tuner</a></li>
-      <li class="linavbar" style="float:right"><a class="active" @click="this.pictureDisplay = ! this.pictureDisplay">Display Picture</a></li>
-      <li class="linavbar" style="float:right"><a class="active" @click="this.soundDisplay = ! this.soundDisplay">Play sound</a></li>
-      <li class="linavbar" style="float:right"><a class="active"  @click="this.videoDisplay = ! this.videoDisplay">Play video</a></li>
+      <li class="linavbar" :class=" this.scalesDisplay ?  'enabled' :'disabled' " ><a  @click="this.scalesDisplay = ! this.scalesDisplay">Scales</a></li>
+      <li class="linavbar" :class=" this.settingsView ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.settingsView = ! this.settingsView">Settings</a></li>
+      <li class="linavbar" :class=" this.tunderDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.tunderDisplay = ! this.tunderDisplay">Tuner</a></li>
+      <li class="linavbar" :class=" this.pictureDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.pictureDisplay = ! this.pictureDisplay">Display Picture</a></li>
+      <li class="linavbar" :class=" this.soundDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.soundDisplay = ! this.soundDisplay">Play sound</a></li>
+      <li class="linavbar" :class=" this.videoDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.videoDisplay = ! this.videoDisplay">Play video</a></li>
+      <li class="linavbar" :class=" this.gameDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.gameDisplay = ! this.gameDisplay">Play game</a></li>
+
 
 
 
@@ -38,15 +42,18 @@
   </div>
   <div class="columnd">
     <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
-    <VideoSettingsCOmponent :videoFolderAll="this.videoFolder"></VideoSettingsCOmponent>
+    <NotesAJouerComponent  v-show="this.gameDisplay" @greatNote="resultPlayed($event,val)" :notesSelected=this.noteSlectedList :listeNote=this.nbnotes :noteTuner=this.notePlayed>
+    </NotesAJouerComponent>
+              <VideoSettingsCOmponent :videoFolderAll="this.videoFolder"></VideoSettingsCOmponent>
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
     <GammeFinderComponent v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
+    <!-- <metronome></metronome> -->
   </div>
   
   
 </div> 
 
-
+</div></div>
 
 </body>
 </template>
@@ -62,7 +69,9 @@ import PlaySoundComponent from './components/PlaySoundComponent.vue';
 import LoadPictureComponent from './components/LoadPictureComponent.vue';
 import VideoComponent from './components/videoComponent.vue';
 import VideoSettingsCOmponent from './components/VideoSettingsCOmponent.vue';
-
+import NotesAJouerComponent from './components/NoteAJouerComponent.vue'
+import myImage from '@/assets/frettebackground.jpeg';
+// import metronome from 'vue-metronome'
 export default {
   name: 'App',
   components: {
@@ -75,7 +84,9 @@ export default {
     PlaySoundComponent,
     LoadPictureComponent,
     VideoComponent,
-    VideoSettingsCOmponent
+    VideoSettingsCOmponent,
+    NotesAJouerComponent
+    // metronome
 },
   data () {
     return {
@@ -86,6 +97,9 @@ export default {
       soundDisplay : true,
       scalesDisplay : true,
       videoDisplay : true,
+      gameDisplay : false,
+
+      noteGreat :  undefined,
       nbfrettes : 24,
       diapason : 648,
       nbStrings: 7,
@@ -186,6 +200,9 @@ export default {
 
   },
   methods : {
+    resultPlayed(noteBoolean){
+      this.noteGreat = noteBoolean
+    },
     allNotesComp(){
       var a = []
       
@@ -336,7 +353,7 @@ export default {
        
             // console.log(this.noteSlectedList)
   console.log('App Mounted');
-
+              console.log(myImage)
 
   }
 
@@ -376,8 +393,13 @@ computed : {
   content: "";
   display: table;
   clear: both;
+}.enabled
+{
+  background-color: #111;
 }
-
+.disabled{
+  background-color: #333;
+}
 .ulnavbar {
   list-style-type: none;
   margin: 0;
@@ -402,12 +424,28 @@ computed : {
 .lianavbar a:hover {
   background-color: #111;
 }
-body {
-    background-image: url("../public/background.jpg");
- 
-}
+
 h1,p,h3 {
   color : white
 }
+.background-image{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  /* object-fit: cover; */
+}
+.image-container {
+  position: relative;
+  /* display: inline-block; */
+}
 
+.content {
+  position: relative;
+  z-index: 1;
+  
+  /* Your styles here */
+}
 </style>

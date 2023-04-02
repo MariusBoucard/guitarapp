@@ -1,7 +1,11 @@
 <template>
     <div>
     <!-- <p>{{ this.tuningintra }}</p> -->
-        <h1>{{ this.notePlayed}}</h1>
+        <h1>{{ this.notePlayed}}</h1> 
+         <div class="circle" style="width:35px;height:35px" :style="{backgroundColor :( this.notePlayed ? calcBack( this.notePlayed.slice(0,this.notePlayed.length-1)): white ) }" >
+                        {{ this.notePlayed.slice(0,this.notePlayed.length-1)}}
+
+                    </div>
         <p>Activer le sapin de noel :</p>
         <button class="button" style="border : 1px solid black" @click="allumerSapin()" :style="{ backgroundColor : getStateButton()}">Sapinnnnn</button>
     <div>
