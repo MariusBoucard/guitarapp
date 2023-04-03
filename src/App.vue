@@ -164,18 +164,18 @@ export default {
     ],
     allNotes : [],
       colors : [
-        {note : "A",color:"blue"},
-        {note : "AS",color:"DarkTurquoise"},
-        {note : "B",color:"Purple"},
-        {note : "C",color:"Red"},
-        {note : "CS",color:"DarkRed"},
-        {note : "D",color:"Orange"},
-        {note : "DS",color:"SandyBrown"},
-        {note : "E",color:"Yellow"},
-        {note : "F",color:"Green"},
-        {note : "FS",color:"LightGreen"},
-        {note : "G",color:"Purple"},
-        {note : "GS",color:"Pink"},
+        {note : "A",color:"black"},
+        {note : "AS",color:"grey"},
+        {note : "B",color:"white"},
+        {note : "C",color:"blue"},
+        {note : "CS",color:"lightblue"},
+        {note : "D",color:"red"},
+        {note : "DS",color:"pink"},
+        {note : "E",color:"green"},
+        {note : "F",color:"brown"},
+        {note : "FS",color:"lightbrown"},
+        {note : "G",color:"yellow"},
+        {note : "GS",color:"light-yellow"},
       
       ],
 
@@ -374,7 +374,8 @@ export default {
   background-color: #111;
 }
 body {
-    background-image: url("../public/background.jpg");
+    background-image: url("/img/background.png");
+    background-color: none  !important;;
  
 }
 h1,p,h3 {

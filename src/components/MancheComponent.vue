@@ -306,7 +306,7 @@ export default {
   font-weight: bold;
 }
 .frette {
-    background-image: url('../assets/frettebackground.jpeg');
+    background-image: url('/src/assets/frettebackground.png');
     border-right: 1px solid rgb(255, 255, 255);
     background-color: rgb(71,47,23);
 
