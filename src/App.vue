@@ -1,17 +1,22 @@
 <template>
-  <body style="margin : 0">
-
+  <body style="margin : 0px  ;background-image: url(/assets/frettebackground.jpeg);" >
+    <div class="image-container">
+<img class="background-image" src="../public/sky.jpg">
+<div class="content">
     <ul class="ulnavbar">
-      <li class="linavbar"><a href="#home" @click="this.mancheDisplay = ! this.mancheDisplay">Manche</a></li>
-      <li class="linavbar"><a href="#news" @click="this.notesSelectedDisplay = ! this.notesSelectedDisplay" >Selection notes</a></li>
-      <li class="linavbar" ><a  style="{ backgroundColor: red;}" @click="$event => {this.autoGammeSelect = !this.autoGammeSelect}" > Auto gamme select</a></li>
+      <li class="linavbar" :class=" this.mancheDisplay ?  'enabled' :'disabled' " ><a href="#home" @click="this.mancheDisplay = ! this.mancheDisplay">Manche</a></li>
+      <li class="linavbar" :class=" this.notesSelectedDisplay ?  'enabled' :'disabled' "><a href="#news" @click="this.notesSelectedDisplay = ! this.notesSelectedDisplay" >Selection notes</a></li>
+      <li class="linavbar" :class=" this.autoGammeSelect ?  'enabled' :'disabled' " ><a  style="{ backgroundColor: red;}" @click="$event => {this.autoGammeSelect = !this.autoGammeSelect}" > Auto gamme select</a></li>
 
-      <li class="linavbar"><a  @click="this.scalesDisplay = ! this.scalesDisplay">Scales</a></li>
-      <li class="linavbar" style="float:right"><a class="active" @click="this.settingsView = ! this.settingsView">Settings</a></li>
-      <li class="linavbar" style="float:right"><a class="active"  @click="this.tunderDisplay = ! this.tunderDisplay">Tuner</a></li>
-      <li class="linavbar" style="float:right"><a class="active" @click="this.pictureDisplay = ! this.pictureDisplay">Display Picture</a></li>
-      <li class="linavbar" style="float:right"><a class="active" @click="this.soundDisplay = ! this.soundDisplay">Play sound</a></li>
-      <li class="linavbar" style="float:right"><a class="active"  @click="this.videoDisplay = ! this.videoDisplay">Play video</a></li>
+      <li class="linavbar" :class=" this.scalesDisplay ?  'enabled' :'disabled' " ><a  @click="this.scalesDisplay = ! this.scalesDisplay">Scales</a></li>
+      <li class="linavbar" :class=" this.settingsView ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.settingsView = ! this.settingsView">Settings</a></li>
+      <li class="linavbar" :class=" this.tunderDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.tunderDisplay = ! this.tunderDisplay">Tuner</a></li>
+      <li class="linavbar" :class=" this.pictureDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.pictureDisplay = ! this.pictureDisplay">Display Picture</a></li>
+      <li class="linavbar" :class=" this.soundDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.soundDisplay = ! this.soundDisplay">Play sound</a></li>
+      <li class="linavbar" :class=" this.videoDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.videoDisplay = ! this.videoDisplay">Play video</a></li>
+      <li class="linavbar" :class=" this.gameDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.gameDisplay = ! this.gameDisplay">Play game</a></li>
+      <li class="linavbar" :class=" this.chordsDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.chordsDisplay = ! this.chordsDisplay">Affichage accords</a></li>
+
 
 
 
@@ -19,34 +24,41 @@
     <div class="row">
       <div class="column">
         <div style=" display: flex;">
-          <MancheComponent v-show="this.mancheDisplay" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteSlectedList" :tuning="this.tuningList" />
+          <MancheComponent v-show="this.mancheDisplay" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
         </div>
-    <div class="row">
-      <div class="columnhalf"> 
-        <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
-        <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
-        @note-checked="changeNoteSelection( $event)" @reinitSelected="reinit()"></NotesSelectedComponent> 
+        <div class="row">
+          <div class="columnhalf"> 
+            <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
+            <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
+        @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
  
          </div>
-      <div class="columnhalf">
-        <TuningComponent :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
-        <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
-        <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
+         <div class="columnhalf">
+           <TuningComponent :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+           <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
+           <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
+          </div>
+        </div>
+        
       </div>
-    </div>
-    
-  </div>
-  <div class="columnd">
-    <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
-
+      <div class="columnd">
+        <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
+    <NotesAJouerComponent  v-show="this.gameDisplay" @greatNote="resultPlayed($event,val)" :notesSelected=this.noteSlectedList :listeNote=this.nbnotes :noteTuner=this.notePlayed>
+    </NotesAJouerComponent>
+              <VideoSettingsCOmponent :videoFolderAll="this.videoFolder"></VideoSettingsCOmponent>
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
     <GammeFinderComponent v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
+    <!-- <metronome></metronome> -->
   </div>
+  
+  
+    <GuitarChordsComponent v-show="this.chordsDisplay" />
+
   
   
 </div> 
 
-
+</div></div>
 
 </body>
 </template>
@@ -61,7 +73,11 @@ import TunerComponent from './components/TunerComponent.vue';
 import PlaySoundComponent from './components/PlaySoundComponent.vue';
 import LoadPictureComponent from './components/LoadPictureComponent.vue';
 import VideoComponent from './components/videoComponent.vue';
-
+import VideoSettingsCOmponent from './components/VideoSettingsCOmponent.vue';
+import NotesAJouerComponent from './components/NoteAJouerComponent.vue'
+import myImage from '@/assets/frettebackground.jpeg';
+import GuitarChordsComponent from './components/GuitarChordsComponent.vue';
+// import metronome from 'vue-metronome'
 export default {
   name: 'App',
   components: {
@@ -73,7 +89,12 @@ export default {
     GammeFinderComponent,
     PlaySoundComponent,
     LoadPictureComponent,
-    VideoComponent
+    VideoComponent,
+    VideoSettingsCOmponent,
+    NotesAJouerComponent
+    // metronome
+    ,
+    GuitarChordsComponent
 },
   data () {
     return {
@@ -84,7 +105,10 @@ export default {
       soundDisplay : true,
       scalesDisplay : true,
       videoDisplay : true,
-      reinitBool : false,
+      gameDisplay : false,
+      chordsDisplay : false,
+
+      noteGreat :  undefined,
       nbfrettes : 24,
       diapason : 648,
       nbStrings: 7,
@@ -178,6 +202,7 @@ export default {
         {note : "GS",color:"light-yellow"},
       
       ],
+      videoFolder : ""
 
     }
 
@@ -187,6 +212,9 @@ export default {
     reinit(){
       this.notesPlayedList = []
       this.notesPlayedDict.forEach( a => a.nb =0)
+    },
+    resultPlayed(noteBoolean){
+      this.noteGreat = noteBoolean
     },
     allNotesComp(){
       var a = []
@@ -265,6 +293,10 @@ export default {
       // console.log('caca'+note);
       const find = this.noteSlectedList.find((notes) => notes.note == note.note )
       find.enabled = note.enabled
+      this.noteSlectedList.forEach(
+              col => {localStorage.setItem(col.note+"Selected",col.enabled)
+             console.log(col.enabled)}
+            )
       //  console.log(find)
     },
     changeDiap(diap){
@@ -288,15 +320,37 @@ export default {
         },
         deep: true,
     },
+    noteSlectedList: {
+        handler() {
+            // this.noteSlectedList.forEach(
+            //   col => {localStorage.setItem(col.note+"Selected",JSON.stringify(col.enabled))
+            //  console.log(col.enabled)}
+            // )
+            console.log('selected changed!');
+            console.log(this.noteSlectedList)
+        },
+        deep: true,
+    },
+    
   
    
   
   
   },
   created(){
-
+    
   },
-    mounted(){
+ mounted(){
+      
+                  this.noteSlectedList.forEach(
+                    col => {
+                      if (localStorage.getItem(col.note+"Selected")!=="null") {
+                        col.enabled= localStorage.getItem(col.note+"Selected") === "true"? true : false
+                        console.log(col.enabled)
+                      }
+      
+                    }
+                  )
       this.colors.forEach(
               col => {
                 if (localStorage.getItem(col.note)!=="null") {
@@ -307,15 +361,20 @@ export default {
             )
             this.allNotes = this.allNotesComp()
             this.allNotesC = this.allNotesCompc()
+        
 
        
             // console.log(this.noteSlectedList)
   console.log('App Mounted');
-
+              console.log(myImage)
 
   }
 
-
+,
+computed : {
+  noteselectedcomp()
+{return this.noteSlectedList}
+}
 
 
 
@@ -347,8 +406,13 @@ export default {
   content: "";
   display: table;
   clear: both;
+}.enabled
+{
+  background-color: #111;
 }
-
+.disabled{
+  background-color: #333;
+}
 .ulnavbar {
   list-style-type: none;
   margin: 0;
@@ -373,13 +437,28 @@ export default {
 .lianavbar a:hover {
   background-color: #111;
 }
-body {
-    background-image: url("/img/background.png");
-    background-color: none  !important;;
- 
-}
+
 h1,p,h3 {
   color : white
 }
+.background-image{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  /* object-fit: cover; */
+}
+.image-container {
+  position: relative;
+  /* display: inline-block; */
+}
 
+.content {
+  position: relative;
+  z-index: 1;
+  
+  /* Your styles here */
+}
 </style>

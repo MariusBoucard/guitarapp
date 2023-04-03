@@ -80,6 +80,13 @@
           URL.revokeObjectURL(videoURL);
         //   this.play();
         });
+
+        localStorage.setItem("videoLength",this.videoPath.length)
+        for(var i=0;i<this.videoPath.length;i++){
+          console.log(this.videoPath[i])
+          localStorage.setItem("video"+i,this.videoPath[i].name)
+        }
+       
       },
       play(playbackRate = 100) {
       this.$refs.video.playbackRate = playbackRate/100;
@@ -96,6 +103,33 @@
       setSpeed(speed) {
         this.$refs.video.playbackRate = speed/100;
       },
+    },
+    mounted(){
+      var lenVideo= localStorage.getItem("videoLength")
+        for(var i=0;i<lenVideo;i++){
+         var path=  localStorage.getItem("video"+i)
+         this.videoFolder = localStorage.getItem("videoFolder")
+
+         path = this.videoFolder+path
+         console.log(path)
+        //  const videoURL = URL.createObjectURL(path);
+                  // this.$refs.video.src = path;
+
+                  if (path) {
+                    // Make a request to a server-side script to load the video file
+                    const videoURL = `/loadvideo.php?path=${encodeURIComponent(path)}`;
+                    fetch(videoURL)
+                      .then(response => response.blob())
+                      .then(blob => {
+                        const videoBlobURL = URL.createObjectURL(blob);
+                        this.$refs.video.src = videoBlobURL;
+                        this.$refs.video.addEventListener('loadedmetadata', () => {
+                          URL.revokeObjectURL(videoBlobURL);
+                          // this.play();
+                        });
+                      });
+                  }
+        }
     }
   }
   </script>

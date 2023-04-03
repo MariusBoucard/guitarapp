@@ -15,6 +15,7 @@ async function createWindow() {
   const win = new BrowserWindow({
     width: 1600,
     height: 1200,
+    backgroundColor: '#000000', // set the background color to black
     icon :  __dirname + '/public/favicon.png',
     webPreferences: {
       
@@ -24,7 +25,7 @@ async function createWindow() {
       contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION
     }
   })
-win.webContents.openDevTools()
+  win.setMenu(null)
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
@@ -45,6 +46,16 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+app.once('ready-to-show', () => {
+ protocol.interceptFileProtocol('file', (request, callback) => {
+      const filePath = request.url.replace('app://', '');
+      const url = request.url.includes('img/') ? filePath.normalize(`${__dirname}/${filePath}`) : filePath;
+
+      callback({ path: url });
+  }, err => {
+      if (err) console.error('Failed to register protocol');
+  });
+});
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
