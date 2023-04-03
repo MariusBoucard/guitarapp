@@ -42,6 +42,8 @@ export default {
   },
   methods: {
     reinit(){
+      this.$emit('reinitSelected');
+      console.log("clicked")
         this.listNotes.forEach(
           note => {
             note.enabled = false

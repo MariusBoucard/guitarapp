@@ -30,7 +30,7 @@
           <div class="columnhalf"> 
             <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
             <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
-        @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
+        @note-checked="changeNoteSelection( $event)" @reinitSelected="this.reinit()"></NotesSelectedComponent> 
  
          </div>
          <div class="columnhalf">
