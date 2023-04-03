@@ -15,7 +15,7 @@
 
             </select>
 
-        <h1 color="white">{{ this.newNote.note }}</h1>
+        <h1 color="white">{{ this.rootNote }}</h1>
         <h5 style="color:white">{{ this.intervalText }}</h5>
         <h5 style="color:white">Score : {{ this.score }}</h5>
         <p> Niveau</p>
@@ -45,6 +45,7 @@ export default{
             tempo : 30,
             metronomeNumerateur :4,
             metronomeDenominateur :4,
+            rootNote : "A",
             oldNote : {
                 "note" : "A",
                 "expectedTime" : "000000"
@@ -157,7 +158,7 @@ export default{
             this.fct = setInterval(() => this.calcNewNote(), timeInterval*1000);
         },
         calcNote(){
-               var find =  this.listeNoteTot.find(note => note.note === this.newNote.note)
+               var find =  this.listeNoteTot.find(note => note.note === this.rootNote)
                var noteExpected = (find.id + this.Interval)%12
                var noteExp = this.listeNoteTot.find(note => note.id === noteExpected)
                return noteExp.note
@@ -167,7 +168,13 @@ export default{
             var find = this.listeNoteTot.find(note => note.id === ran)
             return {"note" : find.note}
         },
+        generateNewRoot(){
+            var ran = Math.floor(Math.random() * 12);
+            var find = this.listeNoteTot.find(note => note.id === ran)
+            return find.note
+        },
         //Possibilité d inclure la gaussienne ici 
+        //Warning
         bienJoue(){
             var plusprochenote = this.notesPlayed.shift()
             for ( var a in this.notesPlayed){
@@ -177,6 +184,7 @@ export default{
             }
             if(plusprochenote.note===this.oldNote.note){
                 this.$emit('greatNote', true)
+                console.log("bien joue")
                 return true
             }
             else{
@@ -200,9 +208,10 @@ export default{
             }
             
             if(this.index%this.metronomeDenominateur===0){
+                console.log("damn")
                 // this.oldNote=this.newNote
                 this.oldNote = this.newNote
-                this.newNote = this.generateNewNote()
+                this.rootNote = this.generateNewRoot()
                 this.Interval = Math.floor(Math.random() * 12);
                 var date = new Date()
                 var timeInterval = 60/this.tempo  
