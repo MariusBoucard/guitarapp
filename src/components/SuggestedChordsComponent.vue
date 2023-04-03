@@ -13,6 +13,12 @@
                 {{ chord.chord }}
             </li>
         </ul> 
+SeventhChords 
+       <ul>
+            <li v-for="chord in this.SeventhChords" :key="chord">
+                {{ chord.chord }}
+            </li>
+        </ul> 
     </div>
 </template>
 <script>
@@ -26,6 +32,7 @@ export default {
         return {
             relativeKey: "",
             DiatonicChords: [],
+            SeventhChords: [],
             HarmonicChords: [],
             BorrowedChords: [],
             StackingThirdsChords: [],
@@ -116,6 +123,91 @@ export default {
             },
 
             ],
+            
+            Seventh : [
+            {
+                quality: "Major",
+                liste: [
+                    { id: "0", quality: "Major7" },
+                    { id: "1", quality: "Minor7" },
+                    { id: "2", quality: "Minor7" },
+                    { id: "3", quality: "Major7" },
+                    { id: "4", quality: "7" },
+                    { id: "5", quality: "Minor7" },
+                    { id: "6", quality: " Half-diminished 7th chord" },
+                ],
+            },
+            {
+                quality: "Natural Minor",
+                liste: [
+                    { "id": "0", "quality": "Minor7" },
+                    { "id": "1", "quality": "half-diminished7" },
+                    { "id": "2", "quality": "Major7" },
+                    { "id": "3", "quality": "Minor7" },
+                    { "id": "4", "quality": "Minor7" },
+                    { "id": "5", "quality": "Major7" },
+                    { "id": "6", "quality": "Dominant7" }
+                ],
+            },
+            {
+                quality: "Harmonic Minor",
+                liste: [
+                    { "id": "0", "quality": "Minor-maj7" },
+                    { "id": "1", "quality": "Half-diminished7" },
+                    { "id": "2", "quality": "augmented-major7" },
+                    { "id": "3", "quality": "Minor7" },
+                    { "id": "4", "quality": "Dominant7" },
+                    { "id": "5", "quality": "Major7#5" },
+                    { "id": "6", "quality": "Fully-Diminished7" }
+                ]
+            },
+            {
+                quality: "Melodic Minor",
+                liste: [
+                    { "id": "0", "quality": "minor7" },
+                    { "id": "1", "quality": "minor7" },
+                    { "id": "2", "quality": "augmented-major7" },
+                    { "id": "3", "quality": "dominant7" },
+                    { "id": "4", "quality": "dominant7" },
+                    { "id": "5", "quality": "half-diminished7" },
+                    { "id": "6", "quality": "fully-diminished7" }
+                ]
+            },
+            {
+                quality: "Dorian",
+                liste: [
+                    { "id": "0", "quality": "minor7" },
+                    { "id": "1", "quality": "minor7" },
+                    { "id": "2", "quality": "major7" },
+                    { "id": "3", "quality": "dominant7" },
+                    { "id": "4", "quality": "minor7" },
+                    { "id": "5", "quality": "minor7" },
+                    { "id": "6", "quality": "half-diminished7" }
+                ]
+            },
+            {
+                quality: "Phrygian",
+                liste: [
+                    { "id": "0", "quality": "Minor7" },
+                    { "id": "1", "quality": "Major7" },
+                    { "id": "2", "quality": "Augmented7" },
+                    { "id": "3", "quality": "Minor7" },
+                    { "id": "4", "quality": "Diminished7" },
+                    { "id": "5", "quality": "Major7" },
+                    { "id": "6", "quality": "Minor7" }
+                ]
+            },
+            {
+                quality: "Hirojoshi",
+                liste: [
+                    { "id": "0", "quality": "minor7" },
+                    { "id": "1", "quality": "major7" },
+                    { "id": "2", "quality": "minor7" },
+                    { "id": "3", "quality": "dominant7" },
+                    { "id": "4", "quality": "major7" },
+
+                ]
+            },],
             StackingThirds: [{
                 quality: "Major",
                 liste: [
@@ -268,6 +360,17 @@ export default {
                 var listeNotes3 = this.Diatonics.find(thirds => thirds.quality === quality)
                 var quall3 = listeNotes3.liste.at(i)
                 this.DiatonicChords.push({ quality: quality, chord: chordName3.note + quall3.quality })
+
+
+            }
+            this.SeventhChords = []
+
+            for ( i = 0; i < orderNbNotes.length; i++) {
+                var chordName4 = this.nbnotes.find(note => note.id === orderNbNotes.at(i))
+                //essay avec une gamme
+                var listeNotes4 = this.Diatonics.find(thirds => thirds.quality === quality)
+                var quall4 = listeNotes4.liste.at(i)
+                this.SeventhChords.push({ quality: quality, chord: chordName4.note + quall4.quality })
 
 
             }

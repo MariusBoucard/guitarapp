@@ -25,7 +25,6 @@
       <div class="column">
         <div style=" display: flex;">
           <MancheComponent v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
-<SuggestedChordsComponent :nbnotes="this.nbnotes" :selectedNotes="this.noteSlectedList" :selectedGamme="this.gammeSelected"/>
         </div>
         <div class="row">
           <div class="columnhalf"> 
@@ -43,6 +42,8 @@
         
       </div>
       <div class="columnd">
+        <SuggestedChordsComponent :nbnotes="this.nbnotes" :selectedNotes="this.noteSlectedList" :selectedGamme="this.gammeSelected"/>
+
         <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
     <NotesAJouerComponent  v-show="this.gameDisplay" @greatNote="resultPlayed($event,val)" :notesSelected=this.noteSlectedList :listeNote=this.nbnotes :noteTuner=this.notePlayed>
     </NotesAJouerComponent>
