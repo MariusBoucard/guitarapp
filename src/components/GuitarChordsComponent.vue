@@ -3,7 +3,7 @@
       <guitar-chords class="chord"
       
   fingering="1 X 2 3 4 X"
-  :chordName= "Fmaj7"
+  chordName= "Fmaj7"
   width="250"
   height="250"
       />
@@ -19,7 +19,7 @@ import GuitarChords from 'guitar-chords-viewer';
     props: {
       chord: {
         type: String,
-        required: true,
+        required: false,
       },
       variation: {
         type: String,

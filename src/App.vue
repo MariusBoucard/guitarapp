@@ -24,7 +24,7 @@
     <div class="row">
       <div class="column">
         <div style=" display: flex;">
-          <MancheComponent v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
+          <MancheComponent v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
         </div>
         <div class="row">
           <div class="columnhalf"> 
@@ -47,7 +47,7 @@
     </NotesAJouerComponent>
               <VideoSettingsCOmponent :videoFolderAll="this.videoFolder"></VideoSettingsCOmponent>
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
-    <GammeFinderComponent :gammeSelected="this.gammeSelectedComp" @newscale="setScale($event,scale)" v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
+    <GammeFinderComponent @colorgamme="this.changeColor($event,colors)"  :color="this.colors" :nbnotes="this.nbnotes" :gammeSelected="this.gammeSelectedComp" @newscale="setScale($event,scale)" v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
     <!-- <metronome></metronome> -->
   </div>
   
@@ -189,7 +189,7 @@ export default {
         { note : 'GS',enabled : false}
     ],
     allNotes : [],
-      colors : [
+    colors : [
         {note : "A",color:"black"},
         {note : "AS",color:"grey"},
         {note : "B",color:"white"},
@@ -201,7 +201,7 @@ export default {
         {note : "F",color:"brown"},
         {note : "FS",color:"lightbrown"},
         {note : "G",color:"yellow"},
-        {note : "GS",color:"light-yellow"},
+        {note : "GS",color:"lightyellow"},
       
       ],
       videoFolder : ""
@@ -211,6 +211,10 @@ export default {
 
   },
   methods : {
+    changeColor(colors){
+      console.log(colors)
+      this.colors = colors
+    },
     reinit(){
       this.notesPlayedList = []
       this.notesPlayedDict.forEach( a => a.nb =0)
@@ -362,14 +366,14 @@ export default {
       
                     }
                   )
-      this.colors.forEach(
-              col => {
-                if (localStorage.getItem(col.note)!=="null") {
-                  col.color= localStorage.getItem(col.note)
-                }
+      // this.colors.forEach(
+      //         col => {
+      //           if (localStorage.getItem(col.note)!=="null") {
+      //             col.color= localStorage.getItem(col.note)
+      //           }
 
-              }
-            )
+      //         }
+      //       )
             this.allNotes = this.allNotesComp()
             this.allNotesC = this.allNotesCompc()
         
@@ -383,6 +387,9 @@ export default {
 
 ,
 computed : {
+  colorsComp(){
+    return this.colors
+  },
   gammeSelectedComp(){
     return this.gammeSelected
   },

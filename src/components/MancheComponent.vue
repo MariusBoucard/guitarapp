@@ -183,7 +183,7 @@ export default {
         //     }
         // }
            
-           var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
+           var couleur =  this.couleursnotesComp.find((couleurs)=> couleurs.note === lettre)
             return couleur.color 
         },
         calcBack2(lettre){
@@ -240,7 +240,7 @@ export default {
             // }
         }
            
-           var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre)
+           var couleur =  this.couleursnotesComp.find((couleurs)=> couleurs.note === lettre)
             return couleur.color 
         },
         calcWidth(index){
@@ -274,11 +274,20 @@ export default {
                 this.diapason = this.diap*2.3
                 this.$forceUpdate()
             }
+            },
+        colorNotes : {
+            handler(){
+                console.log("changed")
+                this.$forceUpdate();
             }
+        }
     }, 
 
 
     computed: {
+        couleursnotesComp(){
+            return this.colorNotes
+        },
         notesSelectedIntra(){
             return this.notesSelectedIntra2
         },

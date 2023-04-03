@@ -2,8 +2,8 @@
     <div style=" ; background-color: wheat;">
         <p>Scale in use {{ this.gammeSelected }}</p>
         <h1>Scales you could use : </h1>
-        <input type="checkbox" id="vehicle1" name="vehicle1" value="Bike">
-<label for="vehicle1"> TODO : color relatives to the position in the scale</label><br>
+        <input type="checkbox"  v-model="this.colorScaleBool" >
+<label > TODO : color relatives to the position in the scale</label><br>
         <ul>
 
             <li v-for="gammes in this.listeGammes" :key="gammes">
@@ -51,10 +51,15 @@ export default {
     props: {
         //Peut etre qu'on peut definir un array de note ici
         notesSelected: { required: true, type: [Object] },
+        color: { required: true, type: [Object] },
+        nbnotes: { required: true, type: [Object] },
+
+
         gammeSelected : { required: true, type: String },
     },
     data() {
         return {
+            colorScaleBool : false,
             notesSelectionnees: this.notesSelected,
             gammeSelectedIntra : this.gammeSelected,
             listeNotes: [
@@ -71,6 +76,7 @@ export default {
                 { id: 10, note: "G" },
                 { id: 11, note: "GS" },
             ],
+            colorIntra : this.color,
             notesTab: ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"],
             // listeGammes: [],
             scaleTypes: [
@@ -81,9 +87,25 @@ export default {
                 { name: 'Dorian', noteName: 'D', intervals: [0, 2, 3, 5, 7, 9, 10], notes: [] },
                 { name: 'Phrygian', noteName: 'E', intervals: [0, 1, 3, 5, 7, 8, 10], notes: [] },
                 { name: 'Hirojoshi', noteName: 'C', intervals: [0, 2, 3, 7, 8], notes: [] }
-            ]
+            ],
 
 
+            colorScale : [
+                { id : 0 , color : "red"},
+                { id : 1 , color : "red"},
+                { id : 2 , color : "red"},
+                { id : 3 , color : "red"},
+                { id : 4 , color : "red"},
+                { id : 5 , color : "red"},
+                { id : 6 , color : "red"},
+                { id : 7 , color : "red"},
+                { id : 8 , color : "red"},
+                { id : 9 , color : "red"},
+                { id : 10 , color : "blue"},
+                { id : 11, color : "red"},
+                { id : 12, color : "red"}
+        ],
+            colorSave : []
         }
     },
     computed : {
@@ -107,6 +129,35 @@ export default {
 
     },
     methods: {
+        generateColors(fonda,type){
+            const colorsRender = []
+            var scaleType = this.scaleTypes.find(scaleType => scaleType.name === type)
+            var rootNote = this.nbnotes.find(note => note.note === fonda)
+            //put as well the not in the interval number
+            const nbinterval = [0,1,2,3,4,5,6,7,8,9,10,11]
+            scaleType.intervals.forEach(numero => {
+                var numnew = this.nbnotes.find(note => note.id === (rootNote.id+numero)%12)
+                var colorSc = this.colorScale.find(inter => inter.id === numero)
+                colorsRender.push({ note : numnew.note , color : colorSc.color })
+
+
+                    const index = nbinterval.indexOf(numero);
+                    if (index > -1) { // only splice array when item is found
+                    nbinterval.splice(index, 1); // 2nd parameter means remove one item only
+                    }
+
+                    
+            })
+            console.log(nbinterval)
+
+            nbinterval.forEach(numero => {
+                var numnew = this.nbnotes.find(note => note.id === ((rootNote.id+numero)%12))
+                console.log(numero)
+                var colorSc2 = this.colorScale.find(inter => inter.id === numero)
+                colorsRender.push({ note : numnew.note , color : colorSc2.color })
+            })
+            return colorsRender
+        },
         setGamme(fonda, type) {
             // console.log(fonda,type)
             var gamme = this.generateGammes(type, fonda)
@@ -222,6 +273,34 @@ export default {
         this.scalestot.push(myKey[i])
         // console.log(myKey[i])
 
+    }
+  },
+  watch : {
+    colorScaleBool : {
+        handler(){
+            // console.log(this.gammeSelected)
+            var rootnote = this.gammeSelected.split(" ").at(0);
+            var type = this.gammeSelected.split(" ")
+            type = type.slice(1,type.length);
+            type = type.join(" ")
+            console.log("root")
+            console.log("Rootnote gamme "+rootnote+type)
+            if(this.colorScaleBool && rootnote !== "" && type !== ""){
+                //Parse over the name to get the rootNote
+                this.colorSave = this.color
+                //get the intervals :
+
+                this.colorIntra = this.generateColors(rootnote,type)
+                console.log(this.colorIntra)
+                this.$emit("colorgamme",this.colorIntra)
+            }
+            else{
+                this.colorIntra = this.colorSave
+                this.$emit("colorgamme",this.colorIntra)
+
+
+            }
+        }
     }
   }
 
