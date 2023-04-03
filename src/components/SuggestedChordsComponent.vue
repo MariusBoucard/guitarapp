@@ -1,24 +1,43 @@
 <template>
-    <div style="background-color: red;">
-        Using the StackingThirds
+    <div style="background-color: rgb(122,122,122,0.2);margin: 5px;border-radius: 5%;">
+        <div class="containerchords">
+  <div class="columnchords">
+   
+
+    <p>
+        Stacking Thirds
+    </p>
         <ul>
-            <li v-for="chord in this.StackingThirdsChords" :key="chord">
+            <li class="chordtext" v-for="chord in this.StackingThirdsChords" :key="chord">
                 {{ chord.chord }}
             </li>
         </ul> 
+  </div>
+  <div class="columnchords">
+    <p>
+
+        Diatonic Chords
+    </p>
+        <ul>
+            <li  class="chordtext" v-for="chord2 in this.DiatonicChords" :key="chord2">
+                {{ chord2.chord }}
+            </li>
+        </ul> 
+  </div>
+  <div class="columnchords">
+    <p>
+        Seventh chords
+    </p> <ul>
+            <li   class="chordtext" v-for="chord3 in this.SeventhChords" :key="chord3">
+                {{ chord3.chord }}
+            </li>
+        </ul>
+  </div>
+</div>
+
         <p></p>
-        DiatonicChords
-        <ul>
-            <li v-for="chord in this.DiatonicChords" :key="chord">
-                {{ chord.chord }}
-            </li>
-        </ul> 
-SeventhChords 
-       <ul>
-            <li v-for="chord in this.SeventhChords" :key="chord">
-                {{ chord.chord }}
-            </li>
-        </ul> 
+       
+       
     </div>
 </template>
 <script>
@@ -368,7 +387,7 @@ export default {
             for ( i = 0; i < orderNbNotes.length; i++) {
                 var chordName4 = this.nbnotes.find(note => note.id === orderNbNotes.at(i))
                 //essay avec une gamme
-                var listeNotes4 = this.Diatonics.find(thirds => thirds.quality === quality)
+                var listeNotes4 = this.Seventh.find(thirds => thirds.quality === quality)
                 var quall4 = listeNotes4.liste.at(i)
                 this.SeventhChords.push({ quality: quality, chord: chordName4.note + quall4.quality })
 
@@ -393,3 +412,20 @@ export default {
     }
 }
 </script>
+
+<style>
+.containerchords {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.columnchords {
+  width: 30%;
+  margin-bottom: 5px;
+  padding: 1px;
+}
+.chordtext{
+    color: white
+}
+</style>
