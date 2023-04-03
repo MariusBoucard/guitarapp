@@ -25,6 +25,7 @@
       <div class="column">
         <div style=" display: flex;">
           <MancheComponent v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
+<SuggestedChordsComponent :nbnotes="this.nbnotes" :selectedNotes="this.noteSlectedList" :selectedGamme="this.gammeSelected"/>
         </div>
         <div class="row">
           <div class="columnhalf"> 
@@ -77,6 +78,7 @@ import VideoSettingsCOmponent from './components/VideoSettingsCOmponent.vue';
 import NotesAJouerComponent from './components/NoteAJouerComponent.vue'
 import myImage from '@/assets/frettebackground.jpeg';
 import GuitarChordsComponent from './components/GuitarChordsComponent.vue';
+import SuggestedChordsComponent from './components/SuggestedChordsComponent.vue';
 // import metronome from 'vue-metronome'
 export default {
   name: 'App',
@@ -94,7 +96,8 @@ export default {
     NotesAJouerComponent
     // metronome
     ,
-    GuitarChordsComponent
+    GuitarChordsComponent,
+    SuggestedChordsComponent
 },
   data () {
     return {
