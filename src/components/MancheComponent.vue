@@ -33,6 +33,9 @@
 
         
         <li class="horizontalli frette yolo" :style="{  width : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
+            <div class="image-container">
+<img class="background-image" src="../assets/frettebackground.jpeg">
+<div class="content">
             
             <ul>
                 <li class="lettre lithium" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"  v-on:click="chooseNote(note,index)" >
@@ -49,6 +52,7 @@
                 </li>
                 
             </ul>
+            </div></div>
             <p style="margin:0;padding:0;color : white"> {{ index }}</p>
         </li>
     </ul>

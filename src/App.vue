@@ -1,5 +1,5 @@
 <template>
-  <body style="margin : 0  ;background-image: url(/assets/frettebackground.jpeg);" >
+  <body style="margin : 0px  ;background-image: url(/assets/frettebackground.jpeg);" >
     <div class="image-container">
 <img class="background-image" src="../public/sky.jpg">
 <div class="content">
@@ -15,6 +15,7 @@
       <li class="linavbar" :class=" this.soundDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.soundDisplay = ! this.soundDisplay">Play sound</a></li>
       <li class="linavbar" :class=" this.videoDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.videoDisplay = ! this.videoDisplay">Play video</a></li>
       <li class="linavbar" :class=" this.gameDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.gameDisplay = ! this.gameDisplay">Play game</a></li>
+      <li class="linavbar" :class=" this.chordsDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.chordsDisplay = ! this.chordsDisplay">Affichage accords</a></li>
 
 
 
@@ -25,23 +26,23 @@
         <div style=" display: flex;">
           <MancheComponent v-show="this.mancheDisplay" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
         </div>
-    <div class="row">
-      <div class="columnhalf"> 
-        <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
-        <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
+        <div class="row">
+          <div class="columnhalf"> 
+            <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
+            <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
         @note-checked="changeNoteSelection( $event)"></NotesSelectedComponent> 
  
          </div>
-      <div class="columnhalf">
-        <TuningComponent :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
-        <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
-        <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
+         <div class="columnhalf">
+           <TuningComponent :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+           <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
+           <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
+          </div>
+        </div>
+        
       </div>
-    </div>
-    
-  </div>
-  <div class="columnd">
-    <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
+      <div class="columnd">
+        <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
     <NotesAJouerComponent  v-show="this.gameDisplay" @greatNote="resultPlayed($event,val)" :notesSelected=this.noteSlectedList :listeNote=this.nbnotes :noteTuner=this.notePlayed>
     </NotesAJouerComponent>
               <VideoSettingsCOmponent :videoFolderAll="this.videoFolder"></VideoSettingsCOmponent>
@@ -49,6 +50,10 @@
     <GammeFinderComponent v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
     <!-- <metronome></metronome> -->
   </div>
+  
+  
+    <GuitarChordsComponent v-show="this.chordsDisplay" />
+
   
   
 </div> 
@@ -71,6 +76,7 @@ import VideoComponent from './components/videoComponent.vue';
 import VideoSettingsCOmponent from './components/VideoSettingsCOmponent.vue';
 import NotesAJouerComponent from './components/NoteAJouerComponent.vue'
 import myImage from '@/assets/frettebackground.jpeg';
+import GuitarChordsComponent from './components/GuitarChordsComponent.vue';
 // import metronome from 'vue-metronome'
 export default {
   name: 'App',
@@ -87,6 +93,8 @@ export default {
     VideoSettingsCOmponent,
     NotesAJouerComponent
     // metronome
+    ,
+    GuitarChordsComponent
 },
   data () {
     return {
@@ -98,6 +106,7 @@ export default {
       scalesDisplay : true,
       videoDisplay : true,
       gameDisplay : false,
+      chordsDisplay : false,
 
       noteGreat :  undefined,
       nbfrettes : 24,

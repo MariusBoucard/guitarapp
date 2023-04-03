@@ -15,6 +15,7 @@ async function createWindow() {
   const win = new BrowserWindow({
     width: 1600,
     height: 1200,
+    backgroundColor: '#000000', // set the background color to black
     icon :  __dirname + '/public/favicon.png',
     webPreferences: {
       
@@ -24,6 +25,7 @@ async function createWindow() {
       contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION
     }
   })
+  win.setMenu(null)
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode

@@ -14,14 +14,22 @@
   "main": "background.js",
   "dependencies": {
     "@coderline/alphatab": "^1.2.3",
+    "@rollup/plugin-node-resolve": "^15.0.1",
     "core-js": "^3.8.3",
     "file-saver": "^2.0.5",
     "FileSaver": "^0.10.0",
+    "guitar-chords": "^1.2.0",
+    "guitar-chords-viewer": "^0.1.5",
+    "guitar-js": "^1.0.2",
     "jstuner-ui": "^0.1.4",
     "lodash.uniqueid": "^4.0.1",
     "pitch-detector": "^1.1.3",
+    "rollup-plugin-svelte": "^7.1.4",
+    "svelte": "^3.58.0",
+    "tone": "^14.7.77",
     "vue": "^3.2.47",
     "vue-metronome": "^0.0.1",
+    "webpack": "^5.77.0",
     "webpack-library-starter-ymmt": "^0.3.2",
     "write": "^2.0.0"
   },
@@ -36,7 +44,8 @@
     "electron-devtools-installer": "^3.1.0",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
-    "vue-cli-plugin-electron-builder": "^2.1.1"
+    "vue-cli-plugin-electron-builder": "^2.1.1",
+    "webpack-cli": "^5.0.1"
   },
   "eslintConfig": {
     "root": true,
@@ -63,26 +72,24 @@
       "filter": [
         "**/*"
       ]
-      },
-      {
-        "from": "src/img",
-        "to": "img",
-        "filter": [
-          "**/*"
-        ]
-      },
-      "./src/img/**"
-      ],
+    },
+    {
+      "from": "src/img",
+      "to": "img",
+      "filter": [
+        "**/*"
+      ]
+    },
+    "./src/img/**"
+  ],
   "browserslist": [
     "> 1%",
     "last 2 versions",
     "not dead",
     "not ie 11"
   ],
-  "author":{
+  "author": {
     "name": "Marius Boucard Bocciarelli",
-    "email" : "marius.boucard-bocciarelli@laposte.net"
-
-
+    "email": "marius.boucard-bocciarelli@laposte.net"
   }
 }
