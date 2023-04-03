@@ -91,19 +91,18 @@ export default {
 
 
             colorScale : [
-                { id : 0 , color : "red"},
+                { id : 0 , color : "black"},
                 { id : 1 , color : "red"},
-                { id : 2 , color : "red"},
-                { id : 3 , color : "red"},
-                { id : 4 , color : "red"},
-                { id : 5 , color : "red"},
-                { id : 6 , color : "red"},
-                { id : 7 , color : "red"},
-                { id : 8 , color : "red"},
-                { id : 9 , color : "red"},
-                { id : 10 , color : "blue"},
-                { id : 11, color : "red"},
-                { id : 12, color : "red"}
+                { id : 2 , color : "green"},
+                { id : 3 , color : "lightgreen"},
+                { id : 4 , color : "purple"},
+                { id : 5 , color : "blue"},
+                { id : 6 , color : "lightblue"},
+                { id : 7 , color : "orange"},
+                { id : 8 , color : "lightorange"},
+                { id : 9 , color : "grey"},
+                { id : 10 , color : "white"},
+                { id : 11, color : "yellow"},
         ],
             colorSave : []
         }
