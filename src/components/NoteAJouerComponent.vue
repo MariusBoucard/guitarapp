@@ -98,7 +98,7 @@ export default{
                 
                 var note = { "note" : this.noteUser , "time" : date.getMilliseconds()+date.getSeconds()*1000+date.getHours()*3600*1000}
                 if(this.notesPlayed.length<100){
-                    console.log(note+"-100")
+                    // console.log(note+"-100")
                     this.notesPlayed.push(note)
                 } else {
                     this.notesPlayed.shift();
@@ -117,19 +117,19 @@ export default{
     },
     methods : {
         changeTempo(event){
-            console.log(event.target)
+            // console.log(event.target)
             this.tempo =   event.target.value
-            console.log("New tempo "+ this.tempo)
+            // console.log("New tempo "+ this.tempo)
         },
         changeNumerateur(event){
-            console.log(event.target)
+            // console.log(event.target)
             this.metronomeNumerateur =   event.target.value
-            console.log("New numerateur "+ this.metronomeNumerateur)
+            // console.log("New numerateur "+ this.metronomeNumerateur)
         },
         changeDenominateur(event){
-            console.log(event.target)
+            // console.log(event.target)
             this.metronomeDenominateur =   event.target.value
-            console.log("New denominateru "+ this.metronomeDenominateur)
+            // console.log("New denominateru "+ this.metronomeDenominateur)
         },
         stop(){
                 this.index =0
@@ -140,12 +140,12 @@ export default{
         playSound(){
             if(this.index%this.metronomeNumerateur===0){
                 const au = new Audio(coupFort );
-               console.log(au)
+            //    console.log(au)
                au.play()
             }
             else{
                const au = new Audio(coupFaible);
-               console.log(au)
+            //    console.log(au)
                au.play()
                 console.log("coup faible")
             }

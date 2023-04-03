@@ -24,12 +24,12 @@
     <div class="row">
       <div class="column">
         <div style=" display: flex;">
-          <MancheComponent v-show="this.mancheDisplay" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
+          <MancheComponent v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colors :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
         </div>
         <div class="row">
           <div class="columnhalf"> 
             <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
-            <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList
+            <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList @unselectgamme="unselectGamme()"
         @note-checked="changeNoteSelection( $event)" @reinitSelected="this.reinit()"></NotesSelectedComponent> 
  
          </div>
@@ -47,7 +47,7 @@
     </NotesAJouerComponent>
               <VideoSettingsCOmponent :videoFolderAll="this.videoFolder"></VideoSettingsCOmponent>
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
-    <GammeFinderComponent v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
+    <GammeFinderComponent :gammeSelected="this.gammeSelectedComp" @newscale="setScale($event,scale)" v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
     <!-- <metronome></metronome> -->
   </div>
   
@@ -107,6 +107,8 @@ export default {
       videoDisplay : true,
       gameDisplay : false,
       chordsDisplay : false,
+
+      gammeSelected : "",
 
       noteGreat :  undefined,
       nbfrettes : 24,
@@ -216,6 +218,10 @@ export default {
     resultPlayed(noteBoolean){
       this.noteGreat = noteBoolean
     },
+    setScale(scale){
+      console.log(scale)
+      this.gammeSelected = scale
+    },
     allNotesComp(){
       var a = []
       
@@ -267,6 +273,9 @@ export default {
         }
       }
     },
+    unselectGamme(){
+      this.gammeSelected=""
+    },
     selectGamme(){
       // console.log("damn")
       //Il faut ici selectionner les notes au dessus d'un certain nb d occurences en fct du dict
@@ -278,7 +287,7 @@ export default {
         var find = this.noteSlectedList.find(note => note.note === a.note)
         find.enabled=false
        })
-       console.log(dick)
+      //  console.log(dick)
     dick.forEach(a =>{
   if(a.nb > 2){
    var find = this.noteSlectedList.find(note => note.note === a.note)
@@ -297,10 +306,12 @@ export default {
               col => {localStorage.setItem(col.note+"Selected",col.enabled)
              console.log(col.enabled)}
             )
-      //  console.log(find)
+            console.log("change note selection is called")
+
+            this.gammeSelected = ""
     },
     changeDiap(diap){
-      console.log("diap "+diap)
+      // console.log("diap "+diap)
       this.diapason = diap
     },
     name(note) {
@@ -372,6 +383,9 @@ export default {
 
 ,
 computed : {
+  gammeSelectedComp(){
+    return this.gammeSelected
+  },
   noteselectedcomp()
 {return this.noteSlectedList}
 }

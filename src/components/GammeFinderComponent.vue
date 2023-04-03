@@ -1,6 +1,9 @@
 <template>
     <div style=" ; background-color: wheat;">
+        <p>Scale in use {{ this.gammeSelected }}</p>
         <h1>Scales you could use : </h1>
+        <input type="checkbox" id="vehicle1" name="vehicle1" value="Bike">
+<label for="vehicle1"> TODO : color relatives to the position in the scale</label><br>
         <ul>
 
             <li v-for="gammes in this.listeGammes" :key="gammes">
@@ -48,11 +51,12 @@ export default {
     props: {
         //Peut etre qu'on peut definir un array de note ici
         notesSelected: { required: true, type: [Object] },
+        gammeSelected : { required: true, type: String },
     },
     data() {
         return {
             notesSelectionnees: this.notesSelected,
-
+            gammeSelectedIntra : this.gammeSelected,
             listeNotes: [
                 { id: 0, note: "A" },
                 { id: 1, note: "AS" },
@@ -92,7 +96,7 @@ export default {
             });
 
              const scales = this.generateScales(notes);
-             console.log(scales)
+            //  console.log(scales)
            
             // scales.forEach(gamme => {
             //     listeGammes.push(gamme)
@@ -112,6 +116,7 @@ export default {
                 var find = this.notesSelectionnees.find(notesel => notesel.note === note)
                 find.enabled = true
             })
+                this.$emit("newscale",fonda+" "+type)
 
         },
         generatePopulation(nomGamme) {

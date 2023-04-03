@@ -15,7 +15,8 @@
             <input class="checkbox" @change="userChecked(note)" type="checkbox" :checked="isChecked(note.note)"/>
             <span class="checkmark"></span>
           </label> -->
-          <button class="button" :style="{ backgroundColor : backGroundColor(note.note)}" type="button" @click=userChecked(note)>
+          <button class="button" :style="{ backgroundColor : backGroundColor(note.note)}" 
+          type="button" @click=userChecked(note)>
             {{ note.note }}
           </button>
           
@@ -59,6 +60,7 @@ export default {
       var yolo = find
       console.log("Find das userc" + yolo)
       this.$emit('note-checked', yolo);
+      this.$emit('unselectgamme')
 
     }, isChecked(note) {
       const find = this.listNotes.find((notes) => notes.note === note)

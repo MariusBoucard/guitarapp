@@ -142,11 +142,14 @@ export default {
 
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
+            this.$emit('unselectgamme')
+
             // console.log('caca')
             enabledornot.enabled = !enabledornot.enabled
             this.notesSelectedIntra2.forEach(
               col => {localStorage.setItem(col.note+"Selected",col.enabled)
-             console.log(col.enabled)}
+            //  console.log(col.enabled)
+            }
             )
         },
         renderChoosen(corde, index) {
@@ -192,7 +195,7 @@ export default {
         //         return 'red '
         //     }
         // }
-        console.log(lettre,this.notePlayed)
+        // console.log(lettre,this.notePlayed)
            if(lettre===this.notePlayed.slice(0,this.notePlayed.length)){
             return "white"
            }
@@ -224,7 +227,7 @@ export default {
         //    console.log(lettre)
         if(this.sapinNoel){
             var noteoncase = this.allnotesc.find(note => note.id === newindex)
-            console.log(noteoncase)
+            // console.log(noteoncase)
              if(noteoncase.note === this.notePlayed){
                 console.log("caca")
                 return 'red '
