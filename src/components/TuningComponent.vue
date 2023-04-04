@@ -49,6 +49,7 @@
   </div>
 </template>
 <script>
+
 export default {
   props: {
     allNotes : {required : true, type : [Object]},
@@ -63,15 +64,23 @@ export default {
 
       this.listTuning.push({ cordeId: this.nbCordes, tuning: "A" })
       this.nbCordes++
+      localStorage.setItem("nbstrings",this.listTuning.length)
+      localStorage.setItem("listeTuning",JSON.stringify(this.listTuning))
+
     },
     delCorde() {
       this.listTuning.pop()
       this.nbCordes--
+      localStorage.setItem("nbstrings",this.listTuning.length)
+      localStorage.setItem("listeTuning",JSON.stringify(this.listTuning))
+
+
     },
     onChangeTune(event, corde) {
 
       var found = this.listTuning.find((cor) => cor.cordeId === corde)
       found.tuning = event.target.value
+      localStorage.setItem("listeTuning",JSON.stringify(this.listTuning))
     },
     colorFromNote(tuning) {
       // console.log(tuning)
@@ -82,6 +91,8 @@ export default {
     diapasonPlus() {
       this.diap += 10
       this.$emit('diap', this.diap);
+      localStorage.setItem("diapason",this.diap)
+
 
     },
     diapasonMoins() {
@@ -90,6 +101,8 @@ export default {
 
       // console.log("Find das userc" + this.diap)
       this.$emit('diap', this.diap);
+      localStorage.setItem("diapason",this.diap)
+
     }
 
   },

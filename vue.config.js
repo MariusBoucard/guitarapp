@@ -5,8 +5,8 @@ module.exports = defineConfig({
   pluginOptions: {
     electronBuilder: {
       builderOptions: {
-        appId: 'com.yourcompany.yourappname',
-        productName: 'Your App Name',
+        appId: 'GuitarApp',
+        productName: 'GuitarTool',
         linux: {
           target: ['deb', 'snap', 'AppImage'],
           icon: 'public/icon.png'

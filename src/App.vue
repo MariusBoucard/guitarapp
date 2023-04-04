@@ -372,14 +372,29 @@ export default {
       
                     }
                   )
-      // this.colors.forEach(
-      //         col => {
-      //           if (localStorage.getItem(col.note)!=="null") {
-      //             col.color= localStorage.getItem(col.note)
-      //           }
+      this.colors.forEach(
+              col => {
+                if (localStorage.getItem(col.note)!==undefined) {
+                  col.color= localStorage.getItem(col.note)
+                }
 
-      //         }
-      //       )
+              }
+            )
+            //Diapason
+              // if (localStorage.getItem("diapason")!=="null") {
+              //   this.diapason =localStorage.getItem("diapason")
+              //   console.log("loading diap")
+              // }
+              // //nbstrings
+              // if (localStorage.getItem("nbstrings")!==undefined) {
+              //   this.nbStrings =localStorage.getItem("nbstrings")
+              //   console.log("loading nbstrings")
+              // }
+              // if (localStorage.getItem("listeTuning")!==undefined) {
+              //   this.tuningList = JSON.parse(localStorage.getItem("listeTuning"))
+              //   console.log("loading tuning")
+              // }
+            //cordes tuning and nb cordes
             this.allNotes = this.allNotesComp()
             this.allNotesC = this.allNotesCompc()
         
