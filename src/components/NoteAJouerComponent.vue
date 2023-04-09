@@ -98,7 +98,7 @@ export default{
                 var date = new Date()
                 var note = { "note" : this.noteTuner.slice(0,this.noteTuner.length-1) , "time" : date.getMilliseconds()+date.getSeconds()*1000+date.getHours()*3600*1000}
                 // console.log("pushed note",note)
-                console.log(note)
+                // console.log(note)
                 if(this.notesPlayed.length<100){
                     // console.log(note+"-100")
                     this.notesPlayed.push(note)
@@ -191,7 +191,7 @@ export default{
             if(plusprochenote === undefined){
                 return false
             }
-            console.log(plusprochenote.note,this.oldNote)
+            // console.log(plusprochenote.note,this.oldNote)
             if(plusprochenote.note===this.oldNote.note){
                 this.$emit('greatNote', true)
                 console.log("bien joue")
