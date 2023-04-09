@@ -12,8 +12,8 @@ module.exports = defineConfig({
     electronBuilder: {
       
       builderOptions: {
-        appId: 'com.yourcompany.yourappname',
-        productName: 'Your App Name',
+        appId: 'com.MariusCompany.ChristmasTree',
+        productName: 'Neck Wanker\'s',
         linux: {
           target: ['deb', 'snap', 'AppImage'],
           icon: 'public/icon.png'

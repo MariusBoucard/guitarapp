@@ -66,12 +66,15 @@ export default {
 
     async launchFile(file) {
 
-      const videoURL = URL.createObjectURL(file);
-      this.$refs.video.src = videoURL;
-      this.$refs.video.addEventListener('loadedmetadata', () => {
-        URL.revokeObjectURL(videoURL);
-        //   this.play();
-      });
+      const filePath = path.resolve(file.path);
+        // this.videoPath.push(filePath);
+  this.speed = 100;
+  
+  const videoURL = `file://${filePath}`;
+  this.$refs.video.src = videoURL;
+  this.$refs.video.addEventListener('loadedmetadata', () => {
+    URL.revokeObjectURL(videoURL);
+  });
     },
 
 
@@ -80,7 +83,9 @@ export default {
       //  console.log(remote)
       // const appDir = remote.getGlobal('appDir');
       const file = event.target.files[0];
-      const filePath = path.resolve(file.path);  this.videoPath.push(filePath);
+      this.videoPath.push(file)
+      const filePath = path.resolve(file.path);
+        // this.videoPath.push(filePath);
   this.speed = 100;
   
   const videoURL = `file://${filePath}`;
@@ -91,7 +96,6 @@ export default {
   // const videoURL = URL.createObjectURL(file);
       // const file = event.target.files[0];
       // console.log("vid "+videoURL)
-      // this.videoPath.push(file)
       // this.speed = 100
 
       // this.$refs.video.src = videoURL;

@@ -17,7 +17,7 @@ async function createWindow() {
     width: 1600,
     height: 1200,
     backgroundColor: '#000000', // set the background color to black
-    icon: __dirname + '/public/favicon.png',
+    icon: __dirname + '/public/icon.png',
     webPreferences: {
       nodeIntegration: true, // Add this line
       contextIsolation: false, // Add this line
