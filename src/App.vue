@@ -50,7 +50,7 @@
     </NotesAJouerComponent>
               <VideoSettingsCOmponent :videoFolderAll="this.videoFolder"></VideoSettingsCOmponent>
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
-    <GammeFinderComponent @colorgamme="this.changeColor($event,colors)"  :color="this.colors" :nbnotes="this.nbnotes" :gammeSelected="this.gammeSelectedComp" @newscale="setScale($event,scale)" v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
+    <GammeFinderComponent @colorgamme="this.changeColor($event,colors)"  :colorsave="this.colorSave" :color="this.colors" :nbnotes="this.nbnotes" :gammeSelected="this.gammeSelectedComp" @newscale="setScale($event,scale)" v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
     <!-- <metronome></metronome> -->
   </div>
   
@@ -196,6 +196,21 @@ export default {
     ],
     allNotes : [],
     colors : [
+        {note : "A",color:"black"},
+        {note : "AS",color:"grey"},
+        {note : "B",color:"white"},
+        {note : "C",color:"blue"},
+        {note : "CS",color:"lightblue"},
+        {note : "D",color:"red"},
+        {note : "DS",color:"pink"},
+        {note : "E",color:"green"},
+        {note : "F",color:"brown"},
+        {note : "FS",color:"#b5651d"},
+        {note : "G",color:"yellow"},
+        {note : "GS",color:"lightyellow"},
+      
+      ],
+      colorSave : [
         {note : "A",color:"black"},
         {note : "AS",color:"grey"},
         {note : "B",color:"white"},
@@ -372,9 +387,19 @@ export default {
       
                     }
                   )
+                  console.log(localStorage.getItem("colordict"))
+                  if(JSON.parse(localStorage.getItem("colordict")) !== null){
+                    this.colors = JSON.parse( localStorage.getItem("colordict"))
+                    console.log(this.colors)
+
+                  }
+                  this.colorSave = JSON.parse( localStorage.getItem("oldnotescolor"))
+
+
       // this.colors.forEach(
       //         col => {
       //           if (localStorage.getItem(col.note)!=="null") {
+      //             console.log(localStorage.getItem(col.note))
       //             col.color= localStorage.getItem(col.note)
       //           }
 

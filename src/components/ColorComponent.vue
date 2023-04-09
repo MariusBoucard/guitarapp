@@ -61,6 +61,7 @@ export default {
         var find = this.couleurdict.find((entree) => entree.note === this.selectedforchange)
         find.color = this.label
         this.label = ""
+        localStorage.setItem("colordict",JSON.stringify(this.couleurdict))
 
     }
   }

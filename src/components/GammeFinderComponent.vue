@@ -53,8 +53,7 @@ export default {
         notesSelected: { required: true, type: [Object] },
         color: { required: true, type: [Object] },
         nbnotes: { required: true, type: [Object] },
-
-
+        colorsave : { required : true, type : [Object]},
         gammeSelected : { required: true, type: String },
     },
     data() {
@@ -88,8 +87,6 @@ export default {
                 { name: 'Phrygian', noteName: 'E', intervals: [0, 1, 3, 5, 7, 8, 10], notes: [] },
                 { name: 'Hirojoshi', noteName: 'C', intervals: [0, 2, 3, 7, 8], notes: [] }
             ],
-
-
             colorScale : [
                 { id : 0 , color : "black"},
                 { id : 1 , color : "red"},
@@ -104,7 +101,7 @@ export default {
                 { id : 10 , color : "white"},
                 { id : 11, color : "yellow"},
         ],
-            colorSave : []
+            colorSave : this.colorsave
         }
     },
     computed : {
@@ -288,6 +285,7 @@ export default {
                 //Parse over the name to get the rootNote
                 this.colorSave = this.color
                 //get the intervals :
+                localStorage.setItem("oldnotescolor",JSON.stringify(this.colorSave))
 
                 this.colorIntra = this.generateColors(rootnote,type)
                 console.log(this.colorIntra)

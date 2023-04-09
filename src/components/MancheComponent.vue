@@ -1,65 +1,78 @@
 <template>
     <div>
-    <!-- <p>{{ this.tuningintra }}</p> -->
-        <h1>{{ this.notePlayed}}</h1> 
-         <div class="circle" style="width:35px;height:35px" :style="{backgroundColor :( this.notePlayed ? calcBack( this.notePlayed.slice(0,this.notePlayed.length-1)): white ) }" >
-                        {{ this.notePlayed.slice(0,this.notePlayed.length-1)}}
-
-                    </div>
-        <p>Activer le sapin de noel :</p>
-        <button class="button" style="border : 1px solid black" @click="allumerSapin()" :style="{ backgroundColor : getStateButton()}">Sapinnnnn</button>
-    <div>
-</div>
-<div width="300px">
-
-
-    <ul>
-        <li class="horizontalli ">
-            <ul>
-                <li style=" width: 40px" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"> 
-                    <div class="circle" style="width:35px;height:35px" :style="{backgroundColor : calcBack2( note.tuning) }" v-if="isChoosedTune(note)">
-                        {{ note.tuning.slice(0,note.tuning.length)}}
-
-                    </div>
-                    <div v-else>
-                        {{ note.tuning.slice(0,note.tuning.length)}}
-
-                    </div>
-                   
-                </li>
-                
-            </ul>
-        </li>
-
-        
-        <li class="horizontalli frette yolo" :style="{  width : calcWidth(index) }" v-for="index in (this.nbfrettes - 1)" :key="index">
-            <div class="image-container">
-<img class="background-image" src="../assets/frettebackground.jpeg">
-<div class="content">
+        <div style="width:100%">
             
+                    <!-- <p>{{ this.tuningintra }}</p> -->
+                    <h1>{{ this.notePlayed }}</h1>
+                    <div class="circle" style="width:35px;height:35px"
+                        :style="{ backgroundColor: (this.notePlayed ? calcBack(this.notePlayed.slice(0, this.notePlayed.length - 1)) : white) }">
+                        {{ this.notePlayed.slice(0, this.notePlayed.length - 1) }}
+
+                    </div>
+                    <p>Activer le sapin de noel :</p>
+                    <button class="button" style="border : 1px solid black" @click="allumerSapin()"
+                        :style="{ backgroundColor: getStateButton() }">Sapinnnnn</button>
+               
+
+        </div>
+
+        <div width="300px">
+
+
             <ul>
-                <li class="lettre lithium" :style="{ height : calcHeight() }" v-for="note in this.tuningintra" :key="note.cordeId"  v-on:click="chooseNote(note,index)" >
-                    <div display="flex" class="cord" v-if="isChoosed(note, index)">
-                        <hr class="line" :style="{  width : calcWidth(index) }" >
-                        <div class="circle" :style="{ height : heightCircle(index), width : heightCircle(index),  backgroundColor  : calcBackNote(note,index) }">
-                            <p>{{ renderChoosen(note, index) }}</p>
-                        </div>      
-                    </div>
-                    <div display="flex" class="cord"  v-else>
-                        <hr class="line" :style="{  width : calcWidth(index) }">
-                             
-                    </div>
+                <li class="horizontalli ">
+                    <ul>
+                        <li style=" width: 40px" :style="{ height: calcHeight() }" v-for="note in this.tuningintra"
+                            :key="note.cordeId">
+                            <div class="circle" style="width:35px;height:35px"
+                                :style="{ backgroundColor: calcBack2(note.tuning) }" v-if="isChoosedTune(note)">
+                                {{ note.tuning.slice(0, note.tuning.length) }}
+
+                            </div>
+                            <div v-else>
+                                {{ note.tuning.slice(0, note.tuning.length) }}
+
+                            </div>
+
+                        </li>
+
+                    </ul>
                 </li>
-                
+
+
+                <li class="horizontalli frette yolo" :style="{ width: calcWidth(index) }"
+                    v-for="index in (this.nbfrettes - 1)" :key="index">
+                    <div class="image-container">
+                        <img class="background-image" src="../assets/frettebackground.jpeg">
+                        <div class="content">
+
+                            <ul>
+                                <li class="lettre lithium" :style="{ height: calcHeight() }"
+                                    v-for="note in this.tuningintra" :key="note.cordeId"
+                                    v-on:click="chooseNote(note, index)">
+                                    <div display="flex" class="cord" v-if="isChoosed(note, index)">
+                                        <hr class="line" :style="{ width: calcWidth(index) }">
+                                        <div class="circle"
+                                            :style="{ height: heightCircle(index), width: heightCircle(index), backgroundColor: calcBackNote(note, index) }">
+                                            <p>{{ renderChoosen(note, index) }}</p>
+                                        </div>
+                                    </div>
+                                    <div display="flex" class="cord" v-else>
+                                        <hr class="line" :style="{ width: calcWidth(index) }">
+
+                                    </div>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
+                    <p style="margin:0;padding:0;color : white"> {{ index }}</p>
+                </li>
             </ul>
-            </div></div>
-            <p style="margin:0;padding:0;color : white"> {{ index }}</p>
-        </li>
-    </ul>
-    <!-- {{ this.cordeListe   }} -->
-    <!-- {{ this.allnotesc }} -->
-</div>
-    <!-- <li  v-for="note in this.tuningintra" :key="note.cordeId">
+            <!-- {{ this.cordeListe   }} -->
+            <!-- {{ this.allnotesc }} -->
+        </div>
+        <!-- <li  v-for="note in this.tuningintra" :key="note.cordeId">
            
 
               
@@ -76,7 +89,7 @@
                 </div>                    
             </li> 
             </div> -->
-            </div>
+    </div>
 </template>
 <script>
 
@@ -87,10 +100,10 @@ export default {
         notesSelected: { required: true, type: [Object] },
         colorNotes: { required: true, type: [Object] },
         nbFrettes: { required: true, type: Number },
-        diap : { required : true, type : Number},
-        notePlayed : { required : true, type : String},
-        allnotes : {required : true, type :[Object]},
-        allnotesc : {required : true, type :[Object]}
+        diap: { required: true, type: Number },
+        notePlayed: { required: true, type: String },
+        allnotes: { required: true, type: [Object] },
+        allnotesc: { required: true, type: [Object] }
     },
     data() {
         return {
@@ -110,25 +123,25 @@ export default {
                 { id: 10, note: "G" },
                 { id: 11, note: "GS" },
             ],
-            nbCordes : 6,
+            nbCordes: 6,
             notesSelectedIntra2: this.notesSelected,
             couleursnotes: this.colorNotes,
-            diapason : this.diap*2.3,
-            currentNote : this.notePlayed,
-            sapinNoel : false,
-            
+            diapason: this.diap * 2.3,
+            currentNote: this.notePlayed,
+            sapinNoel: false,
+
         }
 
     },
     methods: {
-        isChoosedTune(note){
+        isChoosedTune(note) {
             // console.log(note.tuning)
-            var find = this.notesSelectedIntra.find(notes=> notes.note === note.tuning.slice(0,note.tuning.length-1))
+            var find = this.notesSelectedIntra.find(notes => notes.note === note.tuning.slice(0, note.tuning.length - 1))
             // console.log(find)
             return find.enabled
-        },  
+        },
         isChoosed(corde, index) {
-          
+
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
             return enabledornot.enabled
@@ -138,7 +151,7 @@ export default {
             // // console.log(test)
             // return test.enabled
         },
-        chooseNote(corde,index){
+        chooseNote(corde, index) {
 
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
@@ -147,13 +160,14 @@ export default {
             // console.log('caca')
             enabledornot.enabled = !enabledornot.enabled
             this.notesSelectedIntra2.forEach(
-              col => {localStorage.setItem(col.note+"Selected",col.enabled)
-            //  console.log(col.enabled)
-            }
+                col => {
+                    localStorage.setItem(col.note + "Selected", col.enabled)
+                    //  console.log(col.enabled)
+                }
             )
         },
         renderChoosen(corde, index) {
-           
+
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
             return enabledornot.note
@@ -162,47 +176,47 @@ export default {
 
             // console.log(this.nbfrettes)
         },
-        getStateButton(){
-            if(this.sapinNoel){
+        getStateButton() {
+            if (this.sapinNoel) {
                 return "grey"
             }
             return "white"
         }
         ,
-        allumerSapin(){
-            this.sapinNoel = ! this.sapinNoel
+        allumerSapin() {
+            this.sapinNoel = !this.sapinNoel
         }
         ,
-        calcBack(lettre){
+        calcBack(lettre) {
             // console.log(lettre)
-        //    console.log(lettre)
-        // if(this.sapinNoel){
-        //      if(lettre === this.notePlayed){
-        //         console.log("caca")
-        //         return 'red '
-        //     }
-        // }
-           
-           var couleur =  this.couleursnotesComp.find((couleurs)=> couleurs.note === lettre)
-            return couleur.color 
+            //    console.log(lettre)
+            // if(this.sapinNoel){
+            //      if(lettre === this.notePlayed){
+            //         console.log("caca")
+            //         return 'red '
+            //     }
+            // }
+
+            var couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
+            return couleur.color
         },
-        calcBack2(lettre){
+        calcBack2(lettre) {
             // console.log(lettre)
-        //    console.log(lettre)
-        // if(this.sapinNoel){
-        //      if(lettre === this.notePlayed){
-        //         console.log("caca")
-        //         return 'red '
-        //     }
-        // }
-        // console.log(lettre,this.notePlayed)
-           if(lettre===this.notePlayed.slice(0,this.notePlayed.length)){
-            return "white"
-           }
-           var couleur =  this.couleursnotes.find((couleurs)=> couleurs.note === lettre.slice(0,lettre.length-1))
-            return couleur.color 
+            //    console.log(lettre)
+            // if(this.sapinNoel){
+            //      if(lettre === this.notePlayed){
+            //         console.log("caca")
+            //         return 'red '
+            //     }
+            // }
+            // console.log(lettre,this.notePlayed)
+            if (lettre === this.notePlayed.slice(0, this.notePlayed.length)) {
+                return "white"
+            }
+            var couleur = this.couleursnotes.find((couleurs) => couleurs.note === lettre.slice(0, lettre.length - 1))
+            return couleur.color
         },
-        calcBackNote(corde,index){
+        calcBackNote(corde, index) {
             var lettre = this.renderChoosen(corde, index)
             // console.log(lettre)
             // console.log(corde,index)
@@ -220,75 +234,75 @@ export default {
 
             //trouver les numeros ou il Y a qq chose
 
-            var newindex = find.id+index
+            var newindex = find.id + index
 
             // var newindex2 = find.id+indexsurcorde2
 
-        //    console.log(lettre)
-        if(this.sapinNoel){
-            var noteoncase = this.allnotesc.find(note => note.id === newindex)
-            // console.log(noteoncase)
-             if(noteoncase.note === this.notePlayed){
-                console.log("caca")
-                return 'red '
+            //    console.log(lettre)
+            if (this.sapinNoel) {
+                var noteoncase = this.allnotesc.find(note => note.id === newindex)
+                // console.log(noteoncase)
+                if (noteoncase.note === this.notePlayed) {
+                    console.log("caca")
+                    return 'red '
+                }
+                // noteoncase = this.allnotesc.find(note => note.id === (newindex+12))
+                // console.log(noteoncase)
+                //  if(noteoncase.note === this.notePlayed){
+                //     console.log("caca")
+                //     return 'red '
+                // }
             }
-            // noteoncase = this.allnotesc.find(note => note.id === (newindex+12))
-            // console.log(noteoncase)
-            //  if(noteoncase.note === this.notePlayed){
-            //     console.log("caca")
-            //     return 'red '
-            // }
-        }
-           
-           var couleur =  this.couleursnotesComp.find((couleurs)=> couleurs.note === lettre)
-            return couleur.color 
-        },
-        calcWidth(index){
-            
-            var diaprestant = this.diapason
-            var taillecase =0
-            for(var i =0; i<index;i++){
 
-                taillecase = diaprestant/17.817
-                diaprestant = diaprestant-taillecase
+            var couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
+            return couleur.color
+        },
+        calcWidth(index) {
+
+            var diaprestant = this.diapason
+            var taillecase = 0
+            for (var i = 0; i < index; i++) {
+
+                taillecase = diaprestant / 17.817
+                diaprestant = diaprestant - taillecase
             }
-            return Math.round(taillecase)+'px'
+            return Math.round(taillecase) + 'px'
         },
-        calcHeight(){
-            return Math.round(300/this.nbCordes)+"px"
+        calcHeight() {
+            return Math.round(300 / this.nbCordes) + "px"
         },
-        
-        heightCircle(index){
-                var height = this.calcHeight()
-                var width = this.calcWidth(index)
-                var intWidth = width.substring(0,width.length-2)
-                var intHeight = height.substring(0,height.length-2)
-                // console.log("height"+Math.min(intWidth, intHeight))
-                return Math.min(intWidth, intHeight)+"px"
+
+        heightCircle(index) {
+            var height = this.calcHeight()
+            var width = this.calcWidth(index)
+            var intWidth = width.substring(0, width.length - 2)
+            var intHeight = height.substring(0, height.length - 2)
+            // console.log("height"+Math.min(intWidth, intHeight))
+            return Math.min(intWidth, intHeight) + "px"
         },
-       
+
     },
-    watch : {
-        diap : {
-            handler(){
-                this.diapason = this.diap*2.3
+    watch: {
+        diap: {
+            handler() {
+                this.diapason = this.diap * 2.3
                 this.$forceUpdate()
             }
-            },
-        colorNotes : {
-            handler(){
+        },
+        colorNotes: {
+            handler() {
                 console.log("changed")
                 this.$forceUpdate();
             }
         }
-    }, 
+    },
 
 
     computed: {
-        couleursnotesComp(){
+        couleursnotesComp() {
             return this.colorNotes
         },
-        notesSelectedIntra(){
+        notesSelectedIntra() {
             return this.notesSelectedIntra2
         },
         caca() {
@@ -301,10 +315,10 @@ export default {
                 var note = this.tuningintra[corde].tuning
                 var idnotedepart = this.allnotes.find((notes) => notes.note === note)
                 for (var i = 0; i < 24; i++) {
-                    if(idnotedepart)
-                    notesCorde.push((i + idnotedepart.id) % 12)
-                    else{
-                        notesCorde.push((2 ) % 12)
+                    if (idnotedepart)
+                        notesCorde.push((i + idnotedepart.id) % 12)
+                    else {
+                        notesCorde.push((2) % 12)
 
                     }
                 }
@@ -312,59 +326,79 @@ export default {
             }
             return cordeListe
         },
-  
-        
+
+
     },
 }
 
 </script>
 <style>
 :root {
-  --mondiap: #ffffff;
+    --mondiap: #ffffff;
 }
-.lettre{
-    padding:0;
+
+.lettre {
+    padding: 0;
     width: 100%;
     border-right: 5px solid rgb(255, 255, 255);
 
-    }
+}
+
 .circle {
     margin: 0 auto;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position :relative;
-  z-index: 99;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 99;
 }
+
 .case {
     width: 100%;
-    height:100px;
-  align-items: center;
-  justify-content: center;
+    height: 100px;
+    align-items: center;
+    justify-content: center;
 }
+
 .circle p {
-  color: #fff;
-  font-size: 24px;
-  font-weight: bold;
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
 }
+
 .frette {
     background-image: url('/src/assets/frettebackground.png');
     border-right: 1px solid rgb(255, 255, 255);
-    background-color: rgb(71,47,23);
+    background-color: rgb(71, 47, 23);
 
 }
-.cord{
+
+.cord {
     position: flex;
 }
-.line{
+
+.line {
     position: absolute;
-    
+
     margin: 25px 0 0 0;
     /* width:  100%; */
-    color:white;
+    color: white;
 }
-.yolo{
+
+.yolo {
     width: var(--mondiap);
+}
+
+.columnb {
+    float: left;
+    width: 33.33%;
+}
+
+/* Clear floats after the columns */
+.rowb:after {
+    content: "";
+    display: table;
+    clear: both;
 }
 </style>
