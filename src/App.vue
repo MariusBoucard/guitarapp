@@ -25,7 +25,7 @@
     <div class="row">
       <div class="column">
         <div style=" display: flex;">
-          <MancheComponent v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
+          <MancheComponent :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
         </div>
         <div class="row">
           <div class="columnhalf"> 
@@ -46,7 +46,7 @@
         <SuggestedChordsComponent v-show="this.chordssuggestDisplay" :nbnotes="this.nbnotes" :selectedNotes="this.noteSlectedList" :selectedGamme="this.gammeSelected"/>
 
         <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
-    <NotesAJouerComponent  v-show="this.gameDisplay" @greatNote="resultPlayed($event,val)" :notesSelected=this.noteSlectedList :listeNote=this.nbnotes :noteTuner=this.notePlayed>
+    <NotesAJouerComponent  v-show="this.gameDisplay" @playchanged="this.isPlayingRoot = ! this.isPlayingRoot" @greatNote="resultPlayed($event,val)" :notesSelected=this.noteSlectedList :listeNote=this.nbnotes :noteTuner=this.notePlayed>
     </NotesAJouerComponent>
               <VideoSettingsCOmponent :videoFolderAll="this.videoFolder"></VideoSettingsCOmponent>
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
@@ -210,6 +210,7 @@ export default {
         {note : "GS",color:"lightyellow"},
       
       ],
+      isPlayingRoot : false,
       colorSave : [
         {note : "A",color:"black"},
         {note : "AS",color:"grey"},

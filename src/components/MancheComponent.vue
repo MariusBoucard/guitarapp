@@ -1,8 +1,23 @@
 <template>
     <div>
-        <div style="width:100%">
-            
-                    <!-- <p>{{ this.tuningintra }}</p> -->
+        <div style="width:100%;">
+                <div class="row">
+      <div class="columnb">
+        <div v-show="this.gameOn">
+             <h1>
+                Ready to play ?
+             </h1>
+        </div>
+        <div v-show="!this.gameOn">
+            -
+        </div>
+
+
+
+     
+
+      </div>
+      <div class="columnb">  <!-- <p>{{ this.tuningintra }}</p> -->
                     <h1>{{ this.notePlayed }}</h1>
                     <div class="circle" style="width:35px;height:35px"
                         :style="{ backgroundColor: (this.notePlayed ? calcBack(this.notePlayed.slice(0, this.notePlayed.length - 1)) : white) }">
@@ -11,7 +26,21 @@
                     </div>
                     <p>Activer le sapin de noel :</p>
                     <button class="button" style="border : 1px solid black" @click="allumerSapin()"
-                        :style="{ backgroundColor: getStateButton() }">Sapinnnnn</button>
+                        :style="{ backgroundColor: getStateButton() }">Sapinnnnn</button></div>
+      <div class="columnb">
+        <div v-show="this.gameOn">
+             <h1>Easy version enabled : {{ this.cheatEnabled }}</h1>
+             <p> Still have to add when the cheat is not enabled</p>
+             <h5 v-show="this.cheatEnabled">Note to play then : {{ this.noteToPlay }}</h5>
+             <p>Score : {{ this.score }}</p>
+        </div>
+        <div v-show="!this.gameOn">
+            -
+        </div>
+      </div>
+    </div> 
+            
+                  
                
 
         </div>
@@ -103,7 +132,12 @@ export default {
         diap: { required: true, type: Number },
         notePlayed: { required: true, type: String },
         allnotes: { required: true, type: [Object] },
-        allnotesc: { required: true, type: [Object] }
+        allnotesc: { required: true, type: [Object] },
+        gamePlay : {required : true, type: Boolean},
+        score : {required : true, type : Number},
+        noteToPlay : {required : true, type : String},
+        cheat : { required : true, type : Boolean}
+
     },
     data() {
         return {
@@ -129,6 +163,9 @@ export default {
             diapason: this.diap * 2.3,
             currentNote: this.notePlayed,
             sapinNoel: false,
+            cheatEnabled : this.cheat,
+            gameOn : this.gamePlay,
+            
 
         }
 
@@ -396,9 +433,11 @@ export default {
 }
 
 /* Clear floats after the columns */
-.rowb:after {
+.row:after {
     content: "";
     display: table;
     clear: both;
 }
+
+
 </style>

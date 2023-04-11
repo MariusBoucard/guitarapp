@@ -66,7 +66,9 @@ export default {
 
     async launchFile(file) {
 
+      //TODO
       const filePath = path.resolve(file.path);
+      // const  filePath = file.path
         // this.videoPath.push(filePath);
   this.speed = 100;
   
@@ -87,7 +89,8 @@ export default {
       const filePath = path.resolve(file.path);
         // this.videoPath.push(filePath);
   this.speed = 100;
-  
+  // const  filePath = file.path
+
   const videoURL = `file://${filePath}`;
   this.$refs.video.src = videoURL;
   this.$refs.video.addEventListener('loadedmetadata', () => {

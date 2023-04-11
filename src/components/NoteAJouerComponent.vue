@@ -138,6 +138,7 @@ export default{
                 this.isPlaying = false
                 console.log("stopp")
                 clearInterval(this.fct);
+                this.$emit("playchanged")
             },
         playSound(){
             if(this.index%this.metronomeNumerateur===0){
@@ -157,6 +158,8 @@ export default{
             var timeInterval = 60/this.tempo  
             timeInterval = 4*timeInterval/this.metronomeDenominateur
             this.fct = setInterval(() => this.calcNewNote(), timeInterval*1000);
+            this.$emit("playchanged")
+
         },
         calcNote(){
                var find =  this.listeNoteTot.find(note => note.note === this.rootNote)
