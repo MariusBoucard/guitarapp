@@ -1,7 +1,11 @@
 <template>
     <div style="background-color: rgba(128, 128, 128, 0.3); border-radius: 5%; padding-top: 20px; padding-bottom: 20px;   ">
         <button class="button" @click="this.play()">play</button>
-        <button class="button"  @click="this.stop()">Stop play</button>
+        <button class="button"  @click="this.stop()">Stop</button>
+        <p></p>
+        <input type="checkbox"  v-model="this.cheatEnabled" />
+<label style="color:white" title="Yeah I'm such a wanker, that's the easiest way to do the other game without having to change my code <3 love u bro">Only rootnote (see center display for the cheat)</label>
+        
         <p>Dropdown tempo</p>
         <select class="button"  v-model="this.tempo" @change="changeTempo($event)">
             <option v-for="tempot in 200" :key=tempot>{{ tempot }}</option>
@@ -40,6 +44,7 @@ export default{
     },
     data(){
         return{
+            cheatEnabled :false,
             index : 0,
             isPlaying : false,
             tempo : 30,
@@ -108,7 +113,10 @@ export default{
 
                 }
             }
-        
+        ,
+        cheatEnabled() {
+            this.$emit('cheatchanged',this.cheatEnabled)
+        }
     },
     computed : {
             intervalText(){
@@ -215,6 +223,7 @@ export default{
             console.log("caluculus")
             if(this.bienJoue()){
                     this.score+=1
+                    this.$emit('scorechanged',this.score)
                     //Afficher un truc stympa
             }else{
                 //afficher un truc pas cool
@@ -233,6 +242,7 @@ export default{
                     "note" : this.calcNote(),
                     "expectedTime" :  date.getMilliseconds()+date.getSeconds()*1000+date.getHours()*3600*1000 +timeInterval*1000
                 }
+                this.$emit('noteexpected',this.newNote.note)
             }
             else{
                 this.oldNote = this.newNote
@@ -244,6 +254,8 @@ export default{
                     "note" : this.calcNote(),
                     "expectedTime" :  date.getMilliseconds()+date.getSeconds()*1000+date.getHours()*3600*1000 +timeInterval*1000
                 }
+                this.$emit('noteexpected',this.newNote.note)
+
 
             }
             this.playSound()

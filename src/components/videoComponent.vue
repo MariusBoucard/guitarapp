@@ -3,8 +3,9 @@
 
     <div>
       <ol class="ol-days">
-        <li v-for="item in this.videoPath" :key="item" @click="this.launchFile(item)">
-          {{ item.name }}
+        <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
+          {{ item.split("/")[item.split("/").length - 1] }}
+          <button class="button-cross" @click="remove(item)"></button>
         </li>
       </ol>
       
@@ -62,12 +63,30 @@ export default {
       this.setSpeed(newValue);
     },
   },
+  computed : {
+      videoPathComputed() {
+        return this.videoPath
+      }
+  },
   methods: {
+    remove(item){
+      console.log("pute")
+      var index = this.videoPath.indexOf(item)
+      if(index>-1){
+        console.log("great")
 
+        this.videoPath.splice(index, 1);
+      }
+      console.log(this.videoPath)
+      localStorage.setItem("videoLength", this.videoPath.length)
+      for (var i = 0; i < this.videoPath.length; i++) {
+        localStorage.setItem("video" + i, this.videoPath[i])
+      }
+    },
     async launchFile(file) {
 
       //TODO
-      const filePath = path.resolve(file.path);
+      const filePath = path.resolve(file);
       // const  filePath = file.path
         // this.videoPath.push(filePath);
   this.speed = 100;
@@ -85,10 +104,11 @@ export default {
       //  console.log(remote)
       // const appDir = remote.getGlobal('appDir');
       const file = event.target.files[0];
-      this.videoPath.push(file)
+      this.videoPath.push(file.path)
       const filePath = path.resolve(file.path);
         // this.videoPath.push(filePath);
   this.speed = 100;
+  
   // const  filePath = file.path
 
   const videoURL = `file://${filePath}`;
@@ -127,7 +147,7 @@ export default {
       // })
       localStorage.setItem("videoLength", this.videoPath.length)
       for (var i = 0; i < this.videoPath.length; i++) {
-        localStorage.setItem("video" + i, this.videoPath[i].name)
+        localStorage.setItem("video" + i, this.videoPath[i])
       }
 
     },
@@ -148,31 +168,67 @@ export default {
     },
   },
   mounted() {
-    // var lenVideo= localStorage.getItem("videoLength")
-    //   for(var i=0;i<lenVideo;i++){
-    //    var path=  localStorage.getItem("video"+i)
-    //    this.videoFolder = localStorage.getItem("videoFolder")
+    var lenVideo= localStorage.getItem("videoLength")
+      for(var i=0;i<lenVideo;i++){
+       var path2=  localStorage.getItem("video"+i)
+      //  this.videoFolder = localStorage.getItem("videoFolder")
 
-    //    path = this.videoFolder+path
-    //    console.log(path)
-    //   //  const videoURL = URL.createObjectURL(path);
-    //             // this.$refs.video.src = path;
+       console.log(path2)
+      //  const videoURL = URL.createObjectURL(path);
+                // this.$refs.video.src = path;
 
-    //             if (path) {
-    //               // Make a request to a server-side script to load the video file
-    //               const videoURL = `/loadvideo.php?path=${encodeURIComponent(path)}`;
-    //               fetch(videoURL)
-    //                 .then(response => response.blob())
-    //                 .then(blob => {
-    //                   const videoBlobURL = URL.createObjectURL(blob);
-    //                   this.$refs.video.src = videoBlobURL;
-    //                   this.$refs.video.addEventListener('loadedmetadata', () => {
-    //                     URL.revokeObjectURL(videoBlobURL);
-    //                     // this.play();
-    //                   });
-    //                 });
-    //             }
-    //   }
+                if (path2) {
+                  // Make a request to a server-side script to load the video file
+                  const filePath = path.resolve(path2);
+                        // this.videoPath.push(filePath);
+                  this.speed = 100;
+                  this.videoPath.push(path2)
+                  
+                  // const  filePath = file.path
+
+                  const videoURL = `file://${filePath}`;
+                  this.$refs.video.src = videoURL;
+                  this.$refs.video.addEventListener('loadedmetadata', () => {
+                    URL.revokeObjectURL(videoURL);
+                  });
+
+                }
+      }
   }
 }
 </script>
+<style>
+.button-cross {
+  display: inline-block;
+  position: relative;
+  margin-left: 1em;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  border: none;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.button-cross::before,
+.button-cross::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  height: 2px;
+  background-color: #000;
+}
+
+.button-cross::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.button-cross::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+</style>

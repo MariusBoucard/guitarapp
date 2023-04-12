@@ -14,18 +14,18 @@
       <li class="linavbar" :class=" this.pictureDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.pictureDisplay = ! this.pictureDisplay">Display Picture</a></li>
       <li class="linavbar" :class=" this.soundDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.soundDisplay = ! this.soundDisplay">Play sound</a></li>
       <li class="linavbar" :class=" this.videoDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.videoDisplay = ! this.videoDisplay">Play video</a></li>
-      <li class="linavbar" :class=" this.gameDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.gameDisplay = ! this.gameDisplay">Play game</a></li>
+      <li class="linavbar" :class=" this.gameDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.gameDisplay = ! this.gameDisplay ">Play game</a></li>
       <li class="linavbar" :class=" this.chordsDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.chordsDisplay = ! this.chordsDisplay">Affichage accords</a></li>
       <li class="linavbar" :class=" this.chordssuggestDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.chordssuggestDisplay = ! this.chordssuggestDisplay">Suggestion accords</a></li>
 
-
+    
 
 
     </ul> 
     <div class="row">
       <div class="column">
         <div style=" display: flex;">
-          <MancheComponent :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
+          <MancheComponent :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
         </div>
         <div class="row">
           <div class="columnhalf"> 
@@ -46,7 +46,7 @@
         <SuggestedChordsComponent v-show="this.chordssuggestDisplay" :nbnotes="this.nbnotes" :selectedNotes="this.noteSlectedList" :selectedGamme="this.gammeSelected"/>
 
         <TunerComponent v-show="this.tunderDisplay" @changenote="changeNote($event,note)" :notePlayed="this.notePlayed" ></TunerComponent>
-    <NotesAJouerComponent  v-show="this.gameDisplay" @playchanged="this.isPlayingRoot = ! this.isPlayingRoot" @greatNote="resultPlayed($event,val)" :notesSelected=this.noteSlectedList :listeNote=this.nbnotes :noteTuner=this.notePlayed>
+    <NotesAJouerComponent  v-show="this.gameDisplay" @noteexpected="this.noteexpected = $event" @cheatchanged="this.cheat= $event" @scorechanged="this.score = $event" @playchanged="this.isPlayingRoot = ! this.isPlayingRoot" @greatNote="resultPlayed($event,val)" :notesSelected=this.noteSlectedList :listeNote=this.nbnotes :noteTuner=this.notePlayed>
     </NotesAJouerComponent>
               <VideoSettingsCOmponent :videoFolderAll="this.videoFolder"></VideoSettingsCOmponent>
     <ColorComponent v-show="this.settingsView" :couleurdict=this.colors ></ColorComponent>
@@ -103,20 +103,23 @@ export default {
 },
   data () {
     return {
+      noteexpected:"",
+      cheat:false,
       mancheDisplay : true,
       notesSelectedDisplay : true,
-      tunderDisplay : true,
-      pictureDisplay : true,
-      soundDisplay : true,
+      tunderDisplay : false,
+      pictureDisplay : false,
+      soundDisplay : false,
       scalesDisplay : true,
       videoDisplay : true,
       gameDisplay : false,
       chordsDisplay : false,
       chordssuggestDisplay : false,
-
+      score:0,
       gammeSelected : "",
 
       noteGreat :  undefined,
+
       nbfrettes : 24,
       diapason : 648,
       nbStrings: 7,

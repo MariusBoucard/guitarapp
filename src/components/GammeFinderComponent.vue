@@ -3,7 +3,7 @@
         <p>Scale in use {{ this.gammeSelected }}</p>
         <h1>Scales you could use : </h1>
         <input type="checkbox"  v-model="this.colorScaleBool" >
-<label > TODO : color relatives to the position in the scale</label><br>
+<label > color relatives to the position in the scale</label>
         <ul>
 
             <li v-for="gammes in this.listeGammes" :key="gammes">

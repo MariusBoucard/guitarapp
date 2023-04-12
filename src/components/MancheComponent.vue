@@ -2,13 +2,11 @@
     <div>
         <div style="width:100%;">
                 <div class="row">
-      <div class="columnb">
-        <div v-show="this.gameOn">
-             <h1>
-                Ready to play ?
-             </h1>
+      <div class="columnb" style="text-align: center;">
+        <div v-show="this.showgame">
+            <h1>Ready to play ?</h1>
         </div>
-        <div v-show="!this.gameOn">
+        <div v-show="!this.showgame">
             -
         </div>
 
@@ -28,13 +26,13 @@
                     <button class="button" style="border : 1px solid black" @click="allumerSapin()"
                         :style="{ backgroundColor: getStateButton() }">Sapinnnnn</button></div>
       <div class="columnb">
-        <div v-show="this.gameOn">
-             <h1>Easy version enabled : {{ this.cheatEnabled }}</h1>
-             <p> Still have to add when the cheat is not enabled</p>
-             <h5 v-show="this.cheatEnabled">Note to play then : {{ this.noteToPlay }}</h5>
-             <p>Score : {{ this.score }}</p>
+        <div v-show="this.showgame">
+             <p>Easy version enabled : {{ this.cheat }}</p>
+             <p v-show="this.cheat">Note to play then : </p>
+             <h1>{{ this.noteToPlay }}</h1>
+             <h2 style="color:white">Score : {{ this.score }}</h2>
         </div>
-        <div v-show="!this.gameOn">
+        <div v-show="!this.showgame">
             -
         </div>
       </div>
@@ -136,7 +134,8 @@ export default {
         gamePlay : {required : true, type: Boolean},
         score : {required : true, type : Number},
         noteToPlay : {required : true, type : String},
-        cheat : { required : true, type : Boolean}
+        cheat : { required : true, type : Boolean},
+        showgame: { required : true, type :Boolean}
 
     },
     data() {
