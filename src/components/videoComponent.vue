@@ -1,26 +1,27 @@
 <template>
-    <div style="width:100%;height : 100%">
+  <div style="width:100%;height : 100%">
 
-        <div>
-            <ol  class="ol-days" >
-                <li v-for="item in this.videoPath" :key="item" @click="this.launchFile(item)">
-                {{ item.name }}
-                </li>
-            </ol>
+    <div>
+      <ol class="ol-days">
+        <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
+          {{ item.split("/")[item.split("/").length - 1] }}
+          <button class="button-cross" @click="remove(item)"></button>
+        </li>
+      </ol>
+      
+    </div>
 
-        </div>
-
-        <div class="container">
-          <div class="button-wrap">
-            <label class="buttonbis" for="uploadVideo">Upload File</label>
-            <input id="uploadVideo" type="file" @change="loadVideo">
-          </div>
-        </div>
-     
-      <video style="width:100%;height : 100%" ref="video" controls></video>
-      <div>
+    <div class="container">
+      <div class="button-wrap">
+        <label class="buttonbis" for="uploadVideo">Upload File</label>
+        <input id="uploadVideo" type="file" @change="loadVideo">
+      </div>
+    </div>
+    
+    <video style="width:100%;height : 100%" ref="video" controls></video>
+    <div>
       <button class="button" @click="play(this.speed)">play</button>
-      <button class="button"  @click="pause">pause</button>
+      <button class="button" @click="pause">pause</button>
       <button class="button" @click="stop">stop</button>
 
     </div>
@@ -28,24 +29,26 @@
       <h3 style="display: block;float: top">Playing rate</h3>
       <div class="slider" style="margin : auto">
 
-    <input type="range" min="0" max="300" oninput="rangeValueVideo.innerText = this.value"  v-model="this.speed">
-    <p id="rangeValueVideo">100</p>
-    
+        <input type="range" min="10" max="300" oninput="rangeValueVideo.innerText = this.value" v-model="this.speed">
+        <p id="rangeValueVideo">100</p>
+        
+      </div>
     </div>
-    </div>
-    </div>
-  </template>
+  </div>
+</template>
   
-  <script>
-  export default {
-    data() {
-      return {
-        currentTime: 0,
-        seekValue: 0,
-        speed : 100,
-        videoPath : [],
-        videoPlaying : "",
-        chunkSize: 10 * 1024 * 1024, // 10 MB
+<script>
+// import { ipcRenderer } from 'electron'
+const path = require('path');
+export default {
+  data() {
+    return {
+      currentTime: 0,
+      seekValue: 0,
+      speed: 100,
+      videoPath: [],
+      videoPlaying: "",
+      chunkSize: 10 * 1024 * 1024, // 10 MB
       file: null,
       sourceBuffer: null,
       mediaSource: null,
@@ -53,83 +56,179 @@
       currentChunkIndex: 0,
       isPlaying: false,
       playbackRate: 1.0
-      };
-    },
-    watch: {
+    };
+  },
+  watch: {
     speed(newValue) {
       this.setSpeed(newValue);
     },
   },
-    methods: {
-        async launchFile(file){
-            const videoURL = URL.createObjectURL(file);
-            this.$refs.video.src = videoURL;
-        this.$refs.video.addEventListener('loadedmetadata', () => {
-          URL.revokeObjectURL(videoURL);
-        //   this.play();
-        });
-        },
-      async loadVideo(event) {
-        const file = event.target.files[0];
-        const videoURL = URL.createObjectURL(file);
-        this.videoPath.push(file)
-        this.speed = 100
+  computed : {
+      videoPathComputed() {
+        return this.videoPath
+      }
+  },
+  methods: {
+    remove(item){
+      console.log("pute")
+      var index = this.videoPath.indexOf(item)
+      if(index>-1){
+        console.log("great")
 
-        this.$refs.video.src = videoURL;
-        this.$refs.video.addEventListener('loadedmetadata', () => {
-          URL.revokeObjectURL(videoURL);
-        //   this.play();
-        });
+        this.videoPath.splice(index, 1);
+      }
+      console.log(this.videoPath)
+      localStorage.setItem("videoLength", this.videoPath.length)
+      for (var i = 0; i < this.videoPath.length; i++) {
+        localStorage.setItem("video" + i, this.videoPath[i])
+      }
+    },
+    async launchFile(file) {
 
-        localStorage.setItem("videoLength",this.videoPath.length)
-        for(var i=0;i<this.videoPath.length;i++){
-          console.log(this.videoPath[i])
-          localStorage.setItem("video"+i,this.videoPath[i].name)
-        }
-       
-      },
-      play(playbackRate = 100) {
-      this.$refs.video.playbackRate = playbackRate/100;
+      //TODO
+      const filePath = path.resolve(file);
+      // const  filePath = file.path
+        // this.videoPath.push(filePath);
+  this.speed = 100;
+  
+  const videoURL = `file://${filePath}`;
+  this.$refs.video.src = videoURL;
+  this.$refs.video.addEventListener('loadedmetadata', () => {
+    URL.revokeObjectURL(videoURL);
+  });
+    },
+
+
+    async loadVideo(event) {
+      //  const { remote } = require('electron');
+      //  console.log(remote)
+      // const appDir = remote.getGlobal('appDir');
+      const file = event.target.files[0];
+      this.videoPath.push(file.path)
+      const filePath = path.resolve(file.path);
+        // this.videoPath.push(filePath);
+  this.speed = 100;
+  
+  // const  filePath = file.path
+
+  const videoURL = `file://${filePath}`;
+  this.$refs.video.src = videoURL;
+  this.$refs.video.addEventListener('loadedmetadata', () => {
+    URL.revokeObjectURL(videoURL);
+  });
+  // const videoURL = URL.createObjectURL(file);
+      // const file = event.target.files[0];
+      // console.log("vid "+videoURL)
+      // this.speed = 100
+
+      // this.$refs.video.src = videoURL;
+      // this.$refs.video.addEventListener('loadedmetadata', () => {
+      //   URL.revokeObjectURL(videoURL);
+      //   this.play();
+      // });
+      // const path = require('path');
+      // const directoryPath = path.resolve(__dirname);
+      // console.log(directoryPath)
+
+      // const videoElement = this.$refs.video;
+      // videoElement.src = '';
+      // videoElement.srcObject = null;
+
+      // Construct an absolute file path to the video file
+
+      // const videoPath = path.relative('./', file.path);
+      // videoElement.src = videoPath;
+
+      // await videoElement.load();
+      // const file = event.target.files[0]
+      // ipcRenderer.send('load-video', file.path)
+      // ipcRenderer.on('video-loaded', (event, videoURL) => {
+      //   this.$refs.video.src = videoURL
+      // })
+      localStorage.setItem("videoLength", this.videoPath.length)
+      for (var i = 0; i < this.videoPath.length; i++) {
+        localStorage.setItem("video" + i, this.videoPath[i])
+      }
+
+    },
+    play(playbackRate = 100) {
+      this.$refs.video.playbackRate = playbackRate / 100;
       this.$refs.video.play();
     },
     pause() {
-        this.$refs.video.pause();
-      },
-      stop() {
-        const { video } = this.$refs;
-        video.pause();
-        video.currentTime = 0;
-      },
-      setSpeed(speed) {
-        this.$refs.video.playbackRate = speed/100;
-      },
+      this.$refs.video.pause();
     },
-    mounted(){
-      var lenVideo= localStorage.getItem("videoLength")
-        for(var i=0;i<lenVideo;i++){
-         var path=  localStorage.getItem("video"+i)
-         this.videoFolder = localStorage.getItem("videoFolder")
+    stop() {
+      const { video } = this.$refs;
+      video.pause();
+      video.currentTime = 0;
+    },
+    setSpeed(speed) {
+      this.$refs.video.playbackRate = speed / 100;
+    },
+  },
+  mounted() {
+    var lenVideo= localStorage.getItem("videoLength")
+      for(var i=0;i<lenVideo;i++){
+       var path2=  localStorage.getItem("video"+i)
+      //  this.videoFolder = localStorage.getItem("videoFolder")
 
-         path = this.videoFolder+path
-         console.log(path)
-        //  const videoURL = URL.createObjectURL(path);
-                  // this.$refs.video.src = path;
+       console.log(path2)
+      //  const videoURL = URL.createObjectURL(path);
+                // this.$refs.video.src = path;
 
-                  if (path) {
-                    // Make a request to a server-side script to load the video file
-                    const videoURL = `/loadvideo.php?path=${encodeURIComponent(path)}`;
-                    fetch(videoURL)
-                      .then(response => response.blob())
-                      .then(blob => {
-                        const videoBlobURL = URL.createObjectURL(blob);
-                        this.$refs.video.src = videoBlobURL;
-                        this.$refs.video.addEventListener('loadedmetadata', () => {
-                          URL.revokeObjectURL(videoBlobURL);
-                          // this.play();
-                        });
-                      });
-                  }
-        }
-    }
+                if (path2) {
+                  // Make a request to a server-side script to load the video file
+                  const filePath = path.resolve(path2);
+                        // this.videoPath.push(filePath);
+                  this.speed = 100;
+                  this.videoPath.push(path2)
+                  
+                  // const  filePath = file.path
+
+                  const videoURL = `file://${filePath}`;
+                  this.$refs.video.src = videoURL;
+                  this.$refs.video.addEventListener('loadedmetadata', () => {
+                    URL.revokeObjectURL(videoURL);
+                  });
+
+                }
+      }
   }
-  </script>
+}
+</script>
+<style>
+.button-cross {
+  display: inline-block;
+  position: relative;
+  margin-left: 1em;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  border: none;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.button-cross::before,
+.button-cross::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  height: 2px;
+  background-color: #000;
+}
+
+.button-cross::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.button-cross::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+</style>

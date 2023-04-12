@@ -1,6 +1,6 @@
 {
-  "name": "guitarapp",
-  "version": "0.1.0",
+  "name": "neckwanker",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -23,6 +23,8 @@
     "guitar-js": "^1.0.2",
     "jstuner-ui": "^0.1.4",
     "lodash.uniqueid": "^4.0.1",
+    "path": "^0.12.7",
+    "path-browserify": "^1.0.1",
     "pitch-detector": "^1.1.3",
     "rollup-plugin-svelte": "^7.1.4",
     "svelte": "^3.58.0",
@@ -39,7 +41,7 @@
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
-    "electron": "^23.1.1",
+    "electron": "^23.2.2",
     "electron-builder": "^22.10.3",
     "electron-devtools-installer": "^3.1.0",
     "eslint": "^7.32.0",

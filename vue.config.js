@@ -2,11 +2,18 @@ const { defineConfig } = require('@vue/cli-service');
 
 module.exports = defineConfig({
   transpileDependencies: true,
+  configureWebpack: {
+    resolve: {
+      fallback: {
+        path: require.resolve('path-browserify')
+      }
+    }},
   pluginOptions: {
     electronBuilder: {
+      
       builderOptions: {
-        appId: 'GuitarApp',
-        productName: 'GuitarTool',
+        appId: 'com.MariusCompany.ChristmasTree',
+        productName: 'Neck Wanker\'s',
         linux: {
           target: ['deb', 'snap', 'AppImage'],
           icon: 'public/icon.png'
