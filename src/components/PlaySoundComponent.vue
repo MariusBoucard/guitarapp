@@ -50,6 +50,7 @@
   </template>
   
   <script>
+
   
   export default {
     data() {
@@ -88,10 +89,14 @@
         valueChangedHandler(speedval){
                 this.setSpeed(speedval/100)
         },
+        saveSong(){
+          localStorage.setItem("songPath",JSON.stringify(this.songPath))
+        },
       onFileChange(event) {
         const file = event.target.files[0];
         const reader = new FileReader();
         this.songPath.push(file)
+        this.saveSong()
         this.songPlaying = file.name
 
   
@@ -132,7 +137,11 @@
         audioPlayer.currentTime = seekto;
       },
     },
+    // mounted() {
+    //     this.songPath=JSON.parse(localStorage.getItem("songPath"))
+    // }
   };
+  
   </script>
   <style>
 .slider {

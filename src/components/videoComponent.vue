@@ -4,7 +4,7 @@
     <div>
       <ol class="ol-days">
         <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
-          {{ item.split("/")[item.split("/").length - 1] }}
+          {{ item.split("\\")[item.split("\\").length - 1] }}
           <button class="button-cross" @click="remove(item)"></button>
         </li>
       </ol>
@@ -86,7 +86,7 @@ export default {
     async launchFile(file) {
 
       //TODO
-      const filePath = path.resolve(file);
+      const filePath = file;
       // const  filePath = file.path
         // this.videoPath.push(filePath);
   this.speed = 100;
@@ -104,15 +104,14 @@ export default {
       //  console.log(remote)
       // const appDir = remote.getGlobal('appDir');
       const file = event.target.files[0];
-      this.videoPath.push(file.path)
-      const filePath = path.resolve(file.path);
-        // this.videoPath.push(filePath);
-  this.speed = 100;
-  
-  // const  filePath = file.path
+this.videoPath.push(file.path.replace(/#/g, '%23'))
+const filePath = file.path.replace(/#/g, '%23');
+this.speed = 100;
+console.log(filePath)
+const videoURL = `file://${filePath}`;
+console.log("vid", videoURL)
 
-  const videoURL = `file://${filePath}`;
-  this.$refs.video.src = videoURL;
+    this.$refs.video.src = videoURL;
   this.$refs.video.addEventListener('loadedmetadata', () => {
     URL.revokeObjectURL(videoURL);
   });
