@@ -30,7 +30,7 @@ async function createWindow() {
     }
   })
   win.setMenu(null)
-  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
 
 
 ipcMain.on('load-video', (event, filePath) => {
