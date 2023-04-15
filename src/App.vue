@@ -342,6 +342,7 @@ export default {
     changeDiap(diap){
       // console.log("diap "+diap)
       this.diapason = diap
+      localStorage.setItem('diap',this.diapason)
     },
     name(note) {
               const names = ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"];
@@ -399,6 +400,9 @@ export default {
                   }
                   if(JSON.parse(localStorage.getItem("oldnotescolor")) !== null){
                   this.colorSave = JSON.parse( localStorage.getItem("oldnotescolor"))
+                  }
+                  if(localStorage.getItem('diap')!==null){
+                    this.diapason = localStorage.getItem('diap')
                   }
 
       // this.colors.forEach(
