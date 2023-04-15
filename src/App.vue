@@ -397,8 +397,9 @@ export default {
                     console.log(this.colors)
 
                   }
+                  if(JSON.parse(localStorage.getItem("oldnotescolor")) !== null){
                   this.colorSave = JSON.parse( localStorage.getItem("oldnotescolor"))
-
+                  }
 
       // this.colors.forEach(
       //         col => {

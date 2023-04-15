@@ -11,7 +11,9 @@
         <div>
             <ol  class="ol-days" >
                 <li v-for="item in this.songPath" :key="item" @click="this.launchFile(item)">
-                {{ item.name }}
+                {{ item.split("\\")[item.split("\\").length - 1] }}
+                <button class="button-cross" @click="remove(item)"></button>
+
                 </li>
             </ol>
 
@@ -73,40 +75,61 @@
     }
   },
     methods: {
-        launchFile(file){
+      remove(item){
+      console.log("pute")
+      var index = this.songPath.indexOf(item)
+      if(index>-1){
+        console.log("great")
+
+        this.songPath.splice(index, 1);
+      }
+      console.log(this.songPath)
+      localStorage.setItem("songLength", this.songPath.length)
+      for (var i = 0; i < this.songPath.length; i++) {
+        localStorage.setItem("songPath" + i, this.songPath[i])
+      }
+    },
+        launchFile(filePath){
         const reader = new FileReader();
-        console.log(file)
-        this.songPlaying = file.name
-  
-        reader.onload = (event) => {
+        console.log(filePath)
+        this.songPlaying = filePath.split("\\")[filePath.split("\\").length - 1]
+        const file = new File([filePath], filePath, { type: "audio/*" });
+        reader.onload = () => {
           const audioPlayer = this.$refs.audioPlayer;
-          audioPlayer.src = event.target.result;
+          const audioURL = `file://${filePath}`;
+          audioPlayer.src = audioURL;
 
         };
   
-        reader.readAsDataURL(file);
+         reader.readAsDataURL(file);
         },
         valueChangedHandler(speedval){
                 this.setSpeed(speedval/100)
         },
         saveSong(){
-          localStorage.setItem("songPath",JSON.stringify(this.songPath))
+          localStorage.setItem("songLength",this.songPath.length)
+          for(var i=0;i<this.songPath.length;i++){
+            localStorage.setItem("song"+i,this.songPath[i])
+
+          }
         },
       onFileChange(event) {
         const file = event.target.files[0];
         const reader = new FileReader();
-        this.songPath.push(file)
+        const filePath =file.path.replace(/#/g, '%23')
+        this.songPath.push(filePath)
         this.saveSong()
         this.songPlaying = file.name
 
   
-        reader.onload = (event) => {
+        reader.onload = () => {
           const audioPlayer = this.$refs.audioPlayer;
-          audioPlayer.src = event.target.result;
+          const audioURL = `file://${filePath}`;
+          audioPlayer.src = audioURL;
 
         };
   
-        reader.readAsDataURL(file);
+         reader.readAsDataURL(file);
       },
     
       play() {
@@ -137,9 +160,28 @@
         audioPlayer.currentTime = seekto;
       },
     },
-    // mounted() {
-    //     this.songPath=JSON.parse(localStorage.getItem("songPath"))
-    // }
+    mounted() {
+      var lenVideo= localStorage.getItem("songLength")
+      for(var i=0;i<lenVideo;i++){
+       var path2=  localStorage.getItem("song"+i)
+      //  this.videoFolder = localStorage.getItem("videoFolder")
+
+       console.log(path2)
+      //  const videoURL = URL.createObjectURL(path);
+                // this.$refs.video.src = path;
+
+                if (path2) {
+                  // Make a request to a server-side script to load the video file
+                  // const filePath = path.resolve(path2);
+                        // this.videoPath.push(filePath);
+                  this.speed = 100;
+                  this.songPath.push(path2)
+                  
+                  // const  filePath = file.path                  
+
+                }
+      }
+    }
   };
   
   </script>
@@ -354,5 +396,37 @@ audio::-webkit-media-controls-toggle-closed-captions-button */
 .ol-days > li:nth-child(6n + 6) {
 	--clr_bg: #fc6868;
 	--clr_accent: #2e2b3c;
+}
+.button-cross {
+  display: inline-block;
+  position: relative;
+  margin-left: 1em;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  border: none;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.button-cross::before,
+.button-cross::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  height: 2px;
+  background-color: #000;
+}
+
+.button-cross::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.button-cross::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 </style>
