@@ -4,7 +4,7 @@
 <img class="background-image" src="../public/sky.jpg">
 <div class="content">
     <ul class="ulnavbar">
-      <li class="linavbar" :class=" this.mancheDisplay ?  'enabled' :'disabled' " ><a href="#home" @click="this.mancheDisplay = ! this.mancheDisplay">Manche</a></li>
+      <li class="linavbar" :class=" this.mancheDisplay ?  'enabled' :'disabled' " ><a href="#home" @click=" this.mancheDisplay = ! this.mancheDisplay">Manche</a></li>
       <li class="linavbar" :class=" this.notesSelectedDisplay ?  'enabled' :'disabled' "><a href="#news" @click="this.notesSelectedDisplay = ! this.notesSelectedDisplay" >Selection notes</a></li>
       <li class="linavbar" :class=" this.autoGammeSelect ?  'enabled' :'disabled' " ><a  style="{ backgroundColor: red;}" @click="$event => {this.autoGammeSelect = !this.autoGammeSelect}" > Auto gamme select</a></li>
 
@@ -352,8 +352,58 @@ export default {
             }
   },
   watch: {
-    colors: {
+    
+      mancheDisplay : {
         handler() {
+          localStorage.setItem('mancheDisplay',this.mancheDisplay)
+        }
+      } ,
+      notesSelectedDisplay :  {
+        handler() {
+            localStorage.setItem('notesSelectedDisplay',this.notesSelectedDisplay)
+        }
+      } ,
+      tunderDisplay : {
+        handler() {
+            localStorage.setItem('tunerDisplay',this.tunderDisplay)
+        }
+      } ,
+      pictureDisplay :  {
+        handler() {
+            localStorage.setItem('pictureDisplay',this.pictureDisplay)
+        }
+      } ,
+      soundDisplay :  {
+        handler() {
+            localStorage.setItem('soundDisplay',this.soundDisplay)
+        }
+      } ,
+      scalesDisplay :  {
+        handler() {
+            localStorage.setItem('scaleDisplay',this.scalesDisplay)
+        }
+      } ,
+      videoDisplay :  {
+        handler() {
+            localStorage.setItem('videoDisplay',this.videoDisplay)
+        }
+      } ,
+      gameDisplay :  {
+        handler() {
+            localStorage.setItem('gameDisplay',this.gameDisplay)
+        }
+      } ,
+      chordsDisplay :  {
+        handler() {
+            localStorage.setItem('chordsDisplay',this.chordsDisplay)
+        }
+      } ,
+      chordssuggestDisplay : {
+        handler() {
+            localStorage.setItem('chordssuggestDisplay',this.chordssuggestDisplay)
+        }
+      } ,
+    colors: {        handler() {
             this.colors.forEach(
               col => localStorage.setItem(col.note,col.color)
             )
@@ -382,7 +432,42 @@ export default {
     
   },
  mounted(){
-      
+ 
+
+                  if(localStorage.getItem('mancheDisplay')!==null){
+                    this.mancheDisplay = ( localStorage.getItem('mancheDisplay') === "true")
+                  }
+                  if(localStorage.getItem('notesSelectedDisplay')!==null){
+                    this.notesSelectedDisplay =  ( localStorage.getItem('notesSelectedDisplay') === "true")
+                  }
+                  if(localStorage.getItem('tunerDisplay')!==null){
+                    this.tunderDisplay =  ( localStorage.getItem('tunerDisplay') === "true")
+                  } if(localStorage.getItem('pictureDisplay')!==null){
+                    this.pictureDisplay = ( localStorage.getItem('pictureDisplay') === "true")
+
+
+                  } 
+                  if(localStorage.getItem('chordsDisplay')!==null){
+                    this.chordsDisplay = ( localStorage.getItem('chordsDisplay') === "true")
+                  }
+                  if(localStorage.getItem('chordssuggestDisplay')!==null){
+                    this.chordssuggestDisplay =  ( localStorage.getItem('chordssuggestDisplay') === "true")
+                  }
+
+
+                  if(localStorage.getItem('soundDisplay')!==null){
+                    this.soundDisplay =  ( localStorage.getItem('soundDisplay') === "true")
+                  }
+                   if(localStorage.getItem('scalesDisplay')!==null){
+                    this.scalesDisplay =  ( localStorage.getItem('scalesDisplay') === "true")
+                  }
+                  if(localStorage.getItem('videoDisplay')!==null){
+                    this.videoDisplay =  ( localStorage.getItem('videoDisplay') === "true")
+                  }
+                  if(localStorage.getItem('gameDisplay')!==null){
+                    this.gameDisplay = ( localStorage.getItem('gameDisplay') === "true")
+                  }
+
                   this.noteSlectedList.forEach(
                     col => {
                       if (localStorage.getItem(col.note+"Selected")!=="null") {
