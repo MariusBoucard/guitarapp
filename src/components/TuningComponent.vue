@@ -61,17 +61,29 @@ export default {
   methods: {
     addCorde() {
 
-      this.listTuning.push({ cordeId: this.nbCordes, tuning: "A" })
+      this.listTuning.push({ cordeId: this.nbCordes, tuning: "A2" })
       this.nbCordes++
+      this.listTuning.forEach(
+              col => localStorage.setItem(col.cordeId+'tuning',col.tuning)
+            )
+            localStorage.setItem('nbCordes',this.listTuning.length)
     },
     delCorde() {
       this.listTuning.pop()
       this.nbCordes--
+      this.listTuning.forEach(
+              col => localStorage.setItem(col.cordeId+'tuning',col.tuning)
+            )
+            localStorage.setItem('nbCordes',this.listTuning.length)
     },
     onChangeTune(event, corde) {
 
       var found = this.listTuning.find((cor) => cor.cordeId === corde)
       found.tuning = event.target.value
+      this.listTuning.forEach(
+              col => localStorage.setItem(col.cordeId+'tuning',col.tuning)
+            )
+            localStorage.setItem('nbCordes',this.listTuning.length)
     },
     colorFromNote(tuning) {
       // console.log(tuning)
@@ -97,6 +109,30 @@ export default {
     notesall() {
       return this.allNotes
     }
+  },
+  watch : {
+      tuningList : {
+        handler() {
+          this.listTuning = this.tuningList
+          this.$forceUpdate()
+        }
+      },
+      cordesNumber : {
+        handler() {
+          this.nbCordes = this.cordesNumber
+          this.$forceUpdate()
+
+        }
+      },
+      notesColor : {
+        handler(){
+          this.couleurnoteliste =  this.notesColor
+          this.$forceUpdate()
+
+
+        }
+      }
+
   },
   data() {
     return {

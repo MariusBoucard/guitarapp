@@ -25,7 +25,7 @@
     <div class="row">
       <div class="column">
         <div style=" display: flex;">
-          <MancheComponent :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
+          <MancheComponent :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning=this.tuningList />
         </div>
         <div class="row">
           <div class="columnhalf"> 
@@ -392,6 +392,20 @@ export default {
       
                     }
                   )
+                    if(localStorage.getItem('nbCordes')!==null){
+                      this.nbStrings = localStorage.getItem('nbCordes')
+                      console.log("yolo")
+                      this.tuningList = []
+                    }
+
+                    for(var i=0;i<this.nbStrings;i++){
+                      if(localStorage.getItem(i+'tuning')!== null){
+                        console.log("caca", localStorage.getItem(i+'tuning'))
+                        this.tuningList.push({ cordeId : i, tuning : localStorage.getItem(i+'tuning') })
+                        
+                      }
+                    }
+                    console.log(this.tuningList)
                   console.log(localStorage.getItem("colordict"))
                   if(JSON.parse(localStorage.getItem("colordict")) !== null){
                     this.colors = JSON.parse( localStorage.getItem("colordict"))
@@ -404,6 +418,7 @@ export default {
                   if(localStorage.getItem('diap')!==null){
                     this.diapason = localStorage.getItem('diap')
                   }
+
 
       // this.colors.forEach(
       //         col => {
@@ -422,7 +437,7 @@ export default {
             // console.log(this.noteSlectedList)
   console.log('App Mounted');
               console.log(myImage)
-
+        this.$forceUpdate()
   }
 
 ,

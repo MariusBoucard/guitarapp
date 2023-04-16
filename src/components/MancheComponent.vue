@@ -319,6 +319,12 @@ export default {
 
     },
     watch: {
+        tuning : {
+            handler(){
+                this.tuningintra=this.tuning
+                this.$forceUpdate()
+            }
+        },
         diap: {
             handler() {
                 this.diapason = this.diap * 2.3
@@ -362,7 +368,7 @@ export default {
             }
             return cordeListe
         },
-
+        
 
     },
 }
