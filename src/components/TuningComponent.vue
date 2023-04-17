@@ -43,7 +43,8 @@
 
         <button @click="this.diapasonMoins()" class="cordeplus"> - </button>
         <h1>{{ this.diap }} </h1><button class="cordeplus" @click=this.diapasonPlus()> + </button>
-
+        <input type="checkbox"  v-model="this.leftyintra" >
+<label > Mode Gaucher</label>
       </div>
     </div>
   </div>
@@ -51,6 +52,7 @@
 <script>
 export default {
   props: {
+    lefty : {required : true, type : Boolean},
     allNotes : {required : true, type : [Object]},
     cordesNumber: { required: true, type: Number },
     diapason: { required: true, type: Number },
@@ -111,6 +113,11 @@ export default {
     }
   },
   watch : {
+      leftyintra : {
+        handler() {
+          this.$emit('lefty',this.leftyintra)
+        }
+      },
       tuningList : {
         handler() {
           this.listTuning = this.tuningList
@@ -141,6 +148,7 @@ export default {
       nbCordes: this.cordesNumber,
       listTuning: this.tuningList,
       couleurnoteliste: this.notesColor,
+      leftyintra : this.lefty
       // notesall : this.allNotes
     };
   }

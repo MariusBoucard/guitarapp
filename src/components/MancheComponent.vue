@@ -46,7 +46,7 @@
         <div width="300px">
 
 
-            <ul>
+            <ul  :class=" this.lefty ?  'ulmanche' :'' ">
                 <li class="horizontalli ">
                     <ul>
                         <li style=" width: 40px" :style="{ height: calcHeight() }" v-for="note in this.tuningintra"
@@ -67,7 +67,7 @@
                 </li>
 
 
-                <li class="horizontalli frette yolo" :style="{ width: calcWidth(index) }"
+                <li class="horizontalli2 frette yolo" :style="{ width: calcWidth(index) }"
                     v-for="index in (this.nbfrettes - 1)" :key="index">
                     <div class="image-container">
                         <img class="background-image" src="../assets/frettebackground.jpeg">
@@ -123,6 +123,7 @@
 export default {
     props: {
         //Peut etre qu'on peut definir un array de note ici
+        lefty : {required : true, type:Boolean},
         tuning: { required: true, type: [Object] },
         notesSelected: { required: true, type: [Object] },
         colorNotes: { required: true, type: [Object] },
@@ -435,6 +436,25 @@ export default {
 .columnb {
     float: left;
     width: 33.33%;
+}
+.ulmanche {
+  display: flex;
+  flex-direction: row-reverse; /* add this line to reverse the order */
+  justify-content: flex-end; /* add this line to align the items to the right */
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.horizontalli2 {
+  display: inline-block;
+  float: none;
+}
+
+.yolo {
+  margin-right: auto;
+  margin-left: 0;
+  width: var(--mondiap);
 }
 
 /* Clear floats after the columns */
