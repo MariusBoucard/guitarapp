@@ -3,6 +3,7 @@
     <div class="image-container">
 <img class="background-image" src="../public/sky.jpg">
 <div class="content">
+  <!-- <GammeFromChordsComponent></GammeFromChordsComponent> -->
     <ul class="ulnavbar">
       <li class="linavbar" :class=" this.mancheDisplay ?  'enabled' :'disabled' " ><a href="#home" @click=" this.mancheDisplay = ! this.mancheDisplay">Manche</a></li>
       <li class="linavbar" :class=" this.notesSelectedDisplay ?  'enabled' :'disabled' "><a href="#news" @click="this.notesSelectedDisplay = ! this.notesSelectedDisplay" >Selection notes</a></li>
@@ -25,7 +26,7 @@
     <div class="row">
       <div class="column">
         <div style=" display: flex;">
-          <MancheComponent :lefty="this.lefty" :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning=this.tuningList />
+          <MancheComponent :lefty="this.lefty" :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=parseInt(this.diapason) :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning=this.tuningList />
         </div>
         <div class="row">
           <div class="columnhalf"> 
@@ -35,7 +36,7 @@
  
          </div>
          <div class="columnhalf">
-           <TuningComponent  @lefty="this.lefty = $event" :lefty="this.lefty" :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+           <TuningComponent  @lefty="this.lefty = $event" :lefty="this.lefty" :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=parseInt(this.diapason) :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=parseInt(this.nbStrings)></TuningComponent> 
            <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
            <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
           </div>
@@ -81,6 +82,7 @@ import NotesAJouerComponent from './components/NoteAJouerComponent.vue'
 import myImage from '@/assets/frettebackground.jpeg';
 import GuitarChordsComponent from './components/GuitarChordsComponent.vue';
 import SuggestedChordsComponent from './components/SuggestedChordsComponent.vue';
+// import GammeFromChordsComponent from './components/GammeFromChordsComponent.vue';
 // import metronome from 'vue-metronome'
 export default {
   name: 'App',
@@ -99,7 +101,8 @@ export default {
     // metronome
     ,
     GuitarChordsComponent,
-    SuggestedChordsComponent
+    SuggestedChordsComponent,
+    // GammeFromChordsComponent
 },
   data () {
     return {

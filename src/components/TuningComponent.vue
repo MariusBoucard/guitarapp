@@ -18,12 +18,11 @@
 
             <div style="display: block;position: relative;">
               <label style="display: block;">{{ corde.cordeId }} </label>
-              <select class="selectnote" :style="{ backgroundColor: colorFromNote(corde.tuning) }"
+              <select class="selectnote ppdrop" :style="{ backgroundColor: colorFromNote(corde.tuning) }"
                 @change="onChangeTune($event, corde.cordeId)">
-                <option selected="selected">
-                  {{ corde.tuning }}
+                <option  selected="selected">
+                <p >  {{ corde.tuning }}</p>
                 </option>
-
                 <option v-for="option in this.notesall" :value="option.note" :key="option.id">{{ option.note }}</option>
 
               </select>
@@ -183,6 +182,15 @@ li a {
   text-decoration: none;
 }
 
+select option {
+  background-color: #fff;
+  color: #333;
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+}
+
 .lithium:hover {
   background-color: #111111;
 }
@@ -211,5 +219,14 @@ li a {
 
 
 
+}
+
+
+.ppdrop{
+    color: #ffffff9a;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 1);
+    mix-blend-mode:difference;
+    filter: contrast(100%);
+    filter: brightness(100%);
 }
 </style>

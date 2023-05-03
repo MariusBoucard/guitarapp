@@ -17,7 +17,7 @@
           </label> -->
           <button class="button" :style="{ backgroundColor : backGroundColor(note.note)}" 
           type="button" @click=userChecked(note)>
-            {{ note.note }}
+           <p class="ppselect"> {{ note.note }}</p>
           </button>
           
         </li>
@@ -170,6 +170,14 @@ li a {
   text-align: center;
   padding: 16px;
   text-decoration: none;
+}
+.ppselect{
+    color: rgb(255, 255, 255);
+    mix-blend-mode:difference;
+    padding: 0px;
+    margin: 0px;
+    filter: contrast(100%);
+    filter: brightness(50%);
 }
 
 li a:hover {

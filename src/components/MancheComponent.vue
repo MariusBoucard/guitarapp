@@ -17,10 +17,10 @@
       </div>
       <div class="columnb">  <!-- <p>{{ this.tuningintra }}</p> -->
                     <h1>{{ this.notePlayed }}</h1>
-                    <div class="circle" style="width:35px;height:35px"
+                    <div class="circle" style="width:50px;height:50px"
                         :style="{ backgroundColor: (this.notePlayed ? calcBack(this.notePlayed.slice(0, this.notePlayed.length - 1)) : white) }">
-                        {{ this.notePlayed.slice(0, this.notePlayed.length - 1) }}
-
+                     <p class="pp">   {{ this.notePlayed.slice(0, this.notePlayed.length - 1) }}
+                    </p>
                     </div>
                     <p>Activer le sapin de noel :</p>
                     <button class="button" style="border : 1px solid black" @click="allumerSapin()"
@@ -53,8 +53,8 @@
                             :key="note.cordeId">
                             <div class="circle" style="width:35px;height:35px"
                                 :style="{ backgroundColor: calcBack2(note.tuning) }" v-if="isChoosedTune(note)">
-                                {{ note.tuning.slice(0, note.tuning.length) }}
-
+                              <p class="pp" style="font-size: 16px;">  {{ note.tuning.slice(0, note.tuning.length) }}
+                            </p>
                             </div>
                             <div v-else>
                                 {{ note.tuning.slice(0, note.tuning.length) }}
@@ -81,7 +81,7 @@
                                         <hr class="line" :style="{ width: calcWidth(index) }">
                                         <div class="circle"
                                             :style="{ height: heightCircle(index), width: heightCircle(index), backgroundColor: calcBackNote(note, index) }">
-                                            <p>{{ renderChoosen(note, index) }}</p>
+                                            <p class="pp">{{ renderChoosen(note, index) }}</p>
                                         </div>
                                     </div>
                                     <div display="flex" class="cord" v-else>
@@ -386,14 +386,31 @@ export default {
     border-right: 5px solid rgb(255, 255, 255);
 
 }
-
+    :root {
+  --light: 80;
+  /* the threshold at which colors are considered "light." Range: integers from 0 to 100,
+recommended 50 - 70 */
+  --threshold: 60;
+}
+.pp{
+    background-color: rgba(125,125,125,0.2);
+    color: rgb(0, 0, 0);
+    mix-blend-mode:difference;
+    filter: contrast(100%);
+    filter: brightness(50%);
+}
 .circle {
     margin: 0 auto;
+
+
+  /* Any lightness value below the threshold will result in white, any above will result in black */
+
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
+    opacity: 1;
     z-index: 99;
 }
 
