@@ -32,13 +32,33 @@
       </div>
     </div>
     
-    <video style="width:100%;height : 100%" ref="video" controls></video>
+    <video style="width:100%;height : 100%"  @timeupdate="handleTimeUpdate" ref="video" controls></video>
     <div>
       <button class="button" @click="play(this.speed)">play</button>
       <button class="button" @click="pause">pause</button>
       <button class="button" @click="stop">stop</button>
 
     </div>
+    
+    <div class="slider-parent">
+      <div class="slider-container">
+        <label for="startSlider" class="slider-label">Video Start</label>
+        <input id="startSlider" type="range" v-model="startTime" :max="endTime" min="0" step="1">
+        <p class="slider-value">{{ startTime }}</p>
+      </div>
+
+      <div class="slider-container">
+        <label for="endSlider" class="slider-label">Video End</label>
+        <input id="endSlider" type="range" v-model="endTime" :min="startTime" :max="videoDuration" step="1">
+        <p class="slider-value">{{ endTime }}</p>
+      </div>
+    </div>
+
+    <div class="loop-checkbox">
+      <label for="loopCheckbox" class="checkbox-label">Loop:</label>
+      <input id="loopCheckbox" type="checkbox" v-model="loop">
+    </div>
+
     <div style="text-align: center;">
       <h3 style="display: block;float: top">Playing rate</h3>
       <div class="slider" style="margin : auto">
@@ -58,6 +78,10 @@ const path = require('path');
 export default {
   data() {
     return {
+      startTime: 0,
+      endTime: 0,
+      videoDuration: 0,
+      loop: false,
       currentName:"",
       selectedTraining:0,
       trainingList : [],
@@ -93,6 +117,19 @@ export default {
       }
   },
   methods: {
+    handleTimeUpdate() {
+      const currentTime = this.$refs.video.currentTime;
+
+      if (currentTime >= this.endTime && this.loop) {
+        this.$refs.video.currentTime = this.startTime;
+      } else if (currentTime >= this.endTime && ! this.loop){
+        this.$refs.video.currentTime = this.startTime;
+        this.$refs.video.pause()
+      } else if (currentTime<this.startTime){
+        this.$refs.video.currentTime = this.startTime;
+
+      }
+    },
     backColor(item){
       if(item.id===this.selectedTraining){
         return  "selectedTrain"
@@ -221,6 +258,9 @@ console.log("vid", videoURL)
     },
   },
   mounted() {
+    this.$refs.video.addEventListener("loadedmetadata", () => {
+      this.videoDuration = this.$refs.video.duration;
+    });
     if(localStorage.getItem("videoSave")){
 
       this.trainingList = JSON.parse(localStorage.getItem("videoSave"))
