@@ -30,7 +30,7 @@ async function createWindow() {
     }
   })
   win.setMenu(null)
-  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
 
 
 ipcMain.on('load-video', (event, filePath) => {
@@ -42,7 +42,7 @@ ipcMain.on('load-video', (event, filePath) => {
 if (process.env.WEBPACK_DEV_SERVER_URL) {
   // Load the url of the dev server if in development mode
   await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
-  if (!process.env.IS_TEST) win.webContents.openDevTools()
+ if (!process.env.IS_TEST) win.webContents.openDevTools()
 } else {
   createProtocol('app')
   // Load the index.html when not in development

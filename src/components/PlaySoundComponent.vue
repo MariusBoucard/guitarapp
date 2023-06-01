@@ -18,6 +18,24 @@
             </ol>
 
         </div>
+        <div class="slider-parent">
+      <div class="slider-container">
+        <label for="startSlider" class="slider-label">Song Start</label>
+        <input id="startSlider" type="range" v-model="startTime" :max="endTime" min="0" step="1">
+        <p class="slider-value">{{ startTime }}</p>
+      </div>
+
+      <div class="slider-container">
+        <label for="endSlider" class="slider-label">Song End</label>
+        <input id="endSlider" type="range" v-model="endTime" :min="startTime" :max="songLength" step="1">
+        <p class="slider-value">{{ endTime }}</p>
+      </div>
+    </div>
+
+    <div class="loop-checkbox">
+      <label for="loopCheckbox" class="checkbox-label">Loop:</label>
+      <input id="loopCheckbox" type="checkbox" v-model="loop">
+    </div>
         
         <div class="container">
           <div class="button-wrap">
@@ -53,10 +71,15 @@
   
   <script>
 
-  
   export default {
+
     data() {
       return {
+
+      loop: false,
+      startTime: 0,
+      endTime: 0,
+      songLength:0,
         currentTime: 0,
         seekValue: 0,
         speed : 100,
@@ -97,11 +120,17 @@
         reader.onload = () => {
           const audioPlayer = this.$refs.audioPlayer;
           const audioURL = `file://${filePath}`;
+          audioPlayer.addEventListener('loadedmetadata', () => {
+      this.songLength = audioPlayer.duration;
+      this.endTime = this.songLength;
+      this.startTime =0;
+      console.log(this.songLength);
+    });
           audioPlayer.src = audioURL;
-
+   
         };
-  
-         reader.readAsDataURL(file);
+        
+        reader.readAsDataURL(file);
         },
         valueChangedHandler(speedval){
                 this.setSpeed(speedval/100)
@@ -125,6 +154,12 @@
         reader.onload = () => {
           const audioPlayer = this.$refs.audioPlayer;
           const audioURL = `file://${filePath}`;
+          audioPlayer.addEventListener('loadedmetadata', () => {
+      this.songLength = audioPlayer.duration;
+      this.endTime = this.songLength;
+      this.startTime =0;
+      console.log(this.songLength);
+    });
           audioPlayer.src = audioURL;
 
         };
@@ -153,12 +188,30 @@
         }
         this.currentTime = audioPlayer.currentTime;
         this.seekValue = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+        if (!this.loop && this.currentTime >= this.endTime) {
+        audioPlayer.pause();
+        audioPlayer.currentTime = this.startTime;
+        }
+        if (this.currentTime <= this.startTime) {
+        audioPlayer.currentTime = this.startTime;
+        }
+        if (this.loop && this.currentTime >= this.endTime) {
+        audioPlayer.currentTime = this.startTime;
+        }
       },
       onSeek() {
         const { audioPlayer } = this.$refs;
         const seekto = audioPlayer.duration * (this.seekValue / 100);
         audioPlayer.currentTime = seekto;
       },
+      handleTimeUpdate() {
+      
+    },
+    handleLooping() {
+      if (this.$refs.audioPlayer.currentTime >= this.endTime) {
+        this.$refs.audioPlayer.currentTime = this.startTime;
+      }
+    }
     },
     mounted() {
       var lenVideo= localStorage.getItem("songLength")
@@ -186,6 +239,41 @@
   
   </script>
   <style>
+  .slider-parent {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+  .slider-container {
+  display: flex;
+  width: 50%;
+  flex-direction: column;
+  align-items: center;
+}
+
+.slider-label {
+  color: white;
+  font-weight: bold;
+}
+
+.slider-value {
+  color: white;
+  margin-bottom: 1px;
+}
+
+.loop-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Added */
+  margin-top: 20px;
+  height: 30px; /* Added */
+}
+
+.checkbox-label {
+  color: white;
+  margin-right: 10px;
+}
 .slider {
 
 width: 60%;

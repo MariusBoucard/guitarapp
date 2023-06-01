@@ -2,6 +2,20 @@
   <div style="width:100%;height : 100%">
 
     <div>
+
+
+      <ul class="horizontal-list">
+                <li v-for="training in trainingComputed" @click="selectTrain(training)" :class="backColor(training)" :key="training">
+        <p>{{ training.name }}</p>
+        </li>
+      </ul>
+      <input v-model="currentName" type="text" />
+      <button @click="addTraining()">add</button>
+      <button @click="removeTraining()">remove</button>
+
+
+    </div>
+    <div>
       <ol class="ol-days">
         <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
           {{ item.split("\\")[item.split("\\").length - 1] }}
@@ -10,7 +24,7 @@
       </ol>
       
     </div>
-
+ 
     <div class="container">
       <div class="button-wrap">
         <label class="buttonbis" for="uploadVideo">Upload File</label>
@@ -38,11 +52,15 @@
 </template>
   
 <script>
+
 // import { ipcRenderer } from 'electron'
 const path = require('path');
 export default {
   data() {
     return {
+      currentName:"",
+      selectedTraining:0,
+      trainingList : [],
       currentTime: 0,
       seekValue: 0,
       speed: 100,
@@ -59,16 +77,51 @@ export default {
     };
   },
   watch: {
+ 
+    
     speed(newValue) {
       this.setSpeed(newValue);
     },
   },
   computed : {
+        trainingComputed() {
+      return this.trainingList
+    },
+     
       videoPathComputed() {
         return this.videoPath
       }
   },
   methods: {
+    backColor(item){
+      if(item.id===this.selectedTraining){
+        return  "selectedTrain"
+      }
+      else return "unselectedTrain"
+    },
+    selectTrain(training){
+      this.selectedTraining=training.id
+      this.videoPath = this.trainingList.find(train => train.id === this.selectedTraining).list
+
+    },
+    addTraining(){
+      this.trainingList.push({"id" : this.trainingList.length, "name": this.currentName, "list" : []})
+      this.redoIdTrain()
+      console.log(this.trainingList)
+      localStorage.setItem("videoSave",JSON.stringify(this.trainingList))
+
+    },
+    removeTraining(){
+      this.trainingList.splice(this.selectedTraining,1)
+      this.redoIdTrain()
+      localStorage.setItem("videoSave",JSON.stringify(this.trainingList))
+
+    },
+    redoIdTrain(){
+    for(var i =0;i<this.trainingList.length;i++)   {
+      this.trainingList.at(i).id = i
+    }
+    },
     remove(item){
       console.log("pute")
       var index = this.videoPath.indexOf(item)
@@ -77,6 +130,7 @@ export default {
 
         this.videoPath.splice(index, 1);
       }
+      localStorage.setItem("videoSave",JSON.stringify(this.trainingList))
       console.log(this.videoPath)
       localStorage.setItem("videoLength", this.videoPath.length)
       for (var i = 0; i < this.videoPath.length; i++) {
@@ -144,9 +198,9 @@ console.log("vid", videoURL)
       // ipcRenderer.on('video-loaded', (event, videoURL) => {
       //   this.$refs.video.src = videoURL
       // })
-      localStorage.setItem("videoLength", this.videoPath.length)
-      for (var i = 0; i < this.videoPath.length; i++) {
-        localStorage.setItem("video" + i, this.videoPath[i])
+      localStorage.setItem("videoLength", this.trainingList.length)
+      for (var i = 0; i < this.trainingList.length; i++) {
+        localStorage.setItem("video" + i, this.trainingList[i])
       }
 
     },
@@ -167,6 +221,10 @@ console.log("vid", videoURL)
     },
   },
   mounted() {
+    if(localStorage.getItem("videoSave")){
+
+      this.trainingList = JSON.parse(localStorage.getItem("videoSave"))
+    }
     var lenVideo= localStorage.getItem("videoLength")
       for(var i=0;i<lenVideo;i++){
        var path2=  localStorage.getItem("video"+i)
@@ -197,6 +255,36 @@ console.log("vid", videoURL)
 }
 </script>
 <style>
+.selectedTrain{
+  background-color: rgb(96, 96, 96);
+}
+.unselectedTrain{
+  background-color: rgb(0, 0, 0);
+}
+.horizontal-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.horizontal-list li {
+  display: inline-block;
+  padding: 20px;
+}
+
+.horizontal-list li a {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  transition: background-color 0.3s ease;
+}
+
+.horizontal-list li a:hover {
+  background-color: #ccc;
+}
 .button-cross {
   display: inline-block;
   position: relative;
