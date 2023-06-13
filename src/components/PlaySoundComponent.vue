@@ -7,8 +7,33 @@
       v-model="seekValue"
       @change="onSeek"
     /> -->
+    
+    <div>
+
+
+<ul class="horizontal-list">
+          <li v-for="training in trainingComputed" @click="selectTrain(training)" :class="backColor(training)" :key="training">
+  <p>{{ training.name }}</p>
+  </li>
+</ul>
+<input v-model="currentName" type="text" />
+<button @click="addTraining()">add</button>
+<button @click="removeTraining()">remove</button>
+
+
+</div>
+<div>
+<ol class="ol-days">
+  <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
+    {{ item.split("\\")[item.split("\\").length - 1] }}
+    <button class="button-cross" @click="remove(item)"></button>
+  </li>
+</ol>
+
+</div>
+
     <div style="text-align: center;">
-        <div>
+        <!-- <div>
             <ol  class="ol-days" >
                 <li v-for="item in this.songPath" :key="item" @click="this.launchFile(item)">
                 {{ item.split("\\")[item.split("\\").length - 1] }}
@@ -17,7 +42,7 @@
                 </li>
             </ol>
 
-        </div>
+        </div> -->
         <div class="slider-parent">
       <div class="slider-container">
         <label for="startSlider" class="slider-label">Song Start</label>
@@ -70,12 +95,17 @@
   </template>
   
   <script>
+const path = require('path');
 
   export default {
 
     data() {
       return {
-
+        currentName:"",
+      selectedTraining:0,
+      trainingList : [],
+      videoPath :[],
+      
       loop: false,
       startTime: 0,
       endTime: 0,
@@ -93,23 +123,61 @@
     },
   },
   computed : {
+    trainingComputed() {
+      return this.trainingList
+    },
+     
+      videoPathComputed() {
+        return this.videoPath
+      },
     oldPath () {
         return this.songPath
     }
   },
     methods: {
+      backColor(item){
+      if(item.id===this.selectedTraining){
+        return  "selectedTrain"
+      }
+      else return "unselectedTrain"
+    },
+      redoIdTrain(){
+    for(var i =0;i<this.trainingList.length;i++)   {
+      this.trainingList.at(i).id = i
+    }
+    },
+      selectTrain(training){
+      this.selectedTraining=training.id
+      this.videoPath = this.trainingList.find(train => train.id === this.selectedTraining).list
+      console.log(this.videoPath)
+
+    },
+      addTraining(){
+      this.trainingList.push({"id" : this.trainingList.length, "name": this.currentName, "list" : []})
+      this.redoIdTrain()
+      console.log(this.trainingList)
+      localStorage.setItem("songSave",JSON.stringify(this.trainingList))
+
+    },
+      removeTraining(){
+      this.trainingList.splice(this.selectedTraining,1)
+      this.redoIdTrain()
+      localStorage.setItem("songSave",JSON.stringify(this.trainingList))
+
+    },
       remove(item){
       console.log("pute")
-      var index = this.songPath.indexOf(item)
+      var index = this.videoPath.indexOf(item)
       if(index>-1){
         console.log("great")
 
-        this.songPath.splice(index, 1);
+        this.videoPath.splice(index, 1);
       }
-      console.log(this.songPath)
-      localStorage.setItem("songLength", this.songPath.length)
-      for (var i = 0; i < this.songPath.length; i++) {
-        localStorage.setItem("songPath" + i, this.songPath[i])
+      localStorage.setItem("songSave",JSON.stringify(this.trainingList))
+      console.log(this.videoPath)
+      localStorage.setItem("songLength", this.videoPath.length)
+      for (var i = 0; i < this.videoPath.length; i++) {
+        localStorage.setItem("song" + i, this.videoPath[i])
       }
     },
         launchFile(filePath){
@@ -146,6 +214,7 @@
         const file = event.target.files[0];
         const reader = new FileReader();
         const filePath =file.path.replace(/#/g, '%23')
+        this.videoPath.push(file.path.replace(/#/g, '%23'))
         this.songPath.push(filePath)
         this.saveSong()
         this.songPlaying = file.name
@@ -220,8 +289,16 @@
   return `${minutes}:${secondsFormatted}.${milliseconds}`;
 }
     },
-    mounted() {
-      var lenVideo= localStorage.getItem("songLength")
+    
+      mounted() {
+        this.$refs.audioPlayer.addEventListener("loadedmetadata", () => {
+      this.videoDuration = this.$refs.audioPlayer.duration;
+    });
+    if(localStorage.getItem("songSave")){
+
+      this.trainingList = JSON.parse(localStorage.getItem("songSave"))
+    }
+    var lenVideo= localStorage.getItem("songLength")
       for(var i=0;i<lenVideo;i++){
        var path2=  localStorage.getItem("song"+i)
       //  this.videoFolder = localStorage.getItem("videoFolder")
@@ -232,16 +309,23 @@
 
                 if (path2) {
                   // Make a request to a server-side script to load the video file
-                  // const filePath = path.resolve(path2);
+                  const filePath = path.resolve(path2);
                         // this.videoPath.push(filePath);
                   this.speed = 100;
-                  this.songPath.push(path2)
+                  this.videoPath.push(path2)
                   
-                  // const  filePath = file.path                  
+                  // const  filePath = file.path
+
+                  const videoURL = `file://${filePath}`;
+                  this.$refs.audioPlayer.src = videoURL;
+                  this.$refs.audioPlayer.addEventListener('loadedmetadata', () => {
+                    URL.revokeObjectURL(videoURL);
+                  });
 
                 }
       }
-    }
+  
+  }
   };
   
   </script>

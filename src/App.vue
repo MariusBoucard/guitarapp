@@ -516,8 +516,8 @@ export default {
       //             col.color= localStorage.getItem(col.note)
       //           }
 
-              }
-            )
+              // }
+            // )
             //Diapason
               // if (localStorage.getItem("diapason")!=="null") {
               //   this.diapason =localStorage.getItem("diapason")
@@ -546,6 +546,7 @@ export default {
 
 ,
 computed : {
+  
   colorsComp(){
     return this.colors
   },
