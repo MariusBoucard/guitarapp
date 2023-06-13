@@ -24,7 +24,7 @@ module.exports = defineConfig({
         },
         win: {
           target: ['nsis', 'zip'],
-          icon: 'public/icon.ico'
+          icon: 'public/icon.png'
         },
         extraResources: {
           from: 'public',

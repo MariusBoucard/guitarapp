@@ -17,10 +17,10 @@
       </div>
       <div class="columnb">  <!-- <p>{{ this.tuningintra }}</p> -->
                     <h1>{{ this.notePlayed }}</h1>
-                    <div class="circle" style="width:35px;height:35px"
+                    <div class="circle" style="width:50px;height:50px"
                         :style="{ backgroundColor: (this.notePlayed ? calcBack(this.notePlayed.slice(0, this.notePlayed.length - 1)) : white) }">
-                        {{ this.notePlayed.slice(0, this.notePlayed.length - 1) }}
-
+                     <p class="pp">   {{ this.notePlayed.slice(0, this.notePlayed.length - 1) }}
+                    </p>
                     </div>
                     <p>Activer le sapin de noel :</p>
                     <button class="button" style="border : 1px solid black" @click="allumerSapin()"
@@ -46,15 +46,15 @@
         <div width="300px">
 
 
-            <ul>
+            <ul  :class=" this.lefty ?  'ulmanche' :'' ">
                 <li class="horizontalli ">
                     <ul>
                         <li style=" width: 40px" :style="{ height: calcHeight() }" v-for="note in this.tuningintra"
                             :key="note.cordeId">
                             <div class="circle" style="width:35px;height:35px"
                                 :style="{ backgroundColor: calcBack2(note.tuning) }" v-if="isChoosedTune(note)">
-                                {{ note.tuning.slice(0, note.tuning.length) }}
-
+                              <p class="pp" style="font-size: 16px;">  {{ note.tuning.slice(0, note.tuning.length) }}
+                            </p>
                             </div>
                             <div v-else>
                                 {{ note.tuning.slice(0, note.tuning.length) }}
@@ -67,7 +67,7 @@
                 </li>
 
 
-                <li class="horizontalli frette yolo" :style="{ width: calcWidth(index) }"
+                <li class="horizontalli2 frette yolo" :style="{ width: calcWidth(index) }"
                     v-for="index in (this.nbfrettes - 1)" :key="index">
                     <div class="image-container">
                         <img class="background-image" src="../assets/frettebackground.jpeg">
@@ -81,7 +81,7 @@
                                         <hr class="line" :style="{ width: calcWidth(index) }">
                                         <div class="circle"
                                             :style="{ height: heightCircle(index), width: heightCircle(index), backgroundColor: calcBackNote(note, index) }">
-                                            <p>{{ renderChoosen(note, index) }}</p>
+                                            <p class="pp">{{ renderChoosen(note, index) }}</p>
                                         </div>
                                     </div>
                                     <div display="flex" class="cord" v-else>
@@ -123,6 +123,7 @@
 export default {
     props: {
         //Peut etre qu'on peut definir un array de note ici
+        lefty : {required : true, type:Boolean},
         tuning: { required: true, type: [Object] },
         notesSelected: { required: true, type: [Object] },
         colorNotes: { required: true, type: [Object] },
@@ -319,6 +320,12 @@ export default {
 
     },
     watch: {
+        tuning : {
+            handler(){
+                this.tuningintra=this.tuning
+                this.$forceUpdate()
+            }
+        },
         diap: {
             handler() {
                 this.diapason = this.diap * 2.3
@@ -362,7 +369,7 @@ export default {
             }
             return cordeListe
         },
-
+        
 
     },
 }
@@ -379,14 +386,31 @@ export default {
     border-right: 5px solid rgb(255, 255, 255);
 
 }
-
+    :root {
+  --light: 80;
+  /* the threshold at which colors are considered "light." Range: integers from 0 to 100,
+recommended 50 - 70 */
+  --threshold: 60;
+}
+.pp{
+    background-color: rgba(125,125,125,0.2);
+    color: rgb(0, 0, 0);
+    mix-blend-mode:difference;
+    filter: contrast(100%);
+    filter: brightness(50%);
+}
 .circle {
     margin: 0 auto;
+
+
+  /* Any lightness value below the threshold will result in white, any above will result in black */
+
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
+    opacity: 1;
     z-index: 99;
 }
 
@@ -429,6 +453,25 @@ export default {
 .columnb {
     float: left;
     width: 33.33%;
+}
+.ulmanche {
+  display: flex;
+  flex-direction: row-reverse; /* add this line to reverse the order */
+  justify-content: flex-end; /* add this line to align the items to the right */
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.horizontalli2 {
+  display: inline-block;
+  float: none;
+}
+
+.yolo {
+  margin-right: auto;
+  margin-left: 0;
+  width: var(--mondiap);
 }
 
 /* Clear floats after the columns */

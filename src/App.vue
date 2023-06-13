@@ -3,8 +3,9 @@
     <div class="image-container">
 <img class="background-image" src="../public/sky.jpg">
 <div class="content">
+  <!-- <GammeFromChordsComponent></GammeFromChordsComponent> -->
     <ul class="ulnavbar">
-      <li class="linavbar" :class=" this.mancheDisplay ?  'enabled' :'disabled' " ><a href="#home" @click="this.mancheDisplay = ! this.mancheDisplay">Manche</a></li>
+      <li class="linavbar" :class=" this.mancheDisplay ?  'enabled' :'disabled' " ><a href="#home" @click=" this.mancheDisplay = ! this.mancheDisplay">Manche</a></li>
       <li class="linavbar" :class=" this.notesSelectedDisplay ?  'enabled' :'disabled' "><a href="#news" @click="this.notesSelectedDisplay = ! this.notesSelectedDisplay" >Selection notes</a></li>
       <li class="linavbar" :class=" this.autoGammeSelect ?  'enabled' :'disabled' " ><a  style="{ backgroundColor: red;}" @click="$event => {this.autoGammeSelect = !this.autoGammeSelect}" > Auto gamme select</a></li>
 
@@ -25,7 +26,7 @@
     <div class="row">
       <div class="column">
         <div style=" display: flex;">
-          <MancheComponent :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=this.diapason :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning="this.tuningList" />
+          <MancheComponent :lefty="this.lefty" :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=parseInt(this.diapason) :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning=this.tuningList />
         </div>
         <div class="row">
           <div class="columnhalf"> 
@@ -35,7 +36,7 @@
  
          </div>
          <div class="columnhalf">
-           <TuningComponent :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=this.diapason :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=this.nbStrings></TuningComponent> 
+           <TuningComponent  @lefty="this.lefty = $event" :lefty="this.lefty" :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=parseInt(this.diapason) :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=parseInt(this.nbStrings)></TuningComponent> 
            <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
            <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
           </div>
@@ -81,6 +82,7 @@ import NotesAJouerComponent from './components/NoteAJouerComponent.vue'
 import myImage from '@/assets/frettebackground.jpeg';
 import GuitarChordsComponent from './components/GuitarChordsComponent.vue';
 import SuggestedChordsComponent from './components/SuggestedChordsComponent.vue';
+// import GammeFromChordsComponent from './components/GammeFromChordsComponent.vue';
 // import metronome from 'vue-metronome'
 export default {
   name: 'App',
@@ -99,10 +101,12 @@ export default {
     // metronome
     ,
     GuitarChordsComponent,
-    SuggestedChordsComponent
+    SuggestedChordsComponent,
+    // GammeFromChordsComponent
 },
   data () {
     return {
+      lefty : false,
       noteexpected:"",
       cheat:false,
       mancheDisplay : true,
@@ -342,6 +346,7 @@ export default {
     changeDiap(diap){
       // console.log("diap "+diap)
       this.diapason = diap
+      localStorage.setItem('diap',this.diapason)
     },
     name(note) {
               const names = ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"];
@@ -351,8 +356,58 @@ export default {
             }
   },
   watch: {
-    colors: {
+    
+      mancheDisplay : {
         handler() {
+          localStorage.setItem('mancheDisplay',this.mancheDisplay)
+        }
+      } ,
+      notesSelectedDisplay :  {
+        handler() {
+            localStorage.setItem('notesSelectedDisplay',this.notesSelectedDisplay)
+        }
+      } ,
+      tunderDisplay : {
+        handler() {
+            localStorage.setItem('tunerDisplay',this.tunderDisplay)
+        }
+      } ,
+      pictureDisplay :  {
+        handler() {
+            localStorage.setItem('pictureDisplay',this.pictureDisplay)
+        }
+      } ,
+      soundDisplay :  {
+        handler() {
+            localStorage.setItem('soundDisplay',this.soundDisplay)
+        }
+      } ,
+      scalesDisplay :  {
+        handler() {
+            localStorage.setItem('scaleDisplay',this.scalesDisplay)
+        }
+      } ,
+      videoDisplay :  {
+        handler() {
+            localStorage.setItem('videoDisplay',this.videoDisplay)
+        }
+      } ,
+      gameDisplay :  {
+        handler() {
+            localStorage.setItem('gameDisplay',this.gameDisplay)
+        }
+      } ,
+      chordsDisplay :  {
+        handler() {
+            localStorage.setItem('chordsDisplay',this.chordsDisplay)
+        }
+      } ,
+      chordssuggestDisplay : {
+        handler() {
+            localStorage.setItem('chordssuggestDisplay',this.chordssuggestDisplay)
+        }
+      } ,
+    colors: {        handler() {
             this.colors.forEach(
               col => localStorage.setItem(col.note,col.color)
             )
@@ -381,7 +436,42 @@ export default {
     
   },
  mounted(){
-      
+ 
+
+                  if(localStorage.getItem('mancheDisplay')!==null){
+                    this.mancheDisplay = ( localStorage.getItem('mancheDisplay') === "true")
+                  }
+                  if(localStorage.getItem('notesSelectedDisplay')!==null){
+                    this.notesSelectedDisplay =  ( localStorage.getItem('notesSelectedDisplay') === "true")
+                  }
+                  if(localStorage.getItem('tunerDisplay')!==null){
+                    this.tunderDisplay =  ( localStorage.getItem('tunerDisplay') === "true")
+                  } if(localStorage.getItem('pictureDisplay')!==null){
+                    this.pictureDisplay = ( localStorage.getItem('pictureDisplay') === "true")
+
+
+                  } 
+                  if(localStorage.getItem('chordsDisplay')!==null){
+                    this.chordsDisplay = ( localStorage.getItem('chordsDisplay') === "true")
+                  }
+                  if(localStorage.getItem('chordssuggestDisplay')!==null){
+                    this.chordssuggestDisplay =  ( localStorage.getItem('chordssuggestDisplay') === "true")
+                  }
+
+
+                  if(localStorage.getItem('soundDisplay')!==null){
+                    this.soundDisplay =  ( localStorage.getItem('soundDisplay') === "true")
+                  }
+                   if(localStorage.getItem('scalesDisplay')!==null){
+                    this.scalesDisplay =  ( localStorage.getItem('scalesDisplay') === "true")
+                  }
+                  if(localStorage.getItem('videoDisplay')!==null){
+                    this.videoDisplay =  ( localStorage.getItem('videoDisplay') === "true")
+                  }
+                  if(localStorage.getItem('gameDisplay')!==null){
+                    this.gameDisplay = ( localStorage.getItem('gameDisplay') === "true")
+                  }
+
                   this.noteSlectedList.forEach(
                     col => {
                       if (localStorage.getItem(col.note+"Selected")!=="null") {
@@ -391,13 +481,32 @@ export default {
       
                     }
                   )
+                    if(localStorage.getItem('nbCordes')!==null){
+                      this.nbStrings = localStorage.getItem('nbCordes')
+                      console.log("yolo")
+                      this.tuningList = []
+                    }
+
+                    for(var i=0;i<this.nbStrings;i++){
+                      if(localStorage.getItem(i+'tuning')!== null){
+                        console.log("caca", localStorage.getItem(i+'tuning'))
+                        this.tuningList.push({ cordeId : i, tuning : localStorage.getItem(i+'tuning') })
+                        
+                      }
+                    }
+                    console.log(this.tuningList)
                   console.log(localStorage.getItem("colordict"))
                   if(JSON.parse(localStorage.getItem("colordict")) !== null){
                     this.colors = JSON.parse( localStorage.getItem("colordict"))
                     console.log(this.colors)
 
                   }
+                  if(JSON.parse(localStorage.getItem("oldnotescolor")) !== null){
                   this.colorSave = JSON.parse( localStorage.getItem("oldnotescolor"))
+                  }
+                  if(localStorage.getItem('diap')!==null){
+                    this.diapason = localStorage.getItem('diap')
+                  }
 
 
       // this.colors.forEach(
@@ -432,7 +541,7 @@ export default {
             // console.log(this.noteSlectedList)
   console.log('App Mounted');
               console.log(myImage)
-
+        this.$forceUpdate()
   }
 
 ,

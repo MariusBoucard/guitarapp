@@ -4,7 +4,12 @@ import App from './App.vue'
 
 // // Expose `process` to the renderer process
 
-const app = createApp(App,{ silent: true })
+const app = createApp(App, {
+    compilerOptions: {
+      isCustomElement: tag => tag.startsWith('guitar')
+    },
+    silent: true
+  })
 // const { EventEmitter } = require('events');
 // EventEmitter.defaultMaxListeners = 1000000;
 // const image = app.nativeImage.createFromPath(
