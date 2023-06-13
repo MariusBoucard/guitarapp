@@ -44,13 +44,13 @@
       <div class="slider-container">
         <label for="startSlider" class="slider-label">Video Start</label>
         <input id="startSlider" type="range" v-model="startTime" :max="endTime" min="0" step="1">
-        <p class="slider-value">{{ startTime }}</p>
+        <p class="slider-value">{{ formatSeconds(startTime) }}</p>
       </div>
 
       <div class="slider-container">
         <label for="endSlider" class="slider-label">Video End</label>
         <input id="endSlider" type="range" v-model="endTime" :min="startTime" :max="videoDuration" step="1">
-        <p class="slider-value">{{ endTime }}</p>
+        <p class="slider-value">{{ formatSeconds(endTime) }}</p>
       </div>
     </div>
 
@@ -117,6 +117,13 @@ export default {
       }
   },
   methods: {
+    formatSeconds(seconds) {
+  const dateObj = new Date(seconds * 1000);
+  const minutes = dateObj.getUTCMinutes();
+  const secondsFormatted = dateObj.getUTCSeconds().toString().padStart(2, '0');
+  const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0');
+  return `${minutes}:${secondsFormatted}.${milliseconds}`;
+},
     handleTimeUpdate() {
       const currentTime = this.$refs.video.currentTime;
 
@@ -186,6 +193,8 @@ export default {
   this.$refs.video.src = videoURL;
   this.$refs.video.addEventListener('loadedmetadata', () => {
     URL.revokeObjectURL(videoURL);
+    this.endTime = this.$refs.video.duration
+
   });
     },
 
@@ -201,10 +210,11 @@ this.speed = 100;
 console.log(filePath)
 const videoURL = `file://${filePath}`;
 console.log("vid", videoURL)
-
     this.$refs.video.src = videoURL;
   this.$refs.video.addEventListener('loadedmetadata', () => {
     URL.revokeObjectURL(videoURL);
+    this.endTime = this.$refs.video.duration
+
   });
   // const videoURL = URL.createObjectURL(file);
       // const file = event.target.files[0];
