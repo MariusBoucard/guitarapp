@@ -74,7 +74,7 @@
 <script>
 
 // import { ipcRenderer } from 'electron'
-const path = require('path');
+// const path = require('path');
 export default {
   data() {
     return {
@@ -176,10 +176,10 @@ export default {
       }
       localStorage.setItem("videoSave",JSON.stringify(this.trainingList))
       console.log(this.videoPath)
-      localStorage.setItem("videoLength", this.videoPath.length)
-      for (var i = 0; i < this.videoPath.length; i++) {
-        localStorage.setItem("video" + i, this.videoPath[i])
-      }
+      // localStorage.setItem("videoLength", this.videoPath.length)
+      // for (var i = 0; i < this.videoPath.length; i++) {
+      //   localStorage.setItem("video" + i, this.videoPath[i])
+      // }
     },
     async launchFile(file) {
 
@@ -247,10 +247,10 @@ console.log("vid", videoURL)
       // })
       localStorage.setItem("videoSave",JSON.stringify(this.trainingList))
 
-      localStorage.setItem("videoLength", this.trainingList.length)
-      for (var i = 0; i < this.trainingList.length; i++) {
-        localStorage.setItem("video" + i, this.trainingList[i])
-      }
+      // localStorage.setItem("videoLength", this.trainingList.length)
+      // for (var i = 0; i < this.trainingList.length; i++) {
+      //   localStorage.setItem("video" + i, this.trainingList[i])
+      // }
 
     },
     play(playbackRate = 100) {
@@ -277,32 +277,32 @@ console.log("vid", videoURL)
 
       this.trainingList = JSON.parse(localStorage.getItem("videoSave"))
     }
-    var lenVideo= localStorage.getItem("videoLength")
-      for(var i=0;i<lenVideo;i++){
-       var path2=  localStorage.getItem("video"+i)
-      //  this.videoFolder = localStorage.getItem("videoFolder")
+    // var lenVideo= localStorage.getItem("videoLength")
+    //   for(var i=0;i<lenVideo;i++){
+    //    var path2=  localStorage.getItem("video"+i)
+    //   //  this.videoFolder = localStorage.getItem("videoFolder")
 
-       console.log(path2)
-      //  const videoURL = URL.createObjectURL(path);
-                // this.$refs.video.src = path;
+    //    console.log(path2)
+    //   //  const videoURL = URL.createObjectURL(path);
+    //             // this.$refs.video.src = path;
 
-                if (path2) {
-                  // Make a request to a server-side script to load the video file
-                  const filePath = path.resolve(path2);
-                        // this.videoPath.push(filePath);
-                  this.speed = 100;
-                  this.videoPath.push(path2)
+    //             if (path2) {
+    //               // Make a request to a server-side script to load the video file
+    //               const filePath = path.resolve(path2);
+    //                     // this.videoPath.push(filePath);
+    //               this.speed = 100;
+    //               this.videoPath.push(path2)
                   
-                  // const  filePath = file.path
+    //               // const  filePath = file.path
 
-                  const videoURL = `file://${filePath}`;
-                  this.$refs.video.src = videoURL;
-                  this.$refs.video.addEventListener('loadedmetadata', () => {
-                    URL.revokeObjectURL(videoURL);
-                  });
+    //               const videoURL = `file://${filePath}`;
+    //               this.$refs.video.src = videoURL;
+    //               this.$refs.video.addEventListener('loadedmetadata', () => {
+    //                 URL.revokeObjectURL(videoURL);
+    //               });
 
-                }
-      }
+    //             }
+    //   }
   }
 }
 </script>

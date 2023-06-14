@@ -12,7 +12,7 @@ module.exports = defineConfig({
     electronBuilder: {
       
       builderOptions: {
-        appId: 'com.MariusCompany.2',
+        appId: 'com.MariusCompany.ChristmasTree',
         productName: 'Neck Wanker v2\'s',
         linux: {
           target: ['deb', 'snap', 'AppImage'],
