@@ -245,6 +245,8 @@ console.log("vid", videoURL)
       // ipcRenderer.on('video-loaded', (event, videoURL) => {
       //   this.$refs.video.src = videoURL
       // })
+      localStorage.setItem("videoSave",JSON.stringify(this.trainingList))
+
       localStorage.setItem("videoLength", this.trainingList.length)
       for (var i = 0; i < this.trainingList.length; i++) {
         localStorage.setItem("video" + i, this.trainingList[i])

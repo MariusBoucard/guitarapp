@@ -95,8 +95,8 @@
   </template>
   
   <script>
-const path = require('path');
-
+// const path = require('path');
+ 
   export default {
 
     data() {
@@ -219,7 +219,8 @@ const path = require('path');
         this.saveSong()
         this.songPlaying = file.name
 
-  
+        localStorage.setItem("songSave",JSON.stringify(this.trainingList))
+
         reader.onload = () => {
           const audioPlayer = this.$refs.audioPlayer;
           const audioURL = `file://${filePath}`;
@@ -297,33 +298,34 @@ const path = require('path');
     if(localStorage.getItem("songSave")){
 
       this.trainingList = JSON.parse(localStorage.getItem("songSave"))
-    }
-    var lenVideo= localStorage.getItem("songLength")
-      for(var i=0;i<lenVideo;i++){
-       var path2=  localStorage.getItem("song"+i)
-      //  this.videoFolder = localStorage.getItem("videoFolder")
+    } 
+    console.log(this.trainingList)
+    // var lenVideo= localStorage.getItem("songLength")
+    //   for(var i=0;i<lenVideo;i++){
+    //    var path2=  localStorage.getItem("song"+i)
+    //   //  this.videoFolder = localStorage.getItem("videoFolder")
 
-       console.log(path2)
-      //  const videoURL = URL.createObjectURL(path);
-                // this.$refs.video.src = path;
+    //    console.log(path2)
+    //   //  const videoURL = URL.createObjectURL(path);
+    //             // this.$refs.video.src = path;
 
-                if (path2) {
-                  // Make a request to a server-side script to load the video file
-                  const filePath = path.resolve(path2);
-                        // this.videoPath.push(filePath);
-                  this.speed = 100;
-                  this.videoPath.push(path2)
+    //             if (path2) {
+    //               // Make a request to a server-side script to load the video file
+    //               const filePath = path.resolve(path2);
+    //                     // this.videoPath.push(filePath);
+    //               this.speed = 100;
+    //               this.videoPath.push(path2)
                   
-                  // const  filePath = file.path
+    //               // const  filePath = file.path
 
-                  const videoURL = `file://${filePath}`;
-                  this.$refs.audioPlayer.src = videoURL;
-                  this.$refs.audioPlayer.addEventListener('loadedmetadata', () => {
-                    URL.revokeObjectURL(videoURL);
-                  });
+    //               const videoURL = `file://${filePath}`;
+    //               this.$refs.audioPlayer.src = videoURL;
+    //               this.$refs.audioPlayer.addEventListener('loadedmetadata', () => {
+    //                 URL.revokeObjectURL(videoURL);
+    //               });
 
-                }
-      }
+    //             }
+    //   }
   
   }
   };
