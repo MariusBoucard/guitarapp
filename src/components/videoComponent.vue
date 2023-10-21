@@ -1,9 +1,8 @@
 <template>
   <div style="width:100%;height : 100%">
+    <div class="two-columns">
 
-    <div>
-
-
+      <div class="column-left">
       <ul class="horizontal-list">
                 <li v-for="training in trainingComputed" @click="selectTrain(training)" :class="backColor(training)" :key="training">
         <p>{{ training.name }}</p>
@@ -14,60 +13,67 @@
       <button @click="removeTraining()">remove</button>
 
 
-    </div>
-    <div>
-      <ol class="ol-days">
-        <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
-          {{ item.split("\\")[item.split("\\").length - 1] }}
-          <button class="button-cross" @click="remove(item)"></button>
-        </li>
-      </ol>
-      
+      <div>
+        <ol class="ol-days">
+          <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
+            {{ item.split("\\")[item.split("\\").length - 1] }}
+            <button class="button-cross" @click="remove(item)"></button>
+          </li>
+        </ol>
+         <div class="container">
+        <div class="button-wrap">
+          <label class="buttonbis" for="uploadVideo">Upload File</label>
+          <input id="uploadVideo" type="file" @change="loadVideo">
+        </div>
+      </div>
+      </div>
     </div>
  
-    <div class="container">
-      <div class="button-wrap">
-        <label class="buttonbis" for="uploadVideo">Upload File</label>
-        <input id="uploadVideo" type="file" @change="loadVideo">
+   
+    
+    
+    <div class="column-right">
+      
+      
+      
+      <video style="width:100%;height : 100%"  @timeupdate="handleTimeUpdate" ref="video" controls></video>
+      <div>
+        <button class="button" @click="play(this.speed)">play</button>
+        <button class="button" @click="pause">pause</button>
+        <button class="button" @click="stop">stop</button>
+        
       </div>
+      
+      <div class="slider-parent">
+        <div class="slider-container">
+          <label for="startSlider" class="slider-label">Video Start</label>
+          <input id="startSlider" type="range" v-model="startTime" :max="endTime" min="0" step="1">
+          <p class="slider-value">{{ formatSeconds(startTime) }}</p>
+        </div>
+        
+        <div class="slider-container">
+          <label for="endSlider" class="slider-label">Video End</label>
+          <input id="endSlider" type="range" v-model="endTime" :min="startTime" :max="videoDuration" step="1">
+          <p class="slider-value">{{ formatSeconds(endTime) }}</p>
+        </div>
+      </div>
+      
+      <div class="loop-checkbox">
+        <label for="loopCheckbox" class="checkbox-label">Loop:</label>
+        <input id="loopCheckbox" type="checkbox" v-model="loop">
     </div>
     
-    <video style="width:100%;height : 100%"  @timeupdate="handleTimeUpdate" ref="video" controls></video>
-    <div>
-      <button class="button" @click="play(this.speed)">play</button>
-      <button class="button" @click="pause">pause</button>
-      <button class="button" @click="stop">stop</button>
-
-    </div>
-    
-    <div class="slider-parent">
-      <div class="slider-container">
-        <label for="startSlider" class="slider-label">Video Start</label>
-        <input id="startSlider" type="range" v-model="startTime" :max="endTime" min="0" step="1">
-        <p class="slider-value">{{ formatSeconds(startTime) }}</p>
-      </div>
-
-      <div class="slider-container">
-        <label for="endSlider" class="slider-label">Video End</label>
-        <input id="endSlider" type="range" v-model="endTime" :min="startTime" :max="videoDuration" step="1">
-        <p class="slider-value">{{ formatSeconds(endTime) }}</p>
-      </div>
-    </div>
-
-    <div class="loop-checkbox">
-      <label for="loopCheckbox" class="checkbox-label">Loop:</label>
-      <input id="loopCheckbox" type="checkbox" v-model="loop">
-    </div>
-
-    <div style="text-align: center;">
+    <!-- <div style="text-align: center;">
       <h3 style="display: block;float: top">Playing rate</h3>
       <div class="slider" style="margin : auto">
-
+        
         <input type="range" min="10" max="300" oninput="rangeValueVideo.innerText = this.value" v-model="this.speed">
         <p id="rangeValueVideo">100</p>
         
       </div>
-    </div>
+    </div> -->
+  </div>
+  </div>
   </div>
 </template>
   
@@ -307,7 +313,7 @@ console.log("vid", videoURL)
 }
 </script>
 <style>
-.selectedTrain{
+/* .selectedTrain{
   background-color: rgb(96, 96, 96);
 }
 .unselectedTrain{
@@ -368,6 +374,24 @@ console.log("vid", videoURL)
 
 .button-cross::after {
   transform: translate(-50%, -50%) rotate(-45deg);
+} */
+
+.two-columns {
+  display: flex; /* Use flexbox to create a two-column layout */
+    flex-direction:row; /* Make the container and columns stack vertically */
 }
 
+.column-left {
+  flex: 40%; /* Set the left column to take up 40% of the available space */
+  padding: 20px; /* Add padding or other styling as needed */
+  background-color: #33658A; /* Example background color */
+}
+
+.column-right {
+  flex: 60%; /* Set the right column to take up 60% of the available space */
+  padding: 20px; /* Add padding or other styling as needed */
+  background-color: #F6AE2D; /* Example background color */
+  height: fit-content;
+height: max-content;
+}
 </style>
