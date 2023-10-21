@@ -1,44 +1,31 @@
 <template>
-    <div style="background-color: rgb(122,122,122,0.2);margin: 5px;border-radius: 5%;">
-        <div class="containerchords">
-  <div class="columnchords">
-   
-
-    <p>
-        Stacking Thirds
-    </p>
+    <div class="chords-container">
+    <div class="columnchords">
+        <p>Stacking Thirds</p>
         <ul>
-            <li class="chordtext" v-for="chord in this.StackingThirdsChords" :key="chord">
+            <li class="chordtext" v-for="chord in StackingThirdsChords" :key="chord">
                 {{ chord.chord }}
             </li>
-        </ul> 
-  </div>
-  <div class="columnchords">
-    <p>
-
-        Diatonic Chords
-    </p>
+        </ul>
+    </div>
+    <div class="columnchords">
+        <p>Diatonic Chords</p>
         <ul>
-            <li  class="chordtext" v-for="chord2 in this.DiatonicChords" :key="chord2">
+            <li class="chordtext" v-for="chord2 in DiatonicChords" :key="chord2">
                 {{ chord2.chord }}
             </li>
-        </ul> 
-  </div>
-  <div class="columnchords">
-    <p>
-        Seventh chords
-    </p> <ul>
-            <li   class="chordtext" v-for="chord3 in this.SeventhChords" :key="chord3">
+        </ul>
+    </div>
+    <div class="columnchords">
+        <p>Seventh Chords</p>
+        <ul>
+            <li class="chordtext" v-for="chord3 in SeventhChords" :key="chord3">
                 {{ chord3.chord }}
             </li>
         </ul>
-  </div>
+    </div>
 </div>
 
-        <p></p>
-       
-       
-    </div>
 </template>
 <script>
 export default {
@@ -413,7 +400,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .containerchords {
   display: flex;
   flex-wrap: wrap;
@@ -427,5 +414,36 @@ export default {
 }
 .chordtext{
     color: white
+}
+
+.chords-container {
+    background-color: rgba(51, 101, 138, 0.3);
+    margin: 5px;
+    border-radius: 5%;
+    padding: 15px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.columnchords {
+    flex: 1;
+    text-align: center;
+}
+
+.columnchords p {
+    font-size: 20px;
+    color: #F26419; /* Use specified color */
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+.chordtext {
+    font-size: 16px;
+    margin: 10px 0;
+    color: #F6AE2D; /* Use specified color */
 }
 </style>
