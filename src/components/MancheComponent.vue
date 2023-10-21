@@ -1,60 +1,50 @@
 <template>
     <div>
-        <div style="width:100%;">
-                <div class="row">
-      <div class="columnb" style="text-align: center;">
-        <div v-show="this.showgame">
-            <h1>Ready to play ?</h1>
+        <div class="container">
+    <div class="row">
+        <div class="column" style="text-align: center;">
+            <div v-show="showgame">
+                <h1>Ready to play?</h1>
+            </div>
+            <div v-show="!showgame">
+                -
+            </div>
         </div>
-        <div v-show="!this.showgame">
-            -
+        <div class="column">
+            <h1>{{ notePlayed }}</h1>
+            <div class="circle" :style="{ backgroundColor: notePlayed ? calcBack(notePlayed.slice(0, notePlayed.length - 1)) : 'white' }">
+                <p class="note">{{ notePlayed.slice(0, notePlayed.length - 1) }}</p>
+            </div>
+            <p>Activer le sapin de noel:</p>
+            <button class="button" @click="allumerSapin" :style="{ backgroundColor: getStateButton() }">Sapinnnnn</button>
         </div>
-
-
-
-     
-
-      </div>
-      <div class="columnb">  <!-- <p>{{ this.tuningintra }}</p> -->
-                    <h1>{{ this.notePlayed }}</h1>
-                    <div class="circle" style="width:50px;height:50px"
-                        :style="{ backgroundColor: (this.notePlayed ? calcBack(this.notePlayed.slice(0, this.notePlayed.length - 1)) : white) }">
-                     <p class="pp">   {{ this.notePlayed.slice(0, this.notePlayed.length - 1) }}
-                    </p>
-                    </div>
-                    <p>Activer le sapin de noel :</p>
-                    <button class="button" style="border : 1px solid black" @click="allumerSapin()"
-                        :style="{ backgroundColor: getStateButton() }">Sapinnnnn</button></div>
-      <div class="columnb">
-        <div v-show="this.showgame">
-             <p>Easy version enabled : {{ this.cheat }}</p>
-             <p v-show="this.cheat">Note to play then : </p>
-             <h1>{{ this.noteToPlay }}</h1>
-             <h2 style="color:white">Score : {{ this.score }}</h2>
+        <div class="column">
+            <div v-show="showgame">
+                <p>Easy version enabled: {{ cheat }}</p>
+                <p v-show="cheat">Note to play then:</p>
+                <h1>{{ noteToPlay }}</h1>
+                <h2 class="score">Score: {{ score }}</h2>
+            </div>
+            <div v-show="!showgame">
+                -
+            </div>
         </div>
-        <div v-show="!this.showgame">
-            -
-        </div>
-      </div>
-    </div> 
-            
-                  
-               
+    </div>
+</div>
 
-        </div>
 
         <div width="300px">
 
 
-            <ul  :class=" this.lefty ?  'ulmanche' :'' ">
+            <ul :class="this.lefty ? 'ulmanche' : ''">
                 <li class="horizontalli ">
                     <ul>
                         <li style=" width: 40px" :style="{ height: calcHeight() }" v-for="note in this.tuningintra"
                             :key="note.cordeId">
                             <div class="circle" style="width:35px;height:35px"
                                 :style="{ backgroundColor: calcBack2(note.tuning) }" v-if="isChoosedTune(note)">
-                              <p class="pp" style="font-size: 16px;">  {{ note.tuning.slice(0, note.tuning.length) }}
-                            </p>
+                                <p class="pp" style="font-size: 16px;"> {{ note.tuning.slice(0, note.tuning.length) }}
+                                </p>
                             </div>
                             <div v-else>
                                 {{ note.tuning.slice(0, note.tuning.length) }}
@@ -123,7 +113,7 @@
 export default {
     props: {
         //Peut etre qu'on peut definir un array de note ici
-        lefty : {required : true, type:Boolean},
+        lefty: { required: true, type: Boolean },
         tuning: { required: true, type: [Object] },
         notesSelected: { required: true, type: [Object] },
         colorNotes: { required: true, type: [Object] },
@@ -132,11 +122,11 @@ export default {
         notePlayed: { required: true, type: String },
         allnotes: { required: true, type: [Object] },
         allnotesc: { required: true, type: [Object] },
-        gamePlay : {required : true, type: Boolean},
-        score : {required : true, type : Number},
-        noteToPlay : {required : true, type : String},
-        cheat : { required : true, type : Boolean},
-        showgame: { required : true, type :Boolean}
+        gamePlay: { required: true, type: Boolean },
+        score: { required: true, type: Number },
+        noteToPlay: { required: true, type: String },
+        cheat: { required: true, type: Boolean },
+        showgame: { required: true, type: Boolean }
 
     },
     data() {
@@ -163,9 +153,9 @@ export default {
             diapason: this.diap * 2.3,
             currentNote: this.notePlayed,
             sapinNoel: false,
-            cheatEnabled : this.cheat,
-            gameOn : this.gamePlay,
-            
+            cheatEnabled: this.cheat,
+            gameOn: this.gamePlay,
+
 
         }
 
@@ -215,9 +205,9 @@ export default {
         },
         getStateButton() {
             if (this.sapinNoel) {
-                return "grey"
+                return "rgb(51, 101, 138)"
             }
-            return "white"
+            return "#86BBD8"
         }
         ,
         allumerSapin() {
@@ -320,9 +310,9 @@ export default {
 
     },
     watch: {
-        tuning : {
-            handler(){
-                this.tuningintra=this.tuning
+        tuning: {
+            handler() {
+                this.tuningintra = this.tuning
                 this.$forceUpdate()
             }
         },
@@ -369,13 +359,13 @@ export default {
             }
             return cordeListe
         },
-        
+
 
     },
 }
 
 </script>
-<style>
+<style scoped>
 :root {
     --mondiap: #ffffff;
 }
@@ -386,24 +376,83 @@ export default {
     border-right: 5px solid rgb(255, 255, 255);
 
 }
-    :root {
-  --light: 80;
-  /* the threshold at which colors are considered "light." Range: integers from 0 to 100,
+
+:root {
+    --light: 80;
+    /* the threshold at which colors are considered "light." Range: integers from 0 to 100,
 recommended 50 - 70 */
-  --threshold: 60;
+    --threshold: 60;
 }
-.pp{
-    background-color: rgba(125,125,125,0.2);
+
+.container {
+    width: 100%;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px;
+}
+
+.column {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    background-color: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+h1 {
+    font-size: 24px;
+}
+
+.circle {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+.note {
+    font-size: 18px;
+}
+
+button {
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    background-color: rgb(51, 101, 138) ;
+}
+
+button:hover {
+    background-color: #2F4858 !important;
+    color: #acacac;
+}
+
+.score {
+    color: white;
+}
+
+
+.pp {
+    background-color: rgba(125, 125, 125, 0.2);
     color: rgb(0, 0, 0);
-    mix-blend-mode:difference;
+    mix-blend-mode: difference;
     filter: contrast(100%);
     filter: brightness(50%);
 }
+
 .circle {
     margin: 0 auto;
 
 
-  /* Any lightness value below the threshold will result in white, any above will result in black */
+    /* Any lightness value below the threshold will result in white, any above will result in black */
 
     border-radius: 50%;
     display: flex;
@@ -454,24 +503,27 @@ recommended 50 - 70 */
     float: left;
     width: 33.33%;
 }
+
 .ulmanche {
-  display: flex;
-  flex-direction: row-reverse; /* add this line to reverse the order */
-  justify-content: flex-end; /* add this line to align the items to the right */
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
+    display: flex;
+    flex-direction: row-reverse;
+    /* add this line to reverse the order */
+    justify-content: flex-end;
+    /* add this line to align the items to the right */
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
 }
 
 .horizontalli2 {
-  display: inline-block;
-  float: none;
+    display: inline-block;
+    float: none;
 }
 
 .yolo {
-  margin-right: auto;
-  margin-left: 0;
-  width: var(--mondiap);
+    margin-right: auto;
+    margin-left: 0;
+    width: var(--mondiap);
 }
 
 /* Clear floats after the columns */
@@ -479,7 +531,4 @@ recommended 50 - 70 */
     content: "";
     display: table;
     clear: both;
-}
-
-
-</style>
+}</style>

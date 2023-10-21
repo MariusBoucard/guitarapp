@@ -1,9 +1,12 @@
 <template>
-    <div style=" ; background-color: wheat;">
-        <p>Scale in use {{ this.gammeSelected }}</p>
-        <h1>Scales you could use : </h1>
-        <input type="checkbox"  v-model="this.colorScaleBool" >
-<label > color relatives to the position in the scale</label>
+    <div style=" ; background-color: #86BBD8;">
+        <div class="custom-div">
+    <p>Scale in use {{ this.gammeSelected }}</p>
+    <h1>Scales you could use : </h1>
+    <input type="checkbox" v-model="this.colorScaleBool">
+    <label>Color relative to the position in the scale</label>
+</div>
+
         <ul>
 
             <li v-for="gammes in this.listeGammes" :key="gammes">
@@ -22,11 +25,71 @@
     </div>
     
 </template>
-<style>
+<style scoped>
 .notesgammes {
     display: inline-block;
     padding: 10px;
     border-right: 1px solid black;
+}
+
+div {
+    background-color: #F6AE2D;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Style the header */
+h1 {
+    font-size: 1.5em;
+    margin-top: 0;
+}
+
+/* Style the checkbox and label */
+input[type="checkbox"] {
+    transform: scale(1.5);
+    margin-right: 10px;
+}
+
+/* Style the button */
+.buttonstyle {
+    background-color: #33658A;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* Style the list items */
+li {
+    list-style: none;
+}
+
+/* Style the notes */
+.notesgammes {
+    background-color: #f0f0f0;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+/* Style the label text */
+label {
+    font-size: 0.9em;
+    font-weight: normal;
+}
+
+/* Add hover effect to buttons */
+.buttonstyle:hover {
+    background-color: #0056b3;
+}
+
+/* Add hover effect to notes */
+.notesgammes:hover {
+    background-color: #ddd;
 }
 
 .buttonstyle {
@@ -40,6 +103,35 @@
     font-size: 16px;
     border-radius: 5px;
 
+}
+p {
+    color:black
+}
+.custom-div {
+    background-color: wheat;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.custom-div p {
+    font-size: 16px;
+    margin: 0;
+}
+
+.custom-div h1 {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.custom-div input[type="checkbox"] {
+    transform: scale(1.2);
+    margin-right: 5px;
+}
+
+.custom-div label {
+    font-size: 14px;
+    font-weight: normal;
 }
 </style>
 
