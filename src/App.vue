@@ -25,7 +25,7 @@
     </ul> 
     <div class="row">
       <div class="column">
-        <div style=" display: flex;">
+        <div style="">
           <MancheComponent :lefty="this.lefty" :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=parseInt(this.diapason) :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning=this.tuningList />
           <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
 
