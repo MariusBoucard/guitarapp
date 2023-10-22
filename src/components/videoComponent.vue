@@ -3,14 +3,18 @@
     <div class="two-columns">
 
       <div class="column-left">
-      <ul class="horizontal-list">
-                <li v-for="training in trainingComputed" @click="selectTrain(training)" :class="backColor(training)" :key="training">
-        <p>{{ training.name }}</p>
-        </li>
-      </ul>
+        <div>
+          <ul class="horizontal-list">
+            <li v-for="training in trainingComputed" @click="selectTrain(training)" :class="backColor(training)" :key="training">
+              <p>{{ training.name }}</p>
+            </li>
+          </ul>
+        </div>
       <input v-model="currentName" type="text" />
-      <button @click="addTraining()">add</button>
+      <div> 
+        <button @click="addTraining()">add</button>
       <button @click="removeTraining()">remove</button>
+      </div>
 
 
       <div>
@@ -63,7 +67,7 @@
         <input id="loopCheckbox" type="checkbox" v-model="loop">
     </div>
     
-    <!-- <div style="text-align: center;">
+    <div style="text-align: center;">
       <h3 style="display: block;float: top">Playing rate</h3>
       <div class="slider" style="margin : auto">
         
@@ -71,7 +75,7 @@
         <p id="rangeValueVideo">100</p>
         
       </div>
-    </div> -->
+    </div>
   </div>
   </div>
   </div>
@@ -313,36 +317,13 @@ console.log("vid", videoURL)
 }
 </script>
 <style>
-/* .selectedTrain{
+ .selectedTrain{
   background-color: rgb(96, 96, 96);
 }
 .unselectedTrain{
   background-color: rgb(0, 0, 0);
 }
-.horizontal-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.horizontal-list li {
-  display: inline-block;
-  padding: 20px;
-}
-
-.horizontal-list li a {
-  text-decoration: none;
-  color: #333;
-  font-weight: bold;
-  padding: 10px;
-  border-radius: 5px;
-  background-color: #f2f2f2;
-  transition: background-color 0.3s ease;
-}
-
-.horizontal-list li a:hover {
-  background-color: #ccc;
-}
+/*
 .button-cross {
   display: inline-block;
   position: relative;
@@ -375,7 +356,30 @@ console.log("vid", videoURL)
 .button-cross::after {
   transform: translate(-50%, -50%) rotate(-45deg);
 } */
+.horizontal-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
 
+.horizontal-list li {
+  display: inline-block;
+  padding: 20px;
+}
+
+.horizontal-list li a {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  transition: background-color 0.3s ease;
+}
+
+.horizontal-list li a:hover {
+  background-color: #ccc;
+}
 .two-columns {
   display: flex; /* Use flexbox to create a two-column layout */
     flex-direction:row; /* Make the container and columns stack vertically */
@@ -393,5 +397,26 @@ console.log("vid", videoURL)
   background-color: #F6AE2D; /* Example background color */
   height: fit-content;
 height: max-content;
+}
+
+input[type="text"] {
+  padding: 10px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+button:hover {
+  background-color: #3e8e41;
 }
 </style>

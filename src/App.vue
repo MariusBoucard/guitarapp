@@ -27,17 +27,19 @@
       <div class="column">
         <div style=" display: flex;">
           <MancheComponent :lefty="this.lefty" :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=parseInt(this.diapason) :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning=this.tuningList />
+          <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
+
         </div>
         <div class="row">
           <div class="columnhalf"> 
             <LoadPictureComponent v-show="this.pictureDisplay"></LoadPictureComponent>
             <NotesSelectedComponent :colorNotes=this.colors :listNotes=this.noteSlectedList @unselectgamme="unselectGamme()"
-        @note-checked="changeNoteSelection( $event)" @reinitSelected="this.reinit()"></NotesSelectedComponent> 
+             @note-checked="changeNoteSelection( $event)" @reinitSelected="this.reinit()"></NotesSelectedComponent> 
  
          </div>
          <div class="columnhalf">
            <TuningComponent  @lefty="this.lefty = $event" :lefty="this.lefty" :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=parseInt(this.diapason) :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=parseInt(this.nbStrings)></TuningComponent> 
-           <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
+          
            <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
           </div>
         </div>
@@ -54,7 +56,6 @@
     <GammeFinderComponent @colorgamme="this.changeColor($event,colors)"  :colorsave="this.colorSave" :color="this.colors" :nbnotes="this.nbnotes" :gammeSelected="this.gammeSelectedComp" @newscale="setScale($event,scale)" v-show="this.scalesDisplay" :notesSelected="this.noteSlectedList"></GammeFinderComponent>
     <!-- <metronome></metronome> -->
   </div>
-  
   
     <GuitarChordsComponent v-show="this.chordsDisplay" />
 
