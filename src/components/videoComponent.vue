@@ -4,6 +4,20 @@
 
       <div class="column-left">
         <div>
+          <ul>
+            <li v-for="trainingType in trainingTypeList" @click="selectTrainType(trainingType)" :class="backColorType(trainingType)" :key="trainingType">
+              <p>{{ trainingType }}</p>
+            </li>
+          </ul>
+            <input v-model="defaultPath" type="text" />
+            <button @click="createTrainingList()">add</button>
+        </div>
+        
+        
+        
+        
+        <!-- niou above -->
+        <div>
           <ul class="horizontal-list">
             <li v-for="training in trainingComputed" @click="selectTrain(training)" :class="backColor(training)" :key="training">
               <p>{{ training.name }}</p>
@@ -83,11 +97,15 @@
   
 <script>
 
-// import { ipcRenderer } from 'electron'
-// const path = require('path');
+ //import { ipcRenderer } from 'electron'
+//const path = require('path');
 export default {
   data() {
     return {
+      niouTrainingList: [],
+      defaultPath : "/media/marius/DISK GROS/guitarCourse",
+
+
       startTime: 0,
       endTime: 0,
       videoDuration: 0,
@@ -127,6 +145,45 @@ export default {
       }
   },
   methods: {
+    async createTrainingList(){
+      this.niouTrainingList = [];
+      try {
+        // Request access to the directory
+        const directoryHandle = await window.showDirectoryPicker();
+        
+        // Read the directory contents recursively
+        const directoryStructure = await this.readDirectoryRecursive(directoryHandle);
+        
+        // Update the directoryStructure data property
+        this.directoryStructure = directoryStructure;
+        console.log(directoryStructure)
+      } catch (error) {
+        console.error('Error reading directory:', error);
+      }
+
+    },
+    async readDirectoryRecursive(directoryHandle) {
+      const directoryStructure = {
+        name: directoryHandle.name,
+        kind: 'directory',
+        children: []
+      };
+
+      for await (const entry of directoryHandle.values()) {
+        if (entry.kind === 'file') {
+          directoryStructure.children.push({
+            name: entry.name,
+            kind: 'file'
+          });
+        } else if (entry.kind === 'directory') {
+          const subDirectoryStructure = await this.readDirectoryRecursive(entry);
+          directoryStructure.children.push(subDirectoryStructure);
+        }
+      }
+
+      return directoryStructure;
+    },
+  
     formatSeconds(seconds) {
   const dateObj = new Date(seconds * 1000);
   const minutes = dateObj.getUTCMinutes();
@@ -226,41 +283,9 @@ console.log("vid", videoURL)
     this.endTime = this.$refs.video.duration
 
   });
-  // const videoURL = URL.createObjectURL(file);
-      // const file = event.target.files[0];
-      // console.log("vid "+videoURL)
-      // this.speed = 100
-
-      // this.$refs.video.src = videoURL;
-      // this.$refs.video.addEventListener('loadedmetadata', () => {
-      //   URL.revokeObjectURL(videoURL);
-      //   this.play();
-      // });
-      // const path = require('path');
-      // const directoryPath = path.resolve(__dirname);
-      // console.log(directoryPath)
-
-      // const videoElement = this.$refs.video;
-      // videoElement.src = '';
-      // videoElement.srcObject = null;
-
-      // Construct an absolute file path to the video file
-
-      // const videoPath = path.relative('./', file.path);
-      // videoElement.src = videoPath;
-
-      // await videoElement.load();
-      // const file = event.target.files[0]
-      // ipcRenderer.send('load-video', file.path)
-      // ipcRenderer.on('video-loaded', (event, videoURL) => {
-      //   this.$refs.video.src = videoURL
-      // })
+  
       localStorage.setItem("videoSave",JSON.stringify(this.trainingList))
 
-      // localStorage.setItem("videoLength", this.trainingList.length)
-      // for (var i = 0; i < this.trainingList.length; i++) {
-      //   localStorage.setItem("video" + i, this.trainingList[i])
-      // }
 
     },
     play(playbackRate = 100) {
@@ -287,32 +312,6 @@ console.log("vid", videoURL)
 
       this.trainingList = JSON.parse(localStorage.getItem("videoSave"))
     }
-    // var lenVideo= localStorage.getItem("videoLength")
-    //   for(var i=0;i<lenVideo;i++){
-    //    var path2=  localStorage.getItem("video"+i)
-    //   //  this.videoFolder = localStorage.getItem("videoFolder")
-
-    //    console.log(path2)
-    //   //  const videoURL = URL.createObjectURL(path);
-    //             // this.$refs.video.src = path;
-
-    //             if (path2) {
-    //               // Make a request to a server-side script to load the video file
-    //               const filePath = path.resolve(path2);
-    //                     // this.videoPath.push(filePath);
-    //               this.speed = 100;
-    //               this.videoPath.push(path2)
-                  
-    //               // const  filePath = file.path
-
-    //               const videoURL = `file://${filePath}`;
-    //               this.$refs.video.src = videoURL;
-    //               this.$refs.video.addEventListener('loadedmetadata', () => {
-    //                 URL.revokeObjectURL(videoURL);
-    //               });
-
-    //             }
-    //   }
   }
 }
 </script>

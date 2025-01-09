@@ -95,5 +95,10 @@
   "author": {
     "name": "Marius Boucard Bocciarelli",
     "email": "marius.boucard-bocciarelli@laposte.net"
+  },
+  "browser": {
+    "fs": false,
+    "path": false,
+    "os": false
   }
 }

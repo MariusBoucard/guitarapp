@@ -1,8 +1,5 @@
 // const path = require('path');
 // const { VueLoaderPlugin } = require('vue-loader');
-// const { svelte } = require('rollup-plugin-svelte');
-// const { nodeResolve } = require('@rollup/plugin-node-resolve');
-// const { babel } = require('@rollup/plugin-babel');
 
 // module.exports = {
 //   mode: 'development',
@@ -11,6 +8,7 @@
 //     path: path.resolve(__dirname, 'dist'),
 //     filename: 'bundle.js',
 //   },
+//   target: 'electron-renderer',
 //   module: {
 //     rules: [
 //       {
@@ -47,5 +45,9 @@
 //       vue$: 'vue/dist/vue.esm.js',
 //     },
 //     extensions: ['.js', '.vue', '.json', '.svelte'],
+//   },
+//   node: {
+//     __dirname: false,
+//     __filename: false,
 //   },
 // };

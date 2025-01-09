@@ -4,6 +4,9 @@ import { app, protocol, BrowserWindow, ipcMain } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const fs = require('fs-extra')
+
+const path = require('path');
+
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 protocol.registerSchemesAsPrivileged([
@@ -20,7 +23,7 @@ async function createWindow() {
     icon: __dirname + '/public/icon.png',
     webPreferences: {
       nodeIntegration: true, // Add this line
-      contextIsolation: false, // Add this line
+      contextIsolation: true, // Add this line
       // Use pluginOptions.nodeIntegration  , leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
       // nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
@@ -38,6 +41,29 @@ ipcMain.on('load-video', (event, filePath) => {
   const videoURL = URL.createObjectURL(new Blob([videoBuffer]))
   event.reply('video-loaded', videoURL)
 })
+
+
+ipcMain.on('parse-directory', (event, directoryPath) => {
+  // fs.readdir(directoryPath, (err, files) => {
+  //   if (err) {
+  //     event.reply('parse-directory-response', { success: false, error: err.message });
+  //   } else {
+  //     const fileDetails = files.map(file => {
+  //       const filePath = path.join(directoryPath, file);
+  //       const stats = fs.statSync(filePath);
+  //       return {
+  //         name: file,
+  //         isDirectory: stats.isDirectory(),
+  //         size: stats.size,
+  //       };
+  //     });
+  //     event.reply('parse-directory-response', { success: true, files: fileDetails });
+  //   }
+  // });
+});
+
+
+
 
 if (process.env.WEBPACK_DEV_SERVER_URL) {
   // Load the url of the dev server if in development mode
