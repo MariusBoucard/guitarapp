@@ -145,43 +145,60 @@ export default {
       }
   },
   methods: {
-    async createTrainingList(){
+    async createTrainingList() {
       this.niouTrainingList = [];
       try {
         // Request access to the directory
         const directoryHandle = await window.showDirectoryPicker();
         
         // Read the directory contents recursively
-        const directoryStructure = await this.readDirectoryRecursive(directoryHandle);
+        const trainingList = await this.readDirectoryRecursive(directoryHandle);
         
-        // Update the directoryStructure data property
-        this.directoryStructure = directoryStructure;
-        console.log(directoryStructure)
+        // Update the niouTrainingList data property
+        this.niouTrainingList = trainingList;
+        console.log(trainingList);
       } catch (error) {
         console.error('Error reading directory:', error);
       }
-
     },
     async readDirectoryRecursive(directoryHandle) {
-      const directoryStructure = {
-        name: directoryHandle.name,
-        kind: 'directory',
-        children: []
-      };
+      const trainingList = [];
 
       for await (const entry of directoryHandle.values()) {
-        if (entry.kind === 'file') {
-          directoryStructure.children.push({
-            name: entry.name,
-            kind: 'file'
-          });
-        } else if (entry.kind === 'directory') {
-          const subDirectoryStructure = await this.readDirectoryRecursive(entry);
-          directoryStructure.children.push(subDirectoryStructure);
+        if (entry.kind === 'directory') {
+          const trainingType = entry.name;
+          const trainings = await this.readSubDirectory(entry);
+          trainingList.push({ trainingType, trainings });
         }
       }
 
-      return directoryStructure;
+      return trainingList;
+    },
+    async readSubDirectory(directoryHandle) {
+      const trainings = [];
+
+      for await (const entry of directoryHandle.values()) {
+        if (entry.kind === 'directory') {
+          const name = entry.name;
+          const videos = await this.readFiles(entry);
+          trainings.push({ name, videos });
+        }
+      }
+
+      return trainings;
+    },
+    async readFiles(directoryHandle) {
+      const videos = [];
+
+      for await (const entry of directoryHandle.values()) {
+        if (entry.kind === 'file') {
+          const file = await entry.getFile();
+          const url = URL.createObjectURL(file);
+          videos.push(url);
+        }
+      }
+
+      return videos;
     },
   
     formatSeconds(seconds) {
