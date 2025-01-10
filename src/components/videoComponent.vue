@@ -4,11 +4,19 @@
 
       <div class="column-left">
         <div>
-          <ul>
-            <li v-for="trainingType in trainingTypeList" @click="selectTrainType(trainingType)" :class="backColorType(trainingType)" :key="trainingType">
-              <p>{{ trainingType }}</p>
+          <div v-for="(training, index) in niouTrainingList" :key="index">
+      <h2 @click="toggleTraining(index)">{{ training.trainingType }}</h2>
+      <div v-show="training.show">
+        <div v-for="(item, subIndex) in training.trainings" :key="subIndex">
+          <h3 @click="toggleItem(index, subIndex)">{{ item.name }}</h3>
+          <ul v-show="item.show">
+            <li v-for="(video, videoIndex) in item.videos || [item]" :key="videoIndex" @click="launchFile(video.url)">
+              {{ video.name }}
             </li>
           </ul>
+        </div>
+      </div>
+    </div>
             <input v-model="defaultPath" type="text" />
             <button @click="createTrainingList()">add</button>
         </div>
@@ -103,7 +111,7 @@ export default {
   data() {
     return {
       niouTrainingList: [],
-      defaultPath : "/media/marius/DISK GROS/guitarCourse",
+      defaultPath : "/media/marius/DISK GROS/",
 
 
       startTime: 0,
@@ -148,13 +156,11 @@ export default {
     async createTrainingList() {
       this.niouTrainingList = [];
       try {
-        // Request access to the directory
         const directoryHandle = await window.showDirectoryPicker();
-        
-        // Read the directory contents recursively
+        this.directoryName = this.defaultPath+directoryHandle.name;
+
         const trainingList = await this.readDirectoryRecursive(directoryHandle);
         
-        // Update the niouTrainingList data property
         this.niouTrainingList = trainingList;
         console.log(trainingList);
       } catch (error) {
@@ -163,10 +169,11 @@ export default {
     },
     async readDirectoryRecursive(directoryHandle) {
       const trainingList = [];
-
+      console.log(directoryHandle)
       for await (const entry of directoryHandle.values()) {
         if (entry.kind === 'directory') {
           const trainingType = entry.name;
+          this.trainingdir = this.directoryName+"/" + trainingType
           const trainings = await this.readSubDirectory(entry);
           trainingList.push({ trainingType, trainings });
         }
@@ -174,40 +181,60 @@ export default {
 
       return trainingList;
     },
+    toggleTraining(index) {
+      console.log(this.niouTrainingList[index])
+      this.niouTrainingList[index].show = !this.niouTrainingList[index].show;
+    },
+    toggleItem(trainingIndex, itemIndex) {
+      this.niouTrainingList[trainingIndex].trainings[itemIndex].show = !this.niouTrainingList[trainingIndex].trainings[itemIndex].show;
+    },
     async readSubDirectory(directoryHandle) {
       const trainings = [];
 
       for await (const entry of directoryHandle.values()) {
         if (entry.kind === 'directory') {
           const name = entry.name;
-          const videos = await this.readFiles(entry);
-          trainings.push({ name, videos });
+          let path = this.trainingdir + "/" + name
+          const videos = await this.readFiles(path,entry);
+          trainings.push({ name, videos, show: false });
+        }
+        if (entry.kind === 'file') {
+          const file = entry.name;
+          let url = this.trainingdir + "/" + file
+          trainings.push({ name: entry.name, url: url, show: false });
         }
       }
 
       return trainings;
     },
-    async readFiles(directoryHandle) {
-      const videos = [];
+    async readFiles(path,directoryHandle) {
+      let videos = [];
 
       for await (const entry of directoryHandle.values()) {
         if (entry.kind === 'file') {
-          const file = await entry.getFile();
-          const url = URL.createObjectURL(file);
-          videos.push(url);
+          if(entry.name.includes(".mp4"))
+          {
+            videos.push({ name: entry.name, url: path + "/" + entry.name , show: false});
+          }
+        } else if (entry.kind === 'directory') {
+          const name = entry.name;
+          const newPath = path + "/" + name;
+          const subVideos = await this.readFiles(newPath, entry);
+          videos = videos.concat(subVideos); // Combine the lists
         }
       }
+
 
       return videos;
     },
   
     formatSeconds(seconds) {
-  const dateObj = new Date(seconds * 1000);
-  const minutes = dateObj.getUTCMinutes();
-  const secondsFormatted = dateObj.getUTCSeconds().toString().padStart(2, '0');
-  const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0');
-  return `${minutes}:${secondsFormatted}.${milliseconds}`;
-},
+      const dateObj = new Date(seconds * 1000);
+      const minutes = dateObj.getUTCMinutes();
+      const secondsFormatted = dateObj.getUTCSeconds().toString().padStart(2, '0');
+      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0');
+      return `${minutes}:${secondsFormatted}.${milliseconds}`;
+    } ,
     handleTimeUpdate() {
       const currentTime = this.$refs.video.currentTime;
 
@@ -260,22 +287,16 @@ export default {
       }
       localStorage.setItem("videoSave",JSON.stringify(this.trainingList))
       console.log(this.videoPath)
-      // localStorage.setItem("videoLength", this.videoPath.length)
-      // for (var i = 0; i < this.videoPath.length; i++) {
-      //   localStorage.setItem("video" + i, this.videoPath[i])
-      // }
     },
     async launchFile(file) {
-
-      //TODO
-      const filePath = file;
-      // const  filePath = file.path
-        // this.videoPath.push(filePath);
-  this.speed = 100;
-  
-  const videoURL = `file://${filePath}`;
-  this.$refs.video.src = videoURL;
-  this.$refs.video.addEventListener('loadedmetadata', () => {
+     file =  file.replace(/#/g, '%23');
+    const filePath = file;
+    this.speed = 100;
+    
+    const videoURL = `file://${filePath}`;
+    console.log("vid", videoURL)
+    this.$refs.video.src = videoURL;
+    this.$refs.video.addEventListener('loadedmetadata', () => {
     URL.revokeObjectURL(videoURL);
     this.endTime = this.$refs.video.duration
 
@@ -288,12 +309,12 @@ export default {
       //  console.log(remote)
       // const appDir = remote.getGlobal('appDir');
       const file = event.target.files[0];
-this.videoPath.push(file.path.replace(/#/g, '%23'))
-const filePath = file.path.replace(/#/g, '%23');
-this.speed = 100;
-console.log(filePath)
-const videoURL = `file://${filePath}`;
-console.log("vid", videoURL)
+    this.videoPath.push(file.path.replace(/#/g, '%23'))
+    const filePath = file.path.replace(/#/g, '%23');
+    this.speed = 100;
+    console.log(filePath)
+    const videoURL = `file://${filePath}`;
+    console.log("vid", videoURL)
     this.$refs.video.src = videoURL;
   this.$refs.video.addEventListener('loadedmetadata', () => {
     URL.revokeObjectURL(videoURL);
