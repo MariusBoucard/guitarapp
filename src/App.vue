@@ -362,7 +362,7 @@ export default {
             }
   },
   watch: {
-    
+
       mancheDisplay : {
         handler() {
           localStorage.setItem('mancheDisplay',this.mancheDisplay)
@@ -396,6 +396,11 @@ export default {
       videoDisplay :  {
         handler() {
             localStorage.setItem('videoDisplay',this.videoDisplay)
+        }
+      } ,
+      videoDisplayNew :  {
+        handler() {
+            localStorage.setItem('videoDisplayNew',this.videoDisplayNew)
         }
       } ,
       gameDisplay :  {
@@ -454,8 +459,6 @@ export default {
                     this.tunderDisplay =  ( localStorage.getItem('tunerDisplay') === "true")
                   } if(localStorage.getItem('pictureDisplay')!==null){
                     this.pictureDisplay = ( localStorage.getItem('pictureDisplay') === "true")
-
-
                   } 
                   if(localStorage.getItem('chordsDisplay')!==null){
                     this.chordsDisplay = ( localStorage.getItem('chordsDisplay') === "true")
@@ -477,7 +480,9 @@ export default {
                   if(localStorage.getItem('gameDisplay')!==null){
                     this.gameDisplay = ( localStorage.getItem('gameDisplay') === "true")
                   }
-
+                  if(localStorage.getItem('videoDisplayNew')!==null){
+                    this.videoDisplayNew = ( localStorage.getItem('videoDisplayNew') === "true")
+                  }
                   this.noteSlectedList.forEach(
                     col => {
                       if (localStorage.getItem(col.note+"Selected")!=="null") {
