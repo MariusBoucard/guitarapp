@@ -15,6 +15,8 @@
       <li class="linavbar" :class=" this.pictureDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.pictureDisplay = ! this.pictureDisplay">Display Picture</a></li>
       <li class="linavbar" :class=" this.soundDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active" @click="this.soundDisplay = ! this.soundDisplay">Play sound</a></li>
       <li class="linavbar" :class=" this.videoDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.videoDisplay = ! this.videoDisplay">Play video</a></li>
+      <li class="linavbar" :class=" this.videoDisplayNew ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.videoDisplayNew = ! this.videoDisplayNew">Play video new</a></li>
+
       <li class="linavbar" :class=" this.gameDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.gameDisplay = ! this.gameDisplay ">Play game</a></li>
       <li class="linavbar" :class=" this.chordsDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.chordsDisplay = ! this.chordsDisplay">Affichage accords</a></li>
       <li class="linavbar" :class=" this.chordssuggestDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.chordssuggestDisplay = ! this.chordssuggestDisplay">Suggestion accords</a></li>
@@ -28,7 +30,7 @@
         <div style="">
           <MancheComponent :lefty="this.lefty" :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=parseInt(this.diapason) :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning=this.tuningList />
           <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
-
+          <VideoComponentNew v-show="this.videoDisplayNew"></VideoComponentNew>
         </div>
         <div class="row">
           <div class="columnhalf"> 
@@ -83,6 +85,7 @@ import NotesAJouerComponent from './components/NoteAJouerComponent.vue'
 import myImage from '@/assets/frettebackground.jpeg';
 import GuitarChordsComponent from './components/GuitarChordsComponent.vue';
 import SuggestedChordsComponent from './components/SuggestedChordsComponent.vue';
+import VideoComponentNew from './components/videoComponentNew.vue';
 // import GammeFromChordsComponent from './components/GammeFromChordsComponent.vue';
 // import metronome from 'vue-metronome'
 export default {
@@ -98,7 +101,8 @@ export default {
     LoadPictureComponent,
     VideoComponent,
     VideoSettingsCOmponent,
-    NotesAJouerComponent
+    NotesAJouerComponent,
+    VideoComponentNew
     // metronome
     ,
     GuitarChordsComponent,
@@ -116,7 +120,8 @@ export default {
       pictureDisplay : false,
       soundDisplay : false,
       scalesDisplay : true,
-      videoDisplay : true,
+      videoDisplay : false,
+      videoDisplayNew : true,
       gameDisplay : false,
       chordsDisplay : false,
       chordssuggestDisplay : false,
