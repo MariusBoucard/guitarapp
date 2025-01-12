@@ -3,26 +3,7 @@
     <div class="two-columns">
 
       <div class="column-left">
-        <div>
-          <div v-for="(training, index) in niouTrainingList" :key="index">
-      <h2 @click="toggleTraining(index)">{{ training.trainingType }}</h2>
-      <div v-show="training.show">
-        <div v-for="(item, subIndex) in training.trainings" :key="subIndex">
-          <h3 @click="toggleItem(index, subIndex)">{{ item.name }}</h3>
-          <ul v-show="item.show">
-            <li v-for="(video, videoIndex) in item.videos || [item]" :key="videoIndex" @click="launchFile(video.url)">
-              {{ video.name }}
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-            <input v-model="defaultPath" type="text" />
-            <button @click="createTrainingList()">add</button>
-        </div>
-        
-        
-        
+
         
         <!-- niou above -->
         <div>
