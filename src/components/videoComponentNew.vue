@@ -64,7 +64,7 @@
 
               <input type="range" min="10" max="300" oninput="rangeValueVideo.innerText = this.value"
                 v-model="this.speed">
-              <p id="rangeValueVideo">100</p>
+              <p id="rangeValueVideo">{{ speed }}</p>
 
             </div>
           </div>
@@ -130,6 +130,8 @@ export default {
         const trainingList = await this.readDirectoryRecursive(directoryHandle);
 
         this.niouTrainingList = trainingList;
+        // Tri par ordre alphabetique
+        this.niouTrainingList.sort((a, b) => a.trainingType.localeCompare(b.trainingType));
         localStorage.setItem("Trainings", JSON.stringify(this.niouTrainingList))
         console.log("Trainings", this.niouTrainingList)
       } catch (error) {
@@ -151,9 +153,19 @@ export default {
     },
     toggleTraining(index) {
       console.log(this.niouTrainingList[index])
+      this.niouTrainingList.filter((item, i) => {
+        if (i !== index) {
+          item.show = false;
+        }
+      });
       this.niouTrainingList[index].show = !this.niouTrainingList[index].show;
     },
     toggleItem(trainingIndex, itemIndex) {
+      this.niouTrainingList[trainingIndex].trainings.filter((item, i) => {
+        if (i !== itemIndex) {
+          item.show = false;
+        }
+      });
       this.niouTrainingList[trainingIndex].trainings[itemIndex].show = !this.niouTrainingList[trainingIndex].trainings[itemIndex].show;
     },
     async readSubDirectory(directoryHandle) {
@@ -172,6 +184,7 @@ export default {
           trainings.push({ name: entry.name, url: url, show: false });
         }
       }
+      trainings.sort((a, b) => a.name.localeCompare(b.name));
 
       return trainings;
     },
@@ -190,6 +203,7 @@ export default {
           videos = videos.concat(subVideos); // Combine the lists
         }
       }
+      videos.sort((a, b) => a.name.localeCompare(b.name));
       return videos;
     },
     formatSeconds(seconds) {
