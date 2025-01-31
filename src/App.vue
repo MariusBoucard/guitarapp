@@ -20,7 +20,7 @@
       <li class="linavbar" :class=" this.gameDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.gameDisplay = ! this.gameDisplay ">Play game</a></li>
       <li class="linavbar" :class=" this.chordsDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.chordsDisplay = ! this.chordsDisplay">Affichage accords</a></li>
       <li class="linavbar" :class=" this.chordssuggestDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.chordssuggestDisplay = ! this.chordssuggestDisplay">Suggestion accords</a></li>
-
+      <li class="linavbar" :class=" this.keyboard ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.keyboard = ! this.keyboard">Keyboard</a></li>
     
 
 
@@ -31,6 +31,7 @@
           <MancheComponent :lefty="this.lefty" :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=parseInt(this.diapason) :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning=this.tuningList />
           <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
           <VideoComponentNew v-show="this.videoDisplayNew"></VideoComponentNew>
+          <keyboardComponent v-show="this.keyboard"></keyboardComponent>
         </div>
         <div class="row">
           <div class="columnhalf"> 
@@ -86,6 +87,7 @@ import myImage from '@/assets/frettebackground.jpeg';
 import GuitarChordsComponent from './components/GuitarChordsComponent.vue';
 import SuggestedChordsComponent from './components/SuggestedChordsComponent.vue';
 import VideoComponentNew from './components/videoComponentNew.vue';
+import KeyboardComponent from './components/KeyboardComponent.vue';
 // import GammeFromChordsComponent from './components/GammeFromChordsComponent.vue';
 // import metronome from 'vue-metronome'
 export default {
@@ -105,6 +107,7 @@ export default {
     VideoComponentNew
     // metronome
     ,
+    KeyboardComponent,
     GuitarChordsComponent,
     SuggestedChordsComponent,
     // GammeFromChordsComponent
@@ -127,7 +130,7 @@ export default {
       chordssuggestDisplay : false,
       score:0,
       gammeSelected : "",
-
+      keyboard : false,
       noteGreat :  undefined,
 
       nbfrettes : 24,
