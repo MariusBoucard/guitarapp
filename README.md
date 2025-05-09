@@ -1,5 +1,7 @@
 # Neck Wanker
 
+## Warning, legacy code. If you want to build on it, considere refactor
+
 This application has been designed to help me (and perhaps some other people) learning guitar.
 It comes with multiple features : 
     - Video and audio player, with several parameters (speed, video and audio cropping...)
