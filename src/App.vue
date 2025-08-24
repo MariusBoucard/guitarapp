@@ -42,7 +42,8 @@
          <div class="columnhalf">
            <TuningComponent  @lefty="this.lefty = $event" :lefty="this.lefty" :allNotes="this.allNotes" v-show="this.settingsView" @diap="changeDiap( $event)" :diapason=parseInt(this.diapason) :notesColor=this.colors :notesnumber=this.nbnotes :notesval="this.allNotes" :tuningList=this.tuningList :cordesNumber=parseInt(this.nbStrings)></TuningComponent> 
           
-           <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent>
+           <!-- <PlaySoundComponent v-show="this.soundDisplay" ></PlaySoundComponent> -->
+           <PlaySoundComponentNew v-show="this.soundDisplay" ></PlaySoundComponentNew>
           </div>
         </div>
         
@@ -77,6 +78,7 @@ import ColorComponent from './components/ColorComponent.vue';
 import GammeFinderComponent from './components/GammeFinderComponent.vue';
 import TunerComponent from './components/TunerComponent.vue';
 import PlaySoundComponent from './components/PlaySoundComponent.vue';
+import PlaySoundComponentNew from './components/PlaySoundComponentNew.vue';
 import LoadPictureComponent from './components/LoadPictureComponent.vue';
 import VideoComponent from './components/videoComponent.vue';
 import VideoSettingsCOmponent from './components/VideoSettingsCOmponent.vue';
@@ -97,6 +99,7 @@ export default {
     ColorComponent,
     GammeFinderComponent,
     PlaySoundComponent,
+    PlaySoundComponentNew,
     LoadPictureComponent,
     VideoComponent,
     VideoSettingsCOmponent,
