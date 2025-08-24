@@ -3,7 +3,8 @@
  * This is part of the Controller layer in MVC architecture
  */
 export class AudioService {
-  constructor() {
+  constructor(serviceManager = null) {
+    this.serviceManager = serviceManager;
     this.audioContext = null;
     this.sourceNode = null;
     this.currentAudio = null;

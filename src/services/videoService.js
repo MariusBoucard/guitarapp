@@ -3,8 +3,10 @@
  * This is part of the Controller layer in MVC architecture
  */
 export class VideoService {
-  constructor() {
+  constructor(serviceManager = null) {
+    this.serviceManager = serviceManager;
     this.currentVideo = null;
+    this.currentBlobUrl = null;
   }
 
   /**
@@ -43,7 +45,68 @@ export class VideoService {
   }
 
   /**
-   * Set video source on video element
+   * Set video source from FileHandle ID
+   */
+  async setVideoSourceFromHandleId(videoElement, fileHandleId) {
+    if (!videoElement) {
+      throw new Error('Video element is required');
+    }
+
+    try {
+      const fileService = this.serviceManager.getService('file');
+      const fileHandle = fileService.getFileHandle(fileHandleId);
+      
+      if (!fileHandle) {
+        throw new Error(`FileHandle not found for ID: ${fileHandleId}`);
+      }
+      
+      const file = await fileHandle.getFile();
+      const blobUrl = URL.createObjectURL(file);
+      videoElement.src = blobUrl;
+      
+      // Clean up previous blob URL when new video loads
+      videoElement.addEventListener('loadstart', () => {
+        if (this.currentBlobUrl && this.currentBlobUrl !== blobUrl) {
+          URL.revokeObjectURL(this.currentBlobUrl);
+        }
+        this.currentBlobUrl = blobUrl;
+      }, { once: true });
+      
+      return blobUrl;
+    } catch (error) {
+      throw new Error(`Failed to set video source from handle ID: ${error.message}`);
+    }
+  }
+
+  /**
+   * Set video source from FileHandle (legacy method for direct FileHandle)
+   */
+  async setVideoSourceFromHandle(videoElement, fileHandle) {
+    if (!videoElement) {
+      throw new Error('Video element is required');
+    }
+
+    try {
+      const file = await fileHandle.getFile();
+      const blobUrl = URL.createObjectURL(file);
+      videoElement.src = blobUrl;
+      
+      // Clean up previous blob URL when new video loads
+      videoElement.addEventListener('loadstart', () => {
+        if (this.currentBlobUrl && this.currentBlobUrl !== blobUrl) {
+          URL.revokeObjectURL(this.currentBlobUrl);
+        }
+        this.currentBlobUrl = blobUrl;
+      }, { once: true });
+      
+      return blobUrl;
+    } catch (error) {
+      throw new Error(`Failed to set video source from handle: ${error.message}`);
+    }
+  }
+
+  /**
+   * Set video source on video element (legacy method for file paths)
    */
   setVideoSource(videoElement, filePath) {
     if (!videoElement) {
@@ -241,6 +304,12 @@ export class VideoService {
       this.currentVideo.pause();
       this.currentVideo.src = '';
       this.currentVideo = null;
+    }
+    
+    // Clean up blob URL
+    if (this.currentBlobUrl) {
+      URL.revokeObjectURL(this.currentBlobUrl);
+      this.currentBlobUrl = null;
     }
   }
 }

@@ -17,10 +17,10 @@ export class ServiceManager {
    * Initialize all services
    */
   initializeServices() {
-    this.services.set('audio', new AudioService());
-    this.services.set('video', new VideoService());
-    this.services.set('file', new FileService());
-    this.services.set('storage', new StorageService());
+    this.services.set('audio', new AudioService(this));
+    this.services.set('video', new VideoService(this));
+    this.services.set('file', new FileService(this));
+    this.services.set('storage', new StorageService(this));
   }
 
   /**

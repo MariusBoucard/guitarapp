@@ -3,8 +3,28 @@
  * This is part of the Controller layer in MVC architecture
  */
 export class FileService {
-  constructor() {
+  constructor(serviceManager = null) {
     this.isElectron = typeof window !== 'undefined' && window.electronAPI;
+    this.serviceManager = serviceManager;
+    // Map to store FileHandle objects (not reactive)
+    this.fileHandleMap = new Map();
+    this.handleIdCounter = 0;
+  }
+
+  /**
+   * Generate unique ID for FileHandle and store it
+   */
+  storeFileHandle(fileHandle) {
+    const id = `handle_${++this.handleIdCounter}`;
+    this.fileHandleMap.set(id, fileHandle);
+    return id;
+  }
+
+  /**
+   * Get FileHandle by ID
+   */
+  getFileHandle(id) {
+    return this.fileHandleMap.get(id);
   }
 
   /**
@@ -101,21 +121,29 @@ export class FileService {
   }
 
   /**
-   * Read directory recursively for training structure
+   * Read directory recursively for training structure with FileHandle tracking
    */
   async readDirectoryRecursive(directoryHandle, basePath = '') {
     const trainingList = [];
+    let totalVideos = 0;
     
     try {
       for await (const entry of directoryHandle.values()) {
         if (entry.kind === 'directory') {
           const trainingType = entry.name;
-          const currentPath = basePath ? `${basePath}/${trainingType}` : trainingType;
-          const trainings = await this.readSubDirectory(entry, currentPath);
+          const trainings = await this.readSubDirectory(entry, trainingType, directoryHandle);
+          
+          // Count videos in this training
+          const videoCount = trainings.reduce((count, training) => {
+            return count + (training.videos ? training.videos.length : 1);
+          }, 0);
+          
+          totalVideos += videoCount;
           
           trainingList.push({ 
             trainingType, 
             trainings,
+            videoCount,
             show: false // For UI accordion state
           });
         }
@@ -123,30 +151,59 @@ export class FileService {
       
       // Sort alphabetically
       trainingList.sort((a, b) => a.trainingType.localeCompare(b.trainingType));
-      return trainingList;
+      
+      // Add metadata to the result
+      return {
+        trainings: trainingList,
+        metadata: {
+          totalTrainings: trainingList.length,
+          totalVideos: totalVideos,
+          basePath: basePath,
+          directoryName: directoryHandle.name,
+          scannedAt: new Date().toISOString()
+        }
+      };
     } catch (error) {
       throw new Error(`Failed to read directory: ${error.message}`);
     }
   }
 
   /**
-   * Read subdirectory for training items
+   * Build proper file path
    */
-  async readSubDirectory(directoryHandle, path) {
+  buildPath(...segments) {
+    return segments.filter(Boolean).join('/');
+  }
+
+  /**
+   * Read subdirectory for training items with FileHandle tracking
+   */
+  async readSubDirectory(directoryHandle, trainingType, rootHandle) {
     const trainings = [];
     
     try {
       for await (const entry of directoryHandle.values()) {
         if (entry.kind === 'directory') {
           const name = entry.name;
-          const subPath = `${path}/${name}`;
-          const videos = await this.readFiles(subPath, entry);
+          const videos = await this.readFiles(entry, name, directoryHandle);
           
           trainings.push({
             name,
             videos,
+            videoCount: videos.length,
             show: false // For UI accordion state
           });
+        } else if (entry.kind === 'file') {
+          // Handle direct video files in training directory
+          if (this.isVideoFile(entry.name)) {
+            const fileHandleId = this.storeFileHandle(entry);
+            trainings.push({
+              name: entry.name,
+              fileHandleId: fileHandleId, // Store ID instead of FileHandle
+              isDirectFile: true,
+              show: false
+            });
+          }
         }
       }
       
@@ -159,26 +216,25 @@ export class FileService {
   }
 
   /**
-   * Read files from directory
+   * Read files from directory with FileHandle tracking
    */
-  async readFiles(path, directoryHandle) {
+  async readFiles(directoryHandle, parentName, parentHandle) {
     const files = [];
     
     try {
       for await (const entry of directoryHandle.values()) {
         if (entry.kind === 'file') {
-          const file = await entry.getFile();
-          if (this.isVideoFile(file.name)) {
+          if (this.isVideoFile(entry.name)) {
+            const fileHandleId = this.storeFileHandle(entry);
             files.push({
-              name: file.name,
-              url: `${path}/${file.name}`,
-              size: file.size,
-              lastModified: file.lastModified
+              name: entry.name,
+              fileHandleId: fileHandleId, // Store ID instead of FileHandle
+              parentName: parentName
             });
           }
         } else if (entry.kind === 'directory') {
           // Recursively read subdirectories
-          const subFiles = await this.readFiles(`${path}/${entry.name}`, entry);
+          const subFiles = await this.readFiles(entry, `${parentName}/${entry.name}`, directoryHandle);
           files.push(...subFiles);
         }
       }
@@ -188,6 +244,77 @@ export class FileService {
       return files;
     } catch (error) {
       throw new Error(`Failed to read files: ${error.message}`);
+    }
+  }
+
+  /**
+   * Create blob URL from FileHandle ID
+   */
+  async createBlobUrlFromHandleId(fileHandleId) {
+    const fileHandle = this.getFileHandle(fileHandleId);
+    if (!fileHandle) {
+      throw new Error(`FileHandle not found for ID: ${fileHandleId}`);
+    }
+    return this.createBlobUrlFromHandle(fileHandle);
+  }
+
+  /**
+   * Load video from FileHandle ID
+   */
+  async loadVideoFromHandleId(fileHandleId) {
+    const fileHandle = this.getFileHandle(fileHandleId);
+    if (!fileHandle) {
+      throw new Error(`FileHandle not found for ID: ${fileHandleId}`);
+    }
+    return this.loadVideoFromHandle(fileHandle);
+  }
+
+  /**
+   * Create blob URL from FileHandle
+   */
+  async createBlobUrlFromHandle(fileHandle) {
+    try {
+      const file = await fileHandle.getFile();
+      return {
+        url: URL.createObjectURL(file),
+        file: file,
+        name: file.name,
+        size: file.size,
+        lastModified: file.lastModified
+      };
+    } catch (error) {
+      throw new Error(`Failed to create blob URL: ${error.message}`);
+    }
+  }
+
+  /**
+   * Load video from FileHandle
+   */
+  async loadVideoFromHandle(fileHandle) {
+    try {
+      const blobData = await this.createBlobUrlFromHandle(fileHandle);
+      const video = document.createElement('video');
+      
+      return new Promise((resolve, reject) => {
+        video.addEventListener('loadedmetadata', () => {
+          resolve({
+            duration: video.duration,
+            videoWidth: video.videoWidth,
+            videoHeight: video.videoHeight,
+            src: video.src,
+            blobUrl: blobData.url,
+            file: blobData.file
+          });
+        });
+        
+        video.addEventListener('error', (error) => {
+          reject(new Error(`Failed to load video: ${error.message}`));
+        });
+        
+        video.src = blobData.url;
+      });
+    } catch (error) {
+      throw new Error(`Video loading failed: ${error.message}`);
     }
   }
 

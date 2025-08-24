@@ -3,7 +3,8 @@
  * This is part of the Controller layer in MVC architecture
  */
 export class StorageService {
-  constructor() {
+  constructor(serviceManager = null) {
+    this.serviceManager = serviceManager;
     this.prefix = 'guitarapp_';
   }
 

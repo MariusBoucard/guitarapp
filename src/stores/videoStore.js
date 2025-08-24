@@ -7,8 +7,12 @@ export const useVideoStore = defineStore('video', {
     selectedVideo: 0,
     currentVideoName: "",
     
-    // Video paths
+    // Video paths and directory management
     videoPath: [],
+    rootDirectory: null, // DirectoryHandle for the root training directory
+    rootDirectoryPath: "", // String path to the root directory
+    currentDirectoryPath: "", // Current working directory path
+    defaultPath: "/media/marius/DISK GROS/", // Default base path for directory selection
     
     // Current playing state
     currentVideo: "",
@@ -22,8 +26,21 @@ export const useVideoStore = defineStore('video', {
     
     // Training structure (for videoComponentNew)
     niouTrainingList: [],
-    directoryName: "",
-    defaultPath: "/media/marius/DISK GROS/"
+    trainingMetadata: {
+      lastUpdated: null,
+      totalVideos: 0,
+      totalTrainings: 0,
+      averageDuration: 0
+    },
+    
+    // Directory management
+    directoryStructure: {
+      name: "",
+      path: "",
+      handle: null,
+      lastScanned: null,
+      totalSize: 0
+    }
   }),
   
   getters: {
@@ -39,7 +56,32 @@ export const useVideoStore = defineStore('video', {
       const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0');
       const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0');
       return `${minutes}:${seconds}.${milliseconds}`;
-    }
+    },
+    
+    // Directory and path getters
+    hasRootDirectory: (state) => state.rootDirectory !== null,
+    
+    effectiveBasePath: (state) => 
+      state.rootDirectoryPath || state.defaultPath,
+    
+    totalTrainingsCount: (state) => state.niouTrainingList.length,
+    
+    totalVideosCount: (state) => 
+      state.niouTrainingList.reduce((total, training) => {
+        return total + training.trainings.reduce((trainingTotal, item) => {
+          return trainingTotal + (item.videos ? item.videos.length : 1);
+        }, 0);
+      }, 0),
+    
+    trainingByIndex: (state) => (index) => state.niouTrainingList[index],
+    
+    directoryInfo: (state) => ({
+      name: state.directoryStructure.name,
+      path: state.directoryStructure.path,
+      lastScanned: state.directoryStructure.lastScanned,
+      totalVideos: state.trainingMetadata.totalVideos,
+      totalTrainings: state.trainingMetadata.totalTrainings
+    })
   },
   
   actions: {
@@ -117,6 +159,75 @@ export const useVideoStore = defineStore('video', {
       }
     },
     
+    // Directory management actions
+    setRootDirectory(directoryHandle, directoryPath) {
+      this.rootDirectory = directoryHandle;
+      this.rootDirectoryPath = directoryPath;
+      this.directoryStructure.handle = directoryHandle;
+      this.directoryStructure.name = directoryHandle?.name || '';
+      this.directoryStructure.path = directoryPath;
+      this.directoryStructure.lastScanned = new Date().toISOString();
+      this.saveDirectoryInfo();
+    },
+    
+    setCurrentDirectory(path) {
+      this.currentDirectoryPath = path;
+    },
+    
+    updateTrainingMetadata() {
+      this.trainingMetadata.totalTrainings = this.niouTrainingList.length;
+      this.trainingMetadata.totalVideos = this.niouTrainingList.reduce((total, training) => {
+        return total + training.trainings.reduce((trainingTotal, item) => {
+          return trainingTotal + (item.videos ? item.videos.length : 1);
+        }, 0);
+      }, 0);
+      this.trainingMetadata.lastUpdated = new Date().toISOString();
+    },
+    
+    setTrainingListWithMetadata(trainingList, directoryHandle = null, directoryPath = '') {
+      this.niouTrainingList = trainingList;
+      if (directoryHandle) {
+        this.setRootDirectory(directoryHandle, directoryPath);
+      }
+      this.updateTrainingMetadata();
+      this.saveNiouTrainings();
+      this.saveTrainingMetadata();
+    },
+    
+    clearDirectory() {
+      this.rootDirectory = null;
+      this.rootDirectoryPath = '';
+      this.currentDirectoryPath = '';
+      this.directoryStructure = {
+        name: "",
+        path: "",
+        handle: null,
+        lastScanned: null,
+        totalSize: 0
+      };
+      this.removeDirectoryInfo();
+    },
+    
+    // Storage methods
+    saveDirectoryInfo() {
+      const directoryInfo = {
+        name: this.directoryStructure.name,
+        path: this.directoryStructure.path,
+        lastScanned: this.directoryStructure.lastScanned,
+        rootDirectoryPath: this.rootDirectoryPath,
+        defaultPath: this.defaultPath
+      };
+      localStorage.setItem("directoryInfo", JSON.stringify(directoryInfo));
+    },
+    
+    saveTrainingMetadata() {
+      localStorage.setItem("trainingMetadata", JSON.stringify(this.trainingMetadata));
+    },
+    
+    removeDirectoryInfo() {
+      localStorage.removeItem("directoryInfo");
+    },
+    
     // Storage methods
     saveVideoTrainingsToStorage() {
       localStorage.setItem("videoSave", JSON.stringify(this.videoList));
@@ -140,6 +251,29 @@ export const useVideoStore = defineStore('video', {
       // Load niou trainings
       if (localStorage.getItem("Trainings")) {
         this.niouTrainingList = JSON.parse(localStorage.getItem("Trainings"));
+      }
+      
+      // Load directory info
+      if (localStorage.getItem("directoryInfo")) {
+        const directoryInfo = JSON.parse(localStorage.getItem("directoryInfo"));
+        this.directoryStructure.name = directoryInfo.name || '';
+        this.directoryStructure.path = directoryInfo.path || '';
+        this.directoryStructure.lastScanned = directoryInfo.lastScanned;
+        this.rootDirectoryPath = directoryInfo.rootDirectoryPath || '';
+        this.defaultPath = directoryInfo.defaultPath || this.defaultPath;
+      }
+      
+      // Load training metadata
+      if (localStorage.getItem("trainingMetadata")) {
+        this.trainingMetadata = {
+          ...this.trainingMetadata,
+          ...JSON.parse(localStorage.getItem("trainingMetadata"))
+        };
+      }
+      
+      // Update metadata if we have training data but no metadata
+      if (this.niouTrainingList.length > 0 && !this.trainingMetadata.lastUpdated) {
+        this.updateTrainingMetadata();
       }
     }
   }
