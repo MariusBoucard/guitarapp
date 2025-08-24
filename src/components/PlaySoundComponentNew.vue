@@ -38,8 +38,7 @@
       <!-- File Selection -->
       <div class="file-selection">
         <div class="button-wrap">
-          <button class="buttonbis" @click="selectAudioFileNative">Select Audio File (Native)</button>
-          <input type="file" @change="onFileChange" accept="audio/*" />
+          <button class="buttonbis" @click="selectAudioFileNative">Select Audio File</button>
         </div>
       </div>
     </div>
@@ -169,41 +168,26 @@ export default {
     // File management
     async selectAudioFileNative() {
       try {
-        const fileData = await this.fileService.selectAudioFile()
-        if (fileData) {
-          await this.loadAudioFile(fileData)
+        if (!window.electronAPI?.selectAudioFile) {
+          throw new Error('Native file selection not available')
+        }
+        
+        const filePath = await window.electronAPI.selectAudioFile()
+        if (filePath) {
+          await this.loadAudioFile({
+            path: filePath,
+            name: this.audioService.extractFilename(filePath),
+            isNative: true
+          })
         }
       } catch (error) {
         console.error('Error selecting audio file:', error)
+        // Could add user notification here
       }
     },
     
     async onFileChange(event) {
-      const file = event.target.files[0]
-      if (!file) return
-      
-      try {
-        let fileData
-        if (file.path) {
-          // Electron file with path
-          fileData = {
-            path: file.path,
-            name: file.name,
-            isNative: true
-          }
-        } else {
-          // Web file, create blob URL
-          fileData = {
-            path: this.audioService.createBlobUrl(file),
-            name: file.name,
-            isBlob: true
-          }
-        }
-        
-        await this.loadAudioFile(fileData)
-      } catch (error) {
-        console.error('Error loading file:', error)
-      }
+      // Removed - only native file selection is used
     },
     
     async loadAudioFile(fileData) {

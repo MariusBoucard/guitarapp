@@ -29,7 +29,8 @@
         </ol>
          <div class="container">
         <div class="button-wrap">
-          <label class="buttonbis" for="uploadVideo">Upload File</label>
+          <button class="buttonbis" @click="selectVideoFileNative">Select Video File</button>
+          <label class="buttonbis" for="uploadVideo">Upload File (Web)</label>
           <input id="uploadVideo" type="file" @change="loadVideo">
         </div>
       </div>
@@ -290,14 +291,25 @@ export default {
       //  console.log(remote)
       // const appDir = remote.getGlobal('appDir');
       const file = event.target.files[0];
-    this.videoPath.push(file.path.replace(/#/g, '%23'))
-    const filePath = file.path.replace(/#/g, '%23');
-    this.speed = 100;
-    console.log(filePath)
-    const videoURL = `file://${filePath}`;
-    console.log("vid", videoURL)
-    this.$refs.video.src = videoURL;
-  this.$refs.video.addEventListener('loadedmetadata', () => {
+      if (!file) return;
+
+      let filePath;
+      if (file.path) {
+        // If file.path is available (older Electron versions)
+        filePath = file.path.replace(/#/g, '%23');
+      } else {
+        // Use blob URL for newer security restrictions
+        filePath = URL.createObjectURL(file);
+      }
+
+      this.videoPath.push(filePath);
+      this.speed = 100;
+      console.log(filePath);
+      
+      const videoURL = filePath.startsWith('blob:') ? filePath : `file://${filePath}`;
+      console.log("vid", videoURL);
+      this.$refs.video.src = videoURL;
+      this.$refs.video.addEventListener('loadedmetadata', () => {
     URL.revokeObjectURL(videoURL);
     this.endTime = this.$refs.video.duration
 
@@ -305,7 +317,33 @@ export default {
   
       localStorage.setItem("videoSave",JSON.stringify(this.trainingList))
 
+    },
 
+    async selectVideoFileNative() {
+      try {
+        if (!window.electronAPI?.selectVideoFile) {
+          throw new Error('Native video file selection not available');
+        }
+        
+        const filePath = await window.electronAPI.selectVideoFile();
+        if (filePath) {
+          const sanitizedPath = filePath.replace(/#/g, '%23');
+          this.videoPath.push(sanitizedPath);
+          this.speed = 100;
+          
+          const videoURL = `file://${sanitizedPath}`;
+          console.log("Native video selected:", videoURL);
+          this.$refs.video.src = videoURL;
+          this.$refs.video.addEventListener('loadedmetadata', () => {
+            this.endTime = this.$refs.video.duration;
+          });
+          
+          localStorage.setItem("videoSave", JSON.stringify(this.trainingList));
+        }
+      } catch (error) {
+        console.error('Error selecting video file:', error);
+        alert('Native video selection failed. Please use the web file input instead.');
+      }
     },
     play(playbackRate = 100) {
       this.$refs.video.playbackRate = playbackRate / 100;

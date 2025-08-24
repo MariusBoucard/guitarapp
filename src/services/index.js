@@ -1,4 +1,5 @@
 import { AudioService } from './audioService.js'
+import { VideoService } from './videoService.js'
 import { FileService } from './fileService.js'
 import { StorageService } from './storageService.js'
 
@@ -17,6 +18,7 @@ export class ServiceManager {
    */
   initializeServices() {
     this.services.set('audio', new AudioService());
+    this.services.set('video', new VideoService());
     this.services.set('file', new FileService());
     this.services.set('storage', new StorageService());
   }
@@ -37,6 +39,13 @@ export class ServiceManager {
    */
   get audio() {
     return this.getService('audio');
+  }
+
+  /**
+   * Get video service
+   */
+  get video() {
+    return this.getService('video');
   }
 
   /**

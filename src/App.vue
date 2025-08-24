@@ -29,7 +29,8 @@
         <div style="">
           <MancheComponent :lefty="this.lefty" :noteToPlay="this.noteexpected" :cheat="this.cheat" :score="this.score" :showgame="this.gameDisplay" :gamePlay="this.isPlayingRoot" v-show="this.mancheDisplay"  @unselectgamme="unselectGamme()" :allnotesc="this.allNotesC" :allnotes="this.allNotes" :notePlayed="this.notePlayed" :diap=parseInt(this.diapason) :nbFrettes=this.nbfrettes :colorNotes=this.colorsComp :notesSelected="this.noteselectedcomp" :tuning=this.tuningList />
           <VideoComponent v-show="this.videoDisplay"></VideoComponent> 
-          <VideoComponentNew v-show="this.videoDisplayNew"></VideoComponentNew>
+          <!-- <VideoComponentNew v-show="this.videoDisplayNew"></VideoComponentNew> -->
+          <VideoComponentNewRefactored v-show="this.videoDisplayNew"></VideoComponentNewRefactored>
           <keyboardComponent v-show="this.keyboard"></keyboardComponent>
         </div>
         <div class="row">
@@ -86,6 +87,7 @@ import NotesAJouerComponent from './components/NoteAJouerComponent.vue'
 import myImage from '@/assets/frettebackground.jpeg';
 import SuggestedChordsComponent from './components/SuggestedChordsComponent.vue';
 import VideoComponentNew from './components/videoComponentNew.vue';
+import VideoComponentNewRefactored from './components/VideoComponentNewRefactored.vue';
 import KeyboardComponent from './components/KeyboardComponent.vue';
 // import GammeFromChordsComponent from './components/GammeFromChordsComponent.vue';
 // import metronome from 'vue-metronome'
@@ -104,7 +106,8 @@ export default {
     VideoComponent,
     VideoSettingsCOmponent,
     NotesAJouerComponent,
-    VideoComponentNew
+    VideoComponentNew,
+    VideoComponentNewRefactored
     // metronome
     ,
     KeyboardComponent,

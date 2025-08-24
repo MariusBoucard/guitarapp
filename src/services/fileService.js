@@ -63,35 +63,25 @@ export class FileService {
   }
 
   /**
-   * Select video file
+   * Select video file using native dialog (Electron) or file input
    */
   async selectVideoFile() {
-    return new Promise((resolve, reject) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'video/*';
-      
-      input.onchange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          resolve({
-            file: file,
-            path: file.path || URL.createObjectURL(file),
-            name: file.name,
-            isNative: false,
-            isBlob: !file.path
-          });
-        } else {
-          reject(new Error('No file selected'));
+    if (this.isElectron && window.electronAPI.selectVideoFile) {
+      try {
+        const filePath = await window.electronAPI.selectVideoFile();
+        if (filePath) {
+          return {
+            path: filePath,
+            name: this.extractFilename(filePath),
+            isNative: true
+          };
         }
-      };
-      
-      input.oncancel = () => {
-        reject(new Error('File selection cancelled'));
-      };
-      
-      input.click();
-    });
+      } catch (error) {
+        console.warn('Native video selection failed:', error);
+      }
+    }
+    
+    throw new Error('Native video selection not available');
   }
 
   /**
