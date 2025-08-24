@@ -10581,6 +10581,20 @@ require$$0.ipcMain.on("load-video", (event, filePath) => {
   const videoURL = URL.createObjectURL(new Blob([videoBuffer]));
   event.reply("video-loaded", videoURL);
 });
+require$$0.ipcMain.handle("select-audio-file", async () => {
+  const { dialog } = require("electron");
+  const result = await dialog.showOpenDialog({
+    properties: ["openFile"],
+    filters: [
+      { name: "Audio Files", extensions: ["mp3", "wav", "ogg", "flac", "m4a", "aac"] },
+      { name: "All Files", extensions: ["*"] }
+    ]
+  });
+  if (!result.canceled && result.filePaths.length > 0) {
+    return result.filePaths[0];
+  }
+  return null;
+});
 require$$0.ipcMain.on("parse-directory", (event, directoryPath) => {
 });
 require$$0.app.on("window-all-closed", () => {

@@ -51,6 +51,22 @@ ipcMain.on('load-video', (event, filePath) => {
   event.reply('video-loaded', videoURL)
 })
 
+ipcMain.handle('select-audio-file', async () => {
+  const { dialog } = require('electron')
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [
+      { name: 'Audio Files', extensions: ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  })
+  
+  if (!result.canceled && result.filePaths.length > 0) {
+    return result.filePaths[0]
+  }
+  return null
+})
+
 ipcMain.on('parse-directory', (event, directoryPath) => {
   // Commented out for now - can be implemented if needed
   // fs.readdir(directoryPath, (err, files) => {

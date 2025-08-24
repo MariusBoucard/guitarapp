@@ -1,23 +1,19 @@
   <template>
-
-    
+  <div class="play-sound-component">
     <div>
-
-
-<ul class="horizontal-list">
-          <li v-for="training in trainingComputed" @click="selectTrain(training)" :class="backColor(training)" :key="training">
-  <p>{{ training.name }}</p>
-  </li>
-</ul>
-<input v-model="currentName" type="text" />
-<button @click="addTraining()">add</button>
-<button @click="removeTraining()">remove</button>
-
-
-</div>
-<div>
-<ol class="ol-days">
-  <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
+      <ul class="horizontal-list">
+            <li v-for="training in trainingComputed" @click="selectTrain(training)" :class="backColor(training)" :key="training">
+      <p>{{ training.name }}</p>
+      </li>
+  </ul>
+  <input v-model="currentName" type="text" />
+  <button @click="addTraining()">add</button>
+  <button @click="removeTraining()">remove</button>
+  </div>
+  
+  <div>
+  <ol class="ol-days">
+    <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
     {{ item.split("\\")[item.split("\\").length - 1] }}
     <button class="button-cross" @click="remove(item)"></button>
   </li>
@@ -50,6 +46,9 @@
           <div class="button-wrap">
             <label class="buttonbis" for="upload">Upload File</label>
             <input id="upload" type="file" @change="onFileChange">
+          </div>
+          <div class="button-wrap">
+            <button class="buttonbis" @click="selectAudioFileNative">Select Audio File (Native)</button>
           </div>
         </div>
         <p style="font-weight: 300;">Song playing : {{ this.songPlaying }}</p>
@@ -84,7 +83,8 @@
     <p id="toneValue">0</p>
     </div>
     </div>
-</div>
+  </div>
+  </div>
   </template>
   
   <script>
@@ -160,6 +160,43 @@
       localStorage.setItem("songSave",JSON.stringify(this.trainingList))
 
     },
+
+      async selectAudioFileNative() {
+        try {
+          if (window.electronAPI && window.electronAPI.selectAudioFile) {
+            const filePath = await window.electronAPI.selectAudioFile();
+            if (filePath) {
+              // Extract filename from path
+              const fileName = filePath.split(/[\\/]/).pop();
+              
+              // Use the native file path directly
+              this.videoPath.push(filePath);
+              this.songPath.push(filePath);
+              this.saveSong();
+              this.songPlaying = fileName;
+
+              localStorage.setItem("songSave", JSON.stringify(this.trainingList));
+
+              // Load the audio file
+              const audioPlayer = this.$refs.audioPlayer;
+              const audioURL = `file://${filePath}`;
+              audioPlayer.addEventListener('loadedmetadata', () => {
+                this.songLength = audioPlayer.duration;
+                this.endTime = this.songLength;
+                this.startTime = 0;
+                console.log(this.songLength);
+                this.initWaveSurfer(audioURL);
+              });
+              audioPlayer.src = audioURL;
+            }
+          } else {
+            console.warn('Electron API not available, falling back to file input');
+          }
+        } catch (error) {
+          console.error('Error selecting audio file:', error);
+        }
+      },
+
       removeTraining(){
       this.trainingList.splice(this.selectedTraining,1)
       this.redoIdTrain()
@@ -213,21 +250,34 @@
         },
       onFileChange(event) {
         const file = event.target.files[0];
+        if (!file) return;
+        
         const reader = new FileReader();
-        const filePath =file.path.replace(/#/g, '%23')
-        this.videoPath.push(file.path.replace(/#/g, '%23'))
-        this.songPath.push(filePath)
-        this.saveSong()
-        this.songPlaying = file.name
+        
+        // In Electron, we might not have access to file.path for security reasons
+        // So we'll use the file name and create a blob URL instead
+        let filePath;
+        if (file.path) {
+          // If file.path is available (older Electron versions)
+          filePath = file.path.replace(/#/g, '%23');
+        } else {
+          // Use blob URL for newer security restrictions
+          filePath = URL.createObjectURL(file);
+        }
+        
+        this.videoPath.push(filePath);
+        this.songPath.push(filePath);
+        this.saveSong();
+        this.songPlaying = file.name;
 
-        localStorage.setItem("songSave",JSON.stringify(this.trainingList))
+        localStorage.setItem("songSave", JSON.stringify(this.trainingList));
 
         reader.onload = () => {
           const audioPlayer = this.$refs.audioPlayer;
-          const audioURL = `file://${filePath}`;
+          const audioURL = filePath.startsWith('blob:') ? filePath : `file://${filePath}`;
           audioPlayer.addEventListener('loadedmetadata', () => {
-      this.songLength = audioPlayer.duration;
-      this.endTime = this.songLength;
+            this.songLength = audioPlayer.duration;
+            this.endTime = this.songLength;
       this.startTime =0;
       console.log(this.songLength);
          const file = event.target.files[0];
