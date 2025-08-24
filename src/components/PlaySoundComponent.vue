@@ -294,7 +294,7 @@
       if (this.wavesurfer) {
         this.wavesurfer.destroy();
       }
-      print(fileUrl)
+      console.log('Loading file:', fileUrl)
       // this.wavesurfer = WaveSurfer.create({
       //   container: '#waveform',
       //   waveColor: 'violet',
