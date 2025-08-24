@@ -1,49 +1,58 @@
 'use strict'
 
 import { app, protocol, BrowserWindow, ipcMain } from 'electron'
-import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
+import { join } from 'path'
+import { fileURLToPath } from 'url'
+
 const fs = require('fs-extra')
-
-const path = require('path');
-
 const isDevelopment = process.env.NODE_ENV !== 'production'
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = join(__filename, '..')
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
 
 async function createWindow() {
-
   // Create the browser window.
   const win = new BrowserWindow({
     width: 1600,
     height: 1200,
-    backgroundColor: '#000000', // set the background color to black
-    icon: __dirname + '/public/icon.png',
+    backgroundColor: '#000000',
+    icon: join(__dirname, '../public/icon.png'),
     webPreferences: {
-      nodeIntegration: true, // Add this line
-      contextIsolation: true, // Add this line
-      // Use pluginOptions.nodeIntegration  , leave this alone
-      // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-      // nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
-      // contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
-      preload: __dirname + '/preload.js', // Add this line
+      nodeIntegration: false,
+      contextIsolation: true,
+      enableRemoteModule: false,
+      preload: join(__dirname, '../public/preload.js'),
       webSecurity: false
     }
   })
+  
   win.setMenu(null)
-  // win.webContents.openDevTools()
+  
+  if (isDevelopment) {
+    // Load the Vite dev server URL
+    await win.loadURL('http://localhost:8080')
+    if (!process.env.IS_TEST) win.webContents.openDevTools()
+  } else {
+    // Load the built files
+    await win.loadFile('dist/index.html')
+  }
+}
 
-
+// IPC handlers
 ipcMain.on('load-video', (event, filePath) => {
   const videoBuffer = fs.readFileSync(filePath)
   const videoURL = URL.createObjectURL(new Blob([videoBuffer]))
   event.reply('video-loaded', videoURL)
 })
 
-
 ipcMain.on('parse-directory', (event, directoryPath) => {
+  // Commented out for now - can be implemented if needed
   // fs.readdir(directoryPath, (err, files) => {
   //   if (err) {
   //     event.reply('parse-directory-response', { success: false, error: err.message });
@@ -60,21 +69,7 @@ ipcMain.on('parse-directory', (event, directoryPath) => {
   //     event.reply('parse-directory-response', { success: true, files: fileDetails });
   //   }
   // });
-});
-
-
-
-
-if (process.env.WEBPACK_DEV_SERVER_URL) {
-  // Load the url of the dev server if in development mode
-  await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
- if (!process.env.IS_TEST) win.webContents.openDevTools()
-} else {
-  createProtocol('app')
-  // Load the index.html when not in development
-  win.loadURL('app://./index.html')
-}
-}
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

@@ -193,7 +193,8 @@ export default {
                 { id : 10 , color : "white"},
                 { id : 11, color : "yellow"},
         ],
-            colorSave : this.colorsave
+            colorSave : this.colorsave,
+            scalestot: []
         }
     },
     computed : {
@@ -288,7 +289,7 @@ export default {
 
             //     var population = this.generatePopulation(this.scaleTypes[i].name)
                 this.scalestot.forEach(elem => {
-                    if (notes.every(val => elem.notes.includes(val))) {
+                    if (elem && elem.notes && notes.every(val => elem.notes.includes(val))) {
                         scalesfinal.push(elem)
                     }
 

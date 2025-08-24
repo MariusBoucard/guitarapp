@@ -1,12 +1,5 @@
   <template>
-    <!-- <input
-      type="range"
-      min="0"
-      max="100"
-      step="1"
-      v-model="seekValue"
-      @change="onSeek"
-    /> -->
+
     
     <div>
 
@@ -33,16 +26,7 @@
 </div>
 
     <div style="text-align: center;">
-        <!-- <div>
-            <ol  class="ol-days" >
-                <li v-for="item in this.songPath" :key="item" @click="this.launchFile(item)">
-                {{ item.split("\\")[item.split("\\").length - 1] }}
-                <button class="button-cross" @click="remove(item)"></button>
 
-                </li>
-            </ol>
-
-        </div> -->
         <div class="slider-parent">
       <div class="slider-container">
         <label for="startSlider" class="slider-label">Song Start</label>
@@ -91,12 +75,20 @@
     <p id="rangeValue">100</p>
     </div>
     </div>
+
+     <div style="text-align: center;">
+      <h3 style="display: block;float: top">Pitch</h3>
+      <div class="slider" style="margin : auto">
+
+    <input type="range" min="-12" max="12" oninput="toneValue.innerText = this.value"  v-model="this.pitch">
+    <p id="toneValue">0</p>
+    </div>
+    </div>
 </div>
   </template>
   
   <script>
-// const path = require('path');
- 
+
   export default {
 
     data() {
@@ -114,13 +106,22 @@
         seekValue: 0,
         speed : 100,
         songPath : [],
-        songPlaying : ""
+        songPlaying : "",
+
+              pitch: 0, // 0 = normal, positive = up, negative = down
+      audioCtx: null,
+      sourceNode: null,
+      soundtouchNode: null,
       };
     },
     watch: {
     speed(newValue) {
       this.valueChangedHandler(newValue);
     },
+        pitch(newValue) {
+      if (this.wavesurfer) {
+        this.wavesurfer.setPitch(Number(newValue));
+      }    }
   },
   computed : {
     trainingComputed() {
@@ -229,6 +230,9 @@
       this.endTime = this.songLength;
       this.startTime =0;
       console.log(this.songLength);
+         const file = event.target.files[0];
+      const url = URL.createObjectURL(file);
+      this.initWaveSurfer(url);
     });
           audioPlayer.src = audioURL;
 
@@ -236,17 +240,32 @@
   
          reader.readAsDataURL(file);
       },
-    
+      initWaveSurfer(fileUrl) {
+      if (this.wavesurfer) {
+        this.wavesurfer.destroy();
+      }
+      print(fileUrl)
+      // this.wavesurfer = WaveSurfer.create({
+      //   container: '#waveform',
+      //   waveColor: 'violet',
+      //   progressColor: 'purple',
+      //   plugins: [
+      //     PitchPlugin.create()
+      //   ]
+      // });
+      // this.wavesurfer.load(fileUrl);
+    },
       play() {
-        this.$refs.audioPlayer.play();
-      },
+          if (this.wavesurfer) this.wavesurfer.play();
+  },
       pause() {
-        this.$refs.audioPlayer.pause();
+      if (this.wavesurfer) this.wavesurfer.pause();
       },
       stop() {
-        const { audioPlayer } = this.$refs;
-        audioPlayer.pause();
-        audioPlayer.currentTime = 0;
+      if (this.wavesurfer) {
+        this.wavesurfer.stop();
+        this.wavesurfer.seekTo(0);
+      }
       },
       setSpeed(speed) {
         this.$refs.audioPlayer.playbackRate = speed;

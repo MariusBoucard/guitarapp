@@ -11,11 +11,24 @@
   </template>
   
   <script>
-import GuitarChords from 'guitar-chords-viewer';  
-  export default {
-    components: {
-      GuitarChords,
-    },
+// Try different import approaches for guitar-chords-viewer
+let GuitarChords;
+try {
+  // Try named import
+  GuitarChords = require('guitar-chords-viewer');
+} catch (e) {
+  console.warn('guitar-chords-viewer not available:', e);
+  // Fallback component
+  GuitarChords = {
+    name: 'guitar-chords',
+    template: '<div>Guitar chords component not available</div>'
+  };
+}
+
+export default {
+  components: {
+    GuitarChords,
+  },
     props: {
       chord: {
         type: String,

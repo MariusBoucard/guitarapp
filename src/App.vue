@@ -18,7 +18,6 @@
       <li class="linavbar" :class=" this.videoDisplayNew ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.videoDisplayNew = ! this.videoDisplayNew">Play video new</a></li>
 
       <li class="linavbar" :class=" this.gameDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.gameDisplay = ! this.gameDisplay ">Play game</a></li>
-      <li class="linavbar" :class=" this.chordsDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.chordsDisplay = ! this.chordsDisplay">Affichage accords</a></li>
       <li class="linavbar" :class=" this.chordssuggestDisplay ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.chordssuggestDisplay = ! this.chordssuggestDisplay">Suggestion accords</a></li>
       <li class="linavbar" :class=" this.keyboard ?  'enabled' :'disabled' " style="float:right"><a class="active"  @click="this.keyboard = ! this.keyboard">Keyboard</a></li>
     
@@ -60,7 +59,6 @@
     <!-- <metronome></metronome> -->
   </div>
   
-    <GuitarChordsComponent v-show="this.chordsDisplay" />
 
   
   
@@ -84,7 +82,6 @@ import VideoComponent from './components/videoComponent.vue';
 import VideoSettingsCOmponent from './components/VideoSettingsCOmponent.vue';
 import NotesAJouerComponent from './components/NoteAJouerComponent.vue'
 import myImage from '@/assets/frettebackground.jpeg';
-import GuitarChordsComponent from './components/GuitarChordsComponent.vue';
 import SuggestedChordsComponent from './components/SuggestedChordsComponent.vue';
 import VideoComponentNew from './components/videoComponentNew.vue';
 import KeyboardComponent from './components/KeyboardComponent.vue';
@@ -108,7 +105,6 @@ export default {
     // metronome
     ,
     KeyboardComponent,
-    GuitarChordsComponent,
     SuggestedChordsComponent,
     // GammeFromChordsComponent
 },
@@ -126,7 +122,6 @@ export default {
       videoDisplay : false,
       videoDisplayNew : true,
       gameDisplay : false,
-      chordsDisplay : false,
       chordssuggestDisplay : false,
       score:0,
       gammeSelected : "",
@@ -411,11 +406,6 @@ export default {
             localStorage.setItem('gameDisplay',this.gameDisplay)
         }
       } ,
-      chordsDisplay :  {
-        handler() {
-            localStorage.setItem('chordsDisplay',this.chordsDisplay)
-        }
-      } ,
       chordssuggestDisplay : {
         handler() {
             localStorage.setItem('chordssuggestDisplay',this.chordssuggestDisplay)
@@ -463,9 +453,6 @@ export default {
                   } if(localStorage.getItem('pictureDisplay')!==null){
                     this.pictureDisplay = ( localStorage.getItem('pictureDisplay') === "true")
                   } 
-                  if(localStorage.getItem('chordsDisplay')!==null){
-                    this.chordsDisplay = ( localStorage.getItem('chordsDisplay') === "true")
-                  }
                   if(localStorage.getItem('chordssuggestDisplay')!==null){
                     this.chordssuggestDisplay =  ( localStorage.getItem('chordssuggestDisplay') === "true")
                   }
