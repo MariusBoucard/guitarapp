@@ -34,7 +34,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['guitar-chords-viewer', 'guitar-chords', 'guitar-js'],
+    include: ['guitar-chords', 'guitar-js'],
     exclude: ['electron']
   },
   base: './',
