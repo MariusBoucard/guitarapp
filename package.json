@@ -11,7 +11,7 @@
     "dev": "vite",
     "build:vite": "vite build",
     "preview": "vite preview",
-    "electron:dev": "vite",
+    "electron:dev": "vite --mode electron-dev",
     "electron:build:vite": "vite build && electron-builder",
     "electron:build:win": "vite build && electron-builder --win",
     "electron:build:mac": "vite build && electron-builder --mac",

@@ -1,8 +1,7 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain } from 'electron'
-import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
-import { join } from 'path'
+import { app, protocol, BrowserWindow, ipcMain, dialog } from 'electron'
+import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const fs = require('fs-extra')
@@ -10,8 +9,9 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = join(__filename, '..')
+const __dirname = dirname(__filename)
 
+// Register schemes before app ready
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
@@ -28,59 +28,74 @@ async function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false,
       preload: join(__dirname, '../public/preload.js'),
-      webSecurity: false
+      webSecurity: isDevelopment ? false : true // Only disable in development
     }
   })
   
   win.setMenu(null)
   
   if (isDevelopment) {
-    // Load the Vite dev server URL
-    await win.loadURL('http://localhost:8080')
+    // Load the Vite dev server URL - updated port to match your logs
+    await win.loadURL('http://localhost:8081')
     if (!process.env.IS_TEST) win.webContents.openDevTools()
   } else {
     // Load the built files
     await win.loadFile('dist/index.html')
   }
+  
+  return win
 }
 
 // IPC handlers
 ipcMain.on('load-video', (event, filePath) => {
-  const videoBuffer = fs.readFileSync(filePath)
-  const videoURL = URL.createObjectURL(new Blob([videoBuffer]))
-  event.reply('video-loaded', videoURL)
+  try {
+    const videoBuffer = fs.readFileSync(filePath)
+    const videoURL = URL.createObjectURL(new Blob([videoBuffer]))
+    event.reply('video-loaded', videoURL)
+  } catch (error) {
+    console.error('Error loading video:', error)
+    event.reply('video-load-error', error.message)
+  }
 })
 
 ipcMain.handle('select-audio-file', async () => {
-  const { dialog } = require('electron')
-  const result = await dialog.showOpenDialog({
-    properties: ['openFile'],
-    filters: [
-      { name: 'Audio Files', extensions: ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'] },
-      { name: 'All Files', extensions: ['*'] }
-    ]
-  })
-  
-  if (!result.canceled && result.filePaths.length > 0) {
-    return result.filePaths[0]
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [
+        { name: 'Audio Files', extensions: ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    })
+    
+    if (!result.canceled && result.filePaths.length > 0) {
+      return result.filePaths[0]
+    }
+    return null
+  } catch (error) {
+    console.error('Error selecting audio file:', error)
+    return null
   }
-  return null
 })
 
 ipcMain.handle('select-video-file', async () => {
-  const { dialog } = require('electron')
-  const result = await dialog.showOpenDialog({
-    properties: ['openFile'],
-    filters: [
-      { name: 'Video Files', extensions: ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'] },
-      { name: 'All Files', extensions: ['*'] }
-    ]
-  })
-  
-  if (!result.canceled && result.filePaths.length > 0) {
-    return result.filePaths[0]
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [
+        { name: 'Video Files', extensions: ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    })
+    
+    if (!result.canceled && result.filePaths.length > 0) {
+      return result.filePaths[0]
+    }
+    return null
+  } catch (error) {
+    console.error('Error selecting video file:', error)
+    return null
   }
-  return null
 })
 
 ipcMain.on('parse-directory', (event, directoryPath) => {
@@ -103,6 +118,46 @@ ipcMain.on('parse-directory', (event, directoryPath) => {
   // });
 })
 
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+app.whenReady().then(async () => {
+  // Set up protocol handling
+  protocol.handle('app', (request) => {
+    const filePath = request.url.slice('app://'.length)
+    return net.fetch(`file://${join(__dirname, '../public', filePath)}`)
+  })
+
+  // Install Vue Devtools only in development
+  if (isDevelopment && !process.env.IS_TEST) {
+    try {
+      // Use the newer session API
+      const { session } = require('electron')
+      const path = require('path')
+      
+      // Check if Vue Devtools is already installed
+      const extensions = session.defaultSession.getAllExtensions()
+      const vueDevtoolsId = 'nhdogjmejiglipccpnnnanhbledajbpd'
+      
+      if (!extensions[vueDevtoolsId]) {
+        // Try to install Vue Devtools
+        const { default: installExtension, VUEJS3_DEVTOOLS } = await import('electron-devtools-installer')
+        await installExtension(VUEJS3_DEVTOOLS)
+        console.log('Vue Devtools installed successfully')
+      }
+    } catch (e) {
+      console.error('Vue Devtools failed to install:', e.toString())
+    }
+  }
+
+  createWindow()
+
+  app.on('activate', () => {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
+
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
@@ -110,37 +165,6 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
-})
-app.once('ready-to-show', () => {
-  protocol.interceptFileProtocol('file', (request, callback) => {
-    const filePath = request.url.replace('app://', '');
-    const url = request.url.includes('img/') ? filePath.normalize(`${__dirname}/${filePath}`) : filePath;
-
-    callback({ path: url });
-  }, err => {
-    if (err) console.error('Failed to register protocol');
-  });
-});
-
-app.on('activate', () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) createWindow()
-})
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', async () => {
-  if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-    try {
-      await installExtension(VUEJS3_DEVTOOLS)
-    } catch (e) {
-      console.error('Vue Devtools failed to install:', e.toString())
-    }
-  }
-  createWindow()
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -157,4 +181,3 @@ if (isDevelopment) {
     })
   }
 }
-// contextBridge.exposeInMainWorld('process', process);
