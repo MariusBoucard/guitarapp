@@ -74,23 +74,43 @@ export const useTrainingStore = defineStore('training', {
     },
 
     // Video management for trainings
-    addVideoToTraining(trainingId, videoPath) {
+    addVideoToTraining(trainingId, videoData) {
       const training = this.trainingList.find(t => t.id === trainingId);
-      if (training && !training.list.includes(videoPath)) {
-        training.list.push(videoPath);
-        this.saveTrainingsToStorage();
+      if (training) {
+        // Check if video already exists (by identifier)
+        const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData);
+        const exists = training.list.some(item => {
+          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item);
+          return existingIdentifier === identifier;
+        });
+        
+        if (!exists) {
+          training.list.push(videoData);
+          this.saveTrainingsToStorage();
+        }
       }
     },
 
-    removeVideoFromTraining(trainingId, videoPath) {
+    removeVideoFromTraining(trainingId, videoData) {
       const training = this.trainingList.find(t => t.id === trainingId);
       if (training) {
-        const index = training.list.indexOf(videoPath);
+        const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData);
+        const index = training.list.findIndex(item => {
+          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item);
+          return existingIdentifier === identifier;
+        });
+        
         if (index > -1) {
           training.list.splice(index, 1);
           this.saveTrainingsToStorage();
         }
       }
+    },
+
+    // Helper method to get video identifier
+    getVideoIdentifier(videoData) {
+      if (typeof videoData === 'string') return videoData;
+      return videoData.fileHandleId || videoData.identifier || videoData.url || videoData.path;
     },
     
     reindexTrainings() {

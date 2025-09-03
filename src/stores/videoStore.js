@@ -275,6 +275,234 @@ export const useVideoStore = defineStore('video', {
       if (this.niouTrainingList.length > 0 && !this.trainingMetadata.lastUpdated) {
         this.updateTrainingMetadata();
       }
+    },
+
+    // Validate and clean FileHandle references
+    validateFileHandles(fileService) {
+      if (!fileService) {
+        return true;
+      }
+
+      // Don't clear everything - just check if we need to refresh FileHandles
+      if (this.niouTrainingList.length === 0) {
+        return true;
+      }
+
+      // Check if any video has a handleId that no longer exists
+      let hasInvalidHandles = false;
+      
+      for (const training of this.niouTrainingList) {
+        for (const subTraining of training.trainings || []) {
+          for (const video of subTraining.videos || []) {
+            if (video.fileHandleId && !fileService.getFileHandle(video.fileHandleId)) {
+              hasInvalidHandles = true;
+              break;
+            }
+          }
+          if (hasInvalidHandles) break;
+        }
+        if (hasInvalidHandles) break;
+      }
+
+      if (hasInvalidHandles) {
+        console.log('Invalid FileHandle references detected - will need to refresh handles on directory access');
+        return false;
+      }
+
+      return true;
+    },
+
+    // Refresh FileHandle references for existing video data
+    async refreshFileHandles(fileService) {
+      if (!this.rootDirectory || !fileService || this.niouTrainingList.length === 0) {
+        return false;
+      }
+
+      try {
+        console.log('Refreshing FileHandle references for existing videos');
+        
+        // Try to get fresh directory handle
+        let directoryHandle = this.rootDirectory;
+        
+        // If we don't have a valid directory handle, we need user to select again
+        if (!directoryHandle || !directoryHandle.values) {
+          console.log('Directory handle invalid, need fresh directory access');
+          return false;
+        }
+
+        // Create a map of file paths to FileHandle IDs
+        const pathToHandleMap = new Map();
+        
+        // Recursively collect all video files and create new FileHandle references
+        await this.collectFileHandles(directoryHandle, '', pathToHandleMap, fileService);
+        
+        // Update video objects with new FileHandle IDs
+        for (const training of this.niouTrainingList) {
+          for (const subTraining of training.trainings || []) {
+            for (const video of subTraining.videos || []) {
+              if (video.path) {
+                const newHandleId = pathToHandleMap.get(video.path);
+                if (newHandleId) {
+                  video.fileHandleId = newHandleId;
+                  console.log(`Updated FileHandle for ${video.name}: ${newHandleId}`);
+                }
+              }
+            }
+          }
+        }
+        
+        // Save updated data
+        this.saveNiouTrainings();
+        return true;
+        
+      } catch (error) {
+        console.error('Failed to refresh FileHandles:', error);
+        return false;
+      }
+    },
+
+    // Helper method to collect FileHandles recursively
+    async collectFileHandles(directoryHandle, currentPath, pathToHandleMap, fileService) {
+      try {
+        for await (const entry of directoryHandle.values()) {
+          const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+          
+          if (entry.kind === 'file' && this.isVideoFile(entry.name)) {
+            const handleId = fileService.storeFileHandle(entry);
+            pathToHandleMap.set(entryPath, handleId);
+          } else if (entry.kind === 'directory') {
+            await this.collectFileHandles(entry, entryPath, pathToHandleMap, fileService);
+          }
+        }
+      } catch (error) {
+        console.warn('Error collecting FileHandles from directory:', error);
+      }
+    },
+
+    // Helper method to check if file is a video
+    isVideoFile(filename) {
+      const videoExtensions = ['.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv', '.webm', '.m4v'];
+      const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'));
+      return videoExtensions.includes(ext);
+    },
+
+    // Auto-reload directory if we have stored directory info
+    async autoReloadDirectory(fileService) {
+      if (!this.directoryStructure.name || !fileService) {
+        return false;
+      }
+
+      try {
+        console.log('Attempting to auto-reload directory:', this.directoryStructure.name);
+        
+        // If we have existing video data, try to refresh FileHandles first
+        if (this.niouTrainingList.length > 0) {
+          console.log('Found existing video data, attempting to refresh FileHandles');
+          const refreshed = await this.refreshFileHandles(fileService);
+          if (refreshed) {
+            console.log('Successfully refreshed FileHandles for existing videos');
+            return true;
+          }
+        }
+        
+        // Clear existing training list since we need to re-scan
+        this.niouTrainingList = [];
+        
+        // For Electron, try to get the last used directory
+        if (window.electronAPI && window.electronAPI.getLastDirectory) {
+          const lastDirectory = await window.electronAPI.getLastDirectory();
+          if (lastDirectory && lastDirectory === this.rootDirectoryPath) {
+            // Re-scan the directory using Electron
+            const videos = await window.electronAPI.scanDirectory(this.rootDirectoryPath);
+            if (videos && videos.length > 0) {
+              this.niouTrainingList = this.convertElectronVideosToTrainingList(videos);
+              this.updateTrainingMetadata();
+              this.saveNiouTrainings();
+              console.log('Auto-reloaded directory from Electron');
+              return true;
+            }
+          }
+        }
+        
+        // For web File System Access API, automatically request directory access
+        if (window.showDirectoryPicker) {
+          console.log('Web environment: Requesting directory access for auto-reload');
+          try {
+            // Auto-prompt for directory access
+            const directoryHandle = await fileService.selectDirectory();
+            if (directoryHandle) {
+              const result = await fileService.readDirectoryRecursive(directoryHandle, this.defaultPath);
+              
+              // Use the enhanced store method with metadata
+              this.setTrainingListWithMetadata(
+                result.trainings, 
+                directoryHandle, 
+                result.metadata.basePath
+              );
+              
+              // Force save to ensure new data overwrites old data
+              this.saveNiouTrainings();
+              this.saveDirectoryInfo();
+              this.saveTrainingMetadata();
+              
+              console.log('Auto-reloaded directory from web File System Access API');
+              console.log('New training list length:', this.niouTrainingList.length);
+              return true;
+            }
+          } catch (error) {
+            if (error.name === 'AbortError') {
+              console.log('User cancelled directory selection');
+            } else {
+              console.error('Failed to auto-request directory access:', error);
+            }
+          }
+        }
+        
+        return false;
+      } catch (error) {
+        console.error('Failed to auto-reload directory:', error);
+        return false;
+      }
+    },
+
+    // Convert Electron video list to training list format
+    convertElectronVideosToTrainingList(videos) {
+      const trainingMap = new Map();
+      
+      videos.forEach(video => {
+        const pathParts = video.path.split(/[\\\/]/);
+        const trainingType = pathParts[pathParts.length - 3] || 'General';
+        const trainingName = pathParts[pathParts.length - 2] || 'Videos';
+        
+        if (!trainingMap.has(trainingType)) {
+          trainingMap.set(trainingType, {
+            trainingType,
+            trainings: new Map(),
+            show: false
+          });
+        }
+        
+        const training = trainingMap.get(trainingType);
+        if (!training.trainings.has(trainingName)) {
+          training.trainings.set(trainingName, {
+            name: trainingName,
+            videos: [],
+            show: false
+          });
+        }
+        
+        training.trainings.get(trainingName).videos.push({
+          name: video.name,
+          url: video.path,
+          path: video.path
+        });
+      });
+      
+      // Convert maps to arrays
+      return Array.from(trainingMap.values()).map(training => ({
+        ...training,
+        trainings: Array.from(training.trainings.values())
+      }));
     }
   }
 })

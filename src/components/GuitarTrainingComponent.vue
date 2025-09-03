@@ -24,7 +24,7 @@
               :tuning="tuningStore.tuningList" 
             />
             <VideoComponent v-show="appStore.videoDisplay"></VideoComponent> 
-            <TrainingComponent v-show="appStore.trainingDisplay" @video-selected="handleVideoSelection"></TrainingComponent>
+            <TrainingComponent v-show="appStore.trainingDisplay"></TrainingComponent>
             <VideoComponentNewRefactored v-show="appStore.videoDisplayNew" ref="videoPlayer"></VideoComponentNewRefactored>
             <keyboardComponent v-show="appStore.keyboard"></keyboardComponent>
           </div>
@@ -157,34 +157,12 @@ export default {
     const tuningStore = useTuningStore()
     const gameStore = useGameStore()
     
-    // Methods
-    const handleVideoSelection = (videoPath) => {
-      // Show the video player and hide the training component
-      appStore.videoDisplayNew = true
-      appStore.trainingDisplay = false
-      
-      // Use nextTick to ensure the video player component is rendered
-      nextTick(() => {
-        const videoPlayer = document.querySelector('video')
-        if (videoPlayer && videoPath) {
-          const sanitizedPath = videoPath.replace(/#/g, '%23')
-          const videoURL = videoPath.startsWith('blob:') || videoPath.startsWith('http') 
-            ? videoPath 
-            : `file://${sanitizedPath}`
-          
-          videoPlayer.src = videoURL
-          console.log('Video loaded:', videoURL)
-        }
-      })
-    }
-    
     return {
       appStore,
       notesStore,
       tuningStore,
       gameStore,
-      appController,
-      handleVideoSelection
+      appController
     }
   }
 }

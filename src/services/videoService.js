@@ -113,8 +113,15 @@ export class VideoService {
       throw new Error('Video element is required');
     }
 
-    const sanitizedPath = this.sanitizeFilePath(filePath);
-    videoElement.src = `file://${sanitizedPath}`;
+    // For Electron, use the file path directly without URL encoding
+    if (window.electronAPI) {
+      videoElement.src = `file://${filePath}`;
+    } else {
+      // For web environments, apply URL encoding
+      const sanitizedPath = this.sanitizeFilePath(filePath);
+      videoElement.src = `file://${sanitizedPath}`;
+    }
+    
     return videoElement.src;
   }
 

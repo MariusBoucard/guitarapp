@@ -1,5 +1,5 @@
 <template>
-  <div style="width:100%;height : 100%">
+  <div style="width:100%;height : 100%" data-video-component="new-refactored">
     <div class="two-columns">
       <div class="column-left">
         <div>
@@ -27,6 +27,14 @@
             <input v-model="defaultPath" type="text" placeholder="Enter base path" />
             <button @click="selectTrainingDirectory">Select Training Directory</button>
             <button @click="selectSingleVideo">Select Single Video</button>
+            
+            <!-- Auto-reload status -->
+            <div v-if="showAutoReloadMessage" class="auto-reload-message">
+              <p>📁 Found previous directory: <strong>{{ directoryInfo.name }}</strong></p>
+              <p>To access your videos again, we need directory permission.</p>
+              <button @click="reloadDirectory" class="reload-btn">📂 Reload Directory</button>
+              <button @click="hideAutoReloadMessage" class="dismiss-btn">Dismiss</button>
+            </div>
             
             <!-- Directory Info Display -->
             <div v-if="directoryInfo.name" class="directory-info">
@@ -120,7 +128,7 @@
 </template>
 
 <script>
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useVideoStore } from '@/stores/videoStore'
 import { serviceManager } from '@/services'
 
@@ -135,6 +143,7 @@ export default {
     // Reactive references
     const videoPlayer = ref(null)
     const errorMessage = ref('')
+    const showAutoReloadMessage = ref(false)
 
     // Computed properties from store
     const trainingList = computed(() => videoStore.niouTrainingList)
@@ -172,22 +181,34 @@ export default {
     const selectTrainingDirectory = async () => {
       try {
         const directoryHandle = await fileService.selectDirectory()
-        const result = await fileService.readDirectoryRecursive(directoryHandle, defaultPath.value)
+        
+        // Try to get the actual directory path (Electron specific)
+        let actualDirectoryPath = defaultPath.value
+        if (window.electronAPI && window.electronAPI.getDirectoryPath) {
+          try {
+            actualDirectoryPath = await window.electronAPI.getDirectoryPath(directoryHandle)
+          } catch (error) {
+            console.warn('Could not get actual directory path, using default:', error)
+          }
+        }
+        
+        const result = await fileService.readDirectoryRecursive(directoryHandle, actualDirectoryPath)
         
         // Use the enhanced store method with metadata
         videoStore.setTrainingListWithMetadata(
           result.trainings, 
           directoryHandle, 
-          result.metadata.basePath
+          actualDirectoryPath
         )
         
         console.log('Training list loaded:', {
           trainings: result.trainings.length,
           totalVideos: result.metadata.totalVideos,
-          path: result.metadata.basePath
+          path: actualDirectoryPath
         })
         
         errorMessage.value = ''
+        showAutoReloadMessage.value = false // Hide the auto-reload message
       } catch (error) {
         console.error('Failed to select training directory:', error)
         errorMessage.value = `Failed to load training directory: ${error.message}`
@@ -248,55 +269,111 @@ export default {
         console.log('videoData type:', typeof videoData)
         console.log('videoData has fileHandleId:', !!videoData?.fileHandleId)
         
-        // Check if videoData has a fileHandleId (from File System Access API)
-        if (videoData && videoData.fileHandleId) {
-          const videoElement = videoPlayer.value
-          if (!videoElement) {
-            throw new Error('Video player not found')
-          }
-
-          // Use FileHandle ID to create blob URL
-          const blobUrl = await videoService.setVideoSourceFromHandleId(videoElement, videoData.fileHandleId)
-          
-          // Update store with current video info
-          videoStore.currentVideoName = videoData.name
-          videoStore.speed = 100
-          
-          console.log('Loading video from FileHandle:', videoData.name)
-        } else {
-          // Legacy support for file paths (from Electron ICP or direct paths)
-          let filePath
-          if (typeof videoData === 'string') {
-            // Direct file path string
-            filePath = videoData
-          } else if (videoData && videoData.url) {
-            // Object with url property
-            filePath = videoData.url
-          } else if (videoData && videoData.path) {
-            // Object with path property
-            filePath = videoData.path
-          } else {
-            throw new Error('No valid file path found in video data')
-          }
-
-          const videoElement = videoPlayer.value
-          if (!videoElement) {
-            throw new Error('Video player not found')
-          }
-
-          videoService.setVideoSource(videoElement, filePath)
-          
-          // Update store with current video info
-          videoStore.currentVideoName = videoData.name || videoService.extractFilename(filePath)
-          videoStore.speed = 100
-          
-          console.log('Loading video from path:', filePath)
+        const videoElement = videoPlayer.value
+        if (!videoElement) {
+          throw new Error('Video player not found')
         }
         
-        errorMessage.value = ''
+        // Check if videoData has a fileHandleId (from File System Access API)
+        if (videoData && videoData.fileHandleId) {
+          try {
+            // Try to use FileHandle ID to create blob URL
+            const blobUrl = await videoService.setVideoSourceFromHandleId(videoElement, videoData.fileHandleId)
+            
+            // Update store with current video info
+            videoStore.currentVideoName = videoData.name
+            videoStore.speed = 100
+            
+            console.log('Loading video from FileHandle:', videoData.name)
+            errorMessage.value = ''
+            return // Success with FileHandle
+          } catch (fileHandleError) {
+            console.warn('FileHandle failed, trying fallback methods:', fileHandleError.message)
+            // Continue to try other methods below
+          }
+        }
+        
+        // Fallback: Try path-based loading with multiple strategies
+        let filePath
+        let pathStrategies = []
+        
+        // Strategy 1: Direct paths
+        if (typeof videoData === 'string') {
+          pathStrategies.push(videoData)
+        } else if (videoData && videoData.url) {
+          pathStrategies.push(videoData.url)
+        }
+        
+        // Strategy 2: Electron absolute path construction
+        if (videoData && videoData.path && videoStore.rootDirectoryPath) {
+          const separator = videoStore.rootDirectoryPath.includes('\\') ? '\\' : '/'
+          const absolutePath = `${videoStore.rootDirectoryPath.replace(/[\\\/]+$/, '')}${separator}${videoData.path.replace(/\//g, separator)}`
+          pathStrategies.push(absolutePath)
+        }
+        
+        // Strategy 3: Try using the defaultPath as base
+        if (videoData && videoData.path && defaultPath.value) {
+          const separator = defaultPath.value.includes('\\') ? '\\' : '/'
+          const fallbackPath = `${defaultPath.value.replace(/[\\\/]+$/, '')}${separator}${videoData.path.replace(/\//g, separator)}`
+          pathStrategies.push(fallbackPath)
+        }
+        
+        // Strategy 4: Construct from name and parent
+        if (videoData && videoData.name) {
+          const relativePath = videoData.parentName ? `${videoData.parentName}/${videoData.name}` : videoData.name
+          
+          if (videoStore.rootDirectoryPath) {
+            const separator = videoStore.rootDirectoryPath.includes('\\') ? '\\' : '/'
+            pathStrategies.push(`${videoStore.rootDirectoryPath.replace(/[\\\/]+$/, '')}${separator}${relativePath.replace(/\//g, separator)}`)
+          }
+          
+          if (defaultPath.value) {
+            const separator = defaultPath.value.includes('\\') ? '\\' : '/'
+            pathStrategies.push(`${defaultPath.value.replace(/[\\\/]+$/, '')}${separator}${relativePath.replace(/\//g, separator)}`)
+          }
+        }
+        
+        if (pathStrategies.length === 0) {
+          throw new Error('No valid file path strategies available')
+        }
+        
+        // Try each path strategy
+        console.log('Trying path strategies:', pathStrategies)
+        
+        for (const tryPath of pathStrategies) {
+          try {
+            filePath = tryPath
+            console.log('Attempting to load video from path:', filePath)
+            
+            videoService.setVideoSource(videoElement, filePath)
+            
+            // Update store with current video info
+            videoStore.currentVideoName = videoData.name || videoService.extractFilename(filePath)
+            videoStore.speed = 100
+            
+            console.log('Successfully loaded video from path:', filePath)
+            errorMessage.value = ''
+            return // Success - exit the function
+          } catch (pathError) {
+            console.warn(`Failed to load video from path ${filePath}:`, pathError.message)
+            // Continue to next strategy
+          }
+        }
+        
+        // If we get here, all path strategies failed
+        throw new Error(`Failed to load video using any of ${pathStrategies.length} path strategies`)
       } catch (error) {
         console.error('Failed to launch video:', error)
-        errorMessage.value = `Failed to load video: ${error.message}`
+        
+        // Check if this is a FileHandle error
+        if (error.message && error.message.includes('FileHandle not found')) {
+          // Clear invalid video data and show helpful message
+          console.log('FileHandle error detected, showing reload option')
+          showAutoReloadMessage.value = true
+          errorMessage.value = 'Video files need to be reloaded. Please click "📂 Reload Directory" to refresh the video list.'
+        } else {
+          errorMessage.value = `Failed to load video: ${error.message}`
+        }
       }
     }
 
@@ -377,7 +454,29 @@ export default {
 
     const clearDirectory = () => {
       videoStore.clearDirectory()
+      showAutoReloadMessage.value = false
       console.log('Directory cleared')
+    }
+
+    const hideAutoReloadMessage = () => {
+      showAutoReloadMessage.value = false
+    }
+
+    const reloadDirectory = async () => {
+      try {
+        showAutoReloadMessage.value = false
+        
+        const reloaded = await videoStore.autoReloadDirectory(fileService)
+        if (reloaded) {
+          console.log('Successfully reloaded directory')
+          errorMessage.value = ''
+        } else {
+          errorMessage.value = 'Failed to reload directory. Please try "Select Training Directory".'
+        }
+      } catch (error) {
+        console.error('Failed to reload directory:', error)
+        errorMessage.value = `Failed to reload directory: ${error.message}`
+      }
     }
 
     // Watchers
@@ -386,9 +485,53 @@ export default {
     })
 
     // Lifecycle
-    onMounted(() => {
-      // Load saved data from storage
+    onMounted(async () => {
+      // Load saved data from storage first
       videoStore.loadFromStorage()
+      
+      // Check if we need to refresh FileHandles
+      const handlesValid = videoStore.validateFileHandles(fileService)
+      if (!handlesValid) {
+        console.log('FileHandles need refreshing')
+      }
+      
+      // Check if we have stored directory info but no current videos
+      if (videoStore.directoryStructure.name && videoStore.niouTrainingList.length === 0) {
+        showAutoReloadMessage.value = true
+        console.log('Showing auto-reload message for stored directory:', videoStore.directoryStructure.name)
+        console.log('Stored root directory path:', videoStore.rootDirectoryPath)
+        
+        // Automatically attempt to reload directory
+        console.log('Attempting automatic directory reload...')
+        try {
+          const reloaded = await videoStore.autoReloadDirectory(fileService)
+          if (reloaded) {
+            console.log('Successfully auto-reloaded directory')
+            showAutoReloadMessage.value = false
+          } else {
+            console.log('Auto-reload failed, showing manual reload option')
+          }
+        } catch (error) {
+          console.log('Auto-reload failed with error:', error.message)
+          // Keep the auto-reload message visible for manual retry
+        }
+      }
+      
+      // Listen for video launch events from TrainingComponent
+      const handleLaunchVideo = (event) => {
+        const videoData = event.detail
+        if (videoData) {
+          console.log('Received video launch event:', videoData)
+          launchFile(videoData)
+        }
+      }
+      
+      document.addEventListener('launch-video', handleLaunchVideo)
+      
+      // Cleanup listener on unmount
+      onUnmounted(() => {
+        document.removeEventListener('launch-video', handleLaunchVideo)
+      })
       
       console.log('VideoComponentNewRefactored mounted')
     })
@@ -397,6 +540,7 @@ export default {
       // Refs
       videoPlayer,
       errorMessage,
+      showAutoReloadMessage,
       
       // Computed
       trainingList,
@@ -424,7 +568,9 @@ export default {
       updatePlaybackSettings,
       formatTime,
       formatDate,
-      clearDirectory
+      clearDirectory,
+      hideAutoReloadMessage,
+      reloadDirectory
     }
   }
 }
@@ -498,6 +644,49 @@ export default {
   padding: 15px;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
+}
+
+.auto-reload-message {
+  margin: 15px 0;
+  padding: 12px;
+  background-color: rgba(34, 104, 255, 0.2);
+  border: 1px solid rgba(34, 104, 255, 0.4);
+  border-radius: 6px;
+  color: #ffffff;
+}
+
+.auto-reload-message p {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+}
+
+.reload-btn {
+  background-color: #2268ff;
+  color: white;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.reload-btn:hover {
+  background-color: #1a52cc;
+}
+
+.dismiss-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.dismiss-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .directory-info {

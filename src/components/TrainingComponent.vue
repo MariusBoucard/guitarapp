@@ -1,63 +1,141 @@
 <template>
   <div style="width:100%;height : 100%">
     <div class="training-container">
-      <!-- Playlist Management Section -->
-      <div class="playlist-section">
-        <h2>Training Playlists</h2>
-        
-        <!-- Playlist Tabs -->
-        <div class="playlist-tabs">
-          <ul class="horizontal-list">
-            <li v-for="training in trainingStore.trainingList" 
-                @click="selectTraining(training)" 
-                :class="backColor(training)" 
-                :key="training.id">
-              <p>{{ training.name }}</p>
-            </li>
-          </ul>
-        </div>
+      <div class="training-layout">
+        <!-- Left Panel - Playlist Management -->
+        <div class="playlist-section">
+          <h2>Training Playlists</h2>
+          
+          <!-- Playlist Tabs -->
+          <div class="playlist-tabs">
+            <ul class="horizontal-list">
+              <li v-for="training in trainingStore.trainingList" 
+                  @click="selectTraining(training)" 
+                  :class="backColor(training)" 
+                  :key="training.id">
+                <p>{{ training.name }}</p>
+              </li>
+            </ul>
+          </div>
 
-        <!-- Playlist Management Controls -->
-        <div class="playlist-controls">
-          <input v-model="currentName" type="text" placeholder="New playlist name" />
-          <div class="button-group">
-            <button @click="addTraining()">Add Playlist</button>
-            <button @click="removeTraining()">Remove Playlist</button>
+          <!-- Playlist Management Controls -->
+          <div class="playlist-controls">
+            <input v-model="currentName" type="text" placeholder="New playlist name" />
+            <div class="button-group">
+              <button @click="addTraining()">Add Playlist</button>
+              <button @click="removeTraining()">Remove Playlist</button>
+            </div>
+          </div>
+
+          <!-- Current Playlist Videos -->
+          <div class="playlist-content">
+            <h3 v-if="currentTraining">{{ currentTraining.name }} - Videos</h3>
+            <ol class="video-list">
+              <li v-for="(item, index) in currentPlaylistVideos" 
+                  :key="index" 
+                  @click="playVideoInTrainingPlayer(item)"
+                  class="video-item">
+                {{ getVideoDisplayName(item) }}
+                <button class="button-remove" @click.stop="removeVideoFromPlaylist(item)">×</button>
+              </li>
+            </ol>
+          </div>
+
+          <!-- File Selection Controls -->
+          <div class="file-controls">
+            <div class="button-wrap">
+              <button class="button-file" @click="selectSingleVideo">Add Single Video</button>
+              <button class="button-file" @click="selectTrainingDirectory">Add From Directory</button>
+              <button class="button-file" @click="openVideoModal">Browse Available Videos</button>
+              <label class="button-file" for="uploadVideo">Upload File (Web)</label>
+              <input id="uploadVideo" type="file" @change="loadVideo" accept="video/*">
+            </div>
+          </div>
+
+          <!-- Directory Browser (when directory is selected) -->
+          <div v-if="directoryVideos.length > 0" class="directory-browser">
+            <h3>Available Videos from Directory</h3>
+            <div class="directory-videos">
+              <div v-for="video in directoryVideos" :key="video.path" class="directory-video-item">
+                <span @click="playVideoInTrainingPlayer(video.path)">{{ video.name }}</span>
+                <button @click="addVideoToCurrentPlaylist(video.path)" class="button-add">Add to Playlist</button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Current Playlist Videos -->
-        <div class="playlist-content">
-          <h3 v-if="currentTraining">{{ currentTraining.name }} - Videos</h3>
-          <ol class="video-list">
-            <li v-for="item in currentPlaylistVideos" 
-                :key="item" 
-                @click="selectVideoForPlayback(item)"
-                class="video-item">
-              {{ getVideoDisplayName(item) }}
-              <button class="button-remove" @click="removeVideoFromPlaylist(item)">×</button>
-            </li>
-          </ol>
-        </div>
-
-        <!-- File Selection Controls -->
-        <div class="file-controls">
-          <div class="button-wrap">
-            <button class="button-file" @click="selectSingleVideo">Add Single Video</button>
-            <button class="button-file" @click="selectTrainingDirectory">Add From Directory</button>
-            <button class="button-file" @click="openVideoModal">Browse Available Videos</button>
-            <label class="button-file" for="uploadVideo">Upload File (Web)</label>
-            <input id="uploadVideo" type="file" @change="loadVideo" accept="video/*">
+        <!-- Right Panel - Video Player -->
+        <div class="video-player-section">
+          <h2>Training Video Player</h2>
+          <div class="video-container">
+            <video 
+              ref="trainingVideoPlayer"
+              style="width:100%;height:400px" 
+              @timeupdate="handleTimeUpdate" 
+              @loadedmetadata="handleVideoLoaded"
+              controls>
+              Your browser does not support the video tag.
+            </video>
           </div>
-        </div>
+          
+          <!-- Video Controls -->
+          <div class="video-controls">
+            <div class="playback-controls">
+              <button class="control-button" @click="playVideo">▶ Play</button>
+              <button class="control-button" @click="pauseVideo">⏸ Pause</button>
+              <button class="control-button" @click="stopVideo">⏹ Stop</button>
+            </div>
 
-        <!-- Directory Browser (when directory is selected) -->
-        <div v-if="directoryVideos.length > 0" class="directory-browser">
-          <h3>Available Videos from Directory</h3>
-          <div class="directory-videos">
-            <div v-for="video in directoryVideos" :key="video.path" class="directory-video-item">
-              <span @click="selectVideoForPlayback(video.path)">{{ video.name }}</span>
-              <button @click="addVideoToCurrentPlaylist(video.path)" class="button-add">Add to Playlist</button>
+            <!-- Time Controls -->
+            <div class="time-controls">
+              <div class="slider-container">
+                <label for="startSlider" class="slider-label">Start Time</label>
+                <input 
+                  id="startSlider" 
+                  type="range" 
+                  v-model="startTime" 
+                  :max="endTime" 
+                  min="0" 
+                  step="1">
+                <span class="time-value">{{ formatTime(startTime) }}</span>
+              </div>
+
+              <div class="slider-container">
+                <label for="endSlider" class="slider-label">End Time</label>
+                <input 
+                  id="endSlider" 
+                  type="range" 
+                  v-model="endTime" 
+                  :min="startTime" 
+                  :max="videoDuration" 
+                  step="1">
+                <span class="time-value">{{ formatTime(endTime) }}</span>
+              </div>
+            </div>
+
+            <!-- Speed and Loop Controls -->
+            <div class="advanced-controls">
+              <div class="speed-control">
+                <label for="speedSlider">Speed: {{ speed }}%</label>
+                <input 
+                  id="speedSlider"
+                  type="range" 
+                  min="25" 
+                  max="200" 
+                  step="5"
+                  v-model="speed">
+              </div>
+
+              <div class="loop-control">
+                <label>
+                  <input type="checkbox" v-model="loop"> Loop
+                </label>
+              </div>
+            </div>
+
+            <!-- Current Video Info -->
+            <div v-if="currentVideoName" class="video-info">
+              <h4>{{ currentVideoName }}</h4>
             </div>
           </div>
         </div>
@@ -152,6 +230,7 @@
 <script>
 import { useTrainingStore } from '@/stores/trainingStore.js'
 import { useVideoStore } from '@/stores/videoStore.js'
+import { serviceManager } from '@/services/index.js'
 
 export default {
   name: 'TrainingComponent',
@@ -159,7 +238,8 @@ export default {
   setup() {
     const trainingStore = useTrainingStore()
     const videoStore = useVideoStore()
-    return { trainingStore, videoStore }
+    const fileService = serviceManager.file
+    return { trainingStore, videoStore, fileService }
   },
 
   data() {
@@ -177,7 +257,17 @@ export default {
       showVideoModal: false,
       videoSearchQuery: "",
       expandedTrainings: new Set(),
-      expandedItems: new Set()
+      expandedItems: new Set(),
+      // Video player state
+      currentVideoName: "",
+      videoDuration: 0,
+      startTime: 0,
+      endTime: 0,
+      speed: 100,
+      loop: false,
+      isPlaying: false,
+      // Blob URL cleanup
+      cleanupBlobUrl: null
     }
   },
 
@@ -258,21 +348,179 @@ export default {
     },
 
     // Video Management
-    addVideoToCurrentPlaylist(videoPath) {
-      if (this.currentTraining && videoPath) {
-        this.trainingStore.addVideoToTraining(this.trainingStore.selectedTraining, videoPath)
+    addVideoToCurrentPlaylist(videoData) {
+      if (this.currentTraining && videoData) {
+        // Check if video is already in playlist (by identifier)
+        const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData)
+        const exists = this.currentTraining.list.some(item => {
+          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item)
+          return existingIdentifier === identifier
+        })
+        
+        if (!exists) {
+          this.trainingStore.addVideoToTraining(this.trainingStore.selectedTraining, videoData)
+        } else {
+          console.log('Video already in playlist')
+        }
       }
     },
 
-    removeVideoFromPlaylist(videoPath) {
-      if (this.currentTraining && videoPath) {
-        this.trainingStore.removeVideoFromTraining(this.trainingStore.selectedTraining, videoPath)
+    removeVideoFromPlaylist(videoData) {
+      if (this.currentTraining && videoData) {
+        this.trainingStore.removeVideoFromTraining(this.trainingStore.selectedTraining, videoData)
       }
     },
 
-    selectVideoForPlayback(videoPath) {
-      // Emit event to parent component to play video
-      this.$emit('video-selected', videoPath)
+    selectVideoForPlayback(videoData) {
+      // Play video in the training component's own player
+      this.playVideoInTrainingPlayer(videoData)
+    },
+
+    // Training Component Video Player Methods
+    async playVideoInTrainingPlayer(videoData) {
+      try {
+        // Clean up previous blob URL
+        if (this.cleanupBlobUrl) {
+          this.cleanupBlobUrl()
+          this.cleanupBlobUrl = null
+        }
+
+        const videoPlayer = this.$refs.trainingVideoPlayer
+        if (!videoPlayer) {
+          console.error('Training video player not found')
+          return
+        }
+
+        let videoUrl = null
+        let videoName = 'Unknown Video'
+
+        // Handle different video data formats
+        if (typeof videoData === 'string') {
+          videoUrl = videoData
+          videoName = videoData.split(/[\\\/]/).pop() || 'Video'
+        } else if (videoData && typeof videoData === 'object') {
+          // Handle video objects from the modal/VideoComponentNewRefactored
+          if (videoData.fileHandleId) {
+            // For fileHandle videos, we need to get the actual file
+            await this.handleFileHandleVideo(videoData)
+            return
+          } else {
+            videoUrl = videoData.url || videoData.path || videoData.identifier
+            videoName = videoData.name || 'Video'
+          }
+        }
+
+        if (videoUrl) {
+          // Handle different URL formats
+          let finalUrl = videoUrl
+          if (!videoUrl.startsWith('blob:') && !videoUrl.startsWith('http')) {
+            // Local file path
+            finalUrl = `file://${videoUrl.replace(/#/g, '%23')}`
+          }
+
+          videoPlayer.src = finalUrl
+          this.currentVideoName = videoName
+          console.log('Loading video in training player:', finalUrl)
+        }
+      } catch (error) {
+        console.error('Error playing video in training player:', error)
+      }
+    },
+
+    async handleFileHandleVideo(videoData) {
+      try {
+        const videoPlayer = this.$refs.trainingVideoPlayer
+        if (!videoPlayer) {
+          console.error('Training video player not found')
+          return
+        }
+
+        console.log('Handling FileHandle video:', videoData.fileHandleId)
+        
+        // Get the FileHandle from the FileService
+        const fileHandle = this.fileService.getFileHandle(videoData.fileHandleId)
+        if (!fileHandle) {
+          throw new Error(`FileHandle not found for ID: ${videoData.fileHandleId}`)
+        }
+
+        // Get the file and create a blob URL
+        const file = await fileHandle.getFile()
+        const blobUrl = URL.createObjectURL(file)
+
+        // Set the video source
+        videoPlayer.src = blobUrl
+        this.currentVideoName = videoData.name || 'FileHandle Video'
+
+        // Clean up blob URL when component unmounts or new video loads
+        this.cleanupBlobUrl = () => URL.revokeObjectURL(blobUrl)
+        
+        console.log('FileHandle video loaded successfully:', videoData.name)
+      } catch (error) {
+        console.error('Error handling fileHandle video:', error)
+        alert(`Error loading video: ${error.message}`)
+      }
+    },
+
+    // Video Player Controls
+    playVideo() {
+      const videoPlayer = this.$refs.trainingVideoPlayer
+      if (videoPlayer) {
+        videoPlayer.playbackRate = this.speed / 100
+        videoPlayer.play()
+        this.isPlaying = true
+      }
+    },
+
+    pauseVideo() {
+      const videoPlayer = this.$refs.trainingVideoPlayer
+      if (videoPlayer) {
+        videoPlayer.pause()
+        this.isPlaying = false
+      }
+    },
+
+    stopVideo() {
+      const videoPlayer = this.$refs.trainingVideoPlayer
+      if (videoPlayer) {
+        videoPlayer.pause()
+        videoPlayer.currentTime = this.startTime || 0
+        this.isPlaying = false
+      }
+    },
+
+    handleVideoLoaded() {
+      const videoPlayer = this.$refs.trainingVideoPlayer
+      if (videoPlayer) {
+        this.videoDuration = videoPlayer.duration
+        if (this.endTime === 0) {
+          this.endTime = this.videoDuration
+        }
+      }
+    },
+
+    handleTimeUpdate() {
+      const videoPlayer = this.$refs.trainingVideoPlayer
+      if (videoPlayer) {
+        const currentTime = videoPlayer.currentTime
+
+        // Handle loop and time bounds
+        if (currentTime >= this.endTime) {
+          if (this.loop) {
+            videoPlayer.currentTime = this.startTime
+          } else {
+            this.pauseVideo()
+          }
+        } else if (currentTime < this.startTime) {
+          videoPlayer.currentTime = this.startTime
+        }
+      }
+    },
+
+    formatTime(seconds) {
+      if (!seconds || isNaN(seconds)) return '0:00'
+      const minutes = Math.floor(seconds / 60)
+      const secs = Math.floor(seconds % 60)
+      return `${minutes}:${secs.toString().padStart(2, '0')}`
     },
 
     getVideoDisplayName(videoPath) {
@@ -289,7 +537,13 @@ export default {
         if (window.electronAPI && window.electronAPI.selectVideoFile) {
           const filePath = await window.electronAPI.selectVideoFile()
           if (filePath) {
-            this.addVideoToCurrentPlaylist(filePath)
+            const videoData = {
+              name: filePath.split(/[\\\/]/).pop(),
+              path: filePath,
+              url: filePath,
+              isNative: true
+            }
+            this.addVideoToCurrentPlaylist(videoData)
           }
         } else {
           // Fallback for web
@@ -300,7 +554,13 @@ export default {
             const file = e.target.files[0]
             if (file) {
               const videoURL = URL.createObjectURL(file)
-              this.addVideoToCurrentPlaylist(videoURL)
+              const videoData = {
+                name: file.name,
+                url: videoURL,
+                path: videoURL,
+                isWeb: true
+              }
+              this.addVideoToCurrentPlaylist(videoData)
             }
           }
           input.click()
@@ -388,16 +648,26 @@ export default {
       const file = event.target.files[0]
       if (!file) return
 
-      let videoURL
+      let videoData
       if (file.path) {
         // Electron environment
-        videoURL = file.path.replace(/#/g, '%23')
+        videoData = {
+          name: file.name,
+          path: file.path.replace(/#/g, '%23'),
+          url: file.path.replace(/#/g, '%23'),
+          isNative: true
+        }
       } else {
         // Web environment
-        videoURL = URL.createObjectURL(file)
+        videoData = {
+          name: file.name,
+          url: URL.createObjectURL(file),
+          path: URL.createObjectURL(file),
+          isWeb: true
+        }
       }
 
-      this.addVideoToCurrentPlaylist(videoURL)
+      this.addVideoToCurrentPlaylist(videoData)
     },
 
     clearDirectory() {
@@ -457,16 +727,51 @@ export default {
     },
 
     selectVideoFromModal(video) {
-      // Preview/play the video
-      this.$emit('video-selected', video.url || video.path)
+      // Preview/play the video in the training player
+      this.playVideoInTrainingPlayer(video)
     },
 
     addVideoFromModal(video) {
-      const videoPath = video.url || video.path
-      if (videoPath) {
-        this.addVideoToCurrentPlaylist(videoPath)
-        // Optional: show feedback
+      const videoIdentifier = this.getVideoIdentifier(video)
+      if (videoIdentifier) {
+        // Store the complete video object for playlist management
+        const videoData = {
+          name: video.name,
+          identifier: videoIdentifier,
+          fileHandleId: video.fileHandleId,
+          url: video.url,
+          path: video.path,
+          isDirectFile: video.isDirectFile,
+          parentName: video.parentName
+        }
+        
+        this.addVideoToCurrentPlaylist(videoData)
         console.log(`Added "${video.name}" to playlist`)
+      }
+    },
+
+    getVideoIdentifier(video) {
+      // Return the appropriate identifier for the video
+      if (video.fileHandleId) {
+        return video.fileHandleId // For videos from VideoComponentNewRefactored
+      }
+      return video.url || video.path || video.identifier
+    },
+
+    getVideoDisplayName(videoItem) {
+      if (typeof videoItem === 'string') {
+        const pathParts = videoItem.split(/[\\\/]/)
+        return pathParts[pathParts.length - 1]
+      }
+      return videoItem.name || videoItem.identifier || 'Unknown Video'
+    },
+  },
+
+  watch: {
+    speed(newSpeed) {
+      const videoPlayer = this.$refs.trainingVideoPlayer
+      if (videoPlayer) {
+        videoPlayer.playbackRate = newSpeed / 100
       }
     }
   },
@@ -474,6 +779,13 @@ export default {
   mounted() {
     // Load saved playlists from store
     this.trainingStore.loadTrainings()
+  },
+
+  beforeUnmount() {
+    // Clean up blob URLs
+    if (this.cleanupBlobUrl) {
+      this.cleanupBlobUrl()
+    }
   }
 }
 </script>
@@ -487,8 +799,115 @@ export default {
   color: white;
 }
 
+.training-layout {
+  display: flex;
+  gap: 20px;
+  height: 100%;
+}
+
 .playlist-section {
-  width: 100%;
+  flex: 1;
+  min-width: 400px;
+  overflow-y: auto;
+}
+
+.video-player-section {
+  flex: 1;
+  min-width: 500px;
+}
+
+.video-container {
+  margin-bottom: 20px;
+  background-color: #1a252f;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-controls {
+  background-color: #34495e;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.playback-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.control-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.control-button:hover {
+  background-color: #2980b9;
+}
+
+.time-controls {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.slider-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.slider-label {
+  font-size: 12px;
+  color: #bdc3c7;
+}
+
+.time-value {
+  font-size: 12px;
+  color: #ecf0f1;
+  text-align: center;
+}
+
+.advanced-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.speed-control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.speed-control label {
+  font-size: 12px;
+  color: #bdc3c7;
+}
+
+.loop-control label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.video-info {
+  border-top: 1px solid #4a6079;
+  padding-top: 15px;
+}
+
+.video-info h4 {
+  margin: 0;
+  color: #3498db;
+  font-size: 16px;
 }
 
 .playlist-tabs {

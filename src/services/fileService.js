@@ -28,6 +28,15 @@ export class FileService {
   }
 
   /**
+   * Clear all stored FileHandles (useful on app restart)
+   */
+  clearFileHandles() {
+    console.log('Clearing all FileHandles, total cleared:', this.fileHandleMap.size);
+    this.fileHandleMap.clear();
+    this.handleIdCounter = 0;
+  }
+
+  /**
    * Select audio file using native dialog (Electron) or file input
    */
   async selectAudioFile() {
@@ -229,7 +238,8 @@ export class FileService {
             files.push({
               name: entry.name,
               fileHandleId: fileHandleId, // Store ID instead of FileHandle
-              parentName: parentName
+              parentName: parentName,
+              path: `${parentName}/${entry.name}` // Store relative path for restoration
             });
           }
         } else if (entry.kind === 'directory') {
