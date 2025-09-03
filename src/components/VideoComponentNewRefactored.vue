@@ -265,28 +265,19 @@ export default {
           console.log('Loading video from FileHandle:', videoData.name)
         } else {
           // Legacy support for file paths (from Electron ICP or direct paths)
-          console.log('Entering fallback path')
-          console.log('videoData structure:', JSON.stringify(videoData, null, 2))
-          
           let filePath
           if (typeof videoData === 'string') {
             // Direct file path string
             filePath = videoData
-            console.log('Using direct string path:', filePath)
           } else if (videoData && videoData.url) {
             // Object with url property
             filePath = videoData.url
-            console.log('Using url property:', filePath)
           } else if (videoData && videoData.path) {
             // Object with path property
             filePath = videoData.path
-            console.log('Using path property:', filePath)
           } else {
-            console.log('No valid path found, available properties:', Object.keys(videoData || {}))
             throw new Error('No valid file path found in video data')
           }
-
-          console.log('Final filePath:', filePath, 'type:', typeof filePath)
 
           const videoElement = videoPlayer.value
           if (!videoElement) {

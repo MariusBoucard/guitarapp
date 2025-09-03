@@ -2,6 +2,7 @@ import { AudioService } from './audioService.js'
 import { VideoService } from './videoService.js'
 import { FileService } from './fileService.js'
 import { StorageService } from './storageService.js'
+import { SettingsService } from './settingsService.js'
 
 /**
  * Service Manager - Central service locator
@@ -21,6 +22,7 @@ export class ServiceManager {
     this.services.set('video', new VideoService(this));
     this.services.set('file', new FileService(this));
     this.services.set('storage', new StorageService(this));
+    this.services.set('settings', new SettingsService(this));
   }
 
   /**
@@ -53,6 +55,13 @@ export class ServiceManager {
    */
   get file() {
     return this.getService('file');
+  }
+
+  /**
+   * Get settings service
+   */
+  get settings() {
+    return this.getService('settings');
   }
 
   /**
