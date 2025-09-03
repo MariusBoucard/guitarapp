@@ -12,6 +12,11 @@ export class SettingsService {
    * Save display states to localStorage
    */
   saveDisplayStates(displayStates) {
+    if (!displayStates || typeof displayStates !== 'object') {
+      console.warn('Invalid displayStates provided to saveDisplayStates:', displayStates);
+      return;
+    }
+    
     Object.entries(displayStates).forEach(([key, value]) => {
       localStorage.setItem(key, value.toString());
     });

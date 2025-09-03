@@ -202,7 +202,8 @@ export class AppController {
     // Watch display states changes
     this.appStore.$subscribe((mutation, state) => {
       if (mutation.type === 'direct') {
-        this.settingsService.saveDisplayStates(state.displayStates);
+        // Access the getter properly by calling it on the store instance
+        this.settingsService.saveDisplayStates(this.appStore.displayStates);
       }
     });
 
