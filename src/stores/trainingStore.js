@@ -110,6 +110,10 @@ export const useTrainingStore = defineStore('training', {
     // Helper method to get video identifier
     getVideoIdentifier(videoData) {
       if (typeof videoData === 'string') return videoData;
+      // For videos with absolutePath, use the relative path as identifier
+      if (videoData.absolutePath && videoData.path) {
+        return videoData.path; // Use relative path as identifier
+      }
       return videoData.fileHandleId || videoData.identifier || videoData.url || videoData.path;
     },
     

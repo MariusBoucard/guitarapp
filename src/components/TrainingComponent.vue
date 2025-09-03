@@ -57,8 +57,8 @@
             <h3>Available Videos from Directory</h3>
             <div class="directory-videos">
               <div v-for="video in directoryVideos" :key="video.path" class="directory-video-item">
-                <span @click="playVideoInTrainingPlayer(video.path)">{{ video.name }}</span>
-                <button @click="addVideoToCurrentPlaylist(video.path)" class="button-add">Add to Playlist</button>
+                <span @click="playVideoInTrainingPlayer(video)">{{ video.name }}</span>
+                <button @click="addVideoToCurrentPlaylist(video)" class="button-add">Add to Playlist</button>
               </div>
             </div>
           </div>
@@ -350,15 +350,23 @@ export default {
     // Video Management
     addVideoToCurrentPlaylist(videoData) {
       if (this.currentTraining && videoData) {
+        console.log('Adding video to playlist:', videoData)
+        
+        // Ensure video has an absolute path
+        let enhancedVideoData = this.ensureAbsolutePath(videoData)
+        console.log('Enhanced video data:', enhancedVideoData)
+        
         // Check if video is already in playlist (by identifier)
-        const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData)
+        const identifier = typeof enhancedVideoData === 'string' ? enhancedVideoData : this.getVideoIdentifier(enhancedVideoData)
         const exists = this.currentTraining.list.some(item => {
           const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item)
           return existingIdentifier === identifier
         })
         
         if (!exists) {
-          this.trainingStore.addVideoToTraining(this.trainingStore.selectedTraining, videoData)
+          console.log('Adding video to store:', enhancedVideoData)
+          this.trainingStore.addVideoToTraining(this.trainingStore.selectedTraining, enhancedVideoData)
+          console.log('Added "' + (enhancedVideoData.name || enhancedVideoData) + '" to playlist')
         } else {
           console.log('Video already in playlist')
         }
@@ -379,6 +387,10 @@ export default {
     // Training Component Video Player Methods
     async playVideoInTrainingPlayer(videoData) {
       try {
+        console.log('playVideoInTrainingPlayer called with:', videoData)
+        console.log('videoData type:', typeof videoData)
+        console.log('videoData properties:', Object.keys(videoData || {}))
+        
         // Clean up previous blob URL
         if (this.cleanupBlobUrl) {
           this.cleanupBlobUrl()
@@ -391,36 +403,82 @@ export default {
           return
         }
 
-        let videoUrl = null
+        let videoPath = null
         let videoName = 'Unknown Video'
 
         // Handle different video data formats
         if (typeof videoData === 'string') {
-          videoUrl = videoData
+          videoPath = videoData
           videoName = videoData.split(/[\\\/]/).pop() || 'Video'
         } else if (videoData && typeof videoData === 'object') {
-          // Handle video objects from the modal/VideoComponentNewRefactored
-          if (videoData.fileHandleId) {
-            // For fileHandle videos, we need to get the actual file
+          // Handle video objects with absolute paths
+          if (videoData.absolutePath) {
+            videoPath = videoData.absolutePath
+            videoName = videoData.name || 'Video'
+          } else if (videoData.fileHandleId) {
+            // For fileHandle videos, use the old method
             await this.handleFileHandleVideo(videoData)
             return
           } else {
-            videoUrl = videoData.url || videoData.path || videoData.identifier
+            // Try to construct absolute path if needed
+            if (videoData.url && (videoData.url.startsWith('/') || videoData.url.match(/^[A-Z]:/))) {
+              videoPath = videoData.url
+            } else if (videoData.path && (videoData.path.startsWith('/') || videoData.path.match(/^[A-Z]:/))) {
+              videoPath = videoData.path
+            } else if (videoData.path && this.videoStore.rootDirectoryPath) {
+              // Construct from root + relative path
+              videoPath = `${this.videoStore.rootDirectoryPath}/${videoData.path}`.replace(/[\\\/]+/g, '/')
+            } else {
+              videoPath = videoData.url || videoData.path || videoData.identifier
+            }
             videoName = videoData.name || 'Video'
           }
         }
 
-        if (videoUrl) {
-          // Handle different URL formats
-          let finalUrl = videoUrl
-          if (!videoUrl.startsWith('blob:') && !videoUrl.startsWith('http')) {
-            // Local file path
-            finalUrl = `file://${videoUrl.replace(/#/g, '%23')}`
-          }
+        console.log('Final video path for loading:', videoPath)
 
-          videoPlayer.src = finalUrl
-          this.currentVideoName = videoName
-          console.log('Loading video in training player:', finalUrl)
+        if (videoPath) {
+          // Use the same IPC method as VideoComponentNewRefactored for secure video loading
+          if (window.electronAPI && window.electronAPI.loadVideoFile) {
+            try {
+              console.log('Loading video via IPC in training player:', videoPath)
+              const result = await window.electronAPI.loadVideoFile(videoPath)
+              
+              if (result.success) {
+                // Convert base64 to blob URL
+                const binaryString = atob(result.data)
+                const bytes = new Uint8Array(binaryString.length)
+                for (let i = 0; i < binaryString.length; i++) {
+                  bytes[i] = binaryString.charCodeAt(i)
+                }
+                
+                const blob = new Blob([bytes], { type: result.mimeType })
+                const blobUrl = URL.createObjectURL(blob)
+                
+                // Clean up the blob URL when the video is replaced or component unmounted
+                this.cleanupBlobUrl = () => URL.revokeObjectURL(blobUrl)
+                
+                videoPlayer.src = blobUrl
+                this.currentVideoName = videoName
+                console.log('Video loaded successfully in training player via IPC')
+              } else {
+                throw new Error(result.error || 'Failed to load video file')
+              }
+            } catch (error) {
+              console.error('IPC video loading failed in training player:', error)
+              // Fallback to file URL method
+              const finalUrl = `file://${videoPath.replace(/#/g, '%23')}`
+              videoPlayer.src = finalUrl
+              this.currentVideoName = videoName
+              console.log('Fallback: Loading video in training player:', finalUrl)
+            }
+          } else {
+            // Fallback for web environments or when IPC is not available
+            const finalUrl = `file://${videoPath.replace(/#/g, '%23')}`
+            videoPlayer.src = finalUrl
+            this.currentVideoName = videoName
+            console.log('Loading video in training player (no IPC):', finalUrl)
+          }
         }
       } catch (error) {
         console.error('Error playing video in training player:', error)
@@ -755,7 +813,56 @@ export default {
       if (video.fileHandleId) {
         return video.fileHandleId // For videos from VideoComponentNewRefactored
       }
+      // For videos with absolutePath, use the relative path as identifier
+      if (video.absolutePath && video.path) {
+        return video.path // Use relative path as identifier
+      }
       return video.url || video.path || video.identifier
+    },
+
+    ensureAbsolutePath(videoData) {
+      // If videoData is a string, treat it as a path
+      if (typeof videoData === 'string') {
+        return {
+          name: videoData.split(/[\\\/]/).pop() || 'Video',
+          absolutePath: videoData,
+          path: videoData,
+          identifier: videoData
+        }
+      }
+      
+      // If it's an object, ensure it has absolutePath
+      if (videoData && typeof videoData === 'object') {
+        // If already has absolutePath, return as-is
+        if (videoData.absolutePath) {
+          return videoData
+        }
+        
+        // Try to construct absolute path
+        let absolutePath = null
+        
+        if (videoData.url && videoData.url.startsWith('/') || videoData.url && videoData.url.match(/^[A-Z]:/)) {
+          // Already looks like an absolute path
+          absolutePath = videoData.url
+        } else if (videoData.path && (videoData.path.startsWith('/') || videoData.path.match(/^[A-Z]:/))) {
+          // Path is already absolute
+          absolutePath = videoData.path
+        } else if (videoData.path && this.videoStore.rootDirectoryPath) {
+          // Construct from root + relative path
+          absolutePath = `${this.videoStore.rootDirectoryPath}/${videoData.path}`.replace(/[\\\/]+/g, '/')
+        } else {
+          // Fallback to whatever path we have
+          absolutePath = videoData.url || videoData.path || videoData.identifier
+        }
+        
+        return {
+          ...videoData,
+          absolutePath: absolutePath,
+          name: videoData.name || absolutePath.split(/[\\\/]/).pop() || 'Video'
+        }
+      }
+      
+      return videoData
     },
 
     getVideoDisplayName(videoItem) {
