@@ -10576,10 +10576,45 @@ async function createWindow() {
     await win.loadFile("dist/index.html");
   }
 }
-require$$0.ipcMain.on("load-video", (event, filePath) => {
-  const videoBuffer = fs.readFileSync(filePath);
-  const videoURL = URL.createObjectURL(new Blob([videoBuffer]));
-  event.reply("video-loaded", videoURL);
+require$$0.ipcMain.handle("load-video-file", async (event, filePath) => {
+  try {
+    const path = require("path");
+    console.log("Attempting to load video file:", filePath);
+    if (!await fs.pathExists(filePath)) {
+      throw new Error(`File does not exist: ${filePath}`);
+    }
+    const ext = path.extname(filePath).toLowerCase();
+    const videoExtensions = [".mp4", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mkv"];
+    if (!videoExtensions.includes(ext)) {
+      throw new Error(`Unsupported video format: ${ext}`);
+    }
+    console.log("File exists and is valid video format");
+    const videoBuffer = await fs.readFile(filePath);
+    const base64Data = videoBuffer.toString("base64");
+    const mimeTypes = {
+      ".mp4": "video/mp4",
+      ".avi": "video/avi",
+      ".mov": "video/quicktime",
+      ".wmv": "video/x-ms-wmv",
+      ".flv": "video/x-flv",
+      ".webm": "video/webm",
+      ".mkv": "video/x-matroska"
+    };
+    const mimeType = mimeTypes[ext] || "video/mp4";
+    console.log("Video file loaded successfully:", path.basename(filePath));
+    return {
+      success: true,
+      data: base64Data,
+      mimeType,
+      fileName: path.basename(filePath)
+    };
+  } catch (error) {
+    console.error("Failed to load video file:", error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
 });
 require$$0.ipcMain.handle("select-audio-file", async () => {
   const { dialog } = require("electron");
@@ -10608,6 +10643,88 @@ require$$0.ipcMain.handle("select-video-file", async () => {
     return result.filePaths[0];
   }
   return null;
+});
+require$$0.ipcMain.handle("select-directory", async () => {
+  const { dialog } = require("electron");
+  const result = await dialog.showOpenDialog({
+    properties: ["openDirectory"]
+  });
+  if (!result.canceled && result.filePaths.length > 0) {
+    return result.filePaths[0];
+  }
+  return null;
+});
+require$$0.ipcMain.handle("scan-video-directory", async (event, directoryPath) => {
+  const path = require("path");
+  try {
+    const allVideos = [];
+    const scanDirectory = async (dirPath) => {
+      const items = await fs.readdir(dirPath, { withFileTypes: true });
+      for (const item of items) {
+        const fullPath = path.join(dirPath, item.name);
+        if (item.isDirectory()) {
+          await scanDirectory(fullPath);
+        } else if (item.isFile()) {
+          const ext = path.extname(item.name).toLowerCase();
+          const videoExtensions = [".mp4", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mkv"];
+          if (videoExtensions.includes(ext)) {
+            const stats = await fs.stat(fullPath);
+            allVideos.push({
+              name: item.name,
+              path: fullPath,
+              isDirectory: false,
+              size: stats.size,
+              lastModified: stats.mtime
+            });
+          }
+        }
+      }
+    };
+    await scanDirectory(directoryPath);
+    console.log(`Found ${allVideos.length} video files in ${directoryPath}`);
+    return { success: true, videos: allVideos };
+  } catch (error) {
+    console.error("Failed to scan directory:", error);
+    return { success: false, error: error.message };
+  }
+});
+require$$0.ipcMain.handle("save-directory-tree", async (event, directoryPath, treeData) => {
+  try {
+    const path = require("path");
+    const os = require("os");
+    const appDataPath = path.join(os.homedir(), ".guitarapp");
+    await fs.ensureDir(appDataPath);
+    const treeFilePath = path.join(appDataPath, "directory-tree.json");
+    const dataToSave = {
+      directoryPath,
+      lastScanned: (/* @__PURE__ */ new Date()).toISOString(),
+      tree: treeData
+    };
+    await fs.writeJson(treeFilePath, dataToSave, { spaces: 2 });
+    return { success: true, filePath: treeFilePath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+require$$0.ipcMain.handle("load-directory-tree", async () => {
+  try {
+    const path = require("path");
+    const os = require("os");
+    const appDataPath = path.join(os.homedir(), ".guitarapp");
+    const treeFilePath = path.join(appDataPath, "directory-tree.json");
+    if (await fs.pathExists(treeFilePath)) {
+      const data = await fs.readJson(treeFilePath);
+      if (await fs.pathExists(data.directoryPath)) {
+        return { success: true, data };
+      } else {
+        await fs.remove(treeFilePath);
+        return { success: false, error: "Saved directory no longer exists" };
+      }
+    }
+    return { success: false, error: "No saved directory tree found" };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });
 require$$0.ipcMain.on("parse-directory", (event, directoryPath) => {
 });

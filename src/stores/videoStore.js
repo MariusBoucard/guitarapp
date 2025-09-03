@@ -12,7 +12,7 @@ export const useVideoStore = defineStore('video', {
     rootDirectory: null, // DirectoryHandle for the root training directory
     rootDirectoryPath: "", // String path to the root directory
     currentDirectoryPath: "", // Current working directory path
-    defaultPath: "/media/marius/DISK GROS/", // Default base path for directory selection
+    defaultPath: "D:/guitarCourseNew/", // Default base path for directory selection
     
     // Current playing state
     currentVideo: "",
@@ -198,6 +198,7 @@ export const useVideoStore = defineStore('video', {
       this.rootDirectory = null;
       this.rootDirectoryPath = '';
       this.currentDirectoryPath = '';
+      this.niouTrainingList = []; // Clear the training list
       this.directoryStructure = {
         name: "",
         path: "",
@@ -206,6 +207,22 @@ export const useVideoStore = defineStore('video', {
         totalSize: 0
       };
       this.removeDirectoryInfo();
+      this.clearStoredTrainingData(); // Clear stored data with old paths
+    },
+
+    // Clear all stored training data (useful when paths are outdated)
+    clearStoredTrainingData() {
+      localStorage.removeItem("Trainings");
+      localStorage.removeItem("trainingMetadata");
+      localStorage.removeItem("directoryInfo");
+      this.niouTrainingList = [];
+      this.trainingMetadata = {
+        lastUpdated: null,
+        totalVideos: 0,
+        totalTrainings: 0,
+        averageDuration: 0
+      };
+      console.log('Cleared all stored training data - fresh scan required');
     },
     
     // Storage methods
@@ -261,6 +278,14 @@ export const useVideoStore = defineStore('video', {
         this.directoryStructure.lastScanned = directoryInfo.lastScanned;
         this.rootDirectoryPath = directoryInfo.rootDirectoryPath || '';
         this.defaultPath = directoryInfo.defaultPath || this.defaultPath;
+        
+        // Check if we have outdated Linux paths and clear them
+        if (this.rootDirectoryPath.includes('/media/marius/DISK') || 
+            this.rootDirectoryPath.includes('guitareCourseNew')) {
+          console.log('Detected outdated Linux paths, clearing stored data');
+          this.clearStoredTrainingData();
+          return; // Exit early since we cleared the data
+        }
       }
       
       // Load training metadata
@@ -269,6 +294,24 @@ export const useVideoStore = defineStore('video', {
           ...this.trainingMetadata,
           ...JSON.parse(localStorage.getItem("trainingMetadata"))
         };
+      }
+      
+      // Check for outdated paths in training data
+      if (this.niouTrainingList.length > 0) {
+        const hasOutdatedPaths = this.niouTrainingList.some(training => 
+          training.trainings?.some(item => 
+            item.videos?.some(video => 
+              video.path?.includes('/media/marius/DISK') || 
+              video.absolutePath?.includes('/media/marius/DISK')
+            )
+          )
+        );
+        
+        if (hasOutdatedPaths) {
+          console.log('Detected outdated paths in training data, clearing...');
+          this.clearStoredTrainingData();
+          return; // Exit early since we cleared the data
+        }
       }
       
       // Update metadata if we have training data but no metadata

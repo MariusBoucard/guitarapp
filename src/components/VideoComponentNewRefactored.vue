@@ -138,7 +138,6 @@ export default {
     // Store and Services
     const videoStore = useVideoStore()
     const videoService = serviceManager.video
-    const fileService = serviceManager.file
 
     // Reactive references
     const videoPlayer = ref(null)
@@ -180,39 +179,117 @@ export default {
     // Methods
     const selectTrainingDirectory = async () => {
       try {
-        const directoryHandle = await fileService.selectDirectory()
+        console.log('selectTrainingDirectory called')
         
-        // Try to get the actual directory path (Electron specific)
-        let actualDirectoryPath = defaultPath.value
-        if (window.electronAPI && window.electronAPI.getDirectoryPath) {
-          try {
-            actualDirectoryPath = await window.electronAPI.getDirectoryPath(directoryHandle)
-          } catch (error) {
-            console.warn('Could not get actual directory path, using default:', error)
+        // Use Electron's native directory selection
+        if (window.electronAPI && window.electronAPI.selectDirectory) {
+          const selectedPath = await window.electronAPI.selectDirectory()
+          console.log('Selected directory path:', selectedPath)
+          
+          if (selectedPath) {
+            console.log('Scanning directory:', selectedPath)
+            
+            // Scan directory using Electron IPC
+            const scanResult = await window.electronAPI.scanVideoDirectory(selectedPath)
+            console.log('Scan result:', scanResult)
+            
+            if (scanResult.success && scanResult.videos.length > 0) {
+              const videos = scanResult.videos
+              console.log('Found videos:', videos.length)
+              
+              // Save directory tree to file for persistent storage
+              const saveResult = await window.electronAPI.saveDirectoryTree(selectedPath, videos)
+              if (saveResult.success) {
+                console.log('Directory tree saved to:', saveResult.filePath)
+              } else {
+                console.warn('Failed to save directory tree:', saveResult.error)
+              }
+              
+              // Convert to training structure
+              const trainingStructure = convertVideosToTrainingStructure(videos, selectedPath)
+              console.log('Training structure created:', trainingStructure)
+              
+              // Update store
+              videoStore.rootDirectoryPath = selectedPath
+              videoStore.directoryStructure.name = selectedPath.split(/[\\\/]/).pop()
+              videoStore.directoryStructure.path = selectedPath
+              videoStore.directoryStructure.lastScanned = new Date().toISOString()
+              
+              console.log('Setting training list in store...')
+              videoStore.setNiouTrainingList(trainingStructure)
+              
+              // Save directory info to localStorage
+              videoStore.saveDirectoryInfo()
+              
+              console.log('Training list loaded:', {
+                trainings: trainingStructure.length,
+                totalVideos: videos.length,
+                path: selectedPath,
+                storeList: videoStore.niouTrainingList
+              })
+              
+              errorMessage.value = ''
+              showAutoReloadMessage.value = false
+            } else {
+              console.error('No videos found or scan failed:', scanResult)
+              errorMessage.value = scanResult.error || 'No video files found in selected directory'
+            }
+          } else {
+            console.log('No directory selected')
           }
+        } else {
+          console.error('Electron API not available')
+          errorMessage.value = 'Directory selection not available (Electron required)'
         }
-        
-        const result = await fileService.readDirectoryRecursive(directoryHandle, actualDirectoryPath)
-        
-        // Use the enhanced store method with metadata
-        videoStore.setTrainingListWithMetadata(
-          result.trainings, 
-          directoryHandle, 
-          actualDirectoryPath
-        )
-        
-        console.log('Training list loaded:', {
-          trainings: result.trainings.length,
-          totalVideos: result.metadata.totalVideos,
-          path: actualDirectoryPath
-        })
-        
-        errorMessage.value = ''
-        showAutoReloadMessage.value = false // Hide the auto-reload message
       } catch (error) {
         console.error('Failed to select training directory:', error)
         errorMessage.value = `Failed to load training directory: ${error.message}`
       }
+    }
+
+    // Convert flat video list to hierarchical training structure
+    const convertVideosToTrainingStructure = (videos, basePath) => {
+      const trainingMap = new Map()
+      
+      videos.forEach(video => {
+        // Extract training type from path (assume structure: basePath/trainingType/trainingName/video.mp4)
+        const relativePath = video.path.replace(basePath, '').replace(/^[\\\/]/, '')
+        const pathParts = relativePath.split(/[\\\/]/)
+        
+        if (pathParts.length >= 2) {
+          const trainingType = pathParts[0]
+          const trainingName = pathParts[1]
+          
+          if (!trainingMap.has(trainingType)) {
+            trainingMap.set(trainingType, {
+              trainingType,
+              trainings: new Map(),
+              show: false
+            })
+          }
+          
+          const training = trainingMap.get(trainingType)
+          if (!training.trainings.has(trainingName)) {
+            training.trainings.set(trainingName, {
+              name: trainingName,
+              videos: [],
+              show: false
+            })
+          }
+          
+          training.trainings.get(trainingName).videos.push({
+            name: video.name,
+            absolutePath: video.path, // Store the full absolute path
+            path: relativePath // Store relative path for display
+          })
+        }
+      })
+      
+      // Convert maps to arrays
+      return Array.from(trainingMap.values()).map(training => ({
+        ...training,
+        trainings: Array.from(training.trainings.values())
+      }))
     }
 
     const selectSingleVideo = async () => {
@@ -266,114 +343,46 @@ export default {
     const launchFile = async (videoData) => {
       try {
         console.log('launchFile called with:', videoData)
-        console.log('videoData type:', typeof videoData)
-        console.log('videoData has fileHandleId:', !!videoData?.fileHandleId)
         
         const videoElement = videoPlayer.value
         if (!videoElement) {
           throw new Error('Video player not found')
         }
         
-        // Check if videoData has a fileHandleId (from File System Access API)
-        if (videoData && videoData.fileHandleId) {
-          try {
-            // Try to use FileHandle ID to create blob URL
-            const blobUrl = await videoService.setVideoSourceFromHandleId(videoElement, videoData.fileHandleId)
-            
-            // Update store with current video info
-            videoStore.currentVideoName = videoData.name
-            videoStore.speed = 100
-            
-            console.log('Loading video from FileHandle:', videoData.name)
-            errorMessage.value = ''
-            return // Success with FileHandle
-          } catch (fileHandleError) {
-            console.warn('FileHandle failed, trying fallback methods:', fileHandleError.message)
-            // Continue to try other methods below
-          }
+        // Simple path resolution - use absolutePath if available, otherwise construct it
+        let filePath = null
+        
+        if (videoData.absolutePath) {
+          // Use stored absolute path (preferred method)
+          filePath = videoData.absolutePath
+        } else if (typeof videoData === 'string') {
+          // Direct string path
+          filePath = videoData
+        } else if (videoData.url) {
+          // URL property
+          filePath = videoData.url
+        } else if (videoData.path && videoStore.rootDirectoryPath) {
+          // Construct from root + relative path
+          filePath = `${videoStore.rootDirectoryPath}/${videoData.path}`.replace(/[\\\/]+/g, '/')
+        } else {
+          throw new Error('No valid file path available')
         }
         
-        // Fallback: Try path-based loading with multiple strategies
-        let filePath
-        let pathStrategies = []
+        console.log('Loading video from path:', filePath)
         
-        // Strategy 1: Direct paths
-        if (typeof videoData === 'string') {
-          pathStrategies.push(videoData)
-        } else if (videoData && videoData.url) {
-          pathStrategies.push(videoData.url)
-        }
+        // Set video source using async IPC method
+        await videoService.setVideoSource(videoElement, filePath)
         
-        // Strategy 2: Electron absolute path construction
-        if (videoData && videoData.path && videoStore.rootDirectoryPath) {
-          const separator = videoStore.rootDirectoryPath.includes('\\') ? '\\' : '/'
-          const absolutePath = `${videoStore.rootDirectoryPath.replace(/[\\\/]+$/, '')}${separator}${videoData.path.replace(/\//g, separator)}`
-          pathStrategies.push(absolutePath)
-        }
+        // Update store
+        videoStore.currentVideoName = videoData.name || 'Unknown Video'
+        videoStore.speed = 100
         
-        // Strategy 3: Try using the defaultPath as base
-        if (videoData && videoData.path && defaultPath.value) {
-          const separator = defaultPath.value.includes('\\') ? '\\' : '/'
-          const fallbackPath = `${defaultPath.value.replace(/[\\\/]+$/, '')}${separator}${videoData.path.replace(/\//g, separator)}`
-          pathStrategies.push(fallbackPath)
-        }
+        errorMessage.value = ''
+        console.log('Video loaded successfully')
         
-        // Strategy 4: Construct from name and parent
-        if (videoData && videoData.name) {
-          const relativePath = videoData.parentName ? `${videoData.parentName}/${videoData.name}` : videoData.name
-          
-          if (videoStore.rootDirectoryPath) {
-            const separator = videoStore.rootDirectoryPath.includes('\\') ? '\\' : '/'
-            pathStrategies.push(`${videoStore.rootDirectoryPath.replace(/[\\\/]+$/, '')}${separator}${relativePath.replace(/\//g, separator)}`)
-          }
-          
-          if (defaultPath.value) {
-            const separator = defaultPath.value.includes('\\') ? '\\' : '/'
-            pathStrategies.push(`${defaultPath.value.replace(/[\\\/]+$/, '')}${separator}${relativePath.replace(/\//g, separator)}`)
-          }
-        }
-        
-        if (pathStrategies.length === 0) {
-          throw new Error('No valid file path strategies available')
-        }
-        
-        // Try each path strategy
-        console.log('Trying path strategies:', pathStrategies)
-        
-        for (const tryPath of pathStrategies) {
-          try {
-            filePath = tryPath
-            console.log('Attempting to load video from path:', filePath)
-            
-            videoService.setVideoSource(videoElement, filePath)
-            
-            // Update store with current video info
-            videoStore.currentVideoName = videoData.name || videoService.extractFilename(filePath)
-            videoStore.speed = 100
-            
-            console.log('Successfully loaded video from path:', filePath)
-            errorMessage.value = ''
-            return // Success - exit the function
-          } catch (pathError) {
-            console.warn(`Failed to load video from path ${filePath}:`, pathError.message)
-            // Continue to next strategy
-          }
-        }
-        
-        // If we get here, all path strategies failed
-        throw new Error(`Failed to load video using any of ${pathStrategies.length} path strategies`)
       } catch (error) {
         console.error('Failed to launch video:', error)
-        
-        // Check if this is a FileHandle error
-        if (error.message && error.message.includes('FileHandle not found')) {
-          // Clear invalid video data and show helpful message
-          console.log('FileHandle error detected, showing reload option')
-          showAutoReloadMessage.value = true
-          errorMessage.value = 'Video files need to be reloaded. Please click "📂 Reload Directory" to refresh the video list.'
-        } else {
-          errorMessage.value = `Failed to load video: ${error.message}`
-        }
+        errorMessage.value = `Failed to load video: ${error.message}`
       }
     }
 
@@ -466,13 +475,29 @@ export default {
       try {
         showAutoReloadMessage.value = false
         
-        const reloaded = await videoStore.autoReloadDirectory(fileService)
-        if (reloaded) {
-          console.log('Successfully reloaded directory')
-          errorMessage.value = ''
-        } else {
-          errorMessage.value = 'Failed to reload directory. Please try "Select Training Directory".'
+        // If we have a stored directory path, try to rescan it
+        if (videoStore.rootDirectoryPath && window.electronAPI && window.electronAPI.scanVideoDirectory) {
+          console.log('Rescanning stored directory:', videoStore.rootDirectoryPath)
+          
+          const videos = await window.electronAPI.scanVideoDirectory(videoStore.rootDirectoryPath)
+          if (videos && videos.length > 0) {
+            const trainingStructure = convertVideosToTrainingStructure(videos, videoStore.rootDirectoryPath)
+            
+            videoStore.setTrainingListWithMetadata(
+              trainingStructure,
+              null,
+              videoStore.rootDirectoryPath
+            )
+            
+            console.log('Successfully reloaded directory')
+            errorMessage.value = ''
+            return
+          }
         }
+        
+        // If direct rescan failed, prompt user to select directory again
+        errorMessage.value = 'Could not reload directory automatically. Please select the directory again.'
+        
       } catch (error) {
         console.error('Failed to reload directory:', error)
         errorMessage.value = `Failed to reload directory: ${error.message}`
@@ -486,34 +511,42 @@ export default {
 
     // Lifecycle
     onMounted(async () => {
-      // Load saved data from storage first
+      // Load saved data from storage
       videoStore.loadFromStorage()
       
-      // Check if we need to refresh FileHandles
-      const handlesValid = videoStore.validateFileHandles(fileService)
-      if (!handlesValid) {
-        console.log('FileHandles need refreshing')
-      }
-      
-      // Check if we have stored directory info but no current videos
-      if (videoStore.directoryStructure.name && videoStore.niouTrainingList.length === 0) {
-        showAutoReloadMessage.value = true
-        console.log('Showing auto-reload message for stored directory:', videoStore.directoryStructure.name)
-        console.log('Stored root directory path:', videoStore.rootDirectoryPath)
-        
-        // Automatically attempt to reload directory
-        console.log('Attempting automatic directory reload...')
+      // Try to load saved directory tree from file (Electron only)
+      if (window.electronAPI && window.electronAPI.loadDirectoryTree) {
         try {
-          const reloaded = await videoStore.autoReloadDirectory(fileService)
-          if (reloaded) {
-            console.log('Successfully auto-reloaded directory')
-            showAutoReloadMessage.value = false
+          console.log('Attempting to load saved directory tree...')
+          const result = await window.electronAPI.loadDirectoryTree()
+          
+          if (result.success) {
+            console.log('Found saved directory tree:', result.data.directoryPath)
+            
+            // Set the root directory path
+            videoStore.rootDirectoryPath = result.data.directoryPath
+            videoStore.directoryStructure.name = result.data.directoryPath.split(/[\\\/]/).pop()
+            videoStore.directoryStructure.path = result.data.directoryPath
+            videoStore.directoryStructure.lastScanned = result.data.lastScanned
+            
+            // Convert the saved tree to training structure
+            const trainingStructure = convertVideosToTrainingStructure(
+              result.data.tree, 
+              result.data.directoryPath
+            )
+            
+            videoStore.setNiouTrainingList(trainingStructure)
+            
+            console.log('Successfully loaded directory tree from file:', {
+              trainings: trainingStructure.length,
+              directory: result.data.directoryPath,
+              lastScanned: result.data.lastScanned
+            })
           } else {
-            console.log('Auto-reload failed, showing manual reload option')
+            console.log('No saved directory tree found:', result.error)
           }
         } catch (error) {
-          console.log('Auto-reload failed with error:', error.message)
-          // Keep the auto-reload message visible for manual retry
+          console.error('Failed to load saved directory tree:', error)
         }
       }
       
@@ -570,7 +603,8 @@ export default {
       formatDate,
       clearDirectory,
       hideAutoReloadMessage,
-      reloadDirectory
+      reloadDirectory,
+      convertVideosToTrainingStructure
     }
   }
 }
