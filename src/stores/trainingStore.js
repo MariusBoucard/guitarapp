@@ -63,9 +63,34 @@ export const useTrainingStore = defineStore('training', {
       this.saveTrainingsToStorage();
     },
     
+    setSelectedTraining(trainingId) {
+      this.selectedTraining = trainingId;
+      this.videoPath = this.currentTrainingVideos;
+    },
+    
     selectTraining(training) {
       this.selectedTraining = training.id;
       this.videoPath = this.currentTrainingVideos;
+    },
+
+    // Video management for trainings
+    addVideoToTraining(trainingId, videoPath) {
+      const training = this.trainingList.find(t => t.id === trainingId);
+      if (training && !training.list.includes(videoPath)) {
+        training.list.push(videoPath);
+        this.saveTrainingsToStorage();
+      }
+    },
+
+    removeVideoFromTraining(trainingId, videoPath) {
+      const training = this.trainingList.find(t => t.id === trainingId);
+      if (training) {
+        const index = training.list.indexOf(videoPath);
+        if (index > -1) {
+          training.list.splice(index, 1);
+          this.saveTrainingsToStorage();
+        }
+      }
     },
     
     reindexTrainings() {
@@ -163,6 +188,14 @@ export const useTrainingStore = defineStore('training', {
           }
         }
       }
+    },
+
+    loadTrainings() {
+      // Load video trainings specifically
+      if (localStorage.getItem("videoSave")) {
+        this.trainingList = JSON.parse(localStorage.getItem("videoSave"));
+      }
+      this.reindexTrainings();
     }
   }
 })

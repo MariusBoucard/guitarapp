@@ -135,6 +135,15 @@
           
           <div 
             class="sidebar-item" 
+            :class="{ active: appStore.trainingDisplay }"
+            @click="appStore.toggleTraining()"
+          >
+            <span>🎯 Training Playlists</span>
+            <span class="status-indicator" v-if="appStore.trainingDisplay">●</span>
+          </div>
+          
+          <div 
+            class="sidebar-item" 
             :class="{ active: appStore.pictureDisplay }"
             @click="appStore.togglePicture()"
           >
@@ -201,7 +210,7 @@ export default {
         // First turn everything off
         const allStates = [
           'mancheDisplay', 'notesSelectedDisplay', 'tunderDisplay', 'pictureDisplay',
-          'soundDisplay', 'scalesDisplay', 'videoDisplay', 'videoDisplayNew',
+          'soundDisplay', 'scalesDisplay', 'videoDisplay', 'videoDisplayNew', 'trainingDisplay',
           'gameDisplay', 'chordssuggestDisplay', 'settingsView', 'keyboard'
         ]
         
@@ -216,6 +225,7 @@ export default {
               case 'scalesDisplay': appStore.toggleScales(); break;
               case 'videoDisplay': appStore.toggleVideo(); break;
               case 'videoDisplayNew': appStore.toggleVideoNew(); break;
+              case 'trainingDisplay': appStore.toggleTraining(); break;
               case 'gameDisplay': appStore.toggleGame(); break;
               case 'chordssuggestDisplay': appStore.toggleChordssuggestion(); break;
               case 'settingsView': appStore.toggleSettings(); break;
@@ -244,6 +254,7 @@ export default {
                 case 'scalesDisplay': appStore.toggleScales(); break;
                 case 'videoDisplay': appStore.toggleVideo(); break;
                 case 'videoDisplayNew': appStore.toggleVideoNew(); break;
+                case 'trainingDisplay': appStore.toggleTraining(); break;
                 case 'gameDisplay': appStore.toggleGame(); break;
                 case 'chordssuggestDisplay': appStore.toggleChordssuggestion(); break;
                 case 'settingsView': appStore.toggleSettings(); break;

@@ -24,7 +24,8 @@
               :tuning="tuningStore.tuningList" 
             />
             <VideoComponent v-show="appStore.videoDisplay"></VideoComponent> 
-            <VideoComponentNewRefactored v-show="appStore.videoDisplayNew"></VideoComponentNewRefactored>
+            <TrainingComponent v-show="appStore.trainingDisplay" @video-selected="handleVideoSelection"></TrainingComponent>
+            <VideoComponentNewRefactored v-show="appStore.videoDisplayNew" ref="videoPlayer"></VideoComponentNewRefactored>
             <keyboardComponent v-show="appStore.keyboard"></keyboardComponent>
           </div>
           <div class="row">
@@ -103,7 +104,7 @@
 </template>
 
 <script>
-import { inject } from 'vue'
+import { inject, nextTick } from 'vue'
 import { useAppStore } from '@/stores/appStore.js'
 import { useNotesStore } from '@/stores/notesStore.js'
 import { useTuningStore } from '@/stores/tuningStore.js'
@@ -119,6 +120,7 @@ import TunerComponent from './TunerComponent.vue'
 import PlaySoundComponentNew from './PlaySoundComponentNew.vue'
 import LoadPictureComponent from './LoadPictureComponent.vue'
 import VideoComponent from './videoComponent.vue'
+import TrainingComponent from './TrainingComponent.vue'
 import VideoSettingsCOmponent from './VideoSettingsCOmponent.vue'
 import NotesAJouerComponent from './NoteAJouerComponent.vue'
 import SuggestedChordsComponent from './SuggestedChordsComponent.vue'
@@ -137,6 +139,7 @@ export default {
     PlaySoundComponentNew,
     LoadPictureComponent,
     VideoComponent,
+    TrainingComponent,
     VideoSettingsCOmponent,
     NotesAJouerComponent,
     VideoComponentNewRefactored,
@@ -154,12 +157,34 @@ export default {
     const tuningStore = useTuningStore()
     const gameStore = useGameStore()
     
+    // Methods
+    const handleVideoSelection = (videoPath) => {
+      // Show the video player and hide the training component
+      appStore.videoDisplayNew = true
+      appStore.trainingDisplay = false
+      
+      // Use nextTick to ensure the video player component is rendered
+      nextTick(() => {
+        const videoPlayer = document.querySelector('video')
+        if (videoPlayer && videoPath) {
+          const sanitizedPath = videoPath.replace(/#/g, '%23')
+          const videoURL = videoPath.startsWith('blob:') || videoPath.startsWith('http') 
+            ? videoPath 
+            : `file://${sanitizedPath}`
+          
+          videoPlayer.src = videoURL
+          console.log('Video loaded:', videoURL)
+        }
+      })
+    }
+    
     return {
       appStore,
       notesStore,
       tuningStore,
       gameStore,
-      appController
+      appController,
+      handleVideoSelection
     }
   }
 }

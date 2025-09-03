@@ -15,6 +15,7 @@ export const useAppStore = defineStore('app', {
     scalesDisplay: true,
     videoDisplay: false,
     videoDisplayNew: true,
+    trainingDisplay: false,
     gameDisplay: false,
     chordssuggestDisplay: false,
     settingsView: false,
@@ -40,6 +41,7 @@ export const useAppStore = defineStore('app', {
       scalesDisplay: state.scalesDisplay,
       videoDisplay: state.videoDisplay,
       videoDisplayNew: state.videoDisplayNew,
+      trainingDisplay: state.trainingDisplay,
       gameDisplay: state.gameDisplay,
       chordssuggestDisplay: state.chordssuggestDisplay,
       settingsView: state.settingsView,
@@ -79,6 +81,10 @@ export const useAppStore = defineStore('app', {
     
     toggleVideoNew() {
       this.videoDisplayNew = !this.videoDisplayNew
+    },
+    
+    toggleTraining() {
+      this.trainingDisplay = !this.trainingDisplay
     },
     
     toggleGame() {
