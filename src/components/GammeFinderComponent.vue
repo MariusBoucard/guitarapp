@@ -20,17 +20,6 @@
     <div class="scales-section">
       <h2 class="section-title">🎼 Available Scales</h2>
       
-      <!-- Debug info -->
-      <div class="debug-info" style="background: rgba(255,0,0,0.1); padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 0.8rem;">
-        <strong>Debug:</strong> Selected notes: {{ notesSelectionnees.filter(n => n.enabled).map(n => n.note).join(', ') || 'None' }}
-        <br>
-        <strong>Total scales loaded:</strong> {{ scalestot.length }}
-        <br>
-        <strong>Scales found:</strong> {{ listeGammes.length }}
-        <br>
-        <strong>First scale example:</strong> {{ scalestot.length > 0 ? `${scalestot[0]?.root} ${scalestot[0]?.name} [${scalestot[0]?.notes?.join(', ')}]` : 'No scales loaded' }}
-      </div>
-      
       <div v-if="!listeGammes.length" class="no-scales-message">
         <p>No scales available. Please select some notes first.</p>
       </div>
@@ -552,25 +541,16 @@ export default {
             const scalesfinal = [];
             notes.sort();
             
-            console.log('Debug generateScales:');
-            console.log('Selected notes:', notes);
-            console.log('Total scales available:', this.scalestot.length);
-            console.log('First few scales:', this.scalestot.slice(0, 3));
-            
             this.scalestot.forEach((elem, index) => {
                 if (elem && elem.notes && Array.isArray(elem.notes)) {
                     // Check if all selected notes are included in this scale
                     const allNotesIncluded = notes.every(val => elem.notes.includes(val));
                     if (allNotesIncluded) {
-                        console.log(`Scale ${index} matches:`, elem);
                         scalesfinal.push(elem);
                     }
-                } else {
-                    console.log(`Scale ${index} is invalid:`, elem);
                 }
             });
             
-            console.log('Matching scales found:', scalesfinal.length);
             return scalesfinal;
         },
 
