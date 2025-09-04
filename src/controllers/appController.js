@@ -126,6 +126,15 @@ export class AppController {
   }
 
   /**
+   * Handle updating all notes at once (for scale selection)
+   */
+  handleNotesUpdate(notesArray) {
+    this.notesStore.updateAllNotes(notesArray);
+    // Auto-save note selection
+    this.settingsService.saveNotesSelection(notesArray);
+  }
+
+  /**
    * Handle color change
    */
   handleColorChange(colors) {

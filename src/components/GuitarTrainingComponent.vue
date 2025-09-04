@@ -120,6 +120,7 @@
           ></ColorComponent>
           <GammeFinderComponent 
             @colorgamme="appController.handleColorChange($event)"  
+            @notes-updated="appController.handleNotesUpdate($event)"
             :colorsave="notesStore.colorSave" 
             :color="notesStore.colors" 
             :nbnotes="notesStore.nbnotes" 
@@ -244,155 +245,298 @@ export default {
 
 <style scoped>
 .guitar-training-container {
+  background: var(--bg-primary);
+  min-height: 100vh;
+  padding: var(--spacing-lg);
+  color: var(--text-primary);
   width: 100%;
   height: 100%;
 }
 
 .main-content {
+  max-width: 100%;
+  margin: 0 auto;
   width: 100%;
-  padding: 10px;
+  padding: var(--spacing-md);
 }
 
-.column {
-  float: left;
-  width: 80%;
+.row {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
 }
 
-.columnd {
-  float: left;
-  width: 20%;
-}
-
-.columnhalf {
-  float: left;
-  width: 50%;
-}
-
-/* Clear floats after the columns */
 .row:after {
   content: "";
   display: table;
   clear: both;
 }
 
+.column {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  float: left;
+  width: 80%;
+}
+
+.columnd {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 280px;
+  float: left;
+  width: 20%;
+}
+
+.columnhalf {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  float: left;
+  width: 50%;
+}
+
 h1, p, h3 {
-  color: white;
+  color: var(--text-primary);
 }
 
 /* Video Training Tree Styles */
 .video-training-tree {
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 10px 0;
-  color: white;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin: var(--spacing-lg) 0;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px var(--shadow-medium);
+  color: var(--text-primary);
 }
 
 .video-training-tree h2 {
-  color: #4CAF50;
-  margin-bottom: 15px;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid var(--border-accent);
   text-align: center;
 }
 
 .no-videos-message {
   text-align: center;
-  padding: 20px;
-  color: #888;
+  padding: var(--spacing-xxl);
+  color: var(--text-secondary);
   font-style: italic;
+  background: rgba(52, 73, 94, 0.3);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-primary);
 }
 
 .training-tree {
-  max-height: 400px;
+  max-height: 500px;
   overflow-y: auto;
+  padding-right: var(--spacing-sm);
 }
 
 .training-category {
-  margin-bottom: 10px;
-  border: 1px solid #444;
-  border-radius: 5px;
-  background-color: #333;
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: rgba(44, 62, 80, 0.8);
+  box-shadow: 0 4px 12px var(--shadow-light);
+  transition: all var(--transition-normal);
+  border: 1px solid var(--border-primary);
+}
+
+.training-category:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--shadow-medium);
 }
 
 .training-category-header {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px;
+  background: var(--btn-primary);
+  color: var(--text-primary);
+  padding: var(--spacing-lg);
   margin: 0;
   cursor: pointer;
   user-select: none;
-  border-radius: 5px 5px 0 0;
-  transition: background-color 0.3s;
+  font-weight: var(--font-semibold);
+  font-size: 1.1rem;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .training-category-header:hover {
-  background-color: #45a049;
+  background: var(--btn-primary-hover);
 }
 
 .training-category-header.expanded {
-  border-radius: 5px 5px 0 0;
+  background: var(--secondary-blue-dark);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.training-category-header::after {
+  content: '▼';
+  transition: transform var(--transition-normal);
+  font-size: 0.8rem;
+}
+
+.training-category-header.expanded::after {
+  transform: rotate(180deg);
 }
 
 .training-items {
+  background: rgba(52, 73, 94, 0.4);
   padding: 0;
 }
 
 .training-item {
-  border-top: 1px solid #555;
+  border-top: 1px solid var(--border-primary);
 }
 
 .training-item-header {
-  background-color: #555;
-  color: white;
-  padding: 8px 15px;
+  background: rgba(58, 79, 99, 0.8);
+  color: var(--text-primary);
+  padding: var(--spacing-md) var(--spacing-lg);
   margin: 0;
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.3s;
+  font-weight: var(--font-medium);
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .training-item-header:hover {
-  background-color: #666;
+  background: var(--bg-hover);
+  color: var(--secondary-blue);
+}
+
+.training-item-header::after {
+  content: '▶';
+  transition: transform var(--transition-normal);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.training-item-header.expanded::after {
+  transform: rotate(90deg);
+  color: var(--accent-green);
 }
 
 .video-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  background-color: #2a2a2a;
+  background: rgba(44, 62, 80, 0.6);
 }
 
 .video-item {
-  padding: 8px 20px;
-  border-bottom: 1px solid #444;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-bottom: 1px solid rgba(52, 73, 94, 0.5);
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all var(--transition-normal);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
 .video-item:hover {
-  background-color: #4CAF50;
-  color: white;
+  background: var(--secondary-blue);
+  color: var(--text-primary);
+  padding-left: calc(var(--spacing-xl) + var(--spacing-sm));
+  box-shadow: inset 4px 0 0 var(--accent-green);
 }
 
 .video-item:last-child {
   border-bottom: none;
 }
 
-/* Scrollbar styling for webkit browsers */
+/* Custom Scrollbar */
 .training-tree::-webkit-scrollbar {
   width: 8px;
 }
 
 .training-tree::-webkit-scrollbar-track {
-  background: #2a2a2a;
-  border-radius: 4px;
+  background: var(--primary-dark);
+  border-radius: var(--radius-sm);
 }
 
 .training-tree::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 4px;
+  background: var(--primary-medium);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-normal);
 }
 
 .training-tree::-webkit-scrollbar-thumb:hover {
-  background: #777;
+  background: var(--primary-accent);
+}
+
+/* Component containers styling */
+.guitar-training-container > * {
+  transition: opacity var(--transition-normal);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .row {
+    flex-direction: column;
+  }
+  
+  .columnd {
+    min-width: auto;
+    width: 100%;
+    float: none;
+  }
+  
+  .column {
+    width: 100%;
+    float: none;
+  }
+  
+  .columnhalf {
+    width: 100%;
+    float: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .guitar-training-container {
+    padding: var(--spacing-md);
+  }
+  
+  .video-training-tree {
+    padding: var(--spacing-lg);
+  }
+  
+  .columnhalf {
+    margin-bottom: var(--spacing-lg);
+  }
+}
+
+/* Add subtle animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.video-training-tree {
+  animation: fadeInUp var(--transition-slow) ease-out;
 }
 </style>

@@ -1,137 +1,399 @@
 <template>
-    <div style=" ; background-color: #86BBD8;">
-        <div class="custom-div">
-    <p>Scale in use {{ this.gammeSelected }}</p>
-    <h1>Scales you could use : </h1>
-    <input type="checkbox" v-model="this.colorScaleBool">
-    <label>Color relative to the position in the scale</label>
-</div>
-
-        <ul>
-
-            <li v-for="gammes in this.listeGammes" :key="gammes">
-                <div v-if="gammes !== undefined">
-                    <button class="buttonstyle" @click="this.setGamme(gammes.root, gammes.name)">{{ gammes.root }} - {{
-                        gammes.name }}</button>
-
-                    <ul>
-                        <li class="notesgammes" v-for="notes in gammes.notes" :key="notes">
-                            <p>{{ notes }}</p>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-        </ul>
+  <div class="gamme-finder-container">
+    <div class="header-section">
+      <div class="current-scale">
+        <h3 class="current-scale-title">🎵 Current Scale</h3>
+        <p class="current-scale-value">{{ this.gammeSelected || 'No scale selected' }}</p>
+      </div>
+      
+      <div class="color-option">
+        <div class="checkbox-wrapper">
+          <input type="checkbox" v-model="this.colorScaleBool" id="colorScale" class="custom-checkbox">
+          <label for="colorScale" class="checkbox-label">
+            <span class="checkmark">✓</span>
+            Color relative to position in scale
+          </label>
+        </div>
+      </div>
     </div>
-    
+
+    <div class="scales-section">
+      <h2 class="section-title">🎼 Available Scales</h2>
+      
+      <!-- Debug info -->
+      <div class="debug-info" style="background: rgba(255,0,0,0.1); padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 0.8rem;">
+        <strong>Debug:</strong> Selected notes: {{ notesSelectionnees.filter(n => n.enabled).map(n => n.note).join(', ') || 'None' }}
+        <br>
+        <strong>Total scales loaded:</strong> {{ scalestot.length }}
+        <br>
+        <strong>Scales found:</strong> {{ listeGammes.length }}
+        <br>
+        <strong>First scale example:</strong> {{ scalestot.length > 0 ? `${scalestot[0]?.root} ${scalestot[0]?.name} [${scalestot[0]?.notes?.join(', ')}]` : 'No scales loaded' }}
+      </div>
+      
+      <div v-if="!listeGammes.length" class="no-scales-message">
+        <p>No scales available. Please select some notes first.</p>
+      </div>
+      
+      <div v-else class="scales-grid">
+        <div v-for="gammes in this.listeGammes" :key="gammes" class="scale-card">
+          <div v-if="gammes !== undefined" class="scale-content">
+            <button 
+              class="scale-button" 
+              @click="this.setGamme(gammes.root, gammes.name)"
+              :class="{ active: gammeSelected === `${gammes.root} - ${gammes.name}` }"
+            >
+              <div class="scale-info">
+                <span class="scale-root">{{ gammes.root }}</span>
+                <span class="scale-name">{{ gammes.name }}</span>
+              </div>
+              <span class="scale-arrow">→</span>
+            </button>
+
+            <div class="notes-preview">
+              <div class="notes-label">Notes:</div>
+              <div class="notes-list">
+                <span 
+                  v-for="(note, index) in gammes.notes" 
+                  :key="note" 
+                  class="note-chip"
+                  :style="{ '--note-index': index }"
+                >
+                  {{ note }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 <style scoped>
-.notesgammes {
-    display: inline-block;
-    padding: 10px;
-    border-right: 1px solid black;
+.gamme-finder-container {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin: var(--spacing-lg) 0;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px var(--shadow-medium);
+  color: var(--text-primary);
+  transition: all var(--transition-normal);
 }
 
-div {
-    background-color: #F6AE2D;
-    padding: 20px;
-    border-radius: 10px;
-    margin: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+.gamme-finder-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px var(--shadow-dark);
 }
 
-/* Style the header */
-h1 {
-    font-size: 1.5em;
-    margin-top: 0;
+.header-section {
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--border-accent);
 }
 
-/* Style the checkbox and label */
-input[type="checkbox"] {
-    transform: scale(1.5);
-    margin-right: 10px;
+.current-scale {
+  background: rgba(52, 152, 219, 0.1);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--secondary-blue);
+  margin-bottom: var(--spacing-lg);
 }
 
-/* Style the button */
-.buttonstyle {
-    background-color: #33658A;
-    color: #fff;
-    border: none;
-    padding: 5px 10px;
-    margin: 5px;
-    cursor: pointer;
-    border-radius: 5px;
+.current-scale-title {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--secondary-blue);
+  font-size: 1.1rem;
+  font-weight: var(--font-semibold);
 }
 
-/* Style the list items */
-li {
-    list-style: none;
+.current-scale-value {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: var(--font-medium);
+  text-transform: capitalize;
 }
 
-/* Style the notes */
-.notesgammes {
-    background-color: #f0f0f0;
-    padding: 5px;
-    margin: 5px;
-    border-radius: 5px;
+.color-option {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-lg);
 }
 
-/* Style the label text */
-label {
-    font-size: 0.9em;
-    font-weight: normal;
+.checkbox-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
-/* Add hover effect to buttons */
-.buttonstyle:hover {
-    background-color: #0056b3;
+.custom-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
 }
 
-/* Add hover effect to notes */
-.notesgammes:hover {
-    background-color: #ddd;
+.checkbox-label {
+  position: relative;
+  padding-left: var(--spacing-xxl);
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: var(--font-medium);
+  user-select: none;
+  transition: all var(--transition-normal);
 }
 
-.buttonstyle {
-
-    border: none;
-    padding: 15px 32px;
-    margin: 10px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    border-radius: 5px;
-
-}
-p {
-    color:black
-}
-.custom-div {
-    background-color: wheat;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+.checkbox-label::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-accent);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  transition: all var(--transition-normal);
 }
 
-.custom-div p {
-    font-size: 16px;
-    margin: 0;
+.custom-checkbox:checked + .checkbox-label::before {
+  background: var(--btn-primary);
+  border-color: var(--secondary-blue);
 }
 
-.custom-div h1 {
-    font-size: 18px;
-    margin: 10px 0;
+.checkmark {
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
 }
 
-.custom-div input[type="checkbox"] {
-    transform: scale(1.2);
-    margin-right: 5px;
+.custom-checkbox:checked + .checkbox-label .checkmark {
+  opacity: 1;
 }
 
-.custom-div label {
-    font-size: 14px;
-    font-weight: normal;
+.checkbox-label:hover::before {
+  border-color: var(--secondary-blue);
+  box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+}
+
+.scales-section {
+  margin-top: var(--spacing-xl);
+}
+
+.section-title {
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  padding-bottom: var(--spacing-md);
+}
+
+.no-scales-message {
+  text-align: center;
+  padding: var(--spacing-xxl);
+  color: var(--text-secondary);
+  font-style: italic;
+  background: rgba(52, 73, 94, 0.3);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-primary);
+}
+
+.scales-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.scale-card {
+  background: rgba(44, 62, 80, 0.6);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 8px var(--shadow-light);
+}
+
+.scale-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px var(--shadow-medium);
+  border-color: var(--border-accent);
+}
+
+.scale-content {
+  padding: 0;
+}
+
+.scale-button {
+  width: 100%;
+  background: var(--btn-primary);
+  border: none;
+  color: var(--text-primary);
+  padding: var(--spacing-lg);
+  cursor: pointer;
+  font-weight: var(--font-semibold);
+  font-size: 1rem;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.scale-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left var(--transition-slow);
+}
+
+.scale-button:hover::before {
+  left: 100%;
+}
+
+.scale-button:hover {
+  background: var(--btn-primary-hover);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.scale-button.active {
+  background: var(--btn-success);
+  box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+}
+
+.scale-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.scale-root {
+  background: rgba(255, 255, 255, 0.2);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-bold);
+  font-size: 1.1rem;
+  min-width: 40px;
+  text-align: center;
+}
+
+.scale-name {
+  font-weight: var(--font-medium);
+  text-transform: capitalize;
+}
+
+.scale-arrow {
+  font-size: 1.2rem;
+  transition: transform var(--transition-normal);
+}
+
+.scale-button:hover .scale-arrow {
+  transform: translateX(4px);
+}
+
+.notes-preview {
+  padding: var(--spacing-lg);
+  background: rgba(52, 73, 94, 0.3);
+}
+
+.notes-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: var(--font-medium);
+  margin-bottom: var(--spacing-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.notes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.note-chip {
+  background: var(--secondary-blue);
+  color: var(--text-primary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: var(--font-medium);
+  transition: all var(--transition-normal);
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+.note-chip:hover {
+  background: var(--secondary-blue-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.note-chip:nth-child(odd) {
+  background: var(--accent-purple);
+}
+
+.note-chip:nth-child(odd):hover {
+  background: #8e44ad;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .gamme-finder-container {
+    padding: var(--spacing-lg);
+  }
+  
+  .scales-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .checkbox-label {
+    font-size: 0.9rem;
+  }
+  
+  .scale-info {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    text-align: left;
+  }
+}
+
+/* Animation for scale cards */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scale-card {
+  animation: slideInUp var(--transition-slow) ease-out;
+}
+
+.scale-card:nth-child(even) {
+  animation-delay: 0.1s;
+}
+
+.scale-card:nth-child(3n) {
+  animation-delay: 0.2s;
 }
 </style>
 
@@ -151,7 +413,6 @@ export default {
     data() {
         return {
             colorScaleBool : false,
-            notesSelectionnees: this.notesSelected,
             gammeSelectedIntra : this.gammeSelected,
             listeNotes: [
                 { id: 0, note: "A" },
@@ -169,7 +430,6 @@ export default {
             ],
             colorIntra : this.color,
             notesTab: ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"],
-            // listeGammes: [],
             scaleTypes: [
                 { name: 'Major', noteName: '', intervals: [0, 2, 4, 5, 7, 9, 11], notes: [] },
                 { name: 'Natural Minor', noteName: '', intervals: [0, 2, 3, 5, 7, 8, 10], notes: [] },
@@ -198,8 +458,13 @@ export default {
         }
     },
     computed : {
+        // Use the prop directly instead of copying it to data
+        notesSelectionnees() {
+            return this.notesSelected;
+        },
         listeGammes(){
             var notes = []
+            // Use the computed property instead of data
             this.notesSelectionnees.forEach(element => {
                 if (element.enabled) {
                     notes.push(element.note)
@@ -207,11 +472,6 @@ export default {
             });
 
              const scales = this.generateScales(notes);
-            //  console.log(scales)
-           
-            // scales.forEach(gamme => {
-            //     listeGammes.push(gamme)
-            // })
             return scales
 
         }
@@ -251,12 +511,18 @@ export default {
             // console.log(fonda,type)
             var gamme = this.generateGammes(type, fonda)
 
-            this.notesSelectionnees.forEach(n => n.enabled = false)
+            // Create a copy of the notes array and modify it
+            const updatedNotes = this.notesSelected.map(n => ({ ...n, enabled: false }))
             gamme.notes.forEach(note => {
-                var find = this.notesSelectionnees.find(notesel => notesel.note === note)
-                find.enabled = true
+                var find = updatedNotes.find(notesel => notesel.note === note)
+                if (find) {
+                    find.enabled = true
+                }
             })
-                this.$emit("newscale",fonda+" "+type)
+            
+            // Emit the updated notes back to parent instead of modifying props directly
+            this.$emit("notes-updated", updatedNotes)
+            this.$emit("newscale", fonda + " " + type)
 
         },
         generatePopulation(nomGamme) {
@@ -285,23 +551,27 @@ export default {
         generateScales(notes) {
             const scalesfinal = [];
             notes.sort();
-            // for (let i = 0; i < this.scaleTypes.length; i++) {
-
-            //     var population = this.generatePopulation(this.scaleTypes[i].name)
-                this.scalestot.forEach(elem => {
-                    if (elem && elem.notes && notes.every(val => elem.notes.includes(val))) {
-                        scalesfinal.push(elem)
-                    }
-
-                 }
-                )
-
-                //Generer l'ensemble des 12 mêmes gammes en fonction du type
-                //check pour lesquelles nos notes sont dedans, et les garder
             
-            return scalesfinal
-
-
+            console.log('Debug generateScales:');
+            console.log('Selected notes:', notes);
+            console.log('Total scales available:', this.scalestot.length);
+            console.log('First few scales:', this.scalestot.slice(0, 3));
+            
+            this.scalestot.forEach((elem, index) => {
+                if (elem && elem.notes && Array.isArray(elem.notes)) {
+                    // Check if all selected notes are included in this scale
+                    const allNotesIncluded = notes.every(val => elem.notes.includes(val));
+                    if (allNotesIncluded) {
+                        console.log(`Scale ${index} matches:`, elem);
+                        scalesfinal.push(elem);
+                    }
+                } else {
+                    console.log(`Scale ${index} is invalid:`, elem);
+                }
+            });
+            
+            console.log('Matching scales found:', scalesfinal.length);
+            return scalesfinal;
         },
 
 
@@ -316,12 +586,7 @@ export default {
             });
 
              const scales = this.generateScales(notes);
-            //  console.log(scales)
-            this.listeGammes = scales
-            scales.forEach(gamme => {
-                this.listeGammes.push(gamme)
-            })
-            return this.listeGammes
+            return scales
         },
         generateGammes(type, rootnote) {
 
@@ -346,24 +611,29 @@ export default {
         
     },
     created() {
-        // const fullgammes = []
-        // this.scaleTypes.forEach(scale => {
-        //     this.generatePopulation(scale.name).forEach(gamme => fullgammes.push(gamme))
-        // })
-
-        // // Then put fullgamme in a file
-        // var blob = new Blob([JSON.stringify(fullgammes)], {type: "text/json"});
-        // saveAs(blob, "mydata.json");
-
-
-
-    this.scalestot = []
-    for(var i=0;i<84;i++){
-        this.scalestot.push(myKey[i])
-        // console.log(myKey[i])
-
-    }
-  },
+        // Load scales from JSON file
+        this.scalestot = []
+        try {
+            for(var i=0;i<84;i++){
+                if (myKey[i]) {
+                    this.scalestot.push(myKey[i])
+                }
+            }
+            console.log('Loaded scales from JSON:', this.scalestot.length);
+        } catch (error) {
+            console.error('Error loading scales from JSON:', error);
+        }
+        
+        // Fallback: generate scales if JSON didn't work
+        if (this.scalestot.length === 0) {
+            console.log('Generating scales as fallback...');
+            this.scaleTypes.forEach(scale => {
+                const population = this.generatePopulation(scale.name);
+                this.scalestot.push(...population);
+            });
+            console.log('Generated scales as fallback:', this.scalestot.length);
+        }
+    },
   watch : {
     colorScaleBool : {
         handler(){

@@ -143,6 +143,11 @@ export const useNotesStore = defineStore('notes', {
       }
       this.gammeSelected = "";
     },
+
+    // Update all notes at once (for scale selection)
+    updateAllNotes(notesArray) {
+      this.noteSlectedList = notesArray;
+    },
     
     // Color management
     changeColor(colors) {
