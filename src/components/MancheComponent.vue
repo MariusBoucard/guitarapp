@@ -523,8 +523,6 @@ ul:not(.ulmanche) {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    min-width: calc(var(--mondiap, 40px));
-    max-width: calc(var(--mondiap, 40px));
     height: 100%;
     position: relative;
 }
@@ -667,11 +665,6 @@ ul:not(.ulmanche) {
     ul:not(.ulmanche) {
         min-height: 250px;
         overflow-x: scroll;
-    }
-    
-    .horizontalli2 {
-        min-width: 35px;
-        max-width: 35px;
     }
     
     .circle {
