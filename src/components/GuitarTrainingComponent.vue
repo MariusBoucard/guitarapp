@@ -57,7 +57,7 @@
               </div>
             </div>
             
-            <keyboardComponent v-show="appStore.keyboard"></keyboardComponent>
+            <KeyboardComponent v-show="appStore.keyboard"></KeyboardComponent>
           </div>
           <div class="row">
             <div class="columnhalf"> 
@@ -85,7 +85,7 @@
                 :tuningList="tuningStore.tuningList" 
                 :cordesNumber="parseInt(tuningStore.nbStrings)"
               ></TuningComponent> 
-              <PlaySoundComponentNew v-show="appStore.soundDisplay"></PlaySoundComponentNew>
+              <PlaySoundComponent v-show="appStore.soundDisplay"></PlaySoundComponent>
             </div>
           </div>
         </div>
@@ -101,7 +101,7 @@
             @changenote="appController.handleNoteChange($event)" 
             :notePlayed="notesStore.notePlayed"
           ></TunerComponent>
-          <NotesAJouerComponent  
+          <NoteToPlayComponent  
             v-show="appStore.gameDisplay" 
             @noteexpected="appController.handleGameNoteExpected($event)" 
             @cheatchanged="appController.handleGameCheatChanged($event)" 
@@ -112,8 +112,8 @@
             :listeNote="notesStore.nbnotes" 
             :noteTuner="notesStore.notePlayed"
           >
-          </NotesAJouerComponent>
-          <VideoSettingsCOmponent :videoFolderAll="appStore.videoFolder"></VideoSettingsCOmponent>
+          </NoteToPlayComponent>
+          <VideoSettingsComponent :videoFolderAll="appStore.videoFolder"></VideoSettingsComponent>
           <ColorComponent 
             v-show="appStore.settingsView" 
             :couleurdict="notesStore.colors"
@@ -149,12 +149,12 @@ import TuningComponent from './TuningComponent.vue'
 import ColorComponent from './ColorComponent.vue'
 import GammeFinderComponent from './GammeFinderComponent.vue'
 import TunerComponent from './TunerComponent.vue'
-import PlaySoundComponentNew from './PlaySoundComponentNew.vue'
+import PlaySoundComponent from './PlaySoundComponent.vue'
 import LoadPictureComponent from './LoadPictureComponent.vue'
-import VideoComponent from './videoComponent.vue'
+import VideoComponent from './VideoComponent.vue'
 import TrainingComponent from './TrainingComponent.vue'
-import VideoSettingsCOmponent from './VideoSettingsCOmponent.vue'
-import NotesAJouerComponent from './NoteAJouerComponent.vue'
+import VideoSettingsComponent from './VideoSettingsComponent.vue'
+import NoteToPlayComponent from './NoteToPlayComponent.vue'
 import SuggestedChordsComponent from './SuggestedChordsComponent.vue'
 import VideoComponentNewRefactored from './VideoComponentNewRefactored.vue'
 import KeyboardComponent from './KeyboardComponent.vue'
@@ -168,12 +168,12 @@ export default {
     TuningComponent,
     ColorComponent,
     GammeFinderComponent,
-    PlaySoundComponentNew,
+    PlaySoundComponent,
     LoadPictureComponent,
     VideoComponent,
     TrainingComponent,
-    VideoSettingsCOmponent,
-    NotesAJouerComponent,
+    VideoSettingsComponent,
+    NoteToPlayComponent,
     VideoComponentNewRefactored,
     KeyboardComponent,
     SuggestedChordsComponent

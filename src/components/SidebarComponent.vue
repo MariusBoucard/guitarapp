@@ -9,44 +9,185 @@
       <h4>Quick Presets</h4>
       <div class="preset-buttons">
         <button 
-          v-for="preset in presets" 
-          :key="preset.key"
           class="preset-button"
-          @click="componentManager.applyPreset(preset.key)"
+          @click="applyPreset('practice')"
         >
-          {{ preset.icon }} {{ preset.name }}
+          🎯 Practice
+        </button>
+        <button 
+          class="preset-button"
+          @click="applyPreset('tuning')"
+        >
+          🎛️ Tuning
+        </button>
+        <button 
+          class="preset-button"
+          @click="applyPreset('game')"
+        >
+          🎮 Game
+        </button>
+        <button 
+          class="preset-button"
+          @click="applyPreset('minimal')"
+        >
+          📱 Minimal
         </button>
       </div>
     </div>
     
     <div class="sidebar-sections">
-      <!-- Dynamic Component Groups -->
-      <div 
-        v-for="(group, groupKey) in componentGroups" 
-        :key="groupKey"
-        class="sidebar-section"
-      >
-        <div class="section-header">
-          <h4>{{ group.title }}</h4>
-          <button 
-            class="group-toggle"
-            @click="toggleGroup(groupKey)"
-            :title="`Toggle all ${group.title.toLowerCase()}`"
-          >
-            {{ getGroupActiveCount(group) > 0 ? '👁️' : '👁️‍🗨️' }}
-          </button>
-        </div>
-        
+      <!-- Main Components Section -->
+      <div class="sidebar-section">
+        <h4>Main Components</h4>
         <div class="sidebar-items">
           <div 
-            v-for="component in group.components"
-            :key="component.key"
             class="sidebar-item" 
-            :class="{ active: isComponentActive(component.key) }"
-            @click="componentManager.toggleComponent(component.key)"
+            :class="{ active: appStore.mancheDisplay }"
+            @click="appStore.toggleManche()"
           >
-            <span>{{ component.icon }} {{ component.name }}</span>
-            <span class="status-indicator" v-if="isComponentActive(component.key)">●</span>
+            <span>🎸 Manche</span>
+            <span class="status-indicator" v-if="appStore.mancheDisplay">●</span>
+          </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.notesSelectedDisplay }"
+            @click="appStore.toggleNotesSelected()"
+          >
+            <span>🎵 Selection notes</span>
+            <span class="status-indicator" v-if="appStore.notesSelectedDisplay">●</span>
+          </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.keyboard }"
+            @click="appStore.toggleKeyboard()"
+          >
+            <span>⌨️ Keyboard</span>
+            <span class="status-indicator" v-if="appStore.keyboard">●</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tools Section -->
+      <div class="sidebar-section">
+        <h4>Tools</h4>
+        <div class="sidebar-items">
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.tunderDisplay }"
+            @click="appStore.toggleTuner()"
+          >
+            <span>🎛️ Tuner</span>
+            <span class="status-indicator" v-if="appStore.tunderDisplay">●</span>
+          </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.scalesDisplay }"
+            @click="appStore.toggleScales()"
+          >
+            <span>🎼 Scales</span>
+            <span class="status-indicator" v-if="appStore.scalesDisplay">●</span>
+          </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.chordssuggestDisplay }"
+            @click="appStore.toggleChordssuggestion()"
+          >
+            <span>🎹 Chord Suggestions</span>
+            <span class="status-indicator" v-if="appStore.chordssuggestDisplay">●</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Media Section -->
+      <div class="sidebar-section">
+        <h4>Media</h4>
+        <div class="sidebar-items">
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.soundDisplay }"
+            @click="appStore.toggleSound()"
+          >
+            <span>🔊 Play Sound</span>
+            <span class="status-indicator" v-if="appStore.soundDisplay">●</span>
+          </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.videoDisplay }"
+            @click="appStore.toggleVideo()"
+          >
+            <span>📹 Play Video</span>
+            <span class="status-indicator" v-if="appStore.videoDisplay">●</span>
+          </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.videoDisplayNew }"
+            @click="appStore.toggleVideoNew()"
+          >
+            <span>🎬 Play Video New</span>
+            <span class="status-indicator" v-if="appStore.videoDisplayNew">●</span>
+          </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.trainingDisplay }"
+            @click="appStore.toggleTraining()"
+          >
+            <span>🎯 Training Playlists</span>
+            <span class="status-indicator" v-if="appStore.trainingDisplay">●</span>
+          </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.pictureDisplay }"
+            @click="appStore.togglePicture()"
+          >
+            <span>🖼️ Display Picture</span>
+            <span class="status-indicator" v-if="appStore.pictureDisplay">●</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training Section -->
+      <div class="sidebar-section">
+        <h4>Training</h4>
+        <div class="sidebar-items">
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.gameDisplay }"
+            @click="appStore.toggleGame()"
+          >
+            <span>🎮 Play Game</span>
+            <span class="status-indicator" v-if="appStore.gameDisplay">●</span>
+          </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.autoGammeSelect }"
+            @click="appStore.toggleAutoGammeSelect()"
+          >
+            <span>🔄 Auto Gamme Select</span>
+            <span class="status-indicator" v-if="appStore.autoGammeSelect">●</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="sidebar-section">
+        <h4>Settings</h4>
+        <div class="sidebar-items">
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.settingsView }"
+            @click="appStore.toggleSettings()"
+          >
+            <span>⚙️ Settings</span>
+            <span class="status-indicator" v-if="appStore.settingsView">●</span>
           </div>
         </div>
       </div>
@@ -55,9 +196,7 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
 import { useAppStore } from '@/stores/appStore.js'
-import ComponentManager from '@/services/componentManager.js'
 
 export default {
   name: 'SidebarComponent',
@@ -65,136 +204,73 @@ export default {
   setup() {
     const appStore = useAppStore()
     
-    // Initialize ComponentManager
-    let componentManager
-    try {
-      componentManager = new ComponentManager(appStore)
-    } catch (error) {
-      console.error('Error initializing ComponentManager:', error)
-      // Fallback to direct store access
-      componentManager = {
-        toggleComponent: (key) => {
-          console.log('Fallback toggle for:', key)
-          // Direct toggle calls
-          switch(key) {
-            case 'mancheDisplay': appStore.toggleManche(); break;
-            case 'notesSelectedDisplay': appStore.toggleNotesSelected(); break;
-            case 'keyboard': appStore.toggleKeyboard(); break;
-            case 'tunderDisplay': appStore.toggleTuner(); break;
-            case 'scalesDisplay': appStore.toggleScales(); break;
-            case 'chordssuggestDisplay': appStore.toggleChordssuggestion(); break;
-            case 'soundDisplay': appStore.toggleSound(); break;
-            case 'videoDisplay': appStore.toggleVideo(); break;
-            case 'videoDisplayNew': appStore.toggleVideoNew(); break;
-            case 'pictureDisplay': appStore.togglePicture(); break;
-            case 'gameDisplay': appStore.toggleGame(); break;
-            case 'autoGammeSelect': appStore.toggleAutoGammeSelect(); break;
-            case 'settingsView': appStore.toggleSettings(); break;
-          }
-        },
-        applyPreset: (presetName) => {
-          console.log('Fallback preset:', presetName)
-        }
-      }
-    }
-    
-    // Presets configuration
-    const presets = ref([
-      { key: 'practice', name: 'Practice', icon: '🎯' },
-      { key: 'tuning', name: 'Tuning', icon: '🎛️' },
-      { key: 'game', name: 'Game', icon: '🎮' },
-      { key: 'video', name: 'Video', icon: '🎬' },
-      { key: 'minimal', name: 'Minimal', icon: '📱' }
-    ])
-    
-    // Get component groups from manager or fallback
-    const componentGroups = computed(() => {
+    // Simple preset functionality
+    const applyPreset = (presetName) => {
       try {
-        return componentManager.getComponentGroups ? componentManager.getComponentGroups() : {
-          main: {
-            title: 'Main Components',
-            components: [
-              { key: 'mancheDisplay', name: 'Manche', icon: '🎸' },
-              { key: 'notesSelectedDisplay', name: 'Selection notes', icon: '🎵' },
-              { key: 'keyboard', name: 'Keyboard', icon: '⌨️' }
-            ]
-          },
-          tools: {
-            title: 'Tools',
-            components: [
-              { key: 'tunderDisplay', name: 'Tuner', icon: '🎛️' },
-              { key: 'scalesDisplay', name: 'Scales', icon: '🎼' },
-              { key: 'chordssuggestDisplay', name: 'Chord Suggestions', icon: '🎹' }
-            ]
-          },
-          media: {
-            title: 'Media',
-            components: [
-              { key: 'soundDisplay', name: 'Play Sound', icon: '🔊' },
-              { key: 'videoDisplay', name: 'Play Video', icon: '📹' },
-              { key: 'videoDisplayNew', name: 'Play Video New', icon: '🎬' },
-              { key: 'pictureDisplay', name: 'Display Picture', icon: '🖼️' }
-            ]
-          },
-          training: {
-            title: 'Training',
-            components: [
-              { key: 'gameDisplay', name: 'Play Game', icon: '🎮' },
-              { key: 'autoGammeSelect', name: 'Auto Gamme Select', icon: '🔄' }
-            ]
-          },
-          settings: {
-            title: 'Settings',
-            components: [
-              { key: 'settingsView', name: 'Settings', icon: '⚙️' }
-            ]
+        // First turn everything off
+        const allStates = [
+          'mancheDisplay', 'notesSelectedDisplay', 'tunderDisplay', 'pictureDisplay',
+          'soundDisplay', 'scalesDisplay', 'videoDisplay', 'videoDisplayNew', 'trainingDisplay',
+          'gameDisplay', 'chordssuggestDisplay', 'settingsView', 'keyboard'
+        ]
+        
+        allStates.forEach(state => {
+          if (appStore[state]) {
+            switch(state) {
+              case 'mancheDisplay': appStore.toggleManche(); break;
+              case 'notesSelectedDisplay': appStore.toggleNotesSelected(); break;
+              case 'tunderDisplay': appStore.toggleTuner(); break;
+              case 'pictureDisplay': appStore.togglePicture(); break;
+              case 'soundDisplay': appStore.toggleSound(); break;
+              case 'scalesDisplay': appStore.toggleScales(); break;
+              case 'videoDisplay': appStore.toggleVideo(); break;
+              case 'videoDisplayNew': appStore.toggleVideoNew(); break;
+              case 'trainingDisplay': appStore.toggleTraining(); break;
+              case 'gameDisplay': appStore.toggleGame(); break;
+              case 'chordssuggestDisplay': appStore.toggleChordssuggestion(); break;
+              case 'settingsView': appStore.toggleSettings(); break;
+              case 'keyboard': appStore.toggleKeyboard(); break;
+            }
           }
+        })
+        
+        // Then turn on the ones for the preset
+        const presets = {
+          'practice': ['mancheDisplay', 'notesSelectedDisplay', 'scalesDisplay'],
+          'tuning': ['mancheDisplay', 'tunderDisplay', 'settingsView'],
+          'game': ['mancheDisplay', 'gameDisplay', 'notesSelectedDisplay'],
+          'minimal': ['mancheDisplay']
+        }
+        
+        if (presets[presetName]) {
+          presets[presetName].forEach(state => {
+            if (!appStore[state]) {
+              switch(state) {
+                case 'mancheDisplay': appStore.toggleManche(); break;
+                case 'notesSelectedDisplay': appStore.toggleNotesSelected(); break;
+                case 'tunderDisplay': appStore.toggleTuner(); break;
+                case 'pictureDisplay': appStore.togglePicture(); break;
+                case 'soundDisplay': appStore.toggleSound(); break;
+                case 'scalesDisplay': appStore.toggleScales(); break;
+                case 'videoDisplay': appStore.toggleVideo(); break;
+                case 'videoDisplayNew': appStore.toggleVideoNew(); break;
+                case 'trainingDisplay': appStore.toggleTraining(); break;
+                case 'gameDisplay': appStore.toggleGame(); break;
+                case 'chordssuggestDisplay': appStore.toggleChordssuggestion(); break;
+                case 'settingsView': appStore.toggleSettings(); break;
+                case 'keyboard': appStore.toggleKeyboard(); break;
+              }
+            }
+          })
         }
       } catch (error) {
-        console.error('Error getting component groups:', error)
-        return {}
+        console.error('Error applying preset:', error)
       }
-    })
-    
-    // Helper methods
-    const isComponentActive = (componentKey) => {
-      return appStore[componentKey] || false
-    }
-    
-    const getGroupActiveCount = (group) => {
-      return group.components ? group.components.filter(comp => isComponentActive(comp.key)).length : 0
-    }
-    
-    const toggleGroup = (groupKey) => {
-      const group = componentGroups.value[groupKey]
-      if (!group) return
-      
-      const activeCount = getGroupActiveCount(group)
-      
-      // If any are active, turn all off, otherwise turn all on
-      group.components.forEach(comp => {
-        if (activeCount > 0) {
-          // Turn off if currently on
-          if (isComponentActive(comp.key)) {
-            componentManager.toggleComponent(comp.key)
-          }
-        } else {
-          // Turn on if currently off
-          if (!isComponentActive(comp.key)) {
-            componentManager.toggleComponent(comp.key)
-          }
-        }
-      })
     }
     
     return {
       appStore,
-      componentManager,
-      presets,
-      componentGroups,
-      isComponentActive,
-      getGroupActiveCount,
-      toggleGroup
+      applyPreset
     }
   }
 }
@@ -231,36 +307,13 @@ export default {
   margin-bottom: 20px;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0 15px 10px 15px;
-}
-
-.section-header h4 {
-  margin: 0;
+.sidebar-section h4 {
+  margin: 0 0 10px 15px;
   color: #bdc3c7;
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 500;
-}
-
-.group-toggle {
-  background: none;
-  border: none;
-  color: #bdc3c7;
-  cursor: pointer;
-  font-size: 0.8rem;
-  padding: 2px 6px;
-  border-radius: 3px;
-  transition: all 0.2s ease;
-}
-
-.group-toggle:hover {
-  background: rgba(189, 195, 199, 0.2);
-  color: white;
 }
 
 .preset-buttons {
