@@ -239,7 +239,6 @@ export default {
         // Render started event
         if (this.alphaTabApi.renderStarted && this.alphaTabApi.renderStarted.on) {
           this.alphaTabApi.renderStarted.on(() => {
-            console.log('Render started')
           })
         }
         
@@ -247,7 +246,6 @@ export default {
         if (this.alphaTabApi.renderFinished && this.alphaTabApi.renderFinished.on) {
           this.alphaTabApi.renderFinished.on(() => {
         
-            console.log('Render finished')
             
             // Debug: Check what was rendered
             const container = this.$refs.alphaTab
@@ -318,6 +316,23 @@ export default {
         if (this.alphaTabApi.playerPositionChanged && this.alphaTabApi.playerPositionChanged.on) {
           this.alphaTabApi.playerPositionChanged.on((e) => {
             console.log('Player position:', e.currentTick, 'Beat:', e.currentBeat?.index)
+            
+            // Auto-scroll to current position in web mode
+            if (!this.isElectron && e.currentBeat) {
+              try {
+                // Try to scroll to the current beat position
+                const boundsLookup = this.alphaTabApi.renderer?.boundsLookup
+                if (boundsLookup) {
+                  const beatBounds = boundsLookup.findBeat(e.currentBeat)
+                  if (beatBounds) {
+                    this.scrollToCurrentMeasure(beatBounds)
+                  }
+                }
+              } catch (error) {
+                console.log('Auto-scroll in web mode failed:', error.message)
+              }
+            }
+            
             this.$forceUpdate()
           })
         }
@@ -464,6 +479,7 @@ export default {
       
       let currentMasterBarIndex = 0
       let currentBeatInBar = 0
+      let previousY = 0 // Track previous Y position to detect line changes
       
       this.playbackInterval = setInterval(() => {
         try {
@@ -483,7 +499,6 @@ export default {
             return
           }
           
-          console.log(`Manual playback: bar ${currentMasterBarIndex}, beat ${currentBeatInBar}`)
           
           // Try to position cursor using AlphaTab's beat positioning
           if (this.alphaTabApi && this.currentScore.masterBars[currentMasterBarIndex]) {
@@ -504,10 +519,28 @@ export default {
                   const boundsLookup = this.alphaTabApi.renderer.boundsLookup
                   const beatBounds = boundsLookup.findBeat(bar.voices[0].beats[currentBeatInBar])
                   if (beatBounds) {
+                    const currentY = beatBounds.realBounds.y
+                    
+                    // Check for line change (significant Y position change)
+                    if (previousY > 0 && Math.abs(currentY - previousY) > 50) {
+                      // Force immediate scroll for line changes
+                      this.scrollToNewLine(beatBounds)
+                    } else {
+                      // Normal scrolling
+                      this.scrollToCurrentMeasure(beatBounds)
+                    }
+                    
+                    // Update previous Y position
+                    previousY = currentY
+                    
                     // Simulate cursor positioning
                     this.highlightCurrentBeat(beatBounds)
                   }
                 }
+                
+                // Method 3: Fallback - try to find measure elements and scroll to them
+                this.scrollToMeasureByIndex(currentMasterBarIndex)
+                
               } catch (e) {
                 console.log('Cursor positioning method failed:', e.message)
               }
@@ -547,8 +580,146 @@ export default {
       container.appendChild(cursor)
     },
     
+    scrollToCurrentMeasure(beatBounds) {
+      // Auto-scroll to keep the current measure visible
+      const container = this.$refs.alphaTab
+      if (!container || !beatBounds) return
+      
+      const containerRect = container.getBoundingClientRect()
+      const beatX = beatBounds.realBounds.x
+      const beatY = beatBounds.realBounds.y
+      
+      // Calculate current scroll position
+      const scrollLeft = container.scrollLeft
+      const scrollTop = container.scrollTop
+      const containerWidth = container.clientWidth
+      const containerHeight = container.clientHeight
+      
+
+      
+      // Horizontal scrolling - keep beat in center third of view
+      const leftThreshold = containerWidth * 0.15
+      const rightThreshold = containerWidth * 0.85
+      const relativeX = beatX - scrollLeft
+      
+      let needsHorizontalScroll = false
+      let targetScrollLeft = scrollLeft
+      
+      if (relativeX < leftThreshold) {
+        // Scroll left to center the beat
+        targetScrollLeft = Math.max(0, beatX - containerWidth / 3)
+        needsHorizontalScroll = true
+      } else if (relativeX > rightThreshold) {
+        // Scroll right to center the beat
+        targetScrollLeft = beatX - (containerWidth * 0.7)
+        needsHorizontalScroll = true
+      }
+      
+      // Vertical scrolling - much more aggressive for line changes
+      const topThreshold = containerHeight * 0.25
+      const bottomThreshold = containerHeight * 0.75
+      const relativeY = beatY - scrollTop
+      
+      let needsVerticalScroll = false
+      let targetScrollTop = scrollTop
+      
+      // More aggressive vertical scrolling to catch line changes
+      if (relativeY < topThreshold) {
+        // Beat is too high, scroll up to center it
+        targetScrollTop = Math.max(0, beatY - containerHeight / 3)
+        needsVerticalScroll = true
+      } else if (relativeY > bottomThreshold) {
+        // Beat is too low, scroll down to center it
+        targetScrollTop = beatY - (containerHeight * 0.7)
+        needsVerticalScroll = true
+      }
+      
+      // Also check if beat is completely outside the visible area
+      if (beatY < scrollTop || beatY > scrollTop + containerHeight) {
+        // Beat is completely out of view, center it
+        targetScrollTop = Math.max(0, beatY - containerHeight / 2)
+        needsVerticalScroll = true
+      }
+      
+      // Perform scrolling if needed
+      if (needsHorizontalScroll || needsVerticalScroll) {
+
+        
+        container.scrollTo({
+          left: needsHorizontalScroll ? targetScrollLeft : scrollLeft,
+          top: needsVerticalScroll ? targetScrollTop : scrollTop,
+          behavior: 'smooth'
+        })
+      }
+    },
+    
+    scrollToNewLine(beatBounds) {
+      // Aggressive scrolling for line changes - immediately center the new line
+      const container = this.$refs.alphaTab
+      if (!container || !beatBounds) return
+      
+      const beatY = beatBounds.realBounds.y
+      const containerHeight = container.clientHeight
+      
+      
+      // Center the new line immediately
+      const targetScrollTop = Math.max(0, beatY - containerHeight / 2)
+      
+      container.scrollTo({
+        top: targetScrollTop,
+        behavior: 'auto' // Immediate scroll for line changes, no smooth animation
+      })
+      
+      // After immediate vertical scroll, do smooth horizontal adjustment if needed
+      setTimeout(() => {
+        this.scrollToCurrentMeasure(beatBounds)
+      }, 50)
+    },
+    
+    scrollToMeasureByIndex(measureIndex) {
+      // Fallback method: find measure elements by searching for bar/measure indicators
+      const container = this.$refs.alphaTab
+      if (!container) return
+      
+      try {
+        // Look for various possible measure/bar elements
+        const possibleSelectors = [
+          `[data-bar="${measureIndex}"]`,
+          `[data-measure="${measureIndex}"]`,
+          `.at-bar[data-index="${measureIndex}"]`,
+          `.at-measure-${measureIndex}`,
+          `.bar-${measureIndex}`
+        ]
+        
+        for (const selector of possibleSelectors) {
+          const measureElement = container.querySelector(selector)
+          if (measureElement) {
+            measureElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'center'
+            })
+            return
+          }
+        }
+        
+        // If no specific measure found, try to calculate approximate position
+        // Based on measure index and estimated measure width
+        const estimatedMeasureWidth = 200 // Approximate width per measure
+        const targetX = measureIndex * estimatedMeasureWidth
+        
+        container.scrollTo({
+          left: Math.max(0, targetX - container.clientWidth / 2),
+          behavior: 'smooth'
+        })
+        
+        
+      } catch (error) {
+        console.log('Fallback scrolling failed:', error.message)
+      }
+    },
+    
     pauseManualPlayback() {
-      console.log('Pausing manual playback')
       this.isPlaying = false
       if (this.playbackInterval) {
         clearInterval(this.playbackInterval)
@@ -737,6 +908,8 @@ export default {
   border-radius: 4px;
   margin: 10px;
   overflow: auto;
+  scroll-behavior: smooth;
+  position: relative;
 }
 
 /* Ensure both canvas and SVG elements are visible */
