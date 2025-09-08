@@ -29,9 +29,12 @@
             class="white-key"
             @click="selectKey(note)"
             :class="{ 'selected': selectedKey.has(note) }"
-            :style="{ backgroundColor: getKeyColor(note) }"
+            :style="{ background: getKeyColor(note) }"
           >
-            <span class="note-label">{{ formatNote(note) }}</span>
+            <span 
+              class="note-label" 
+              :style="{ color: getTextColor(note, false) }"
+            >{{ formatNote(note) }}</span>
           </div>
         </div>
         
@@ -44,10 +47,13 @@
             :class="{ 'selected': selectedKey.has(note) }"
             :style="{ 
               left: getBlackKeyPosition(index) + '%',
-              backgroundColor: getKeyColor(note, true)
+              background: getKeyColor(note, true)
             }"
           >
-            <span class="note-label">{{ formatNote(note) }}</span>
+            <span 
+              class="note-label" 
+              :style="{ color: getTextColor(note, true) }"
+            >{{ formatNote(note) }}</span>
           </div>
         </div>
       </div>
@@ -119,21 +125,32 @@
         this.$emit('clear-all');
       },
       getKeyColor(note, isBlackKey = false) {
-        if (this.selectedKey.has(note) && this.colorNotes.length > 0) {
-          // Convert keyboard notation (#) to store notation (S) for color lookup
-          const storeNote = note.replace('#', 'S');
-          const colorData = this.colorNotes.find(color => color.note === storeNote);
-          if (colorData) {
-            return colorData.color;
+        // Return beautiful gradient colors when selected
+        if (this.selectedKey.has(note)) {
+          if (isBlackKey) {
+            // Beautiful soft orange gradient for sharp notes
+            return 'linear-gradient(to bottom, #FF8A65 0%, #FF7043 50%, #FF5722 100%)';
+          } else {
+            // Beautiful green gradient for natural notes
+            return 'linear-gradient(to bottom, #4CAF50 0%, #43A047 50%, #388E3C 100%)';
           }
         }
         
-        // Return default colors when not selected or no color data
+        // Return beautiful default gradients for unselected keys
+        if (isBlackKey) {
+          return 'linear-gradient(to bottom, #2c2c2c 0%, #1a1a1a 100%)';
+        } else {
+          return 'linear-gradient(to bottom, #ffffff 0%, #f8f8f8 100%)';
+        }
+      },
+      getTextColor(note, isBlackKey = false) {
+        // Return text colors for perfect contrast and visibility
         if (this.selectedKey.has(note)) {
-          return isBlackKey ? '#FF9800' : '#4CAF50';
+          return isBlackKey ? 'white' : 'white'; // White text on both selected colors
         }
         
-        return isBlackKey ? '#2c2c2c' : '#ffffff';
+        // Return default text colors for unselected keys
+        return isBlackKey ? 'white' : '#2c3e50';
       },
       getBlackKeyPosition(index) {
         // With 14 white keys, each white key takes up 100/14 = 7.14% of width
@@ -266,7 +283,6 @@
 
   .white-key {
     flex: 1;
-    background: linear-gradient(to bottom, #ffffff 0%, #f8f8f8 100%);
     border: 1px solid #ddd;
     border-radius: 0 0 6px 6px;
     cursor: pointer;
@@ -274,8 +290,16 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .white-key.selected {
+    transform: translateY(2px);
+    box-shadow: 
+      0 1px 4px rgba(0, 0, 0, 0.2),
+      0 0 15px rgba(76, 175, 80, 0.4);
+    border-color: #4CAF50;
   }
 
   .white-key:hover {
@@ -293,9 +317,8 @@
     font-size: 0.9rem;
     font-weight: 600;
     margin-bottom: 15px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    mix-blend-mode: difference;
-    color: #000;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
   }
 
   .black-keys {
@@ -310,19 +333,26 @@
   .black-key {
     width: 4.5%;
     height: 100%;
-    background: linear-gradient(to bottom, #2c2c2c 0%, #1a1a1a 100%);
     position: absolute;
     cursor: pointer;
     border-radius: 0 0 4px 4px;
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     pointer-events: auto;
     transform: translateX(-50%);
     box-shadow: 
       0 4px 12px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .black-key.selected {
+    transform: translateX(-50%) translateY(2px);
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.6),
+      0 0 15px rgba(255, 138, 101, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 
   .black-key:hover {
@@ -341,10 +371,9 @@
   .black-key .note-label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: white;
     margin-bottom: 10px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    mix-blend-mode: difference;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
   }
 
   .keyboard-footer {
