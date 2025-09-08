@@ -22,6 +22,9 @@
         <span v-if="isLoaded && !isPlayerReady" class="status-text">
           Loading player...
         </span>
+        <span v-if="isElectron && isLoaded" class="status-text electron-warning">
+          ⚠️ Audio playback disabled in desktop mode
+        </span>
       </div>
     </div>
     
@@ -59,18 +62,27 @@ export default {
       isLoaded: false,
       isPlaying: false,
       isPlayerReady: false,
+      isElectron: false,
       error: null,
       tracks: [],
-      selectedTrack: 0
+      selectedTrack: 0,
+      currentScore: null
     }
   },
   computed: {
     canPlay() {
-      return this.isLoaded && this.isPlayerReady && this.alphaTabApi?.isReadyForPlayback
+      return this.isLoaded && !this.isElectron && this.isPlayerReady && this.alphaTabApi?.isReadyForPlayback
     }
   },
   mounted() {
-    this.initializeAlphaTab()
+    console.log('TabReader component mounted')
+    
+    // Initialize AlphaTab with a delay to ensure DOM is ready
+    this.$nextTick(() => {
+      setTimeout(() => {
+        this.initializeAlphaTab()
+      }, 200)
+    })
   },
   beforeUnmount() {
     if (this.alphaTabApi) {
@@ -80,35 +92,46 @@ export default {
   methods: {
     initializeAlphaTab() {
       try {
+        // Ensure the alphaTab element exists
+        if (!this.$refs.alphaTab) {
+          console.error('AlphaTab container element not found')
+          this.error = 'Failed to find AlphaTab container element'
+          return
+        }
+
+        // Clear any previous content
+        this.$refs.alphaTab.innerHTML = ''
+
         const settings = new Settings()
         
-        // Configure AlphaTab settings according to documentation
-        settings.core.engine = 'html5'
+        // Basic settings that work everywhere
+        settings.core.engine = 'svg'
         settings.display.scale = 0.8
-        settings.display.stretchForce = 0.8
         
-        // Player settings - proper configuration
-        settings.player.playerMode = 1 // PlayerMode.EnabledAutomatic
-        settings.player.enablePlayer = true
-        settings.player.soundFont = 'https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/soundfont/sonivox.sf2'
-        settings.player.scrollElement = this.$refs.alphaTab
-        settings.player.enableCursor = true
-        settings.player.enableUserInteraction = true
+        // Check if running in Electron
+        const isElectron = typeof window !== 'undefined' && window.process && window.process.type
+        this.isElectron = isElectron
         
-        // Notation settings
-        settings.notation.elements.scoreTitle = true
-        settings.notation.elements.scoreSubTitle = true
-        settings.notation.elements.scoreArtist = true
-        settings.notation.elements.scoreAlbum = true
-        settings.notation.elements.scoreWords = true
-        settings.notation.elements.scoreMusic = true
-        settings.notation.elements.scoreCopyright = true
-        
+        if (isElectron) {
+          console.log('Configuring AlphaTab for Electron environment')
+          // Minimal Electron configuration
+          settings.core.useWorkers = false
+          settings.player.enablePlayer = false
+          settings.core.fontDirectory = null
+        } else {
+          // Web configuration
+          settings.player.enablePlayer = true
+          settings.player.playerMode = 1
+        }
+
         // Initialize AlphaTab
+        console.log('Creating AlphaTab instance...')
         this.alphaTabApi = new AlphaTabApi(this.$refs.alphaTab, settings)
         
-        // Event listeners
+        // Setup event listeners
         this.setupEventListeners()
+        
+        console.log('AlphaTab initialized successfully')
         
       } catch (err) {
         this.error = `Failed to initialize AlphaTab: ${err.message}`
@@ -117,23 +140,34 @@ export default {
     },
     
     setupEventListeners() {
+      if (!this.alphaTabApi) {
+        console.error('Cannot setup event listeners: AlphaTab API is null')
+        return
+      }
+
       // Score loaded event
       this.alphaTabApi.scoreLoaded.on((score) => {
         this.isLoaded = true
         this.tracks = score.tracks || []
         this.selectedTrack = 0
+        this.currentScore = score
         this.error = null
         console.log('Score loaded:', score.title, 'by', score.artist)
-        console.log('Available tracks:', this.tracks.map(track => ({
-          name: track.name,
-          channel: track.channel,
-          playbackInfo: track.playbackInfo
-        })))
+        console.log('Available tracks:', this.tracks.length)
       })
       
-      // Player state changed - use proper PlayerState enum values
+      // Render started event
+      this.alphaTabApi.renderStarted.on(() => {
+        console.log('AlphaTab rendering started')
+      })
+      
+      // Render finished event
+      this.alphaTabApi.renderFinished.on(() => {
+        console.log('AlphaTab rendering finished successfully')
+      })
+      
+      // Player state changed
       this.alphaTabApi.playerStateChanged.on((e) => {
-        // PlayerState: Paused = 0, Playing = 1, Stopped = 2
         this.isPlaying = e.state === 1 
       })
       
@@ -143,26 +177,13 @@ export default {
         console.log('Player ready for playback')
       })
       
-      // SoundFont loading progress
-      this.alphaTabApi.soundFontLoad.on((args) => {
-        console.log(`SoundFont loading: ${args.loaded}/${args.total}`)
-      })
-      
-      // SoundFont loaded
-      this.alphaTabApi.soundFontLoaded.on(() => {
-        console.log('SoundFont loaded successfully')
-      })
-      
       // Error handling
       this.alphaTabApi.error.on((error) => {
-        this.error = `AlphaTab error: ${error}`
         console.error('AlphaTab error:', error)
+        this.error = `AlphaTab error: ${error.message || error}`
       })
       
-      // Render finished
-      this.alphaTabApi.renderFinished.on(() => {
-        console.log('Rendering finished')
-      })
+      console.log('Event listeners setup complete')
     },
     
     openFileDialog() {
@@ -177,6 +198,11 @@ export default {
         this.error = null
         this.isLoaded = false
         this.isPlayerReady = false
+        
+        // Check if AlphaTab API is initialized
+        if (!this.alphaTabApi) {
+          throw new Error('AlphaTab is not initialized. Please try again.')
+        }
         
         // Validate file type
         const validExtensions = ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb']
@@ -232,8 +258,16 @@ export default {
     changeTrack() {
       if (!this.alphaTabApi || !this.isLoaded || this.selectedTrack >= this.tracks.length) return
       
-      // Render only the selected track using proper API
-      this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
+      console.log('Changing to track:', this.selectedTrack, this.tracks[this.selectedTrack]?.name)
+      
+      try {
+        // Render only the selected track using proper API
+        this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
+        console.log('Track change render initiated')
+      } catch (error) {
+        console.error('Error changing track:', error)
+        this.error = `Failed to change track: ${error.message}`
+      }
     },
     
     getInstrumentName(track) {
@@ -317,6 +351,12 @@ export default {
   font-style: italic;
 }
 
+.electron-warning {
+  color: #ff9500 !important;
+  font-weight: bold;
+  font-style: normal;
+}
+
 .tab-content {
   flex: 1;
   overflow: auto;
@@ -377,10 +417,27 @@ export default {
 /* AlphaTab specific styles */
 :deep(.alphaTab) {
   background: white !important;
+  font-family: Arial, Helvetica, sans-serif !important;
 }
 
 :deep(.at-surface) {
   background: white !important;
+}
+
+/* Force system fonts for all AlphaTab text elements */
+:deep(.at-surface *) {
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+/* Ensure tablature numbers are visible */
+:deep(.at-surface text) {
+  font-family: Arial, Helvetica, sans-serif !important;
+  fill: #000 !important;
+}
+
+/* Override any font loading styles */
+:deep(.at-font-face) {
+  display: none !important;
 }
 
 :deep(.at-viewport) {

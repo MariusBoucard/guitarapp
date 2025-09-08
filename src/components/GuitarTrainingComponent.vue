@@ -29,35 +29,7 @@
             <TabReaderComponent v-show="appStore.tabReaderDisplay"></TabReaderComponent>
             
             <!-- Video Training Tree Section -->
-            <div v-show="appStore.videoDisplayNew" class="video-training-tree">
-              <h2>Video Training Library</h2>
-              <div v-if="videoTreeList.length === 0" class="no-videos-message">
-                <p>No video library loaded. Use "Select Training Directory" in the video component above.</p>
-              </div>
-              <div v-else class="training-tree">
-                <div v-for="(training, index) in videoTreeList" :key="index" class="training-category">
-                  <h3 @click="toggleTrainingCategory(index)" class="training-category-header" 
-                      :class="{ expanded: training.show }">
-                    📁 {{ training.trainingType }} ({{ getTotalVideosInTraining(training) }} videos)
-                  </h3>
-                  <div v-show="training.show" class="training-items">
-                    <div v-for="(item, subIndex) in training.trainings" :key="subIndex" class="training-item">
-                      <h4 @click="toggleTrainingItem(index, subIndex)" class="training-item-header"
-                          :class="{ expanded: item.show }">
-                        📂 {{ item.name }} ({{ item.videos ? item.videos.length : 0 }} videos)
-                      </h4>
-                      <ul v-show="item.show" class="video-list">
-                        <li v-for="(video, videoIndex) in item.videos || []" :key="videoIndex"
-                            @click="playVideoFromTree(video)" class="video-item">
-                          🎥 {{ video.name }}
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
+          
             <KeyboardComponent 
               v-show="appStore.keyboard"
               :selectedNotes="notesStore.noteSlectedList"
