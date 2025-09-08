@@ -66,7 +66,8 @@ export default {
       error: null,
       tracks: [],
       selectedTrack: 0,
-      currentScore: null
+      currentScore: null,
+      originalFetch: null
     }
   },
   computed: {
@@ -85,6 +86,11 @@ export default {
     })
   },
   beforeUnmount() {
+    // Restore original fetch function
+    if (this.originalFetch) {
+      window.fetch = this.originalFetch
+    }
+    
     if (this.alphaTabApi) {
       this.alphaTabApi.destroy()
     }
@@ -99,33 +105,53 @@ export default {
           return
         }
 
+        console.log('AlphaTab container element found:', this.$refs.alphaTab)
+
         // Clear any previous content
         this.$refs.alphaTab.innerHTML = ''
 
-        const settings = new Settings()
-        
-        // Basic settings that work everywhere
-        settings.core.engine = 'svg'
-        settings.display.scale = 0.8
-        
         // Check if running in Electron
         const isElectron = typeof window !== 'undefined' && window.process && window.process.type
         this.isElectron = isElectron
         
+        console.log('Environment detected:', isElectron ? 'Electron' : 'Web')
+
+        const settings = new Settings()
+        
+        // Basic settings following the documentation
+        settings.core.engine = 'svg'  // Use SVG for better compatibility
+        settings.display.scale = 0.8
+        
         if (isElectron) {
-          console.log('Configuring AlphaTab for Electron environment')
-          // Minimal Electron configuration
-          settings.core.useWorkers = false
-          settings.player.enablePlayer = false
-          settings.core.fontDirectory = null
+          console.log('Configuring for Electron environment')
+          // Electron-specific settings
+          settings.core.useWorkers = false  // Disable workers in Electron
+          settings.player.enablePlayer = false  // Disable player in Electron
+          settings.player.playerMode = 0
+          
+          // Set font directory to the location where Vite plugin copies fonts
+          settings.core.fontDirectory = './font/'
         } else {
-          // Web configuration
+          console.log('Configuring for web environment')
+          // Web settings
           settings.player.enablePlayer = true
           settings.player.playerMode = 1
+          settings.player.soundFont = './soundfont/sonivox.sf2'
+          
+          // Use default font directory (Vite plugin handles this)
+          settings.core.fontDirectory = './font/'
         }
 
         // Initialize AlphaTab
         console.log('Creating AlphaTab instance...')
+        console.log('Settings:', {
+          engine: settings.core.engine,
+          useWorkers: settings.core.useWorkers,
+          fontDirectory: settings.core.fontDirectory,
+          scale: settings.display.scale,
+          enablePlayer: settings.player.enablePlayer
+        })
+        
         this.alphaTabApi = new AlphaTabApi(this.$refs.alphaTab, settings)
         
         // Setup event listeners
@@ -164,6 +190,59 @@ export default {
       // Render finished event
       this.alphaTabApi.renderFinished.on(() => {
         console.log('AlphaTab rendering finished successfully')
+        
+        // Debug: Check what was rendered
+        const container = this.$refs.alphaTab
+        if (container) {
+          const canvases = container.querySelectorAll('canvas')
+          const svgs = container.querySelectorAll('svg')
+          const divs = container.querySelectorAll('div')
+          const surfaces = container.querySelectorAll('.at-surface')
+          console.log(`Rendered elements - Canvases: ${canvases.length}, SVGs: ${svgs.length}, Divs: ${divs.length}`)
+          console.log('Container content length:', container.innerHTML.length)
+          console.log('Container children:', container.children.length)
+          
+          // Log first few children for debugging
+          for (let i = 0; i < Math.min(3, container.children.length); i++) {
+            const child = container.children[i]
+            console.log(`Child ${i}:`, child.tagName, child.className, `${child.offsetWidth}x${child.offsetHeight}`)
+          }
+          
+          // Force height on surface elements
+          surfaces.forEach((surface, index) => {
+            if (surface.offsetHeight === 0) {
+              console.log(`Fixing surface ${index} height`)
+              surface.style.minHeight = '400px'
+              surface.style.height = 'auto'
+              surface.style.display = 'block'
+              surface.style.overflow = 'visible'
+            }
+          })
+          
+          // Force visibility for canvas elements
+          canvases.forEach((canvas, index) => {
+            canvas.style.display = 'block'
+            canvas.style.background = 'white'
+            canvas.style.maxWidth = '100%'
+            console.log(`Canvas ${index} dimensions:`, `${canvas.width}x${canvas.height}`, 'style:', `${canvas.offsetWidth}x${canvas.offsetHeight}`)
+          })
+          
+          // Also handle SVG elements
+          svgs.forEach((svg, index) => {
+            svg.style.display = 'block'
+            svg.style.background = 'white'
+            svg.style.maxWidth = '100%'
+            console.log(`SVG ${index} dimensions:`, svg.getAttribute('width'), 'x', svg.getAttribute('height'))
+          })
+          
+          // Try to force a re-layout
+          setTimeout(() => {
+            if (this.alphaTabApi && surfaces.length > 0) {
+              console.log('Attempting to trigger re-render...')
+              this.alphaTabApi.render()
+            }
+          }, 100)
+        }
       })
       
       // Player state changed
@@ -380,6 +459,50 @@ export default {
   background: white;
   border-radius: 4px;
   margin: 10px;
+  overflow: auto;
+}
+
+/* Ensure both canvas and SVG elements are visible */
+.alphatab-container canvas,
+.alphatab-container svg {
+  display: block !important;
+  max-width: 100%;
+  background: white;
+}
+
+/* Force visibility of any AlphaTab elements */
+:deep(.alphaTab) {
+  background: white !important;
+  min-height: 400px !important;
+}
+
+:deep(.alphaTab canvas),
+:deep(.alphaTab svg) {
+  display: block !important;
+  background: white !important;
+}
+
+/* Add basic styling for music notation elements */
+:deep(.at-surface) {
+  background: white !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  min-height: 400px !important;
+  height: auto !important;
+  display: block !important;
+  overflow: visible !important;
+  width: 100% !important;
+}
+
+/* Force visibility of any rendered content inside surface */
+:deep(.at-surface *) {
+  font-family: Arial, Helvetica, sans-serif !important;
+  display: block !important;
+}
+
+/* Style for music symbols - fallback to basic glyphs */
+:deep(.at) {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 34px !important;
 }
 
 .error {

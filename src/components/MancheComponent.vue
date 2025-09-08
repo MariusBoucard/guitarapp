@@ -236,11 +236,20 @@ export default {
             // console.log(lettre)
             // console.log(corde,index)
             //find the id of the root note of the cord and add the nb of index
+            
+            // Debug: Log the tuning we're looking for and available notes
+            console.log('Looking for tuning:', corde.tuning);
+            console.log('Available notes in allnotesc:', this.allnotesc.slice(0, 20).map(n => n.note)); // Show first 20 notes
+            
             var find = this.allnotesc.find(note => note.note === corde.tuning)
             
             // Check if find is undefined to prevent error
             if (!find) {
                 console.warn('Note not found for tuning:', corde.tuning)
+                console.warn('AllNotesC length:', this.allnotesc.length)
+                // Try to find similar notes for debugging
+                const similarNotes = this.allnotesc.filter(note => note.note.startsWith(corde.tuning.charAt(0)))
+                console.warn('Similar notes found:', similarNotes.slice(0, 10).map(n => n.note))
                 return 'white' // Return default color
             }
             
