@@ -1,56 +1,51 @@
 <template>
-  <div style="width:100%;height : 100%">
+  <div class="video-main-container">
     <div class="two-columns">
 
       <div class="column-left">
-
-        
-        <!-- niou above -->
-        <div>
+        <!-- Training Section -->
+        <div class="training-section">
           <ul class="horizontal-list">
             <li v-for="training in trainingComputed" @click="selectTrain(training)" :class="backColor(training)" :key="training">
               <p>{{ training.name }}</p>
             </li>
           </ul>
+          
+          <input v-model="currentName" type="text" placeholder="Training name" />
+          
+          <div class="training-controls"> 
+            <button @click="addTraining()">Add</button>
+            <button @click="removeTraining()">Remove</button>
+          </div>
         </div>
-      <input v-model="currentName" type="text" />
-      <div> 
-        <button @click="addTraining()">add</button>
-      <button @click="removeTraining()">remove</button>
-      </div>
 
-
-      <div>
-        <ol class="ol-days">
-          <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
-            {{ item.split("\\")[item.split("\\").length - 1] }}
-            <button class="button-cross" @click="remove(item)"></button>
-          </li>
-        </ol>
-         <div class="container">
-        <div class="button-wrap">
-          <button class="buttonbis" @click="selectVideoFileNative">Select Video File</button>
-          <label class="buttonbis" for="uploadVideo">Upload File (Web)</label>
-          <input id="uploadVideo" type="file" @change="loadVideo">
+        <!-- Video List Section -->
+        <div class="video-list-section">
+          <ol class="ol-days">
+            <li v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
+              {{ item.split("\\")[item.split("\\").length - 1] }}
+              <button class="button-cross" @click="remove(item)"></button>
+            </li>
+          </ol>
+          
+          <div class="container">
+            <div class="button-wrap">
+              <button class="buttonbis" @click="selectVideoFileNative">Select Video File</button>
+              <label class="buttonbis" for="uploadVideo">Upload File (Web)</label>
+              <input id="uploadVideo" type="file" @change="loadVideo">
+            </div>
+          </div>
         </div>
       </div>
-      </div>
-    </div>
  
-   
-    
-    
-    <div class="column-right">
-      
-      
-      
-      <video style="width:100%;height : 100%"  @timeupdate="handleTimeUpdate" ref="video" controls></video>
-      <div>
-        <button class="button" @click="play(this.speed)">play</button>
-        <button class="button" @click="pause">pause</button>
-        <button class="button" @click="stop">stop</button>
+      <div class="column-right">
+        <video @timeupdate="handleTimeUpdate" ref="video" controls></video>
         
-      </div>
+        <div class="video-controls">
+          <button class="button" @click="play(this.speed)">Play</button>
+          <button class="button" @click="pause">Pause</button>
+          <button class="button" @click="stop">Stop</button>
+        </div>
       
       <div class="slider-parent">
         <div class="slider-container">
@@ -66,22 +61,20 @@
         </div>
       </div>
       
-      <div class="loop-checkbox">
-        <label for="loopCheckbox" class="checkbox-label">Loop:</label>
-        <input id="loopCheckbox" type="checkbox" v-model="loop">
-    </div>
-    
-    <div style="text-align: center;">
-      <h3 style="display: block;float: top">Playing rate</h3>
-      <div class="slider" style="margin : auto">
+        <div class="loop-checkbox">
+          <label for="loopCheckbox" class="checkbox-label">Loop:</label>
+          <input id="loopCheckbox" type="checkbox" v-model="loop">
+        </div>
         
-        <input type="range" min="10" max="300" oninput="rangeValueVideo.innerText = this.value" v-model="this.speed">
-        <p id="rangeValueVideo">100</p>
-        
+        <div class="speed-control">
+          <h3>Playing Rate</h3>
+          <div class="slider">
+            <input type="range" min="10" max="300" oninput="rangeValueVideo.innerText = this.value" v-model="this.speed">
+            <p id="rangeValueVideo">{{ this.speed }}%</p>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-  </div>
   </div>
 </template>
   
@@ -372,107 +365,505 @@ export default {
   }
 }
 </script>
-<style>
- .selectedTrain{
-  background-color: rgb(96, 96, 96);
-}
-.unselectedTrain{
-  background-color: rgb(0, 0, 0);
-}
-/*
-.button-cross {
-  display: inline-block;
-  position: relative;
-  margin-left: 1em;
-  width: 2em;
-  height: 2em;
-  border-radius: 50%;
-  border: none;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
+<style scoped>
+/* Main Container */
+.video-main-container {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-.button-cross::before,
-.button-cross::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60%;
-  height: 2px;
-  background-color: #000;
+/* Two Column Layout */
+.two-columns {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 25px;
+  height: calc(100vh - 40px);
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.button-cross::before {
-  transform: translate(-50%, -50%) rotate(45deg);
+/* Left Column - Controls */
+.column-left {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
 }
 
-.button-cross::after {
-  transform: translate(-50%, -50%) rotate(-45deg);
-} */
+.column-left::-webkit-scrollbar {
+  width: 6px;
+}
+
+.column-left::-webkit-scrollbar-track {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 3px;
+}
+
+.column-left::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+}
+
+/* Right Column - Video Player */
+.column-right {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Training Section */
+.training-section {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
 .horizontal-list {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 0 0 15px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .horizontal-list li {
-  display: inline-block;
-  padding: 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  font-weight: 500;
 }
 
-.horizontal-list li a {
-  text-decoration: none;
-  color: #333;
-  font-weight: bold;
-  padding: 10px;
-  border-radius: 5px;
-  background-color: #f2f2f2;
-  transition: background-color 0.3s ease;
+.selectedTrain {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
 }
 
-.horizontal-list li a:hover {
-  background-color: #ccc;
-}
-.two-columns {
-  display: flex; /* Use flexbox to create a two-column layout */
-    flex-direction:row; /* Make the container and columns stack vertically */
+.unselectedTrain {
+  background: rgba(255, 255, 255, 0.9);
+  color: #2c3e50;
+  border: 2px solid #e0e6ed;
 }
 
-.column-left {
-  flex: 40%; /* Set the left column to take up 40% of the available space */
-  padding: 20px; /* Add padding or other styling as needed */
-  background-color: #33658A; /* Example background color */
+.unselectedTrain:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.column-right {
-  flex: 60%; /* Set the right column to take up 60% of the available space */
-  padding: 20px; /* Add padding or other styling as needed */
-  background-color: #F6AE2D; /* Example background color */
-  height: fit-content;
-height: max-content;
+.horizontal-list li p {
+  margin: 0;
+  font-size: 0.9rem;
 }
 
+/* Input and Buttons */
 input[type="text"] {
-  padding: 10px;
-  border: 2px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e6ed;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  background: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+}
+
+.training-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 25px;
+  font-weight: 600;
   cursor: pointer;
-  margin-left: 10px;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  flex: 1;
 }
 
-button:hover {
-  background-color: #3e8e41;
+.training-controls button:first-child {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.training-controls button:first-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.training-controls button:last-child {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.training-controls button:last-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+/* Video List */
+.video-list-section {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.ol-days {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ol-days li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  cursor: pointer;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.ol-days li:hover {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+  transform: translateX(5px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.button-cross {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.button-cross:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.button-cross::before {
+  content: "✕";
+}
+
+/* File Upload Section */
+.container {
+  margin-top: 15px;
+}
+
+.button-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.buttonbis {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  text-align: center;
+  text-decoration: none;
+  display: block;
+}
+
+.buttonbis:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+input[type="file"] {
+  display: none;
+}
+
+/* Video Player */
+video {
+  width: 100%;
+  height: 60%;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  background: #000;
+}
+
+/* Video Controls */
+.video-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  min-width: 80px;
+}
+
+.button:nth-child(1) {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.button:nth-child(2) {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+}
+
+.button:nth-child(3) {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Slider Section */
+.slider-parent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.slider-label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.slider-container input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #ecf0f1;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.slider-value {
+  margin: 0;
+  font-weight: 600;
+  color: #667eea;
+  text-align: center;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+}
+
+/* Loop Checkbox */
+.loop-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.checkbox-label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #667eea;
+  cursor: pointer;
+}
+
+/* Speed Control */
+.speed-control {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.speed-control h3 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.slider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.slider input[type="range"] {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: #ecf0f1;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+#rangeValueVideo {
+  margin: 0;
+  font-weight: 600;
+  color: #FF9800;
+  font-size: 1.1rem;
+  min-width: 50px;
+  background: rgba(255, 152, 0, 0.1);
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 152, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .two-columns {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .column-left {
+    max-height: 400px;
+  }
+  
+  .slider-parent {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .video-main-container {
+    padding: 10px;
+  }
+  
+  .column-left,
+  .column-right {
+    padding: 15px;
+  }
+  
+  .button-wrap {
+    flex-direction: column;
+  }
+  
+  .video-controls {
+    flex-direction: column;
+  }
+  
+  .button {
+    width: 100%;
+  }
 }
 </style>
