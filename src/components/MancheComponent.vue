@@ -13,7 +13,7 @@
         <div class="column">
             <h1>{{ notePlayed }}</h1>
             <div class="circle" :style="{ backgroundColor: notePlayed ? calcBack(notePlayed.slice(0, notePlayed.length - 1)) : 'white' }">
-                <p class="note">{{ notePlayed.slice(0, notePlayed.length - 1) }}</p>
+                <p class="note">{{ notePlayed ? notePlayed.slice(0, notePlayed.length - 1) : '' }}</p>
             </div>
             <p>Activer le sapin de noel:</p>
             <button class="button" @click="allumerSapin" :style="{ backgroundColor: getStateButton() }">Sapinnnnn</button>
@@ -119,8 +119,8 @@ export default {
     },
     data() {
         return {
-            nbfrettes: this.nbFrettes,
-            tuningintra: this.tuning,
+            nbfrettes: this.nbFrettes || 12,
+            tuningintra: this.tuning || [],
             listeNotes: [
                 { id: 0, note: "A" },
                 { id: 1, note: "AS" },
@@ -136,13 +136,13 @@ export default {
                 { id: 11, note: "GS" },
             ],
             nbCordes: 6,
-            notesSelectedIntra2: this.notesSelected,
-            couleursnotes: this.colorNotes,
-            diapason: this.diap * 2.3,
-            currentNote: this.notePlayed,
+            notesSelectedIntra2: this.notesSelected || [],
+            couleursnotes: this.colorNotes || [],
+            diapason: (this.diap || 25.5) * 2.3,
+            currentNote: this.notePlayed || '',
             sapinNoel: false,
-            cheatEnabled: this.cheat,
-            gameOn: this.gamePlay,
+            cheatEnabled: this.cheat || false,
+            gameOn: this.gamePlay || false,
 
 
         }
@@ -213,7 +213,7 @@ export default {
             // }
 
             var couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
-            return couleur.color
+            return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
         },
         calcBack2(lettre) {
             // console.log(lettre)
@@ -229,7 +229,7 @@ export default {
                 return "white"
             }
             var couleur = this.couleursnotes.find((couleurs) => couleurs.note === lettre.slice(0, lettre.length - 1))
-            return couleur.color
+            return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
         },
         calcBackNote(corde, index) {
             var lettre = this.renderChoosen(corde, index)
@@ -237,6 +237,13 @@ export default {
             // console.log(corde,index)
             //find the id of the root note of the cord and add the nb of index
             var find = this.allnotesc.find(note => note.note === corde.tuning)
+            
+            // Check if find is undefined to prevent error
+            if (!find) {
+                console.warn('Note not found for tuning:', corde.tuning)
+                return 'white' // Return default color
+            }
+            
             // console.log(find)
             //Calcul sur index attention §§§§ changement index c est nb decalage
             //il faut trouver de combien tu es décallé dans ce tab :
@@ -257,7 +264,7 @@ export default {
             if (this.sapinNoel) {
                 var noteoncase = this.allnotesc.find(note => note.id === newindex)
                 // console.log(noteoncase)
-                if (noteoncase.note === this.notePlayed) {
+                if (noteoncase && noteoncase.note === this.notePlayed) {
                     console.log("caca")
                     return 'red '
                 }
@@ -270,7 +277,7 @@ export default {
             }
 
             var couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
-            return couleur.color
+            return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
         },
         calcWidth(index) {
 
