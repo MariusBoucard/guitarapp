@@ -25,7 +25,7 @@
     <div class="audio-files-section">
       <ol class="audio-files-list">
         <li 
-          v-for="item in trainingStore.audioPath" 
+          v-for="item in songPlayerStore.audioPath" 
           :key="item" 
           @click="launchFile(item)"
           class="audio-file-item"
@@ -44,7 +44,7 @@
     </div>
 
     <!-- Current Song Info -->
-    <p class="current-song">Song playing: {{ trainingStore.currentSong }}</p>
+    <p class="current-song">Song playing: {{ songPlayerStore.currentSong }}</p>
     
     <!-- Audio Player -->
     <audio 
@@ -67,30 +67,30 @@
     <!-- Time Controls -->
     <div class="time-controls">
       <div class="slider-container">
-        <label>Start Time: {{ audioService.formatTime(trainingStore.startTime) }}</label>
+        <label>Start Time: {{ audioService.formatTime(songPlayerStore.startTime) }}</label>
         <input 
           type="range" 
-          v-model="trainingStore.startTime" 
-          :max="trainingStore.endTime" 
+          v-model="songPlayerStore.startTime" 
+          :max="songPlayerStore.endTime" 
           min="0" 
           step="0.1"
         />
       </div>
       
       <div class="slider-container">
-        <label>End Time: {{ audioService.formatTime(trainingStore.endTime) }}</label>
+        <label>End Time: {{ audioService.formatTime(songPlayerStore.endTime) }}</label>
         <input 
           type="range" 
-          v-model="trainingStore.endTime" 
-          :min="trainingStore.startTime" 
-          :max="trainingStore.songLength" 
+          v-model="songPlayerStore.endTime" 
+          :min="songPlayerStore.startTime" 
+          :max="songPlayerStore.songLength" 
           step="0.1"
         />
       </div>
       
       <div class="checkbox-container">
         <label>
-          <input type="checkbox" v-model="trainingStore.loop" />
+          <input type="checkbox" v-model="songPlayerStore.loop" />
           Loop
         </label>
       </div>
@@ -104,10 +104,10 @@
           type="range" 
           min="10" 
           max="300" 
-          v-model="trainingStore.speed"
+          v-model="songPlayerStore.speed"
           @input="onSpeedChange"
         />
-        <p>{{ trainingStore.speed }}%</p>
+        <p>{{ songPlayerStore.speed }}%</p>
       </div>
     </div>
 
@@ -118,6 +118,7 @@
 
 <script>
 import { useTrainingStore } from '../stores/trainingStore.js'
+import { useSongPlayerStore } from '../stores/songPlayerStore.js'
 import { serviceManager } from '../services'
 
 export default {
@@ -125,12 +126,14 @@ export default {
   
   setup() {
     const trainingStore = useTrainingStore()
+    const songPlayerStore = useSongPlayerStore()
     const audioService = serviceManager.audio
     const fileService = serviceManager.file
     const storageService = serviceManager.storage
     
     return {
       trainingStore,
+      songPlayerStore,
       audioService,
       fileService,
       storageService
@@ -140,6 +143,7 @@ export default {
   mounted() {
     // Load data from storage
     this.trainingStore.loadFromStorage()
+    this.songPlayerStore.loadFromStorage()
     
     // Initialize audio context
     this.audioService.initializeAudioContext()
@@ -149,6 +153,8 @@ export default {
     // Training management
     selectTraining(training) {
       this.trainingStore.selectTraining(training)
+      // Update audio path for the new training
+      this.songPlayerStore.updateAudioPathForTraining(this.trainingStore)
     },
     
     addTraining() {
@@ -192,8 +198,8 @@ export default {
     
     async loadAudioFile(fileData) {
       try {
-        // Add to store
-        this.trainingStore.addAudioFile(fileData.path, fileData.name)
+        // Add to song player store
+        this.songPlayerStore.addAudioFile(this.trainingStore, fileData.path, fileData.name)
         
         // Load audio metadata
         const audioData = await this.audioService.loadAudioFile(fileData.path)
@@ -209,13 +215,13 @@ export default {
     },
     
     removeAudioFile(filePath) {
-      this.trainingStore.removeAudioFile(filePath)
+      this.songPlayerStore.removeAudioFile(this.trainingStore, filePath)
     },
     
     async launchFile(filePath) {
       try {
         const fileName = this.audioService.extractFilename(filePath)
-        this.trainingStore.currentSong = fileName
+        this.songPlayerStore.currentSong = fileName
         
         // Load the audio file
         const audioData = await this.audioService.loadAudioFile(filePath)
@@ -231,7 +237,7 @@ export default {
       try {
         await this.audioService.playAudio(
           this.$refs.audioPlayer, 
-          this.trainingStore.speed / 100
+          this.songPlayerStore.speed / 100
         )
       } catch (error) {
         console.error('Error playing audio:', error)
@@ -243,13 +249,21 @@ export default {
     },
     
     stop() {
-      this.audioService.stopAudio(this.$refs.audioPlayer, this.trainingStore.startTime)
+      try {
+        const audio = this.$refs.audioPlayer
+        if (audio) {
+          audio.pause()
+          audio.currentTime = this.songPlayerStore.startTime || 0
+        }
+      } catch (error) {
+        console.error('Error stopping audio:', error)
+      }
     },
     
     onSpeedChange() {
       const audio = this.$refs.audioPlayer
-      if (audio && this.trainingStore.speed) {
-        audio.playbackRate = this.trainingStore.speed / 100
+      if (audio && this.songPlayerStore.speed) {
+        audio.playbackRate = this.songPlayerStore.speed / 100
       }
     },
     
@@ -261,16 +275,16 @@ export default {
       this.audioService.handleTimeUpdate(
         audio,
         audio.currentTime,
-        this.trainingStore.startTime,
-        this.trainingStore.endTime,
-        this.trainingStore.loop
+        this.songPlayerStore.startTime,
+        this.songPlayerStore.endTime,
+        this.songPlayerStore.loop
       )
     },
     
     onAudioLoaded() {
       const audio = this.$refs.audioPlayer
       if (audio && audio.duration) {
-        this.trainingStore.setSongLength(audio.duration)
+        this.songPlayerStore.setSongLength(audio.duration)
         
         // Initialize waveform if needed
         this.audioService.initWaveSurfer('waveform', audio.src)
@@ -289,79 +303,213 @@ export default {
 
 <style scoped>
 .playsound-component {
-  padding: 20px;
-  color: #333;
+  width: 900px;
+  min-width: 900px;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 25px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2c3e50;
 }
 
+/* Training Section */
 .training-section {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .horizontal-list {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
   list-style: none;
   padding: 0;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .horizontal-list li {
-  margin-right: 10px;
-  padding: 10px;
+  padding: 12px 16px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-weight: 500;
 }
 
 .selectedTrain {
-  background-color: rgb(96, 96, 96);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  border-color: #667eea;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
 }
 
 .unselectedTrain {
-  background-color: rgb(200, 200, 200);
-  color: #333;
+  background: rgba(255, 255, 255, 0.9);
+  color: #2c3e50;
+  border-color: #e0e6ed;
+}
+
+.unselectedTrain:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.horizontal-list li p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.training-section input[type="text"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e6ed;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  background: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.training-section input[type="text"]:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
 }
 
 .training-controls {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
 }
 
+.training-controls button {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.training-controls button:first-child {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.training-controls button:first-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.training-controls button:last-child {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.training-controls button:last-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+/* Audio Files Section */
 .audio-files-section {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .audio-files-list {
   max-height: 200px;
   overflow-y: auto;
-  border: 1px solid #ccc;
-  padding: 10px;
-  margin-bottom: 10px;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.audio-files-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.audio-files-list::-webkit-scrollbar-track {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 4px;
+}
+
+.audio-files-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
 }
 
 .audio-file-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px;
+  padding: 12px 15px;
   cursor: pointer;
-  border-bottom: 1px solid #eee;
-  color: #333;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  background: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.audio-file-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .audio-file-item:hover {
-  background-color: #f5f5f5;
-  color: #000;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  transform: translateX(5px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .button-cross {
-  background: red;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
   color: white;
   border: none;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.button-cross:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.button-cross::before {
+  content: "✕";
 }
 
 .file-selection {
@@ -370,90 +518,279 @@ export default {
 
 .button-wrap {
   display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.current-song {
-  font-weight: 300;
-  margin: 10px 0;
-}
-
-.playback-controls {
-  display: flex;
-  gap: 10px;
-  margin: 20px 0;
-}
-
-.button {
-  padding: 10px 20px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.button:hover {
-  background: #0056b3;
+  justify-content: center;
 }
 
 .buttonbis {
-  padding: 10px 20px;
-  background: #28a745;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 25px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .buttonbis:hover {
-  background: #1e7e34;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-.time-controls {
+/* Current Song */
+.current-song {
+  font-weight: 500;
   margin: 20px 0;
+  padding: 15px 20px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  color: #667eea;
+  text-align: center;
+  font-size: 1rem;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+/* Audio Player */
+audio {
+  width: 100%;
+  margin: 20px 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Playback Controls */
+.playback-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 25px 0;
+}
+
+.button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button:nth-child(1) {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.button:nth-child(2) {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+}
+
+.button:nth-child(3) {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Time Controls */
+.time-controls {
+  margin: 30px 0;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .slider-container {
-  margin: 10px 0;
+  margin: 20px 0;
 }
 
 .slider-container label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
 }
 
 .slider-container input[type="range"] {
   width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #ecf0f1;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .checkbox-container {
-  margin: 10px 0;
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.checkbox-container label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #667eea;
+  cursor: pointer;
+}
+
+/* Speed Control */
 .speed-control {
   text-align: center;
-  margin: 20px 0;
+  margin: 30px 0;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.speed-control h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 
 .slider {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 15px;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .slider input[type="range"] {
   flex: 1;
-  max-width: 300px;
+  height: 8px;
+  border-radius: 4px;
+  background: #ecf0f1;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
 }
 
+.slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+.slider p {
+  margin: 0;
+  font-weight: 600;
+  color: #FF9800;
+  font-size: 1.1rem;
+  min-width: 60px;
+  background: rgba(255, 152, 0, 0.1);
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 152, 0, 0.2);
+}
+
+/* Waveform */
 .waveform-container {
-  height: 100px;
-  margin: 20px 0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  height: 120px;
+  margin: 30px 0;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  border-radius: 10px;
+  background: rgba(102, 126, 234, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .playsound-component {
+    width: 95%;
+    min-width: unset;
+    max-width: unset;
+    margin: 10px auto;
+    padding: 15px;
+  }
+
+  .horizontal-list {
+    grid-template-columns: 1fr;
+  }
+
+  .training-controls {
+    flex-direction: column;
+  }
+
+  .playback-controls {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .button {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .slider {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .slider input[type="range"] {
+    width: 100%;
+  }
 }
 </style>
