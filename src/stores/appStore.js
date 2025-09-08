@@ -20,6 +20,7 @@ export const useAppStore = defineStore('app', {
     chordssuggestDisplay: false,
     settingsView: false,
     keyboard: false,
+    tabReaderDisplay: false,
     
     // Global UI Properties
     lefty: false,
@@ -45,7 +46,8 @@ export const useAppStore = defineStore('app', {
       gameDisplay: state.gameDisplay,
       chordssuggestDisplay: state.chordssuggestDisplay,
       settingsView: state.settingsView,
-      keyboard: state.keyboard
+      keyboard: state.keyboard,
+      tabReaderDisplay: state.tabReaderDisplay
     })
   },
 
@@ -101,6 +103,10 @@ export const useAppStore = defineStore('app', {
     
     toggleKeyboard() {
       this.keyboard = !this.keyboard
+    },
+    
+    toggleTabReader() {
+      this.tabReaderDisplay = !this.tabReaderDisplay
     },
     
     toggleAutoGammeSelect() {

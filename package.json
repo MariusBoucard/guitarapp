@@ -21,7 +21,7 @@
   },
   "main": "dist-electron/background.js",
   "dependencies": {
-    "@coderline/alphatab": "^1.6.2",
+    "@coderline/alphatab": "^1.6.3",
     "core-js": "^3.45.1",
     "file-saver": "^2.0.5",
     "guitar-chords": "^1.2.0",
