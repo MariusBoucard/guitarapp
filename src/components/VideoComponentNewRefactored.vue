@@ -4,20 +4,34 @@
       <div class="column-left">
         <div>
           <!-- Training List -->
-          <div v-for="(training, index) in trainingList" :key="index">
-            <h2 @click="toggleTraining(index)" class="trainingType">{{ training.trainingType }}</h2>
-            <div v-show="training.show">
-              <div v-for="(item, subIndex) in training.trainings" :key="subIndex">
-                <h3 @click="toggleItem(index, subIndex)" class="training">{{ item.name }}</h3>
-                <ul v-show="item.show">
-                  <li v-if="item.isDirectFile" @click="launchFile(item)" class="video">
-                    {{ item.name }}
-                  </li>
-                  <li v-else v-for="(video, videoIndex) in item.videos || []" :key="videoIndex"
-                    @click="launchFile(video)" class="video">
-                    {{ video.name }}
-                  </li>
-                </ul>
+          <div class="video-training-tree">
+            <h2>Video Training Library</h2>
+            <div v-if="trainingList.length === 0" class="no-videos-message">
+              <p>No video library loaded. Use "Select Training Directory" below to load your video collection.</p>
+            </div>
+            <div v-else class="training-tree">
+              <div v-for="(training, index) in trainingList" :key="index" class="training-category">
+                <h3 @click="toggleTraining(index)" class="training-category-header" 
+                    :class="{ expanded: training.show }">
+                  📁 {{ training.trainingType }} ({{ getTotalVideosInTraining(training) }} videos)
+                </h3>
+                <div v-show="training.show" class="training-items">
+                  <div v-for="(item, subIndex) in training.trainings" :key="subIndex" class="training-item">
+                    <h4 @click="toggleItem(index, subIndex)" class="training-item-header"
+                        :class="{ expanded: item.show }">
+                      📂 {{ item.name }} ({{ item.videos ? item.videos.length : (item.isDirectFile ? 1 : 0) }} videos)
+                    </h4>
+                    <ul v-show="item.show" class="video-list">
+                      <li v-if="item.isDirectFile" @click="launchFile(item)" class="video-item">
+                        🎥 {{ item.name }}
+                      </li>
+                      <li v-else v-for="(video, videoIndex) in item.videos || []" :key="videoIndex"
+                          @click="launchFile(video)" class="video-item">
+                        🎥 {{ video.name }}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -340,6 +354,16 @@ export default {
       videoStore.toggleItemVisibility(trainingIndex, itemIndex)
     }
 
+    const getTotalVideosInTraining = (training) => {
+      if (!training.trainings) return 0
+      return training.trainings.reduce((total, item) => {
+        if (item.isDirectFile) {
+          return total + 1
+        }
+        return total + (item.videos ? item.videos.length : 0)
+      }, 0)
+    }
+
     const launchFile = async (videoData) => {
       try {
         console.log('launchFile called with:', videoData)
@@ -591,6 +615,7 @@ export default {
       selectSingleVideo,
       toggleTraining,
       toggleItem,
+      getTotalVideosInTraining,
       launchFile,
       handleVideoLoaded,
       handleTimeUpdate,
@@ -611,230 +636,555 @@ export default {
 </script>
 
 <style scoped>
-.trainingType {
-  background-color: #f2f2f2;
-  padding: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-bottom: 5px;
-}
-
-.trainingType:hover {
-  background-color: #e0e0e0;
-}
-
-.training {
-  background-color: #2268ff;
-  color: white;
-  padding: 10px;
-  border-radius: 5px;
-  width: 80%;
-  cursor: pointer;
-  margin-bottom: 5px;
-}
-
-.training:hover {
-  background-color: #1a52cc;
-}
-
-.video {
-  background-color: #f2f2f2;
-  padding: 10px;
-  margin-top: -10px;
-  border-radius: 5px;
-  width: 70%;
-  cursor: pointer;
-  margin-bottom: 2px;
-  list-style: none;
-}
-
-.video:hover {
-  background-color: #d9d9d9;
-}
-
-.two-columns {
-  display: flex;
-  flex-direction: row;
+/* Main Container */
+.video-component-container {
+  width: 100%;
   height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2c3e50;
 }
 
+/* Layout */
+.two-columns {
+  display: grid;
+  grid-template-columns: 450px 1fr;
+  gap: 25px;
+  height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Left Column - Training List */
 .column-left {
-  flex: 40%;
-  padding: 20px;
-  background-color: #33658A;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
 }
 
-.column-right {
-  flex: 60%;
+.column-left::-webkit-scrollbar {
+  width: 6px;
+}
+
+.column-left::-webkit-scrollbar-track {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 3px;
+}
+
+.column-left::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+}
+
+/* Video Training Tree Styles */
+.video-training-tree {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
   padding: 20px;
-  background-color: #F6AE2D;
-  height: fit-content;
-  min-height: 100vh;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  flex: 1;
 }
 
-.directory-controls {
+.video-training-tree h2 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 25px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.no-videos-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #7f8c8d;
+  font-style: italic;
+  background: rgba(149, 165, 166, 0.1);
+  border-radius: 12px;
+  border: 2px dashed rgba(149, 165, 166, 0.3);
+}
+
+.training-tree {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.training-tree::-webkit-scrollbar {
+  width: 6px;
+}
+
+.training-tree::-webkit-scrollbar-track {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 3px;
+}
+
+.training-tree::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+}
+
+.training-category {
+  margin-bottom: 15px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.training-category:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.training-category-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px 20px;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.training-category-header:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.training-category-header.expanded {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  border-radius: 10px 10px 0 0;
+}
+
+.training-category-header::after {
+  content: '▼';
+  transition: transform 0.2s ease;
+  font-size: 0.8rem;
+}
+
+.training-category-header.expanded::after {
+  transform: rotate(180deg);
+}
+
+.training-items {
+  background: rgba(52, 73, 94, 0.05);
+  padding: 0;
+}
+
+.training-item {
+  border-top: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.training-item-header {
+  background: rgba(255, 255, 255, 0.9);
+  color: #2c3e50;
+  padding: 12px 20px;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid transparent;
+}
+
+.training-item-header:hover {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+}
+
+.training-item-header.expanded {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  color: white;
+}
+
+.training-item-header::after {
+  content: '▶';
+  transition: transform 0.2s ease;
+  font-size: 0.7rem;
+  color: #7f8c8d;
+}
+
+.training-item-header.expanded::after {
+  transform: rotate(90deg);
+  color: white;
+}
+
+.video-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.video-item {
+  padding: 12px 25px;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.video-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  padding-left: 35px;
+  box-shadow: inset 4px 0 0 #4CAF50;
+}
+
+.video-item:last-child {
+  border-bottom: none;
+}
+
+/* Right Column - Video Player */
+.column-right {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: calc(100vh - 40px);
+}
+
+.column-right h1 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 25px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Video Player */
+video {
+  width: 100%;
+  height: 400px;
+  background: #000;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Controls */
+.playback-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
   margin: 20px 0;
-  padding: 15px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
 }
 
+.button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.button:nth-child(1) {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.button:nth-child(2) {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+}
+
+.button:nth-child(3) {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Directory Controls */
+.directory-controls {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.directory-controls input[type="text"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e6ed;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  background: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  color: #2c3e50;
+}
+
+.directory-controls input[type="text"]:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+}
+
+.directory-controls button {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  margin: 5px 0;
+}
+
+.directory-controls button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Auto-reload Message */
 .auto-reload-message {
   margin: 15px 0;
-  padding: 12px;
-  background-color: rgba(34, 104, 255, 0.2);
-  border: 1px solid rgba(34, 104, 255, 0.4);
-  border-radius: 6px;
-  color: #ffffff;
+  padding: 15px;
+  background: rgba(102, 126, 234, 0.1);
+  border: 2px solid rgba(102, 126, 234, 0.3);
+  border-radius: 12px;
+  color: #2c3e50;
 }
 
 .auto-reload-message p {
   margin: 0 0 10px 0;
-  font-size: 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .reload-btn {
-  background-color: #2268ff;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   color: white;
-  padding: 8px 12px;
-  font-size: 14px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 20px;
   cursor: pointer;
   margin-right: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
 }
 
 .reload-btn:hover {
-  background-color: #1a52cc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
 }
 
 .dismiss-btn {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 4px 8px;
-  font-size: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+  background: rgba(149, 165, 166, 0.2);
+  color: #2c3e50;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border: 1px solid rgba(149, 165, 166, 0.3);
+  border-radius: 15px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .dismiss-btn:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+  background: rgba(149, 165, 166, 0.3);
 }
 
+/* Directory Info */
 .directory-info {
   margin-top: 15px;
-  padding: 10px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .directory-info h4 {
   margin: 0 0 10px 0;
-  color: #ffffff;
-  font-size: 16px;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .directory-info p {
   margin: 5px 0;
-  color: #ffffff;
-  font-size: 14px;
+  color: #2c3e50;
+  font-size: 0.9rem;
 }
 
 .clear-btn {
-  background-color: #ff4444;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
   color: white;
-  padding: 5px 10px;
-  font-size: 12px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
   margin-top: 10px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 
 .clear-btn:hover {
-  background-color: #cc3333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
 }
 
+/* Slider Controls */
 .slider-parent {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   margin: 20px 0;
 }
 
 .slider-container {
-  margin: 10px 0;
+  margin: 15px 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
 }
 
 .slider-label {
-  min-width: 100px;
-  font-weight: bold;
+  min-width: 120px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
 }
 
 .slider-value {
   min-width: 80px;
   margin: 0;
   font-family: monospace;
-}
-
-.loop-checkbox {
-  margin: 15px 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.checkbox-label {
-  font-weight: bold;
-}
-
-input[type="text"] {
-  padding: 10px;
-  border: 2px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-  margin-right: 10px;
-  width: 60%;
-}
-
-button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin: 5px;
-  font-size: 14px;
-}
-
-button:hover {
-  background-color: #3e8e41;
-}
-
-.button {
-  margin-right: 10px;
+  font-weight: 600;
+  color: #667eea;
+  text-align: center;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.9rem;
 }
 
 input[type="range"] {
   flex: 1;
-  margin: 0 10px;
+  height: 6px;
+  border-radius: 3px;
+  background: #ecf0f1;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Loop Control */
+.loop-checkbox {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 15px 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.checkbox-label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
 }
 
 input[type="checkbox"] {
-  transform: scale(1.2);
+  width: 18px;
+  height: 18px;
+  accent-color: #667eea;
+  cursor: pointer;
 }
 
-ul {
-  padding-left: 20px;
-}
-
+/* Speed Control */
 .slider {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin: 10px 0;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.slider h3 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-weight: 600;
+  text-align: center;
+  font-size: 1.1rem;
 }
 
 .slider input[type="range"] {
@@ -843,18 +1193,62 @@ ul {
 
 .slider p {
   margin: 0;
-  font-weight: bold;
-  min-width: 50px;
+  font-weight: 600;
+  min-width: 60px;
   text-align: center;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 8px 12px;
+  border-radius: 15px;
+  font-size: 0.9rem;
 }
 
-/* Error message styling */
-.error-message {
-  color: red;
-  background-color: #ffe6e6;
-  padding: 10px;
-  border-radius: 4px;
-  margin: 10px 0;
-  border: 1px solid #ffcccc;
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .two-columns {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .column-left {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .two-columns {
+    padding: 10px;
+  }
+  
+  .column-left,
+  .column-right {
+    padding: 15px;
+  }
+  
+  .slider-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .slider-label {
+    min-width: auto;
+    text-align: center;
+  }
+}
+
+/* Add subtle animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.video-training-tree {
+  animation: fadeInUp 0.3s ease-out;
 }
 </style>
