@@ -247,7 +247,10 @@ export default {
     },
     
     onSpeedChange() {
-      this.audioService.setPlaybackRate(this.$refs.audioPlayer, this.trainingStore.speed)
+      const audio = this.$refs.audioPlayer
+      if (audio && this.trainingStore.speed) {
+        audio.playbackRate = this.trainingStore.speed / 100
+      }
     },
     
     // Event handlers
@@ -287,6 +290,7 @@ export default {
 <style scoped>
 .playsound-component {
   padding: 20px;
+  color: #333;
 }
 
 .training-section {
@@ -314,6 +318,7 @@ export default {
 
 .unselectedTrain {
   background-color: rgb(200, 200, 200);
+  color: #333;
 }
 
 .training-controls {
@@ -341,10 +346,12 @@ export default {
   padding: 5px;
   cursor: pointer;
   border-bottom: 1px solid #eee;
+  color: #333;
 }
 
 .audio-file-item:hover {
   background-color: #f5f5f5;
+  color: #000;
 }
 
 .button-cross {
