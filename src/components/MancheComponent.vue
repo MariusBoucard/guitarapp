@@ -238,9 +238,9 @@ export default {
             //find the id of the root note of the cord and add the nb of index
             
             // Debug: Log the tuning we're looking for and available notes
-            console.log('Looking for tuning:', corde.tuning);
-            console.log('Available notes in allnotesc:', this.allnotesc.slice(0, 20).map(n => n.note)); // Show first 20 notes
-            
+       //     console.log('Looking for tuning:', corde.tuning);
+        //    console.log('Available notes in allnotesc:', this.allnotesc.slice(0, 20).map(n => n.note)); // Show first 20 notes
+          // TODO FIX THIS ISSUE  
             var find = this.allnotesc.find(note => note.note === corde.tuning)
             
             // Check if find is undefined to prevent error

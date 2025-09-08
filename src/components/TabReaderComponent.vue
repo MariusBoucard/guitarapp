@@ -13,17 +13,17 @@
         <button @click="openFileDialog" class="load-btn">
           Load Guitar Pro File
         </button>
-        <button v-if="canPlay" @click="playPause" class="play-btn">
-          {{ isPlaying ? 'Pause' : 'Play' }}
+        <button v-if="canPlay" @click="playPause" class="play-btn" :class="{ 'playing': isPlaying }">
+          {{ isPlaying ? '⏸️ Pause' : '▶️ Play' }}
         </button>
         <button v-if="canPlay" @click="stop" class="stop-btn">
-          Stop
+          ⏹️ Stop
         </button>
         <span v-if="isLoaded && !isPlayerReady" class="status-text">
           Loading player...
         </span>
-        <span v-if="isElectron && isLoaded" class="status-text electron-warning">
-          ⚠️ Audio playback disabled in desktop mode
+        <span v-if="isElectron && isLoaded" class="status-text electron-info">
+          🔇 Desktop mode - Visual playback only (no audio)
         </span>
       </div>
     </div>
@@ -67,16 +67,21 @@ export default {
       tracks: [],
       selectedTrack: 0,
       currentScore: null,
-      originalFetch: null
+      originalFetch: null,
+      // Manual playback properties
+      playbackInterval: null,
+      currentTick: 0,
+      currentBeat: 0,
+      tempo: 120 // Default tempo (BPM)
     }
   },
   computed: {
     canPlay() {
-      return this.isLoaded && !this.isElectron && this.isPlayerReady && this.alphaTabApi?.isReadyForPlayback
+      // For Electron mode, just check if loaded; for web mode, check player readiness
+      return this.isLoaded && (this.isElectron || (this.isPlayerReady && this.alphaTabApi?.isReadyForPlayback))
     }
   },
   mounted() {
-    console.log('TabReader component mounted')
     
     // Initialize AlphaTab with a delay to ensure DOM is ready
     this.$nextTick(() => {
@@ -86,6 +91,11 @@ export default {
     })
   },
   beforeUnmount() {
+    // Clean up manual playback
+    if (this.playbackInterval) {
+      clearInterval(this.playbackInterval)
+    }
+    
     // Restore original fetch function
     if (this.originalFetch) {
       window.fetch = this.originalFetch
@@ -105,7 +115,6 @@ export default {
           return
         }
 
-        console.log('AlphaTab container element found:', this.$refs.alphaTab)
 
         // Clear any previous content
         this.$refs.alphaTab.innerHTML = ''
@@ -114,7 +123,6 @@ export default {
         const isElectron = typeof window !== 'undefined' && window.process && window.process.type
         this.isElectron = isElectron
         
-        console.log('Environment detected:', isElectron ? 'Electron' : 'Web')
 
         const settings = new Settings()
         
@@ -122,21 +130,29 @@ export default {
         settings.core.engine = 'svg'  // Use SVG for better compatibility
         settings.display.scale = 0.8
         
+        // Player cursor settings for visual feedback
+        settings.player.enableCursor = true
+        settings.player.enableUserInteraction = true
+        settings.player.enableElementHighlighting = true
+        
         if (isElectron) {
-          console.log('Configuring for Electron environment')
-          // Electron-specific settings
+          // Electron-specific settings - enable player for cursor but no audio
           settings.core.useWorkers = false  // Disable workers in Electron
-          settings.player.enablePlayer = false  // Disable player in Electron
-          settings.player.playerMode = 0
+          settings.player.enablePlayer = true  // Enable player for cursor functionality
+          settings.player.playerMode = 0  // No audio synthesis
+          settings.player.enableCursor = true
+          settings.player.enableUserInteraction = true
+          settings.player.enableElementHighlighting = true
+          settings.player.scrollMode = 'continuous'
           
           // Set font directory to the location where Vite plugin copies fonts
           settings.core.fontDirectory = './font/'
         } else {
-          console.log('Configuring for web environment')
           // Web settings
           settings.player.enablePlayer = true
-          settings.player.playerMode = 1
+          settings.player.playerMode = 1 // Enable audio synthesis
           settings.player.soundFont = './soundfont/sonivox.sf2'
+          settings.player.scrollMode = 'continuous' // Follow playback position
           
           // Use default font directory (Vite plugin handles this)
           settings.core.fontDirectory = './font/'
@@ -154,10 +170,11 @@ export default {
         
         this.alphaTabApi = new AlphaTabApi(this.$refs.alphaTab, settings)
         
-        // Setup event listeners
-        this.setupEventListeners()
+        // Setup event listeners with a small delay to ensure API is ready
+        setTimeout(() => {
+          this.setupEventListeners()
+        }, 100)
         
-        console.log('AlphaTab initialized successfully')
         
       } catch (err) {
         this.error = `Failed to initialize AlphaTab: ${err.message}`
@@ -171,101 +188,162 @@ export default {
         return
       }
 
-      // Score loaded event
-      this.alphaTabApi.scoreLoaded.on((score) => {
-        this.isLoaded = true
-        this.tracks = score.tracks || []
-        this.selectedTrack = 0
-        this.currentScore = score
-        this.error = null
-        console.log('Score loaded:', score.title, 'by', score.artist)
-        console.log('Available tracks:', this.tracks.length)
-      })
-      
-      // Render started event
-      this.alphaTabApi.renderStarted.on(() => {
-        console.log('AlphaTab rendering started')
-      })
-      
-      // Render finished event
-      this.alphaTabApi.renderFinished.on(() => {
-        console.log('AlphaTab rendering finished successfully')
-        
-        // Debug: Check what was rendered
-        const container = this.$refs.alphaTab
-        if (container) {
-          const canvases = container.querySelectorAll('canvas')
-          const svgs = container.querySelectorAll('svg')
-          const divs = container.querySelectorAll('div')
-          const surfaces = container.querySelectorAll('.at-surface')
-          console.log(`Rendered elements - Canvases: ${canvases.length}, SVGs: ${svgs.length}, Divs: ${divs.length}`)
-          console.log('Container content length:', container.innerHTML.length)
-          console.log('Container children:', container.children.length)
-          
-          // Log first few children for debugging
-          for (let i = 0; i < Math.min(3, container.children.length); i++) {
-            const child = container.children[i]
-            console.log(`Child ${i}:`, child.tagName, child.className, `${child.offsetWidth}x${child.offsetHeight}`)
-          }
-          
-          // Force height on surface elements
-          surfaces.forEach((surface, index) => {
-            if (surface.offsetHeight === 0) {
-              console.log(`Fixing surface ${index} height`)
-              surface.style.minHeight = '400px'
-              surface.style.height = 'auto'
-              surface.style.display = 'block'
-              surface.style.overflow = 'visible'
+      // Check if event listeners are available
+      if (!this.alphaTabApi.scoreLoaded || typeof this.alphaTabApi.scoreLoaded.on !== 'function') {
+        console.error('AlphaTab event listeners not available yet, retrying...')
+        setTimeout(() => {
+          this.setupEventListeners()
+        }, 200)
+        return
+      }
+
+      console.log('Setting up AlphaTab event listeners...')
+
+      try {
+        // Score loaded event
+        if (this.alphaTabApi.scoreLoaded && this.alphaTabApi.scoreLoaded.on) {
+          this.alphaTabApi.scoreLoaded.on((score) => {
+            this.isLoaded = true
+            this.tracks = score.tracks || []
+            this.selectedTrack = 0
+            this.currentScore = score
+            this.error = null
+            
+            // Extract tempo from score if available
+            if (score.masterVolume && score.masterVolume.dynamicValue) {
+              this.tempo = score.masterVolume.dynamicValue || 120
+            }
+            
+            console.log('Score loaded successfully:', {
+              tracks: this.tracks.length,
+              playerEnabled: this.alphaTabApi.settings?.player?.enablePlayer,
+              tempo: this.tempo
+            })
+            
+            // For Electron mode, mark player as ready since we'll handle playback manually
+            if (this.isElectron) {
+              this.isPlayerReady = true
+              console.log('Electron mode: Player marked as ready for manual playback')
+            } else {
+              // Force player initialization after score load for web mode
+              setTimeout(() => {
+                if (this.alphaTabApi && !this.isPlayerReady) {
+                  console.log('Attempting to trigger player ready state...')
+                  this.alphaTabApi.renderTracks([this.tracks[0]])
+                }
+              }, 500)
             }
           })
-          
-          // Force visibility for canvas elements
-          canvases.forEach((canvas, index) => {
-            canvas.style.display = 'block'
-            canvas.style.background = 'white'
-            canvas.style.maxWidth = '100%'
-            console.log(`Canvas ${index} dimensions:`, `${canvas.width}x${canvas.height}`, 'style:', `${canvas.offsetWidth}x${canvas.offsetHeight}`)
-          })
-          
-          // Also handle SVG elements
-          svgs.forEach((svg, index) => {
-            svg.style.display = 'block'
-            svg.style.background = 'white'
-            svg.style.maxWidth = '100%'
-            console.log(`SVG ${index} dimensions:`, svg.getAttribute('width'), 'x', svg.getAttribute('height'))
-          })
-          
-          // Try to force a re-layout
-          setTimeout(() => {
-            if (this.alphaTabApi && surfaces.length > 0) {
-              console.log('Attempting to trigger re-render...')
-              this.alphaTabApi.render()
-            }
-          }, 100)
         }
-      })
-      
-      // Player state changed
-      this.alphaTabApi.playerStateChanged.on((e) => {
-        this.isPlaying = e.state === 1 
-      })
-      
-      // Player ready event
-      this.alphaTabApi.playerReady.on(() => {
-        this.isPlayerReady = true
-        console.log('Player ready for playback')
-      })
-      
-      // Error handling
-      this.alphaTabApi.error.on((error) => {
-        console.error('AlphaTab error:', error)
-        this.error = `AlphaTab error: ${error.message || error}`
-      })
-      
-      console.log('Event listeners setup complete')
-    },
-    
-    openFileDialog() {
+        
+        // Render started event
+        if (this.alphaTabApi.renderStarted && this.alphaTabApi.renderStarted.on) {
+          this.alphaTabApi.renderStarted.on(() => {
+            console.log('Render started')
+          })
+        }
+        
+        // Render finished event
+        if (this.alphaTabApi.renderFinished && this.alphaTabApi.renderFinished.on) {
+          this.alphaTabApi.renderFinished.on(() => {
+        
+            console.log('Render finished')
+            
+            // Debug: Check what was rendered
+            const container = this.$refs.alphaTab
+            if (container) {
+              const canvases = container.querySelectorAll('canvas')
+              const svgs = container.querySelectorAll('svg')
+              const surfaces = container.querySelectorAll('.at-surface')
+
+              // Force height on surface elements
+              surfaces.forEach((surface, index) => {
+                if (surface.offsetHeight === 0) {
+                  surface.style.minHeight = '400px'
+                  surface.style.height = 'auto'
+                  surface.style.display = 'block'
+                  surface.style.overflow = 'visible'
+                }
+              })
+              
+              // Force visibility for canvas elements
+              canvases.forEach((canvas, index) => {
+                canvas.style.display = 'block'
+                canvas.style.background = 'white'
+                canvas.style.maxWidth = '100%'
+              })
+              
+              // Also handle SVG elements
+              svgs.forEach((svg, index) => {
+                svg.style.display = 'block'
+                svg.style.background = 'white'
+                svg.style.maxWidth = '100%'
+              })
+              
+              // Try to force a re-layout
+              setTimeout(() => {
+                if (this.alphaTabApi && surfaces.length > 0) {
+                  this.alphaTabApi.render()
+                }
+              }, 100)
+            }
+          })
+        }
+        
+        // Player events - set up for all modes now since player is enabled
+        if (this.alphaTabApi.playerStateChanged && this.alphaTabApi.playerStateChanged.on) {
+          this.alphaTabApi.playerStateChanged.on((e) => {
+            console.log('Player state changed:', e.state)
+            // Only update isPlaying state if not in manual mode (Electron)
+            if (!this.isElectron) {
+              this.isPlaying = e.state === 1 // 1 = playing, 0 = paused/stopped
+            }
+          })
+        }
+        
+        if (this.alphaTabApi.playerReady && this.alphaTabApi.playerReady.on) {
+          this.alphaTabApi.playerReady.on(() => {
+            console.log('Player ready!')
+            this.isPlayerReady = true
+            
+            // Additional check for playback readiness
+            console.log('Player readiness check:', {
+              isReadyForPlayback: this.alphaTabApi.isReadyForPlayback,
+              playerMode: this.alphaTabApi.settings?.player?.playerMode,
+              enablePlayer: this.alphaTabApi.settings?.player?.enablePlayer
+            })
+          })
+        }
+        
+        if (this.alphaTabApi.playerPositionChanged && this.alphaTabApi.playerPositionChanged.on) {
+          this.alphaTabApi.playerPositionChanged.on((e) => {
+            console.log('Player position:', e.currentTick, 'Beat:', e.currentBeat?.index)
+            this.$forceUpdate()
+          })
+        }
+        
+        if (this.alphaTabApi.playerFinished && this.alphaTabApi.playerFinished.on) {
+          this.alphaTabApi.playerFinished.on(() => {
+            console.log('Playback finished')
+            if (!this.isElectron) {
+              this.isPlaying = false
+            }
+          })
+        }
+        
+        // Error handling
+        if (this.alphaTabApi.error && this.alphaTabApi.error.on) {
+          this.alphaTabApi.error.on((error) => {
+            console.error('AlphaTab error:', error)
+            this.error = `AlphaTab error: ${error.message || error}`
+          })
+        }
+        
+      } catch (error) {
+        console.error('Error setting up event listeners:', error)
+        this.error = `Failed to setup event listeners: ${error.message}`
+      }
+    },    openFileDialog() {
       this.$refs.fileInput.click()
     },
     
@@ -317,32 +395,209 @@ export default {
     },
     
     playPause() {
-      if (!this.alphaTabApi || !this.alphaTabApi.isReadyForPlayback) {
-        console.warn('Player not ready for playback')
+      console.log('playPause called, current state:', {
+        alphaTabApi: !!this.alphaTabApi,
+        isReadyForPlayback: this.alphaTabApi?.isReadyForPlayback,
+        isPlaying: this.isPlaying,
+        isPlayerReady: this.isPlayerReady,
+        isElectron: this.isElectron
+      })
+      
+      if (!this.alphaTabApi) {
+        console.warn('AlphaTab API not available')
         return
       }
       
-      if (this.isPlaying) {
-        this.alphaTabApi.pause()
-      } else {
-        this.alphaTabApi.play()
+      // For Electron mode, use manual playback
+      if (this.isElectron) {
+        if (this.isPlaying) {
+          this.pauseManualPlayback()
+        } else {
+          this.startManualPlayback()
+        }
+        return
+      }
+      
+      // For web mode, use AlphaTab's built-in player
+      if (!this.alphaTabApi.isReadyForPlayback) {
+        console.warn('Player not ready for playback')
+        if (this.currentScore) {
+          console.log('Attempting to re-initialize player with current score')
+          this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
+        }
+        return
+      }
+      
+      try {
+        if (this.isPlaying) {
+          console.log('Pausing playback')
+          this.alphaTabApi.pause()
+        } else {
+          console.log('Starting playback')
+          this.alphaTabApi.play()
+        }
+      } catch (error) {
+        console.error('Error during play/pause:', error)
+        this.error = `Playback error: ${error.message}`
+      }
+    },
+    
+    startManualPlayback() {
+      console.log('Starting manual playback for Electron mode')
+      this.isPlaying = true
+      this.currentTick = 0
+      this.currentBeat = 0
+      
+      // Get the first track for timing calculations
+      const track = this.tracks[this.selectedTrack]
+      if (!track || !track.staves || track.staves.length === 0) {
+        console.error('No track or staves available for playback')
+        return
+      }
+      
+      // Calculate timing based on the score's tempo
+      const masterBar = this.currentScore.masterBars[0]
+      const actualTempo = masterBar ? masterBar.tempo : this.tempo
+      
+      // Calculate interval (120 BPM = 500ms per quarter note)
+      const beatInterval = (60 / actualTempo) * 250 // Faster updates for smoother cursor
+      
+      let currentMasterBarIndex = 0
+      let currentBeatInBar = 0
+      
+      this.playbackInterval = setInterval(() => {
+        try {
+          // Move to next beat
+          currentBeatInBar++
+          
+          // Check if we need to move to next bar
+          const currentMasterBar = this.currentScore.masterBars[currentMasterBarIndex]
+          if (currentMasterBar && currentBeatInBar >= currentMasterBar.timeSignatureDenominator) {
+            currentBeatInBar = 0
+            currentMasterBarIndex++
+          }
+          
+          // Stop if we've reached the end
+          if (currentMasterBarIndex >= this.currentScore.masterBars.length) {
+            this.pauseManualPlayback()
+            return
+          }
+          
+          console.log(`Manual playback: bar ${currentMasterBarIndex}, beat ${currentBeatInBar}`)
+          
+          // Try to position cursor using AlphaTab's beat positioning
+          if (this.alphaTabApi && this.currentScore.masterBars[currentMasterBarIndex]) {
+            const masterBar = this.currentScore.masterBars[currentMasterBarIndex]
+            const track = this.tracks[this.selectedTrack]
+            
+            if (track.staves[0] && track.staves[0].bars[currentMasterBarIndex]) {
+              const bar = track.staves[0].bars[currentMasterBarIndex]
+              
+              // Try different positioning methods
+              try {
+                // Method 1: Use tickPosition if available
+                if (typeof this.alphaTabApi.tickPosition === 'function') {
+                  this.alphaTabApi.tickPosition(currentMasterBarIndex * 960 + currentBeatInBar * 240)
+                }
+                // Method 2: Use playerPositionChanged event simulation
+                else if (this.alphaTabApi.renderer && this.alphaTabApi.renderer.boundsLookup) {
+                  const boundsLookup = this.alphaTabApi.renderer.boundsLookup
+                  const beatBounds = boundsLookup.findBeat(bar.voices[0].beats[currentBeatInBar])
+                  if (beatBounds) {
+                    // Simulate cursor positioning
+                    this.highlightCurrentBeat(beatBounds)
+                  }
+                }
+              } catch (e) {
+                console.log('Cursor positioning method failed:', e.message)
+              }
+            }
+          }
+          
+        } catch (error) {
+          console.error('Error in manual playback:', error)
+        }
+      }, beatInterval)
+    },
+    
+    highlightCurrentBeat(beatBounds) {
+      // Manual cursor highlighting
+      const container = this.$refs.alphaTab
+      if (!container) return
+      
+      // Remove previous cursor
+      const existingCursor = container.querySelector('.manual-cursor')
+      if (existingCursor) {
+        existingCursor.remove()
+      }
+      
+      // Create new cursor element
+      const cursor = document.createElement('div')
+      cursor.className = 'manual-cursor'
+      cursor.style.position = 'absolute'
+      cursor.style.left = beatBounds.realBounds.x + 'px'
+      cursor.style.top = beatBounds.realBounds.y + 'px'
+      cursor.style.width = '3px'
+      cursor.style.height = beatBounds.realBounds.h + 'px'
+      cursor.style.backgroundColor = '#ff0000'
+      cursor.style.opacity = '0.8'
+      cursor.style.zIndex = '1000'
+      cursor.style.pointerEvents = 'none'
+      
+      container.appendChild(cursor)
+    },
+    
+    pauseManualPlayback() {
+      console.log('Pausing manual playback')
+      this.isPlaying = false
+      if (this.playbackInterval) {
+        clearInterval(this.playbackInterval)
+        this.playbackInterval = null
+      }
+      
+      // Remove manual cursor
+      const container = this.$refs.alphaTab
+      if (container) {
+        const existingCursor = container.querySelector('.manual-cursor')
+        if (existingCursor) {
+          existingCursor.remove()
+        }
       }
     },
     
     stop() {
-      if (!this.alphaTabApi) return
-      this.alphaTabApi.stop()
+      if (!this.alphaTabApi) {
+        console.warn('AlphaTab API not available')
+        return
+      }
+      
+      // For Electron mode, stop manual playback
+      if (this.isElectron) {
+        console.log('Stopping manual playback')
+        this.pauseManualPlayback()
+        this.currentTick = 0
+        this.currentBeat = 0
+        return
+      }
+      
+      // For web mode, use AlphaTab's built-in player
+      try {
+        console.log('Stopping playback')
+        this.alphaTabApi.stop()
+        this.isPlaying = false
+      } catch (error) {
+        console.error('Error during stop:', error)
+        this.error = `Stop error: ${error.message}`
+      }
     },
     
     changeTrack() {
       if (!this.alphaTabApi || !this.isLoaded || this.selectedTrack >= this.tracks.length) return
       
-      console.log('Changing to track:', this.selectedTrack, this.tracks[this.selectedTrack]?.name)
       
       try {
         // Render only the selected track using proper API
         this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
-        console.log('Track change render initiated')
       } catch (error) {
         console.error('Error changing track:', error)
         this.error = `Failed to change track: ${error.message}`
@@ -424,6 +679,22 @@ export default {
   cursor: not-allowed;
 }
 
+.play-btn.playing {
+  background: var(--secondary-color, #FF5722) !important;
+}
+
+.play-btn.playing:hover {
+  background: var(--secondary-hover, #E64A19) !important;
+}
+
+.stop-btn {
+  background: var(--danger-color, #f44336) !important;
+}
+
+.stop-btn:hover {
+  background: var(--danger-hover, #d32f2f) !important;
+}
+
 .status-text {
   color: var(--text-muted, #888);
   font-size: 12px;
@@ -432,6 +703,12 @@ export default {
 
 .electron-warning {
   color: #ff9500 !important;
+  font-weight: bold;
+  font-style: normal;
+}
+
+.electron-info {
+  color: #2196F3 !important;
   font-weight: bold;
   font-style: normal;
 }
@@ -565,5 +842,38 @@ export default {
 
 :deep(.at-viewport) {
   background: white !important;
+}
+
+/* Player cursor and highlighting styles */
+:deep(.at-cursor-bar) {
+  background: #ff0000 !important;
+  opacity: 0.8 !important;
+  width: 3px !important;
+  z-index: 1000 !important;
+}
+
+:deep(.at-selection) {
+  background: rgba(255, 0, 0, 0.2) !important;
+}
+
+:deep(.at-cursor-beat) {
+  background: rgba(255, 0, 0, 0.3) !important;
+}
+
+/* Ensure cursor elements are visible */
+:deep(.at-cursor) {
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* Manual cursor for Electron mode */
+.manual-cursor {
+  position: absolute !important;
+  background: #ff0000 !important;
+  opacity: 0.8 !important;
+  width: 3px !important;
+  z-index: 1000 !important;
+  pointer-events: none !important;
+  transition: left 0.1s ease-in-out !important;
 }
 </style>
