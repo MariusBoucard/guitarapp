@@ -26,6 +26,7 @@
             <VideoComponent v-show="appStore.videoDisplay"></VideoComponent> 
             <TrainingComponent v-show="appStore.trainingDisplay"></TrainingComponent>
             <VideoComponentNewRefactored v-show="appStore.videoDisplayNew" ref="videoPlayer"></VideoComponentNewRefactored>
+            <TabReaderComponent v-show="appStore.tabReaderDisplay"></TabReaderComponent>
             
             <!-- Video Training Tree Section -->
             <div v-show="appStore.videoDisplayNew" class="video-training-tree">
@@ -166,6 +167,7 @@ import NoteToPlayComponent from './NoteToPlayComponent.vue'
 import SuggestedChordsComponent from './SuggestedChordsComponent.vue'
 import VideoComponentNewRefactored from './VideoComponentNewRefactored.vue'
 import KeyboardComponent from './KeyboardComponent.vue'
+import TabReaderComponent from './TabReaderComponent.vue'
 
 export default {
   name: 'GuitarTrainingComponent',
@@ -184,7 +186,8 @@ export default {
     NoteToPlayComponent,
     VideoComponentNewRefactored,
     KeyboardComponent,
-    SuggestedChordsComponent
+    SuggestedChordsComponent,
+    TabReaderComponent
   },
   
   setup() {

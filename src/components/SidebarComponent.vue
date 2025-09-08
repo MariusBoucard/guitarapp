@@ -150,6 +150,15 @@
             <span>🖼️ Display Picture</span>
             <span class="status-indicator" v-if="appStore.pictureDisplay">●</span>
           </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.tabReaderDisplay }"
+            @click="appStore.toggleTabReader()"
+          >
+            <span>🎼 Tab Reader</span>
+            <span class="status-indicator" v-if="appStore.tabReaderDisplay">●</span>
+          </div>
         </div>
       </div>
 
