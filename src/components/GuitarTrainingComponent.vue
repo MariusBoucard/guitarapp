@@ -57,7 +57,14 @@
               </div>
             </div>
             
-            <KeyboardComponent v-show="appStore.keyboard"></KeyboardComponent>
+            <KeyboardComponent 
+              v-show="appStore.keyboard"
+              :selectedNotes="notesStore.noteSlectedList"
+              :colorNotes="notesStore.colors"
+              @note-selected="handleKeyboardNoteSelect"
+              @note-removed="handleKeyboardNoteRemove"
+              @clear-all="handleKeyboardClearAll"
+            ></KeyboardComponent>
           </div>
           <div class="row">
             <div class="columnhalf"> 
@@ -226,6 +233,35 @@ export default {
       document.dispatchEvent(event)
     }
     
+    // Keyboard component event handlers
+    const handleKeyboardNoteSelect = (note) => {
+      // Convert # notation to S notation
+      const storeNote = note.replace('#', 'S')
+      // Find the note in the store and enable it
+      const noteObj = notesStore.noteSlectedList.find(n => n.note === storeNote)
+      if (noteObj) {
+        // Create a copy with enabled state
+        const updatedNote = { ...noteObj, enabled: true }
+        appController.handleNoteSelectionChange(updatedNote)
+      }
+    }
+
+    const handleKeyboardNoteRemove = (note) => {
+      // Convert # notation to S notation
+      const storeNote = note.replace('#', 'S')
+      // Find the note in the store and disable it
+      const noteObj = notesStore.noteSlectedList.find(n => n.note === storeNote)
+      if (noteObj) {
+        const updatedNote = { ...noteObj, enabled: false }
+        appController.handleNoteSelectionChange(updatedNote)
+      }
+    }
+
+    const handleKeyboardClearAll = () => {
+      // Clear all selected notes
+      appController.reinitNotesTracking()
+    }
+    
     return {
       appStore,
       notesStore,
@@ -237,7 +273,10 @@ export default {
       toggleTrainingCategory,
       toggleTrainingItem,
       getTotalVideosInTraining,
-      playVideoFromTree
+      playVideoFromTree,
+      handleKeyboardNoteSelect,
+      handleKeyboardNoteRemove,
+      handleKeyboardClearAll
     }
   }
 }

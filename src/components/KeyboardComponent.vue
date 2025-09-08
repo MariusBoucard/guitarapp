@@ -29,6 +29,7 @@
             class="white-key"
             @click="selectKey(note)"
             :class="{ 'selected': selectedKey.has(note) }"
+            :style="{ backgroundColor: getKeyColor(note) }"
           >
             <span class="note-label">{{ formatNote(note) }}</span>
           </div>
@@ -41,7 +42,10 @@
             class="black-key"
             @click="selectKey(note)"
             :class="{ 'selected': selectedKey.has(note) }"
-            :style="{ left: getBlackKeyPosition(index) + '%' }"
+            :style="{ 
+              left: getBlackKeyPosition(index) + '%',
+              backgroundColor: getKeyColor(note, true)
+            }"
           >
             <span class="note-label">{{ formatNote(note) }}</span>
           </div>
@@ -61,29 +65,75 @@
   
   <script>
   export default {
+    props: {
+      selectedNotes: {
+        type: Array,
+        default: () => []
+      },
+      colorNotes: {
+        type: Array,
+        default: () => []
+      }
+    },
     data() {
       return {
         whiteKeys: ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'],
-        blackKeys: ['C#', 'D#', 'F#', 'G#', 'A#', 'C#', 'D#', 'F#', 'G#', 'A#'],
-        selectedKey: new Set()
+        blackKeys: ['C#', 'D#', 'F#', 'G#', 'A#', 'C#', 'D#', 'F#', 'G#', 'A#']
       };
+    },
+    computed: {
+      selectedKey() {
+        // Create a reactive Set based on selectedNotes prop
+        // Convert from store notation (S) to keyboard notation (#)
+        const selectedSet = new Set();
+        this.selectedNotes.forEach(noteObj => {
+          if (noteObj.enabled) {
+            // Convert 'S' notation to '#' notation for keyboard display
+            const keyboardNote = noteObj.note.replace('S', '#');
+            selectedSet.add(keyboardNote);
+          }
+        });
+        return selectedSet;
+      }
     },
     methods: {
       formatNote(note) {
         return note.replace('#', '♯');
       },
       selectKey(note) {
-        if(this.selectedKey.has(note)) {
-          this.selectedKey.delete(note);
+        // Toggle the note selection
+        if (this.selectedKey.has(note)) {
+          // If note is already selected, remove it
+          this.$emit('note-removed', note);
         } else {
-          this.selectedKey.add(note);
+          // If note is not selected, add it
+          this.$emit('note-selected', note);
         }
       },
       removeNote(note) {
-        this.selectedKey.delete(note);
+        // Emit the note removal to parent
+        this.$emit('note-removed', note);
       },
       clearSelection() {
-        this.selectedKey.clear();
+        // Emit clear all selection to parent
+        this.$emit('clear-all');
+      },
+      getKeyColor(note, isBlackKey = false) {
+        if (this.selectedKey.has(note) && this.colorNotes.length > 0) {
+          // Convert keyboard notation (#) to store notation (S) for color lookup
+          const storeNote = note.replace('#', 'S');
+          const colorData = this.colorNotes.find(color => color.note === storeNote);
+          if (colorData) {
+            return colorData.color;
+          }
+        }
+        
+        // Return default colors when not selected or no color data
+        if (this.selectedKey.has(note)) {
+          return isBlackKey ? '#FF9800' : '#4CAF50';
+        }
+        
+        return isBlackKey ? '#2c2c2c' : '#ffffff';
       },
       getBlackKeyPosition(index) {
         // With 14 white keys, each white key takes up 100/14 = 7.14% of width
@@ -114,6 +164,8 @@
   
   <style scoped>
   .keyboard-container {
+    width: 900px;
+    min-width: 900px;
     max-width: 900px;
     margin: 20px auto;
     padding: 20px;
@@ -136,7 +188,8 @@
   }
 
   .selected-notes-display {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    min-height: 40px;
   }
 
   .label {
@@ -151,6 +204,9 @@
     justify-content: center;
     flex-wrap: wrap;
     gap: 8px;
+    min-height: 32px;
+    align-items: center;
+    padding: 4px 0;
   }
 
   .note-chip {
@@ -223,27 +279,14 @@
   }
 
   .white-key:hover {
-    background: linear-gradient(to bottom, #f0f0f0 0%, #e8e8e8 100%);
+    filter: brightness(0.95);
     transform: translateY(2px);
   }
 
   .white-key:active {
-    background: linear-gradient(to bottom, #e0e0e0 0%, #d8d8d8 100%);
+    filter: brightness(0.9);
     transform: translateY(4px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  }
-
-  .white-key.selected {
-    background: linear-gradient(to bottom, #4CAF50 0%, #45a049 100%);
-    color: white;
-    box-shadow: 
-      0 3px 8px rgba(76, 175, 80, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  }
-
-  .white-key.selected:hover {
-    background: linear-gradient(to bottom, #45a049 0%, #3d8b40 100%);
-    transform: translateY(2px);
   }
 
   .white-key .note-label {
@@ -251,6 +294,8 @@
     font-weight: 600;
     margin-bottom: 15px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    mix-blend-mode: difference;
+    color: #000;
   }
 
   .black-keys {
@@ -281,28 +326,16 @@
   }
 
   .black-key:hover {
-    background: linear-gradient(to bottom, #3c3c3c 0%, #2a2a2a 100%);
+    filter: brightness(1.2);
     transform: translateX(-50%) translateY(1px);
   }
 
   .black-key:active {
-    background: linear-gradient(to bottom, #1c1c1c 0%, #0a0a0a 100%);
+    filter: brightness(0.8);
     transform: translateX(-50%) translateY(3px);
     box-shadow: 
       0 2px 6px rgba(0, 0, 0, 0.6),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  }
-
-  .black-key.selected {
-    background: linear-gradient(to bottom, #FF9800 0%, #F57C00 100%);
-    box-shadow: 
-      0 4px 12px rgba(255, 152, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  }
-
-  .black-key.selected:hover {
-    background: linear-gradient(to bottom, #F57C00 0%, #E65100 100%);
-    transform: translateX(-50%) translateY(1px);
   }
 
   .black-key .note-label {
@@ -311,6 +344,7 @@
     color: white;
     margin-bottom: 10px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    mix-blend-mode: difference;
   }
 
   .keyboard-footer {
@@ -320,6 +354,7 @@
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
+    min-height: 50px;
   }
 
   .clear-btn {
