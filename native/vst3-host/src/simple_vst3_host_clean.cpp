@@ -232,15 +232,28 @@ private:
         v8::Local<v8::Array> plugins = Nan::New<v8::Array>();
         uint32_t index = 0;
         
-        for (const auto& pair : host->loadedPlugins) {
-            v8::Local<v8::Object> pluginInfo = Nan::New<v8::Object>();
-            Nan::Set(pluginInfo, Nan::New("id").ToLocalChecked(), Nan::New(pair.second->id).ToLocalChecked());
-            Nan::Set(pluginInfo, Nan::New("name").ToLocalChecked(), Nan::New(pair.second->name).ToLocalChecked());
-            Nan::Set(pluginInfo, Nan::New("path").ToLocalChecked(), Nan::New(pair.second->path).ToLocalChecked());
-            Nan::Set(pluginInfo, Nan::New("hasUI").ToLocalChecked(), Nan::New(pair.second->hasUI));
-            Nan::Set(pluginInfo, Nan::New("initialized").ToLocalChecked(), Nan::New(pair.second->initialized));
-            
-            Nan::Set(plugins, index++, pluginInfo);
+        try {
+            for (const auto& pair : host->loadedPlugins) {
+                try {
+                    v8::Local<v8::Object> pluginInfo = Nan::New<v8::Object>();
+                    
+                    // Safely access plugin properties
+                    if (pair.second) {
+                        Nan::Set(pluginInfo, Nan::New("id").ToLocalChecked(), Nan::New(pair.second->id).ToLocalChecked());
+                        Nan::Set(pluginInfo, Nan::New("name").ToLocalChecked(), Nan::New(pair.second->name).ToLocalChecked());
+                        Nan::Set(pluginInfo, Nan::New("path").ToLocalChecked(), Nan::New(pair.second->path).ToLocalChecked());
+                        Nan::Set(pluginInfo, Nan::New("hasUI").ToLocalChecked(), Nan::New(pair.second->hasUI));
+                        Nan::Set(pluginInfo, Nan::New("initialized").ToLocalChecked(), Nan::New(pair.second->initialized));
+                        
+                        Nan::Set(plugins, index++, pluginInfo);
+                    }
+                } catch (const std::exception& e) {
+                    std::cerr << "❌ Error accessing plugin info: " << e.what() << std::endl;
+                    continue; // Skip this plugin but continue with others
+                }
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "❌ Error in GetLoadedPlugins: " << e.what() << std::endl;
         }
         
         info.GetReturnValue().Set(plugins);
@@ -544,10 +557,13 @@ private:
             
             plugin->initialized = true;
 
+            // Store the plugin name before moving the object
+            std::string pluginName = plugin->name;
+            
             // Store plugin
             loadedPlugins[plugin->id] = std::move(plugin);
 
-            std::cout << "🎉 Plugin loaded: " << plugin->name << std::endl;
+            std::cout << "🎉 Plugin loaded: " << pluginName << std::endl;
             return true;
 
         } catch (const std::exception& e) {
