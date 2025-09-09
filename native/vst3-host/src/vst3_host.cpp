@@ -1,627 +1,324 @@
-#include <nan.h>
+#include "vst3_host.h"
+#include "vst3_plugin.h"
+#include "audio_device_manager.h"
 #include <iostream>
-#include <map>
-#include <string>
-#include <memory>
+#include <sstream>
 
-// Windows includes for VST3 and UI
-#ifdef _WIN32
-#include <windows.h>
-#include <comdef.h>
-#include <ole2.h>
-#include <objbase.h>
-#include <shlobj.h>
-#endif
-
-// Basic VST3 includes - minimal set
-#include "pluginterfaces/base/ipluginbase.h"
-#include "pluginterfaces/vst/ivstcomponent.h"
-#include "pluginterfaces/vst/ivsteditcontroller.h"
-#include "pluginterfaces/vst/ivstaudioprocessor.h"
-#include "pluginterfaces/vst/ivsthostapplication.h"
-#include "pluginterfaces/gui/iplugview.h"
-
-using namespace v8;
 using namespace Steinberg;
 using namespace Steinberg::Vst;
 
-// Define the VST3 interface IDs that we need
-namespace Steinberg {
-namespace Vst {
-    // IComponent interface ID
-    FUID IComponent::iid (0xE831FF31, 0xF2D54301, 0x928EBBEE, 0x25697802);
+Nan::Persistent<v8::Function> VST3Host::constructor_template;
+
+VST3Host::VST3Host() 
+    : isAudioProcessing(false), 
+      audioDeviceManager(std::make_unique<AudioDeviceManager>()) {
     
-    // IEditController interface ID  
-    FUID IEditController::iid (0xDCD7BBE3, 0x7742448D, 0xA874AACC, 0x979C759E);
-    
-    // IAudioProcessor interface ID
-    FUID IAudioProcessor::iid (0x42C9872F, 0x37A94C99, 0xB9B8B04F, 0x5B8D8CE4);
-}
+    // Initialize COM for VST3 plugins
+    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    std::cout << "✅ VST3Host created" << std::endl;
 }
 
-// VST3 Plugin structure
-struct VST3Plugin {
-    std::string id;
-    std::string path;
-    std::string name;
-    std::string vendor;
-    std::string version;
-    std::string category;
-    bool hasUI;
-    
-    HMODULE moduleHandle;
-    IComponent* component;
-    IEditController* controller;
-    IAudioProcessor* processor;
-    IPlugView* plugView;
-    
-    VST3Plugin(const std::string& p) : path(p), hasUI(false), moduleHandle(nullptr),
-                                       component(nullptr), controller(nullptr), 
-                                       processor(nullptr), plugView(nullptr) {
-        // Generate unique ID
-        static int counter = 0;
-        id = "vst3_plugin_" + std::to_string(++counter);
-        
-        // Extract plugin name from path
-        size_t lastSlash = p.find_last_of("/\\");
-        if (lastSlash != std::string::npos) {
-            name = p.substr(lastSlash + 1);
-            if (name.size() > 4 && name.substr(name.size() - 4) == ".vst3") {
-                name = name.substr(0, name.size() - 4);
-            }
-        } else {
-            name = p;
-        }
-        
-        vendor = "VST3 Plugin";
-        version = "1.0.0";
-        category = "Effect";
-    }
-    
-    ~VST3Plugin() {
-        if (plugView) {
-            plugView->release();
-            plugView = nullptr;
-        }
-        if (controller) {
-            controller->release();
-            controller = nullptr;
-        }
-        if (processor) {
-            processor->release();
-            processor = nullptr;
-        }
-        if (component) {
-            component->release();
-            component = nullptr;
-        }
-        if (moduleHandle) {
-            FreeLibrary(moduleHandle);
-            moduleHandle = nullptr;
-        }
-    }
-};
-
-// Audio configuration structure
-struct AudioConfig {
-    int sampleRate;
-    int bufferSize;
-    int inputChannels;
-    int outputChannels;
-    std::string inputDevice;
-    std::string outputDevice;
-    bool isInitialized;
-    
-    AudioConfig() : sampleRate(44100), bufferSize(256), inputChannels(2), 
-                   outputChannels(2), inputDevice("default"), 
-                   outputDevice("default"), isInitialized(false) {}
-};
-
-static std::map<std::string, std::shared_ptr<VST3Plugin>> loadedPlugins;
-static AudioConfig audioConfig;
-
-#ifdef _WIN32
-static std::map<std::string, HWND> pluginUIWindows;
-
-// Window procedure for VST3 plugin windows
-LRESULT CALLBACK VST3WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-        case WM_CLOSE:
-            DestroyWindow(hwnd);
-            return 0;
-        case WM_DESTROY:
-            // Remove from the map when window is destroyed
-            for (auto it = pluginUIWindows.begin(); it != pluginUIWindows.end(); ++it) {
-                if (it->second == hwnd) {
-                    pluginUIWindows.erase(it);
-                    break;
-                }
-            }
-            return 0;
-        default:
-            return DefWindowProc(hwnd, uMsg, wParam, lParam);
-    }
+VST3Host::~VST3Host() {
+    StopAudioProcessing();
+    plugins.clear();
+    audioDeviceManager.reset();
+    CoUninitialize();
 }
 
-// Register window class for VST3 plugin windows
-void RegisterVST3WindowClass() {
-    static bool registered = false;
-    if (!registered) {
-        WNDCLASSA wc = {};
-        wc.lpfnWndProc = VST3WindowProc;
-        wc.hInstance = GetModuleHandle(nullptr);
-        wc.lpszClassName = "VST3PluginWindow";
-        wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-        wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-        
-        RegisterClassA(&wc);
-        registered = true;
-    }
-}
-#endif
-
-class VST3Host : public Nan::ObjectWrap {
-public:
-    static void Init(Local<Object> exports);
-    static void New(const Nan::FunctionCallbackInfo<Value>& info);
-    static void LoadPlugin(const Nan::FunctionCallbackInfo<Value>& info);
-    static void ShowPluginUI(const Nan::FunctionCallbackInfo<Value>& info);
-    static void GetLoadedPlugins(const Nan::FunctionCallbackInfo<Value>& info);
-    static void InitializeAudio(const Nan::FunctionCallbackInfo<Value>& info);
-
-private:
-    explicit VST3Host() {}
-    ~VST3Host() {}
-    
-    static Nan::Persistent<Function> constructor;
-};
-
-Nan::Persistent<Function> VST3Host::constructor;
-
-void VST3Host::Init(Local<Object> exports) {
+void VST3Host::Init(v8::Local<v8::Object> exports) {
     Nan::HandleScope scope;
-    
-    Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+
+    // Constructor template
+    v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
     tpl->SetClassName(Nan::New("VST3Host").ToLocalChecked());
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    
+
+    // Prototype methods
     Nan::SetPrototypeMethod(tpl, "loadPlugin", LoadPlugin);
+    Nan::SetPrototypeMethod(tpl, "unloadPlugin", UnloadPlugin);
+    Nan::SetPrototypeMethod(tpl, "getPluginList", GetPluginList);
+    Nan::SetPrototypeMethod(tpl, "startAudioProcessing", StartAudioProcessing);
+    Nan::SetPrototypeMethod(tpl, "stopAudioProcessing", StopAudioProcessing);
+    Nan::SetPrototypeMethod(tpl, "setParameterValue", SetParameterValue);
+    Nan::SetPrototypeMethod(tpl, "getParameterValue", GetParameterValue);
     Nan::SetPrototypeMethod(tpl, "showPluginUI", ShowPluginUI);
-    Nan::SetPrototypeMethod(tpl, "getLoadedPlugins", GetLoadedPlugins);
+    Nan::SetPrototypeMethod(tpl, "hidePluginUI", HidePluginUI);
+    Nan::SetPrototypeMethod(tpl, "getAudioDevices", GetAudioDevices);
     Nan::SetPrototypeMethod(tpl, "initializeAudio", InitializeAudio);
-    
-    constructor.Reset(tpl->GetFunction(Nan::GetCurrentContext()).ToLocalChecked());
-    exports->Set(Nan::GetCurrentContext(), Nan::New("VST3Host").ToLocalChecked(), 
-                 tpl->GetFunction(Nan::GetCurrentContext()).ToLocalChecked());
+    Nan::SetPrototypeMethod(tpl, "getPluginInfo", GetPluginInfo);
+
+    constructor_template.Reset(tpl->GetFunction(Nan::GetCurrentContext()).ToLocalChecked());
+    Nan::Set(exports, Nan::New("VST3Host").ToLocalChecked(),
+             tpl->GetFunction(Nan::GetCurrentContext()).ToLocalChecked());
 }
 
-void VST3Host::New(const Nan::FunctionCallbackInfo<Value>& info) {
+void VST3Host::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     if (info.IsConstructCall()) {
-        VST3Host* obj = new VST3Host();
-        obj->Wrap(info.This());
+        VST3Host* host = new VST3Host();
+        host->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
     } else {
-        const int argc = 1;
-        Local<Value> argv[argc] = { info[0] };
-        Local<Function> cons = Nan::New<Function>(constructor);
-        info.GetReturnValue().Set(cons->NewInstance(Nan::GetCurrentContext(), argc, argv).ToLocalChecked());
+        const int argc = 0;
+        v8::Local<v8::Value> argv[1];
+        v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor_template);
+        info.GetReturnValue().Set(Nan::NewInstance(cons, argc, argv).ToLocalChecked());
     }
 }
 
-void VST3Host::InitializeAudio(const Nan::FunctionCallbackInfo<Value>& info) {
-    if (info.Length() < 1 || !info[0]->IsObject()) {
-        Nan::ThrowTypeError("Expected audio configuration object");
+void VST3Host::LoadPlugin(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
+    if (info.Length() < 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("Plugin path required");
         return;
     }
-    
-    Local<Object> configObj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-    
-    // Extract audio configuration parameters
-    Local<String> sampleRateKey = Nan::New("sampleRate").ToLocalChecked();
-    Local<String> bufferSizeKey = Nan::New("bufferSize").ToLocalChecked();
-    Local<String> inputChannelsKey = Nan::New("inputChannels").ToLocalChecked();
-    Local<String> outputChannelsKey = Nan::New("outputChannels").ToLocalChecked();
-    Local<String> inputDeviceKey = Nan::New("inputDevice").ToLocalChecked();
-    Local<String> outputDeviceKey = Nan::New("outputDevice").ToLocalChecked();
-    
-    // Get values with defaults
-    if (Nan::Has(configObj, sampleRateKey).FromJust()) {
-        audioConfig.sampleRate = Nan::To<int32_t>(Nan::Get(configObj, sampleRateKey).ToLocalChecked()).FromJust();
-    }
-    
-    if (Nan::Has(configObj, bufferSizeKey).FromJust()) {
-        audioConfig.bufferSize = Nan::To<int32_t>(Nan::Get(configObj, bufferSizeKey).ToLocalChecked()).FromJust();
-    }
-    
-    if (Nan::Has(configObj, inputChannelsKey).FromJust()) {
-        audioConfig.inputChannels = Nan::To<int32_t>(Nan::Get(configObj, inputChannelsKey).ToLocalChecked()).FromJust();
-    }
-    
-    if (Nan::Has(configObj, outputChannelsKey).FromJust()) {
-        audioConfig.outputChannels = Nan::To<int32_t>(Nan::Get(configObj, outputChannelsKey).ToLocalChecked()).FromJust();
-    }
-    
-    if (Nan::Has(configObj, inputDeviceKey).FromJust()) {
-        String::Utf8Value inputDeviceStr(info.GetIsolate(), Nan::Get(configObj, inputDeviceKey).ToLocalChecked());
-        audioConfig.inputDevice = std::string(*inputDeviceStr);
-    }
-    
-    if (Nan::Has(configObj, outputDeviceKey).FromJust()) {
-        String::Utf8Value outputDeviceStr(info.GetIsolate(), Nan::Get(configObj, outputDeviceKey).ToLocalChecked());
-        audioConfig.outputDevice = std::string(*outputDeviceStr);
-    }
-    
-    std::cout << "🎵 Initializing VST3 audio host with configuration:" << std::endl;
-    std::cout << "   Sample Rate: " << audioConfig.sampleRate << " Hz" << std::endl;
-    std::cout << "   Buffer Size: " << audioConfig.bufferSize << " samples" << std::endl;
-    std::cout << "   Input Channels: " << audioConfig.inputChannels << std::endl;
-    std::cout << "   Output Channels: " << audioConfig.outputChannels << std::endl;
-    std::cout << "   Input Device: " << audioConfig.inputDevice << std::endl;
-    std::cout << "   Output Device: " << audioConfig.outputDevice << std::endl;
+
+    Nan::Utf8String pluginPath(info[0]);
+    std::string path(*pluginPath);
     
     try {
-        // Initialize COM for VST3 (Windows)
-        #ifdef _WIN32
-        HRESULT hr = CoInitialize(nullptr);
-        if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
-            throw std::runtime_error("Failed to initialize COM for VST3");
+        auto plugin = std::make_unique<VST3Plugin>();
+        bool success = plugin->LoadFromPath(path);
+        
+        if (success) {
+            std::string pluginId = plugin->GetPluginId();
+            host->plugins[pluginId] = std::move(plugin);
+            
+            v8::Local<v8::Object> result = Nan::New<v8::Object>();
+            Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(true));
+            Nan::Set(result, Nan::New("pluginId").ToLocalChecked(), Nan::New(pluginId).ToLocalChecked());
+            Nan::Set(result, Nan::New("name").ToLocalChecked(), Nan::New(host->plugins[pluginId]->GetPluginName()).ToLocalChecked());
+            Nan::Set(result, Nan::New("vendor").ToLocalChecked(), Nan::New(host->plugins[pluginId]->GetVendorName()).ToLocalChecked());
+            Nan::Set(result, Nan::New("hasUI").ToLocalChecked(), Nan::New(host->plugins[pluginId]->HasUI()));
+            
+            info.GetReturnValue().Set(result);
+        } else {
+            v8::Local<v8::Object> result = Nan::New<v8::Object>();
+            Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
+            Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New("Failed to load plugin").ToLocalChecked());
+            info.GetReturnValue().Set(result);
         }
-        #endif
-        
-        // Mark as initialized
-        audioConfig.isInitialized = true;
-        
-        std::cout << "✅ VST3 audio host initialized successfully" << std::endl;
-        
-        // Calculate latency (buffer size / sample rate * 1000)
-        double latencyMs = (double)audioConfig.bufferSize / audioConfig.sampleRate * 1000.0;
-        
-        // Return success result
-        Local<Object> result = Nan::New<Object>();
-        Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(true));
-        Nan::Set(result, Nan::New("message").ToLocalChecked(), Nan::New("VST3 audio host initialized successfully").ToLocalChecked());
-        Nan::Set(result, Nan::New("sampleRate").ToLocalChecked(), Nan::New(audioConfig.sampleRate));
-        Nan::Set(result, Nan::New("blockSize").ToLocalChecked(), Nan::New(audioConfig.bufferSize));
-        Nan::Set(result, Nan::New("latency").ToLocalChecked(), Nan::New(latencyMs));
-        Nan::Set(result, Nan::New("inputChannels").ToLocalChecked(), Nan::New(audioConfig.inputChannels));
-        Nan::Set(result, Nan::New("outputChannels").ToLocalChecked(), Nan::New(audioConfig.outputChannels));
-        
-        info.GetReturnValue().Set(result);
-        
     } catch (const std::exception& e) {
-        std::cout << "❌ Failed to initialize VST3 audio host: " << e.what() << std::endl;
-        audioConfig.isInitialized = false;
-        
-        Local<Object> result = Nan::New<Object>();
+        v8::Local<v8::Object> result = Nan::New<v8::Object>();
         Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-        Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New(("VST3 audio initialization failed: " + std::string(e.what())).c_str()).ToLocalChecked());
-        info.GetReturnValue().Set(result);
-    } catch (...) {
-        std::cout << "❌ Failed to initialize VST3 audio host: Unknown error" << std::endl;
-        audioConfig.isInitialized = false;
-        
-        Local<Object> result = Nan::New<Object>();
-        Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-        Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New("VST3 audio initialization failed: Unknown error").ToLocalChecked());
+        Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New(e.what()).ToLocalChecked());
         info.GetReturnValue().Set(result);
     }
 }
 
-void VST3Host::LoadPlugin(const Nan::FunctionCallbackInfo<Value>& info) {
+void VST3Host::UnloadPlugin(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
     if (info.Length() < 1 || !info[0]->IsString()) {
-        Nan::ThrowTypeError("Expected plugin path as string");
+        Nan::ThrowTypeError("Plugin ID required");
         return;
     }
+
+    Nan::Utf8String pluginId(info[0]);
+    std::string id(*pluginId);
     
-    // Check if audio context is initialized
-    if (!audioConfig.isInitialized) {
-        std::cout << "⚠️ Audio context not initialized - attempting to load without audio configuration" << std::endl;
-        std::cout << "🔧 Consider calling initializeAudio() first for proper audio setup" << std::endl;
+    auto it = host->plugins.find(id);
+    if (it != host->plugins.end()) {
+        it->second->HideUI();
+        host->plugins.erase(it);
+        info.GetReturnValue().Set(Nan::New(true));
     } else {
-        std::cout << "🔊 Audio context initialized - using configured audio parameters" << std::endl;
-        std::cout << "   Sample Rate: " << audioConfig.sampleRate << " Hz" << std::endl;
-        std::cout << "   Channels: " << audioConfig.inputChannels << " → " << audioConfig.outputChannels << std::endl;
-    }
-    
-    String::Utf8Value pathStr(info.GetIsolate(), info[0]);
-    std::string pluginPath(*pathStr);
-    
-    std::cout << "🎵 Loading VST3 plugin with full SDK: " << pluginPath << std::endl;
-    
-    try {
-        // Create a plugin instance
-        auto plugin = std::make_shared<VST3Plugin>(pluginPath);
-        
-        // Initialize COM for VST3
-        HRESULT hr = CoInitialize(nullptr);
-        if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
-            std::cout << "Failed to initialize COM" << std::endl;
-            Local<Object> result = Nan::New<Object>();
-            Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-            Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New("Failed to initialize COM").ToLocalChecked());
-            info.GetReturnValue().Set(result);
-            return;
-        }
-        
-        // Load VST3 DLL
-        std::wstring wPath(pluginPath.begin(), pluginPath.end());
-        plugin->moduleHandle = LoadLibraryW(wPath.c_str());
-        
-        if (!plugin->moduleHandle) {
-            DWORD error = GetLastError();
-            std::cout << "Failed to load VST3 DLL: " << pluginPath << " (Error: " << error << ")" << std::endl;
-            Local<Object> result = Nan::New<Object>();
-            Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-            Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New(("Failed to load VST3 DLL: Error " + std::to_string(error)).c_str()).ToLocalChecked());
-            info.GetReturnValue().Set(result);
-            return;
-        }
-        
-        std::cout << "✅ VST3 DLL loaded successfully" << std::endl;
-        
-        // Get the plugin factory function
-        typedef IPluginFactory* (*GetPluginFactoryProc)();
-        GetPluginFactoryProc getPluginFactory = (GetPluginFactoryProc)GetProcAddress(plugin->moduleHandle, "GetPluginFactory");
-        
-        if (!getPluginFactory) {
-            std::cout << "GetPluginFactory function not found" << std::endl;
-            Local<Object> result = Nan::New<Object>();
-            Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-            Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New("GetPluginFactory function not found - not a valid VST3 plugin").ToLocalChecked());
-            info.GetReturnValue().Set(result);
-            return;
-        }
-        
-        // Get the factory
-        IPluginFactory* factory = getPluginFactory();
-        if (!factory) {
-            std::cout << "Failed to get plugin factory" << std::endl;
-            FreeLibrary(plugin->moduleHandle);
-            Local<Object> result = Nan::New<Object>();
-            Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-            Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New("Failed to get plugin factory").ToLocalChecked());
-            info.GetReturnValue().Set(result);
-            return;
-        }
-        
-        std::cout << "✅ Plugin factory obtained" << std::endl;
-        
-        // Get factory info for vendor information
-        PFactoryInfo factoryInfo;
-        if (factory->getFactoryInfo(&factoryInfo) == kResultOk) {
-            plugin->vendor = factoryInfo.vendor;
-            std::cout << "📝 Factory vendor: " << factoryInfo.vendor << std::endl;
-        }
-        
-        // Check how many classes the factory has
-        int32 classCount = factory->countClasses();
-        std::cout << "🔍 Analyzing plugin factory with " << classCount << " classes..." << std::endl;
-        
-        if (classCount == 0) {
-            std::cout << "Plugin factory has no classes!" << std::endl;
-            Local<Object> result = Nan::New<Object>();
-            Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-            Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New("Plugin factory has no classes").ToLocalChecked());
-            info.GetReturnValue().Set(result);
-            return;
-        }
-        
-        // Find the first audio effect component
-        PClassInfo classInfo;
-        bool foundComponent = false;
-        TUID componentCID;
-        
-        for (int32 i = 0; i < classCount; ++i) {
-            if (factory->getClassInfo(i, &classInfo) == kResultOk) {
-                std::cout << "   Class " << i << ": \"" << classInfo.name << "\" (Category: \"" << classInfo.category << "\")" << std::endl;
-                
-                // Check if this is an audio processor
-                if (strcmp(classInfo.category, "Fx") == 0 ||
-                    strcmp(classInfo.category, "Instrument") == 0 ||
-                    strstr(classInfo.category, "Fx") != nullptr ||
-                    strstr(classInfo.category, "Audio Module Class") != nullptr) {
-                    foundComponent = true;
-                    plugin->name = classInfo.name;
-                    plugin->category = classInfo.category;
-                    memcpy(&componentCID, &classInfo.cid, sizeof(TUID));
-                    std::cout << "✅ Selected audio component: \"" << classInfo.name << "\" (Category: \"" << classInfo.category << "\")" << std::endl;
-                    break;
-                }
-            }
-        }
-        
-        if (!foundComponent) {
-            std::cout << "No audio effect component found" << std::endl;
-            Local<Object> result = Nan::New<Object>();
-            Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-            Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New("No audio effect component found").ToLocalChecked());
-            info.GetReturnValue().Set(result);
-            return;
-        }
-        
-        std::cout << "✅ Found component: " << plugin->name << std::endl;
-        
-        // Create the component
-        void* componentPtr = nullptr;
-        if (factory->createInstance(componentCID, IComponent::iid, &componentPtr) == kResultOk) {
-            plugin->component = (IComponent*)componentPtr;
-        }
-        
-        if (!plugin->component) {
-            std::cout << "Failed to create VST3 component" << std::endl;
-            Local<Object> result = Nan::New<Object>();
-            Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-            Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New("Failed to create VST3 component").ToLocalChecked());
-            info.GetReturnValue().Set(result);
-            return;
-        }
-        
-        // Initialize the component with null host application (simplest approach)
-        if (plugin->component->initialize(nullptr) != kResultOk) {
-            std::cout << "Failed to initialize VST3 component" << std::endl;
-            Local<Object> result = Nan::New<Object>();
-            Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-            Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New("Failed to initialize VST3 component").ToLocalChecked());
-            info.GetReturnValue().Set(result);
-            return;
-        }
-        
-        std::cout << "✅ VST3 component initialized" << std::endl;
-        
-        // Get the edit controller
-        TUID controllerCID;
-        if (plugin->component->getControllerClassId(controllerCID) == kResultOk) {
-            void* controllerPtr = nullptr;
-            if (factory->createInstance(controllerCID, IEditController::iid, &controllerPtr) == kResultOk) {
-                plugin->controller = (IEditController*)controllerPtr;
-            }
-            if (plugin->controller) {
-                plugin->controller->initialize(nullptr);
-                std::cout << "✅ Edit controller initialized" << std::endl;
-                
-                // Check if plugin has UI
-                plugin->plugView = plugin->controller->createView(ViewType::kEditor);
-                if (plugin->plugView) {
-                    plugin->hasUI = true;
-                    std::cout << "✅ Plugin has native UI" << std::endl;
-                }
-            }
-        }
-        
-        // Get the audio processor
-        plugin->component->queryInterface(IAudioProcessor::iid, (void**)&plugin->processor);
-        if (plugin->processor) {
-            std::cout << "✅ Audio processor obtained" << std::endl;
-        }
-        
-        // Store the loaded plugin
-        loadedPlugins[plugin->id] = plugin;
-        
-        std::cout << "🎉 VST3 plugin loaded with full SDK: " << plugin->name << " (ID: " << plugin->id << ")" << std::endl;
-        
-        // Return success result
-        Local<Object> resultObj = Nan::New<Object>();
-        Nan::Set(resultObj, Nan::New("success").ToLocalChecked(), Nan::New(true));
-        Nan::Set(resultObj, Nan::New("id").ToLocalChecked(), Nan::New(plugin->id).ToLocalChecked());
-        Nan::Set(resultObj, Nan::New("pluginId").ToLocalChecked(), Nan::New(plugin->id).ToLocalChecked());
-        Nan::Set(resultObj, Nan::New("name").ToLocalChecked(), Nan::New(plugin->name).ToLocalChecked());
-        Nan::Set(resultObj, Nan::New("vendor").ToLocalChecked(), Nan::New(plugin->vendor).ToLocalChecked());
-        Nan::Set(resultObj, Nan::New("category").ToLocalChecked(), Nan::New(plugin->category).ToLocalChecked());
-        Nan::Set(resultObj, Nan::New("hasUI").ToLocalChecked(), Nan::New(plugin->hasUI));
-        Nan::Set(resultObj, Nan::New("path").ToLocalChecked(), Nan::New(plugin->path).ToLocalChecked());
-        info.GetReturnValue().Set(resultObj);
-        
-    } catch (const std::exception& e) {
-        std::cout << "Failed: Exception during plugin loading: " << e.what() << std::endl;
-        Local<Object> resultObj = Nan::New<Object>();
-        Nan::Set(resultObj, Nan::New("success").ToLocalChecked(), Nan::New(false));
-        Nan::Set(resultObj, Nan::New("error").ToLocalChecked(), Nan::New(("Exception: " + std::string(e.what())).c_str()).ToLocalChecked());
-        info.GetReturnValue().Set(resultObj);
-    } catch (...) {
-        std::cout << "Failed: Unknown exception during plugin loading" << std::endl;
-        Local<Object> resultObj = Nan::New<Object>();
-        Nan::Set(resultObj, Nan::New("success").ToLocalChecked(), Nan::New(false));
-        Nan::Set(resultObj, Nan::New("error").ToLocalChecked(), Nan::New("Unknown exception during plugin loading").ToLocalChecked());
-        info.GetReturnValue().Set(resultObj);
+        info.GetReturnValue().Set(Nan::New(false));
     }
 }
 
-void VST3Host::ShowPluginUI(const Nan::FunctionCallbackInfo<Value>& info) {
-    if (info.Length() < 1 || !info[0]->IsString()) {
-        Nan::ThrowTypeError("Expected plugin ID as string");
-        return;
-    }
+void VST3Host::GetPluginList(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
     
-    String::Utf8Value idStr(info.GetIsolate(), info[0]);
-    std::string pluginId(*idStr);
-    
-    std::cout << "🖥️ Showing VST3 UI with SDK integration for plugin: " << pluginId << std::endl;
-    
-    // Find the loaded plugin
-    auto pluginIt = loadedPlugins.find(pluginId);
-    if (pluginIt == loadedPlugins.end()) {
-        Local<Object> result = Nan::New<Object>();
-        Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-        Nan::Set(result, Nan::New("message").ToLocalChecked(), Nan::New("Plugin not found - please load the plugin first").ToLocalChecked());
-        info.GetReturnValue().Set(result);
-        return;
-    }
-    
-    auto plugin = pluginIt->second;
-    
-    #ifdef _WIN32
-    if (plugin->plugView) {
-        // Register window class
-        RegisterVST3WindowClass();
-        
-        std::string title = "VST3 Plugin: " + plugin->name + " (" + plugin->vendor + ")";
-        
-        // Create the main plugin window
-        HWND hwnd = CreateWindowA(
-            "VST3PluginWindow", 
-            title.c_str(),
-            WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-            CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
-            nullptr, nullptr, GetModuleHandle(nullptr), nullptr
-        );
-        
-        if (hwnd) {
-            // Attach the plugin view to the window
-            if (plugin->plugView->attached(hwnd, ViewType::kEditor) == kResultOk) {
-                // Get the preferred size from the plugin
-                ViewRect rect;
-                if (plugin->plugView->getSize(&rect) == kResultOk) {
-                    SetWindowPos(hwnd, nullptr, 0, 0, 
-                               rect.right - rect.left + 16, 
-                               rect.bottom - rect.top + 39, 
-                               SWP_NOMOVE | SWP_NOZORDER);
-                }
-                
-                pluginUIWindows[pluginId] = hwnd;
-                
-                std::cout << "✅ VST3 native UI embedded successfully" << std::endl;
-                
-                Local<Object> result = Nan::New<Object>();
-                Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(true));
-                Nan::Set(result, Nan::New("message").ToLocalChecked(), Nan::New(("VST3 native UI opened: " + plugin->name).c_str()).ToLocalChecked());
-                info.GetReturnValue().Set(result);
-                return;
-            }
-        }
-    }
-    #endif
-    
-    // Fallback message
-    Local<Object> result = Nan::New<Object>();
-    Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
-    Nan::Set(result, Nan::New("message").ToLocalChecked(), Nan::New("Failed to create VST3 native UI").ToLocalChecked());
-    info.GetReturnValue().Set(result);
-}
-
-void VST3Host::GetLoadedPlugins(const Nan::FunctionCallbackInfo<Value>& info) {
-    Local<Array> plugins = Nan::New<Array>();
-    
+    v8::Local<v8::Array> plugins = Nan::New<v8::Array>();
     uint32_t index = 0;
-    for (const auto& pair : loadedPlugins) {
-        const auto& plugin = pair.second;
+    
+    for (const auto& pair : host->plugins) {
+        v8::Local<v8::Object> pluginInfo = Nan::New<v8::Object>();
+        Nan::Set(pluginInfo, Nan::New("id").ToLocalChecked(), Nan::New(pair.first).ToLocalChecked());
+        Nan::Set(pluginInfo, Nan::New("name").ToLocalChecked(), Nan::New(pair.second->GetPluginName()).ToLocalChecked());
+        Nan::Set(pluginInfo, Nan::New("vendor").ToLocalChecked(), Nan::New(pair.second->GetVendorName()).ToLocalChecked());
+        Nan::Set(pluginInfo, Nan::New("hasUI").ToLocalChecked(), Nan::New(pair.second->HasUI()));
+        Nan::Set(pluginInfo, Nan::New("isUIVisible").ToLocalChecked(), Nan::New(pair.second->IsUIVisible()));
         
-        Local<Object> pluginObj = Nan::New<Object>();
-        Nan::Set(pluginObj, Nan::New("id").ToLocalChecked(), Nan::New(plugin->id).ToLocalChecked());
-        Nan::Set(pluginObj, Nan::New("name").ToLocalChecked(), Nan::New(plugin->name).ToLocalChecked());
-        Nan::Set(pluginObj, Nan::New("vendor").ToLocalChecked(), Nan::New(plugin->vendor).ToLocalChecked());
-        Nan::Set(pluginObj, Nan::New("version").ToLocalChecked(), Nan::New(plugin->version).ToLocalChecked());
-        Nan::Set(pluginObj, Nan::New("category").ToLocalChecked(), Nan::New(plugin->category).ToLocalChecked());
-        Nan::Set(pluginObj, Nan::New("hasUI").ToLocalChecked(), Nan::New(plugin->hasUI));
-        Nan::Set(pluginObj, Nan::New("path").ToLocalChecked(), Nan::New(plugin->path).ToLocalChecked());
-        
-        plugins->Set(Nan::GetCurrentContext(), index++, pluginObj);
+        Nan::Set(plugins, index++, pluginInfo);
     }
     
-    Local<Object> result = Nan::New<Object>();
-    Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(true));
-    Nan::Set(result, Nan::New("plugins").ToLocalChecked(), plugins);
+    info.GetReturnValue().Set(plugins);
+}
+
+void VST3Host::StartAudioProcessing(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
+    if (!host->isAudioProcessing) {
+        bool success = host->audioDeviceManager->StartProcessing();
+        host->isAudioProcessing = success;
+        info.GetReturnValue().Set(Nan::New(success));
+    } else {
+        info.GetReturnValue().Set(Nan::New(true));
+    }
+}
+
+void VST3Host::StopAudioProcessing(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
+    if (host->isAudioProcessing) {
+        host->audioDeviceManager->StopProcessing();
+        host->isAudioProcessing = false;
+    }
+    
+    info.GetReturnValue().Set(Nan::New(true));
+}
+
+void VST3Host::SetParameterValue(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
+    if (info.Length() < 3 || !info[0]->IsString() || !info[1]->IsNumber() || !info[2]->IsNumber()) {
+        Nan::ThrowTypeError("Invalid parameters: (pluginId, paramId, value) required");
+        return;
+    }
+
+    Nan::Utf8String pluginId(info[0]);
+    std::string id(*pluginId);
+    uint32_t paramId = Nan::To<uint32_t>(info[1]).FromJust();
+    double value = Nan::To<double>(info[2]).FromJust();
+    
+    auto it = host->plugins.find(id);
+    if (it != host->plugins.end()) {
+        bool success = it->second->SetParameterValue(paramId, value);
+        info.GetReturnValue().Set(Nan::New(success));
+    } else {
+        info.GetReturnValue().Set(Nan::New(false));
+    }
+}
+
+void VST3Host::GetParameterValue(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
+    if (info.Length() < 2 || !info[0]->IsString() || !info[1]->IsNumber()) {
+        Nan::ThrowTypeError("Invalid parameters: (pluginId, paramId) required");
+        return;
+    }
+
+    Nan::Utf8String pluginId(info[0]);
+    std::string id(*pluginId);
+    uint32_t paramId = Nan::To<uint32_t>(info[1]).FromJust();
+    
+    auto it = host->plugins.find(id);
+    if (it != host->plugins.end()) {
+        double value = it->second->GetParameterValue(paramId);
+        info.GetReturnValue().Set(Nan::New(value));
+    } else {
+        info.GetReturnValue().Set(Nan::Undefined());
+    }
+}
+
+void VST3Host::ShowPluginUI(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
+    if (info.Length() < 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("Plugin ID required");
+        return;
+    }
+
+    Nan::Utf8String pluginId(info[0]);
+    std::string id(*pluginId);
+    
+    auto it = host->plugins.find(id);
+    if (it != host->plugins.end()) {
+        bool success = it->second->ShowUI();
+        info.GetReturnValue().Set(Nan::New(success));
+    } else {
+        info.GetReturnValue().Set(Nan::New(false));
+    }
+}
+
+void VST3Host::HidePluginUI(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
+    if (info.Length() < 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("Plugin ID required");
+        return;
+    }
+
+    Nan::Utf8String pluginId(info[0]);
+    std::string id(*pluginId);
+    
+    auto it = host->plugins.find(id);
+    if (it != host->plugins.end()) {
+        it->second->HideUI();
+        info.GetReturnValue().Set(Nan::New(true));
+    } else {
+        info.GetReturnValue().Set(Nan::New(false));
+    }
+}
+
+void VST3Host::GetAudioDevices(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
+    auto devices = host->audioDeviceManager->GetAvailableDevices();
+    
+    v8::Local<v8::Array> deviceList = Nan::New<v8::Array>();
+    for (size_t i = 0; i < devices.size(); ++i) {
+        v8::Local<v8::Object> device = Nan::New<v8::Object>();
+        Nan::Set(device, Nan::New("id").ToLocalChecked(), Nan::New(static_cast<uint32_t>(i)));
+        Nan::Set(device, Nan::New("name").ToLocalChecked(), Nan::New(devices[i]).ToLocalChecked());
+        Nan::Set(deviceList, static_cast<uint32_t>(i), device);
+    }
+    
+    info.GetReturnValue().Set(deviceList);
+}
+
+void VST3Host::InitializeAudio(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
+    // Extract audio config if provided
+    AudioConfig config;
+    if (info.Length() > 0 && info[0]->IsObject()) {
+        v8::Local<v8::Object> configObj = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+        
+        v8::Local<v8::Value> sampleRate = Nan::Get(configObj, Nan::New("sampleRate").ToLocalChecked()).ToLocalChecked();
+        if (sampleRate->IsNumber()) {
+            config.sampleRate = Nan::To<uint32_t>(sampleRate).FromJust();
+        }
+        
+        v8::Local<v8::Value> bufferSize = Nan::Get(configObj, Nan::New("bufferSize").ToLocalChecked()).ToLocalChecked();
+        if (bufferSize->IsNumber()) {
+            config.bufferSize = Nan::To<uint32_t>(bufferSize).FromJust();
+        }
+    }
+    
+    bool success = host->audioDeviceManager->Initialize(config);
+    info.GetReturnValue().Set(Nan::New(success));
+}
+
+void VST3Host::GetPluginInfo(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+    
+    v8::Local<v8::Object> result = Nan::New<v8::Object>();
+    Nan::Set(result, Nan::New("loaded").ToLocalChecked(), Nan::New(!host->plugins.empty()));
+    Nan::Set(result, Nan::New("hasEditor").ToLocalChecked(), Nan::New(!host->plugins.empty()));
+    Nan::Set(result, Nan::New("pluginCount").ToLocalChecked(), Nan::New(static_cast<uint32_t>(host->plugins.size())));
+    Nan::Set(result, Nan::New("isAudioProcessing").ToLocalChecked(), Nan::New(host->isAudioProcessing));
     
     info.GetReturnValue().Set(result);
 }
 
-NODE_MODULE(vst3_host, VST3Host::Init)
+// For backward compatibility with SimpleVST3Host
+void VST3Host::NewInstance(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    const int argc = 0;
+    v8::Local<v8::Value> argv[1];
+    v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor_template);
+    info.GetReturnValue().Set(Nan::NewInstance(cons, argc, argv).ToLocalChecked());
+}
+
+// Module initialization
+NAN_MODULE_INIT(InitModule) {
+    VST3Host::Init(target);
+    
+    // Also export SimpleVST3Host for backward compatibility
+    Nan::Set(target, Nan::New("SimpleVST3Host").ToLocalChecked(),
+             Nan::New<v8::Function>(VST3Host::constructor_template));
+}
+
+NODE_MODULE(vst3_host, InitModule)

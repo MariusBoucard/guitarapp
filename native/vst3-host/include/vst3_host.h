@@ -8,20 +8,18 @@
 #include <mutex>
 #include <atomic>
 
-// VST3 SDK includes
-#include "pluginterfaces/vst/ivstaudioprocessor.h"
-#include "pluginterfaces/vst/ivsteditcontroller.h"
-#include "pluginterfaces/vst/ivstcomponent.h"
-#include "pluginterfaces/vst/ivstparameterchanges.h"
-#include "pluginterfaces/gui/iplugview.h"
-#include "public.sdk/source/vst/hosting/module.h"
-#include "public.sdk/source/vst/hosting/hostclasses.h"
-
-using namespace Steinberg;
-using namespace Steinberg::Vst;
-
+// Forward declarations
 class VST3Plugin;
 class AudioDeviceManager;
+
+struct AudioConfig {
+    uint32_t sampleRate = 44100;
+    uint32_t bufferSize = 512;
+    uint32_t inputChannels = 2;
+    uint32_t outputChannels = 2;
+    int32_t inputDeviceId = -1;
+    int32_t outputDeviceId = -1;
+};
 
 /**
  * Main VST3 Host class
@@ -48,6 +46,19 @@ private:
     static void ShowPluginUI(const Nan::FunctionCallbackInfo<v8::Value>& info);
     static void HidePluginUI(const Nan::FunctionCallbackInfo<v8::Value>& info);
     static void GetAudioDevices(const Nan::FunctionCallbackInfo<v8::Value>& info);
+    static void InitializeAudio(const Nan::FunctionCallbackInfo<v8::Value>& info);
+    static void GetPluginInfo(const Nan::FunctionCallbackInfo<v8::Value>& info);
+
+    // Instance methods
+    void StopAudioProcessing();
+
+    // Member variables
+    std::map<std::string, std::unique_ptr<VST3Plugin>> plugins;
+    std::unique_ptr<AudioDeviceManager> audioDeviceManager;
+    std::atomic<bool> isAudioProcessing;
+    
+    static Nan::Persistent<v8::Function> constructor_template;
+};
     static void SetAudioDevice(const Nan::FunctionCallbackInfo<v8::Value>& info);
 
     // Core functionality

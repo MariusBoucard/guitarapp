@@ -3,7 +3,7 @@
     {
       "target_name": "vst3_host",
       "sources": [
-        "src/simple_vst3_host.cpp"
+        "src/simple_vst3_host_clean.cpp"
       ],
       "include_dirs": [
         "<!(node -e \"require('nan')\")"
@@ -29,7 +29,7 @@
               "ExceptionHandling": 1,
               "RuntimeTypeInfo": "true",
               "RuntimeLibrary": 2,
-              "AdditionalOptions": ["/std:c++20"]
+              "AdditionalOptions": ["/std:c++17"]
             }
           }
         }]

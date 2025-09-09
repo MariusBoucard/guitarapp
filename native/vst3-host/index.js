@@ -1,248 +1,229 @@
-const { VST3Host } = require('./build/Release/vst3_host.node');
 const EventEmitter = require('events');
 
+// Try to load the native module
+let NativeVST3Host = null;
+try {
+    const nativeModule = require('./build/Release/vst3_host.node');
+    NativeVST3Host = nativeModule.VST3Host || nativeModule.SimpleVST3Host;
+    console.log('✅ Native VST3 module loaded successfully');
+} catch (error) {
+    console.error('❌ Failed to load native VST3 module:', error.message);
+}
+
 /**
- * JavaScript wrapper for the native VST3 host
- * Provides a clean, Promise-based API for plugin management
+ * Simple VST3 Host wrapper for frontend integration
  */
 class VST3HostWrapper extends EventEmitter {
     constructor() {
         super();
-        this.nativeHost = new VST3Host();
-        this.loadedPlugins = new Map();
+        this.nativeHost = null;
         this.isInitialized = false;
+        this.audioInitialized = false;
+        
+        if (NativeVST3Host) {
+            try {
+                this.nativeHost = new NativeVST3Host();
+                this.isInitialized = true;
+                console.log('✅ VST3 Host wrapper created');
+            } catch (error) {
+                console.error('❌ Failed to create native host instance:', error);
+            }
+        } else {
+            console.log('⚠️ VST3 Host running in fallback mode (no native support)');
+        }
     }
 
     /**
-     * Initialize the VST3 host
+     * Initialize audio processing
      */
-    async initialize() {
+    async initializeAudio(config = {}) {
+        if (!this.nativeHost) {
+            return { success: false, error: 'Native host not available' };
+        }
+
         try {
-            this.isInitialized = true;
-            this.emit('initialized');
-            return { success: true };
+            const success = this.nativeHost.initializeAudio();
+            this.audioInitialized = success;
+            
+            if (success) {
+                this.emit('audioInitialized', config);
+                console.log('🎵 Audio processing initialized');
+            }
+            
+            return { success, audioConfig: config };
         } catch (error) {
-            this.emit('error', error);
+            console.error('❌ Audio initialization error:', error);
             return { success: false, error: error.message };
         }
     }
 
     /**
-     * Load a VST3 plugin
-     * @param {string} pluginPath - Path to the .vst3 file
-     * @returns {Promise<Object>} Plugin information or error
+     * Load a VST3 plugin from path
      */
     async loadPlugin(pluginPath) {
+        if (!this.nativeHost) {
+            return { success: false, error: 'Native host not available' };
+        }
+
         try {
-            const result = this.nativeHost.loadPlugin(pluginPath);
+            console.log('🔍 Loading plugin:', pluginPath);
+            const success = this.nativeHost.loadPlugin(pluginPath);
             
-            if (result.success) {
-                const pluginInfo = {
-                    id: result.pluginId,
-                    name: result.pluginName,
-                    vendor: result.vendor,
-                    version: result.version,
-                    category: result.category,
-                    path: pluginPath,
-                    hasUI: result.hasUI,
-                    parameterCount: result.parameterCount,
-                    loadedAt: new Date().toISOString()
+            if (success) {
+                const plugins = this.nativeHost.getLoadedPlugins();
+                const loadedPlugin = plugins[plugins.length - 1]; // Get the last loaded plugin
+                
+                this.emit('pluginLoaded', loadedPlugin);
+                console.log('✅ Plugin loaded successfully:', loadedPlugin.name);
+                
+                return {
+                    success: true,
+                    plugin: loadedPlugin
                 };
-                
-                this.loadedPlugins.set(result.pluginId, pluginInfo);
-                this.emit('pluginLoaded', pluginInfo);
-                
-                return { success: true, plugin: pluginInfo };
             } else {
-                this.emit('pluginLoadError', { path: pluginPath, error: result.error });
-                return { success: false, error: result.error };
+                return { success: false, error: 'Failed to load plugin' };
             }
         } catch (error) {
-            this.emit('error', error);
+            console.error('❌ Plugin load error:', error);
             return { success: false, error: error.message };
         }
     }
 
     /**
-     * Unload a VST3 plugin
-     * @param {string} pluginId - Plugin ID to unload
-     * @returns {Promise<Object>} Success status
+     * Unload a plugin
      */
     async unloadPlugin(pluginId) {
+        if (!this.nativeHost) {
+            return { success: false, error: 'Native host not available' };
+        }
+
         try {
-            const result = this.nativeHost.unloadPlugin(pluginId);
+            const success = this.nativeHost.unloadPlugin(pluginId);
             
-            if (result.success) {
-                const pluginInfo = this.loadedPlugins.get(pluginId);
-                this.loadedPlugins.delete(pluginId);
-                this.emit('pluginUnloaded', { id: pluginId, plugin: pluginInfo });
+            if (success) {
+                this.emit('pluginUnloaded', pluginId);
+                console.log('✅ Plugin unloaded:', pluginId);
             }
             
-            return result;
+            return { success };
         } catch (error) {
-            this.emit('error', error);
+            console.error('❌ Plugin unload error:', error);
             return { success: false, error: error.message };
         }
     }
 
     /**
      * Get list of loaded plugins
-     * @returns {Array} Array of plugin information objects
      */
     getLoadedPlugins() {
+        if (!this.nativeHost) {
+            return [];
+        }
+
         try {
-            const nativePlugins = this.nativeHost.getPluginList();
-            return nativePlugins;
+            return this.nativeHost.getLoadedPlugins();
         } catch (error) {
-            this.emit('error', error);
+            console.error('❌ Error getting plugins:', error);
             return [];
         }
     }
 
     /**
      * Show plugin UI
-     * @param {string} pluginId - Plugin ID
-     * @param {number} parentWindow - Parent window handle (optional)
-     * @returns {Promise<Object>} Success status
      */
-    async showPluginUI(pluginId, parentWindow = null) {
+    async showPluginUI(pluginId) {
+        if (!this.nativeHost) {
+            return { success: false, error: 'Native host not available' };
+        }
+
         try {
-            const result = this.nativeHost.showPluginUI(pluginId, parentWindow);
+            const success = this.nativeHost.showPluginUI(pluginId);
             
-            if (result.success) {
-                this.emit('pluginUIShown', { pluginId });
-            } else {
-                this.emit('pluginUIError', { pluginId, error: result.error });
+            if (success) {
+                this.emit('pluginUIShown', pluginId);
+                console.log('🎛️ Plugin UI shown:', pluginId);
             }
             
-            return result;
+            return { success };
         } catch (error) {
-            this.emit('error', error);
+            console.error('❌ Error showing plugin UI:', error);
             return { success: false, error: error.message };
         }
     }
 
     /**
      * Hide plugin UI
-     * @param {string} pluginId - Plugin ID
-     * @returns {Promise<Object>} Success status
      */
     async hidePluginUI(pluginId) {
+        if (!this.nativeHost) {
+            return { success: false, error: 'Native host not available' };
+        }
+
         try {
-            const result = this.nativeHost.hidePluginUI(pluginId);
+            const success = this.nativeHost.hidePluginUI(pluginId);
             
-            if (result.success) {
-                this.emit('pluginUIHidden', { pluginId });
+            if (success) {
+                this.emit('pluginUIHidden', pluginId);
+                console.log('🎛️ Plugin UI hidden:', pluginId);
             }
             
-            return result;
+            return { success };
         } catch (error) {
-            this.emit('error', error);
+            console.error('❌ Error hiding plugin UI:', error);
             return { success: false, error: error.message };
         }
     }
 
     /**
-     * Start audio processing
-     * @returns {Promise<Object>} Success status
+     * Get general plugin host info
      */
-    async startAudioProcessing() {
+    getPluginInfo() {
+        if (!this.nativeHost) {
+            return { 
+                loaded: false, 
+                hasEditor: false, 
+                audioInitialized: this.audioInitialized,
+                pluginCount: 0 
+            };
+        }
+
         try {
-            const result = this.nativeHost.startAudioProcessing();
-            
-            if (result.success) {
-                this.emit('audioProcessingStarted');
-            } else {
-                this.emit('audioProcessingError', { error: result.error });
-            }
-            
-            return result;
+            return this.nativeHost.getPluginInfo();
         } catch (error) {
-            this.emit('error', error);
-            return { success: false, error: error.message };
+            console.error('❌ Error getting plugin info:', error);
+            return { 
+                loaded: false, 
+                hasEditor: false, 
+                audioInitialized: this.audioInitialized,
+                pluginCount: 0 
+            };
         }
     }
 
     /**
-     * Stop audio processing
-     * @returns {Promise<Object>} Success status
+     * Check if native host is available
      */
-    async stopAudioProcessing() {
-        try {
-            const result = this.nativeHost.stopAudioProcessing();
-            
-            if (result.success) {
-                this.emit('audioProcessingStopped');
-            }
-            
-            return result;
-        } catch (error) {
-            this.emit('error', error);
-            return { success: false, error: error.message };
-        }
+    isNativeHostAvailable() {
+        return this.nativeHost !== null;
     }
 
     /**
-     * Get available audio devices
-     * @returns {Promise<Object>} Audio devices information
+     * Get host status
      */
-    async getAudioDevices() {
-        try {
-            const result = this.nativeHost.getAudioDevices();
-            return result;
-        } catch (error) {
-            this.emit('error', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    /**
-     * Set parameter value
-     * @param {string} pluginId - Plugin ID
-     * @param {number} parameterId - Parameter ID
-     * @param {number} value - Parameter value (0.0 to 1.0)
-     * @returns {Promise<Object>} Success status
-     */
-    async setParameterValue(pluginId, parameterId, value) {
-        try {
-            const result = this.nativeHost.setParameterValue(pluginId, parameterId, value);
-            
-            if (result.success) {
-                this.emit('parameterChanged', { pluginId, parameterId, value });
-            }
-            
-            return result;
-        } catch (error) {
-            this.emit('error', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    /**
-     * Get parameter value
-     * @param {string} pluginId - Plugin ID
-     * @param {number} parameterId - Parameter ID
-     * @returns {Promise<Object>} Parameter value or error
-     */
-    async getParameterValue(pluginId, parameterId) {
-        try {
-            const result = this.nativeHost.getParameterValue(pluginId, parameterId);
-            return result;
-        } catch (error) {
-            this.emit('error', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    /**
-     * Cleanup and destroy the host
-     */
-    destroy() {
-        this.loadedPlugins.clear();
-        this.nativeHost = null;
-        this.isInitialized = false;
-        this.emit('destroyed');
+    getStatus() {
+        return {
+            nativeHostAvailable: this.isNativeHostAvailable(),
+            initialized: this.isInitialized,
+            audioInitialized: this.audioInitialized,
+            loadedPlugins: this.getLoadedPlugins().length
+        };
     }
 }
 
-module.exports = VST3HostWrapper;
+// Backward compatibility exports
+module.exports = {
+    VST3HostWrapper,
+    VST3Host: VST3HostWrapper, // Alias for compatibility
+    SimpleVST3Host: VST3HostWrapper, // Alias for compatibility
+    isNativeSupported: () => NativeVST3Host !== null
+};

@@ -34,48 +34,44 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 // VST3 Host Integration
-let SimpleVST3Host = null
+let VST3HostWrapper = null
 let vst3HostInstance = null
 let audioInitialized = false
 
-// Try to load the direct native VST3 module
+// Try to load the VST3 host wrapper module
 try {
-  // Try different possible paths depending on where the app is running from
-  let vst3HostModule = null
+  // Try different possible paths for the wrapper module
   const possiblePaths = [
-    '../native/vst3-host/build/Release/vst3_host.node',  // From src directory
-    './native/vst3-host/build/Release/vst3_host.node',   // From app root
-    join(__dirname, '../native/vst3-host/build/Release/vst3_host.node'), // Using path.join
-    join(process.cwd(), 'native/vst3-host/build/Release/vst3_host.node'),  // From current working directory
-    join(__dirname, '../../native/vst3-host/build/Release/vst3_host.node'), // From built app
-    'C:\\Users\\Marius\\Desktop\\guitarapp\\native\\vst3-host\\build\\Release\\vst3_host.node' // Absolute path
+    '../native/vst3-host/index.js',  // From src directory
+    './native/vst3-host/index.js',   // From app root
+    join(__dirname, '../native/vst3-host/index.js'), // Using path.join
+    join(process.cwd(), 'native/vst3-host/index.js'),  // From current working directory
+    join(__dirname, '../../native/vst3-host/index.js'), // From built app
+    'C:\\Users\\Marius\\Desktop\\guitarapp\\native\\vst3-host\\index.js' // Absolute path
   ]
   
   console.log('🔍 Current working directory:', process.cwd())
   console.log('🔍 __dirname:', __dirname)
   
+  let vst3HostModule = null
   for (const path of possiblePaths) {
     try {
-      console.log('🔍 Trying to load VST3 module from:', path)
+      console.log('🔍 Trying to load VST3 wrapper from:', path)
       vst3HostModule = require(path)
-      console.log('✅ VST3 module loaded from:', path)
+      console.log('✅ VST3 wrapper loaded from:', path)
       break
     } catch (e) {
       console.log('⚠️ Failed to load from:', path, '- Error:', e.message)
     }
   }
   
-  if (vst3HostModule) {
-    SimpleVST3Host = vst3HostModule.SimpleVST3Host
-    if (SimpleVST3Host) {
-      vst3HostInstance = new SimpleVST3Host()
-      console.log('✅ Native VST3 host loaded successfully')
-      console.log('🎹 VST3 Host initialized successfully')
-    } else {
-      throw new Error('SimpleVST3Host class not found in module')
-    }
+  if (vst3HostModule && vst3HostModule.VST3HostWrapper) {
+    VST3HostWrapper = vst3HostModule.VST3HostWrapper
+    vst3HostInstance = new VST3HostWrapper()
+    console.log('✅ Native VST3 host wrapper loaded successfully')
+    console.log('🎹 VST3 Host initialized successfully')
   } else {
-    throw new Error('Could not find VST3 module in any expected location')
+    throw new Error('Could not find VST3HostWrapper in any expected location')
   }
 } catch (error) {
   console.log('⚠️  Native VST3 host not available:', error.message)
@@ -992,9 +988,9 @@ app.whenReady().then(async () => {
   }
   
   // Initialize VST3 Host if available
-  if (SimpleVST3Host && !vst3HostInstance) {
+  if (VST3HostWrapper && !vst3HostInstance) {
     try {
-      vst3HostInstance = new SimpleVST3Host()
+      vst3HostInstance = new VST3HostWrapper()
       console.log('🎹 VST3 Host initialized successfully')
       
     } catch (error) {

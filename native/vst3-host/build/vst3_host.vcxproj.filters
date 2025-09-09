@@ -45,7 +45,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\simple_vst3_host.cpp">
+    <ClCompile Include="..\src\simple_vst3_host_clean.cpp">
       <Filter>..\src</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\Marius\Desktop\guitarapp\native\vst3-host\node_modules\@electron\node-gyp\src\win_delay_load_hook.cc">
