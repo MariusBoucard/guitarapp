@@ -21,6 +21,7 @@ export const useAppStore = defineStore('app', {
     settingsView: false,
     keyboard: false,
     tabReaderDisplay: false,
+    vst3PluginDisplay: false,
     
     // Global UI Properties
     lefty: false,
@@ -47,7 +48,8 @@ export const useAppStore = defineStore('app', {
       chordssuggestDisplay: state.chordssuggestDisplay,
       settingsView: state.settingsView,
       keyboard: state.keyboard,
-      tabReaderDisplay: state.tabReaderDisplay
+      tabReaderDisplay: state.tabReaderDisplay,
+      vst3PluginDisplay: state.vst3PluginDisplay
     })
   },
 
@@ -107,6 +109,10 @@ export const useAppStore = defineStore('app', {
     
     toggleTabReader() {
       this.tabReaderDisplay = !this.tabReaderDisplay
+    },
+    
+    toggleVST3Plugin() {
+      this.vst3PluginDisplay = !this.vst3PluginDisplay
     },
     
     toggleAutoGammeSelect() {

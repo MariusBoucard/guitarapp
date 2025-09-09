@@ -159,6 +159,15 @@
             <span>🎼 Tab Reader</span>
             <span class="status-indicator" v-if="appStore.tabReaderDisplay">●</span>
           </div>
+          
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.vst3PluginDisplay }"
+            @click="appStore.toggleVST3Plugin()"
+          >
+            <span>🎛️ VST3 Plugins</span>
+            <span class="status-indicator" v-if="appStore.vst3PluginDisplay">●</span>
+          </div>
         </div>
       </div>
 

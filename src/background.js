@@ -190,6 +190,190 @@ ipcMain.handle('select-directory', async () => {
   return null
 })
 
+// VST3 Plugin file selection handler
+ipcMain.handle('select-vst3-plugin', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile', 'multiSelections'],
+    filters: [
+      { name: 'VST3 Plugins', extensions: ['vst3'] },
+      { name: 'All Files', extensions: ['*'] }
+    ],
+    title: 'Select VST3 Plugin Files'
+  })
+  
+  if (!result.canceled && result.filePaths.length > 0) {
+    return result.filePaths
+  }
+  return []
+})
+
+// VST3 Plugin UI Management
+let pluginUIWindows = new Map()
+
+ipcMain.handle('show-vst3-plugin-ui', async (event, pluginData) => {
+  try {
+    const { pluginPath, pluginName } = pluginData
+    
+    // Check if window already exists for this plugin
+    if (pluginUIWindows.has(pluginPath)) {
+      const existingWindow = pluginUIWindows.get(pluginPath)
+      if (!existingWindow.isDestroyed()) {
+        existingWindow.focus()
+        return { success: true, message: 'Plugin UI window focused' }
+      } else {
+        pluginUIWindows.delete(pluginPath)
+      }
+    }
+    
+    // Create new plugin UI window
+    const pluginWindow = new BrowserWindow({
+      width: 800,
+      height: 600,
+      title: `${pluginName} - VST3 Plugin UI`,
+      backgroundColor: '#2a2a2a',
+      autoHideMenuBar: true,
+      resizable: true,
+      minimizable: true,
+      maximizable: true,
+      closable: true,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        sandbox: true
+      }
+    })
+    
+    // For now, load a placeholder page that shows plugin info
+    // In a real implementation, this would embed the native VST3 UI
+    const pluginUIHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${pluginName} UI</title>
+        <style>
+          body {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+          }
+          .plugin-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid #444;
+          }
+          h1 {
+            color: #00ff88;
+            margin-bottom: 20px;
+            font-size: 2em;
+          }
+          .plugin-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+          }
+          .status {
+            color: #ffaa00;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 20px 0;
+          }
+          .path {
+            word-break: break-all;
+            color: #ccc;
+            font-size: 0.9em;
+            margin: 10px 0;
+          }
+          .note {
+            background: rgba(255, 170, 0, 0.1);
+            border: 1px solid #ffaa00;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #ffaa00;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="plugin-container">
+          <h1>🎹 ${pluginName}</h1>
+          <div class="plugin-info">
+            <div class="path"><strong>Plugin Path:</strong><br>${pluginPath}</div>
+          </div>
+          <div class="status">Plugin UI Window Active</div>
+          <div class="note">
+            <strong>⚠️ Native UI Integration Required</strong><br>
+            This window represents where the native VST3 plugin UI would be embedded.
+            Real VST3 UI integration requires:
+            <ul style="text-align: left; margin-top: 10px;">
+              <li>VST3 SDK integration</li>
+              <li>Native C++ host implementation</li>
+              <li>Platform-specific UI embedding</li>
+              <li>Audio driver integration (ASIO/Core Audio)</li>
+            </ul>
+          </div>
+        </div>
+        <script>
+          // Simulate plugin activity
+          let dots = 0;
+          setInterval(() => {
+            dots = (dots + 1) % 4;
+            document.title = '${pluginName} - VST3 Plugin UI' + '.'.repeat(dots);
+          }, 500);
+        </script>
+      </body>
+      </html>
+    `
+    
+    // Load the HTML content
+    pluginWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(pluginUIHTML)}`)
+    
+    // Store window reference
+    pluginUIWindows.set(pluginPath, pluginWindow)
+    
+    // Clean up when window is closed
+    pluginWindow.on('closed', () => {
+      pluginUIWindows.delete(pluginPath)
+    })
+    
+    return { 
+      success: true, 
+      message: `Plugin UI window opened for ${pluginName}`,
+      windowId: pluginWindow.id
+    }
+    
+  } catch (error) {
+    console.error('Failed to show VST3 plugin UI:', error)
+    return { 
+      success: false, 
+      message: `Failed to open plugin UI: ${error.message}` 
+    }
+  }
+})
+
+ipcMain.handle('close-vst3-plugin-ui', async (event, pluginPath) => {
+  if (pluginUIWindows.has(pluginPath)) {
+    const window = pluginUIWindows.get(pluginPath)
+    if (!window.isDestroyed()) {
+      window.close()
+    }
+    pluginUIWindows.delete(pluginPath)
+    return { success: true, message: 'Plugin UI window closed' }
+  }
+  return { success: false, message: 'Plugin UI window not found' }
+})
+
 ipcMain.handle('scan-video-directory', async (event, directoryPath) => {
   try {
     const allVideos = []
