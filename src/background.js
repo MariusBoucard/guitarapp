@@ -1,16 +1,16 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, dialog } from 'electron'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
-import { join } from 'path'
+import { join, extname, basename, dirname } from 'path'
 import { fileURLToPath } from 'url'
-
-const fs = require('fs-extra')
+import { homedir } from 'os'
+import fs from 'fs-extra'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = join(__filename, '..')
+const __dirname = dirname(__filename)
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
@@ -27,28 +27,69 @@ async function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      preload: join(__dirname, '../public/preload.js'),
-      webSecurity: false
+      preload: isDevelopment 
+        ? join(__dirname, '../public/preload.js')
+        : join(__dirname, './preload.js'),
+      webSecurity: isDevelopment ? false : true, // Enable webSecurity in production
+      allowRunningInsecureContent: false,
+      experimentalFeatures: false,
+      backgroundThrottling: false, // Prevent background throttling
+      sandbox: false
     }
   })
   
   win.setMenu(null)
   
+  // Configure session to reduce cache errors
+  const session = win.webContents.session
+  if (isDevelopment) {
+    session.setPermissionRequestHandler(() => true)
+    session.clearCache() // Clear cache on startup in dev mode
+  }
+  
   if (isDevelopment) {
     // Load the Vite dev server URL
-    await win.loadURL('http://localhost:8080')
-    if (!process.env.IS_TEST) win.webContents.openDevTools()
+    try {
+      await win.loadURL('http://localhost:8080') // Use port 8080 as configured in vite.config.js
+    } catch (error) {
+      console.error('Failed to load development URL:', error)
+      // Fallback to a local file if dev server is not running
+      const indexPath = join(__dirname, '../dist/index.html')
+      await win.loadFile(indexPath)
+    }
+    if (!process.env.IS_TEST) {
+      win.webContents.openDevTools()
+      
+      // Disable some problematic DevTools features
+      win.webContents.on('devtools-opened', () => {
+        win.webContents.devToolsWebContents?.executeJavaScript(`
+          // Disable autofill in DevTools to prevent console errors
+          if (window.DevToolsAPI && window.DevToolsAPI.dispatchMessage) {
+            const originalDispatch = window.DevToolsAPI.dispatchMessage;
+            window.DevToolsAPI.dispatchMessage = function(message) {
+              if (message && message.includes('Autofill.enable')) {
+                return;
+              }
+              return originalDispatch.call(this, message);
+            };
+          }
+        `).catch(() => {
+          // Ignore errors from DevTools JavaScript execution
+        });
+      });
+    }
   } else {
     // Load the built files
-    await win.loadFile('dist/index.html')
+    const indexPath = join(__dirname, '../dist/index.html')
+    await win.loadFile(indexPath)
+    // Remove DevTools opening in production for security
+    // win.webContents.openDevTools()
   }
 }
 
 // IPC handlers
 ipcMain.handle('load-video-file', async (event, filePath) => {
   try {
-    const path = require('path')
-    
     console.log('Attempting to load video file:', filePath)
     
     // Verify file exists and is a video file
@@ -56,7 +97,7 @@ ipcMain.handle('load-video-file', async (event, filePath) => {
       throw new Error(`File does not exist: ${filePath}`)
     }
     
-    const ext = path.extname(filePath).toLowerCase()
+    const ext = extname(filePath).toLowerCase()
     const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv']
     
     if (!videoExtensions.includes(ext)) {
@@ -82,13 +123,13 @@ ipcMain.handle('load-video-file', async (event, filePath) => {
     
     const mimeType = mimeTypes[ext] || 'video/mp4'
     
-    console.log('Video file loaded successfully:', path.basename(filePath))
+    console.log('Video file loaded successfully:', basename(filePath))
     
     return {
       success: true,
       data: base64Data,
       mimeType: mimeType,
-      fileName: path.basename(filePath)
+      fileName: basename(filePath)
     }
   } catch (error) {
     console.error('Failed to load video file:', error)
@@ -100,7 +141,6 @@ ipcMain.handle('load-video-file', async (event, filePath) => {
 })
 
 ipcMain.handle('select-audio-file', async () => {
-  const { dialog } = require('electron')
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
     filters: [
@@ -116,7 +156,6 @@ ipcMain.handle('select-audio-file', async () => {
 })
 
 ipcMain.handle('select-video-file', async () => {
-  const { dialog } = require('electron')
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
     filters: [
@@ -132,7 +171,6 @@ ipcMain.handle('select-video-file', async () => {
 })
 
 ipcMain.handle('select-directory', async () => {
-  const { dialog } = require('electron')
   const result = await dialog.showOpenDialog({
     properties: ['openDirectory']
   })
@@ -144,8 +182,6 @@ ipcMain.handle('select-directory', async () => {
 })
 
 ipcMain.handle('scan-video-directory', async (event, directoryPath) => {
-  const path = require('path')
-  
   try {
     const allVideos = []
     
@@ -153,13 +189,13 @@ ipcMain.handle('scan-video-directory', async (event, directoryPath) => {
       const items = await fs.readdir(dirPath, { withFileTypes: true })
       
       for (const item of items) {
-        const fullPath = path.join(dirPath, item.name)
+        const fullPath = join(dirPath, item.name)
         
         if (item.isDirectory()) {
           // Recursively scan subdirectories
           await scanDirectory(fullPath)
         } else if (item.isFile()) {
-          const ext = path.extname(item.name).toLowerCase()
+          const ext = extname(item.name).toLowerCase()
           const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv']
           
           if (videoExtensions.includes(ext)) {
@@ -189,14 +225,11 @@ ipcMain.handle('scan-video-directory', async (event, directoryPath) => {
 // Save directory tree to file
 ipcMain.handle('save-directory-tree', async (event, directoryPath, treeData) => {
   try {
-    const path = require('path')
-    const os = require('os')
-    
     // Save to app data directory
-    const appDataPath = path.join(os.homedir(), '.guitarapp')
+    const appDataPath = join(homedir(), '.guitarapp')
     await fs.ensureDir(appDataPath)
     
-    const treeFilePath = path.join(appDataPath, 'directory-tree.json')
+    const treeFilePath = join(appDataPath, 'directory-tree.json')
     const dataToSave = {
       directoryPath,
       lastScanned: new Date().toISOString(),
@@ -214,11 +247,8 @@ ipcMain.handle('save-directory-tree', async (event, directoryPath, treeData) => 
 // Load directory tree from file
 ipcMain.handle('load-directory-tree', async () => {
   try {
-    const path = require('path')
-    const os = require('os')
-    
-    const appDataPath = path.join(os.homedir(), '.guitarapp')
-    const treeFilePath = path.join(appDataPath, 'directory-tree.json')
+    const appDataPath = join(homedir(), '.guitarapp')
+    const treeFilePath = join(appDataPath, 'directory-tree.json')
     
     if (await fs.pathExists(treeFilePath)) {
       const data = await fs.readJson(treeFilePath)
@@ -267,14 +297,11 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-app.once('ready-to-show', () => {
+app.once('ready', () => {
+  // Register file protocol handler (updated to remove deprecated callback)
   protocol.interceptFileProtocol('file', (request, callback) => {
-    const filePath = request.url.replace('app://', '');
-    const url = request.url.includes('img/') ? filePath.normalize(`${__dirname}/${filePath}`) : filePath;
-
+    const url = request.url.substr(7); // Remove 'file://' prefix
     callback({ path: url });
-  }, err => {
-    if (err) console.error('Failed to register protocol');
   });
 });
 
@@ -287,13 +314,33 @@ app.on('activate', () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', async () => {
+app.whenReady().then(async () => {
   if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
+    // Install Vue Devtools with better error handling
     try {
-      await installExtension(VUEJS3_DEVTOOLS)
+      // Suppress deprecation warnings temporarily
+      const originalEmit = process.emit
+      process.emit = function (name, data, ...args) {
+        if (name === 'warning' && data.name === 'DeprecationWarning' && 
+            data.message.includes('session.')) {
+          return
+        }
+        return originalEmit.apply(process, arguments)
+      }
+      
+      const extensionName = await installExtension(VUEJS3_DEVTOOLS, {
+        loadExtensionOptions: {
+          allowFileAccess: true,
+        },
+        forceDownload: false,
+      })
+      
+      // Restore original emit
+      process.emit = originalEmit
+      
+      console.log(`Vue Devtools installed successfully`)
     } catch (e) {
-      console.error('Vue Devtools failed to install:', e.toString())
+      console.warn('Vue Devtools installation failed (this is non-critical):', e.message)
     }
   }
   createWindow()

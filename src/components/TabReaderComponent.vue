@@ -22,8 +22,11 @@
         <span v-if="isLoaded && !isPlayerReady" class="status-text">
           Loading player...
         </span>
-        <span v-if="isElectron && isLoaded" class="status-text electron-info">
-          🔇 Desktop mode - Visual playback only (no audio)
+        <span v-if="isElectron && isLoaded && isPlayerReady" class="status-text electron-info">
+          � Desktop mode - Audio enabled
+        </span>
+        <span v-if="isElectron && isLoaded && !isPlayerReady" class="status-text electron-warning">
+          🔄 Loading audio player...
         </span>
       </div>
     </div>
@@ -62,6 +65,7 @@ export default {
       isLoaded: false,
       isPlaying: false,
       isPlayerReady: false,
+      isAudioReady: false,
       isElectron: false,
       error: null,
       tracks: [],
@@ -136,14 +140,15 @@ export default {
         settings.player.enableElementHighlighting = true
         
         if (isElectron) {
-          // Electron-specific settings - enable player for cursor but no audio
+          // Electron-specific settings - try to enable audio
           settings.core.useWorkers = false  // Disable workers in Electron
           settings.player.enablePlayer = true  // Enable player for cursor functionality
-          settings.player.playerMode = 0  // No audio synthesis
+          settings.player.playerMode = 1  // Enable audio synthesis
           settings.player.enableCursor = true
           settings.player.enableUserInteraction = true
           settings.player.enableElementHighlighting = true
           settings.player.scrollMode = 'continuous'
+          settings.player.soundFont = './soundfont/sonivox.sf2'  // Try to use soundfont in Electron too
           
           // Set font directory to the location where Vite plugin copies fonts
           settings.core.fontDirectory = './font/'
@@ -165,8 +170,22 @@ export default {
           useWorkers: settings.core.useWorkers,
           fontDirectory: settings.core.fontDirectory,
           scale: settings.display.scale,
-          enablePlayer: settings.player.enablePlayer
+          enablePlayer: settings.player.enablePlayer,
+          playerMode: settings.player.playerMode,
+          soundFont: settings.player.soundFont
         })
+        
+        // Initialize Web Audio Context for browsers (required for audio playback)
+        if (!isElectron && typeof window !== 'undefined' && window.AudioContext) {
+          try {
+            if (!window.alphaTabAudioContext) {
+              window.alphaTabAudioContext = new (window.AudioContext || window.webkitAudioContext)()
+              console.log('Web Audio Context initialized')
+            }
+          } catch (audioError) {
+            console.warn('Failed to initialize Web Audio Context:', audioError)
+          }
+        }
         
         this.alphaTabApi = new AlphaTabApi(this.$refs.alphaTab, settings)
         
@@ -409,12 +428,33 @@ export default {
       })
     },
     
-    playPause() {
+    async activateAudioContext() {
+      // Activate Web Audio Context on user interaction (required by browsers)
+      if (typeof window !== 'undefined' && window.alphaTabAudioContext) {
+        try {
+          if (window.alphaTabAudioContext.state === 'suspended') {
+            await window.alphaTabAudioContext.resume()
+            console.log('Audio context activated')
+            this.isAudioReady = true
+          } else if (window.alphaTabAudioContext.state === 'running') {
+            this.isAudioReady = true
+          }
+        } catch (error) {
+          console.warn('Failed to activate audio context:', error)
+        }
+      } else {
+        // For Electron or when Web Audio isn't available, assume audio is ready
+        this.isAudioReady = true
+      }
+    },
+    
+    async playPause() {
       console.log('playPause called, current state:', {
         alphaTabApi: !!this.alphaTabApi,
         isReadyForPlayback: this.alphaTabApi?.isReadyForPlayback,
         isPlaying: this.isPlaying,
         isPlayerReady: this.isPlayerReady,
+        isAudioReady: this.isAudioReady,
         isElectron: this.isElectron
       })
       
@@ -423,8 +463,32 @@ export default {
         return
       }
       
-      // For Electron mode, use manual playback
+      // Activate audio context on first user interaction
+      if (!this.isAudioReady) {
+        await this.activateAudioContext()
+      }
+      
+      // Try AlphaTab's built-in player first (for both web and Electron with audio)
+      if (this.alphaTabApi.isReadyForPlayback) {
+        console.log('Using AlphaTab built-in player')
+        try {
+          if (this.isPlaying) {
+            console.log('Pausing AlphaTab playback')
+            this.alphaTabApi.pause()
+          } else {
+            console.log('Starting AlphaTab playback')
+            this.alphaTabApi.play()
+          }
+          return
+        } catch (error) {
+          console.error('AlphaTab player error:', error)
+          // Fall through to manual playback if AlphaTab player fails
+        }
+      }
+      
+      // Fallback: Use manual playback for Electron mode or if AlphaTab player isn't ready
       if (this.isElectron) {
+        console.log('Using manual playback fallback')
         if (this.isPlaying) {
           this.pauseManualPlayback()
         } else {
@@ -433,7 +497,7 @@ export default {
         return
       }
       
-      // For web mode, use AlphaTab's built-in player
+      // For web mode, ensure player is ready
       if (!this.alphaTabApi.isReadyForPlayback) {
         console.warn('Player not ready for playback')
         if (this.currentScore) {
@@ -441,19 +505,6 @@ export default {
           this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
         }
         return
-      }
-      
-      try {
-        if (this.isPlaying) {
-          console.log('Pausing playback')
-          this.alphaTabApi.pause()
-        } else {
-          console.log('Starting playback')
-          this.alphaTabApi.play()
-        }
-      } catch (error) {
-        console.error('Error during play/pause:', error)
-        this.error = `Playback error: ${error.message}`
       }
     },
     
@@ -742,24 +793,23 @@ export default {
         return
       }
       
-      // For Electron mode, stop manual playback
-      if (this.isElectron) {
-        console.log('Stopping manual playback')
-        this.pauseManualPlayback()
-        this.currentTick = 0
-        this.currentBeat = 0
-        return
+      // Stop both AlphaTab player and manual playback
+      try {
+        // Try to stop AlphaTab player if it's active
+        if (this.alphaTabApi.isReadyForPlayback) {
+          console.log('Stopping AlphaTab playback')
+          this.alphaTabApi.stop()
+        }
+      } catch (error) {
+        console.log('AlphaTab stop failed:', error.message)
       }
       
-      // For web mode, use AlphaTab's built-in player
-      try {
-        console.log('Stopping playback')
-        this.alphaTabApi.stop()
-        this.isPlaying = false
-      } catch (error) {
-        console.error('Error during stop:', error)
-        this.error = `Stop error: ${error.message}`
-      }
+      // Always stop manual playback (in case it's running)
+      console.log('Stopping manual playback')
+      this.pauseManualPlayback()
+      this.currentTick = 0
+      this.currentBeat = 0
+      this.isPlaying = false
     },
     
     changeTrack() {
@@ -879,6 +929,24 @@ export default {
 }
 
 .electron-info {
+  color: #2196F3 !important;
+  font-weight: bold;
+  font-style: normal;
+}
+
+.electron-success {
+  color: #4CAF50 !important;
+  font-weight: bold;
+  font-style: normal;
+}
+
+.success-text {
+  color: #4CAF50 !important;
+  font-weight: bold;
+  font-style: normal;
+}
+
+.info-text {
   color: #2196F3 !important;
   font-weight: bold;
   font-style: normal;

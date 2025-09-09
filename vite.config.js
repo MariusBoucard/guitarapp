@@ -18,6 +18,13 @@ export default defineConfig({
       {
         // Main-Process entry file of the Electron App.
         entry: 'src/background.js',
+        vite: {
+          build: {
+            rollupOptions: {
+              external: ['fs-extra', 'path', 'fs']
+            }
+          }
+        }
       },
       {
         entry: 'public/preload.js',
@@ -44,7 +51,7 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     rollupOptions: {
-      external: ['electron']
+      external: ['electron', 'fs-extra', 'path', 'fs']
     }
   },
   server: {
