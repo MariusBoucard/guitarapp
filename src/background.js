@@ -282,32 +282,32 @@ ipcMain.handle('vst3-native-load-plugin', async (event, pluginPath) => {
   try {
     console.log('🎵 Loading VST3 plugin:', pluginPath)
     
-    // Load the plugin using our SimpleVST3Host
-    const loadResult = vst3HostInstance.loadPlugin(pluginPath)
+    // Load the plugin using our VST3Host
+    const loadResult = await vst3HostInstance.loadPlugin(pluginPath)
     
-    if (loadResult) {
-      // Get plugin info to return detailed information
-      const pluginInfo = vst3HostInstance.getPluginInfo()
+    if (loadResult.success) {
+      // Get plugin info from the loaded plugin
+      const pluginInfo = loadResult.plugin || {}
       
       // Extract plugin name from path
       const pluginName = pluginPath.split(/[\\\/]/).pop().replace('.vst3', '')
       
       const result = {
         success: true,
-        pluginId: pluginName, // Use plugin name as ID for simplicity
-        name: pluginName,
+        pluginId: pluginInfo.id || pluginName,
+        name: pluginInfo.name || pluginName,
         vendor: 'VST3 Plugin',
         version: '1.0.0',
         category: 'Effect/Instrument',
         path: pluginPath,
-        hasUI: pluginInfo.hasEditor || false,
-        isLoaded: pluginInfo.loaded || false
+        hasUI: pluginInfo.hasUI || false,
+        isLoaded: pluginInfo.initialized || false
       }
       
       console.log('✅ Plugin loaded successfully:', result)
       return result
     } else {
-      return { success: false, error: 'Failed to load VST3 plugin' }
+      return { success: false, error: loadResult.error || 'Failed to load VST3 plugin' }
     }
   } catch (error) {
     console.error('❌ VST3 plugin load error:', error)
@@ -360,20 +360,20 @@ ipcMain.handle('vst3-native-show-ui', async (event, pluginId, parentWindowId) =>
   }
   
   try {
-    console.log('🖥️ Opening VST3 plugin editor for:', pluginId)
+    console.log('🖥️ Opening VST3 plugin UI for:', pluginId)
     
-    // Open the plugin editor using our SimpleVST3Host
-    const editorResult = vst3HostInstance.openEditor()
+    // Show the plugin UI using our VST3Host
+    const uiResult = await vst3HostInstance.showPluginUI(pluginId, parentWindowId)
     
-    if (editorResult) {
-      console.log('✅ VST3 plugin editor opened successfully')
+    if (uiResult.success) {
+      console.log('✅ VST3 plugin UI opened successfully')
       return { 
         success: true, 
-        message: 'Plugin editor opened',
+        message: 'Plugin UI opened',
         pluginId: pluginId
       }
     } else {
-      return { success: false, error: 'Failed to open plugin editor' }
+      return { success: false, error: uiResult.error || 'Failed to open plugin UI' }
     }
   } catch (error) {
     console.error('❌ VST3 show UI error:', error)
@@ -387,16 +387,20 @@ ipcMain.handle('vst3-native-hide-ui', async (event, pluginId) => {
   }
   
   try {
-    console.log('🔒 Closing VST3 plugin editor for:', pluginId)
+    console.log('🔒 Closing VST3 plugin UI for:', pluginId)
     
-    // Close the plugin editor using our SimpleVST3Host
-    vst3HostInstance.closeEditor()
+    // Hide the plugin UI using our VST3Host
+    const uiResult = await vst3HostInstance.hidePluginUI(pluginId)
     
-    console.log('✅ VST3 plugin editor closed successfully')
-    return { 
-      success: true, 
-      message: 'Plugin editor closed',
-      pluginId: pluginId
+    if (uiResult.success) {
+      console.log('✅ VST3 plugin UI closed successfully')
+      return { 
+        success: true, 
+        message: 'Plugin UI closed',
+        pluginId: pluginId
+      }
+    } else {
+      return { success: false, error: uiResult.error || 'Failed to close plugin UI' }
     }
   } catch (error) {
     console.error('❌ VST3 hide UI error:', error)
@@ -987,17 +991,8 @@ app.whenReady().then(async () => {
     }
   }
   
-  // Initialize VST3 Host if available
-  if (VST3HostWrapper && !vst3HostInstance) {
-    try {
-      vst3HostInstance = new VST3HostWrapper()
-      console.log('🎹 VST3 Host initialized successfully')
-      
-    } catch (error) {
-      console.error('Failed to initialize VST3 Host:', error)
-      vst3HostInstance = null
-    }
-  }
+  // VST3 Host should already be initialized during module loading
+  console.log('🔍 VST3 Host status at app ready:', vst3HostInstance ? 'Available' : 'Not available')
   
   createWindow()
 })

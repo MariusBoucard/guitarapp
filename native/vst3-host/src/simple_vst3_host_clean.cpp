@@ -62,6 +62,22 @@ namespace Steinberg {
         virtual tresult checkSizeConstraint(void* rect) = 0;
     };
     
+    // View rectangle structure
+    struct ViewRect {
+        int32 left;
+        int32 top;
+        int32 right;
+        int32 bottom;
+        
+        ViewRect(int32 l = 0, int32 t = 0, int32 r = 0, int32 b = 0) 
+            : left(l), top(t), right(r), bottom(b) {}
+    };
+    
+    // Plugin factory interface IDs (simplified)
+    static const FUID kIComponentIID(0x22888DDB, 0x156E45AE, 0x8358B348, 0x08190625);
+    static const FUID kIEditControllerIID(0xDCD7BBE3, 0x7742448D, 0xA874AACC, 0x979C759E);
+    static const FUID kIPlugViewIID(0x5BC32507, 0xD06049EA, 0xA6151B52, 0x2B755B29);
+    
     // IEditController2 interface for UI support
     struct IEditController2 : public IEditController {
         virtual tresult setKnobMode(int32 mode) = 0;
@@ -77,30 +93,38 @@ public:
     std::string name;
     std::string path;
     HMODULE module;
-    void* component;
-    void* editController;
-    void* plugView;
+    Steinberg::IComponent* component;
+    Steinberg::IEditController* editController;
+    Steinberg::IPlugView* plugView;
     HWND uiWindow;
+    HWND parentWindow;  // For embedding
     bool hasUI;
     bool initialized;
     bool uiVisible;
+    Steinberg::ViewRect viewRect;
     
     SimplePlugin() : module(nullptr), component(nullptr), editController(nullptr), 
-                     plugView(nullptr), uiWindow(nullptr), hasUI(false), 
-                     initialized(false), uiVisible(false) {}
+                     plugView(nullptr), uiWindow(nullptr), parentWindow(nullptr), 
+                     hasUI(false), initialized(false), uiVisible(false) {}
     
     ~SimplePlugin() {
-        if (plugView) {
-            // Cleanup plugin view
+        if (plugView && uiVisible) {
+            plugView->removed();
+            plugView->release();
             plugView = nullptr;
         }
         if (editController) {
-            // Cleanup edit controller
+            editController->release();
             editController = nullptr;
         }
         if (component) {
-            // Cleanup component
+            component->terminate();
+            component->release();
             component = nullptr;
+        }
+        if (uiWindow) {
+            DestroyWindow(uiWindow);
+            uiWindow = nullptr;
         }
         if (module) {
             FreeLibrary(module);
@@ -128,6 +152,7 @@ public:
         Nan::SetPrototypeMethod(tpl, "showPluginUI", ShowPluginUI);
         Nan::SetPrototypeMethod(tpl, "hidePluginUI", HidePluginUI);
         Nan::SetPrototypeMethod(tpl, "getPluginInfo", GetPluginInfo);
+        Nan::SetPrototypeMethod(tpl, "getPluginWindowHandle", GetPluginWindowHandle);
 
         constructor_template.Reset(tpl->GetFunction(Nan::GetCurrentContext()).ToLocalChecked());
         
@@ -242,30 +267,21 @@ private:
         Nan::Utf8String pluginId(info[0]);
         std::string id(*pluginId);
         
+        // Optional parent window handle parameter
+        HWND parentHwnd = nullptr;
+        if (info.Length() > 1 && info[1]->IsNumber()) {
+            v8::Maybe<int64_t> maybeValue = info[1]->IntegerValue(Nan::GetCurrentContext());
+            if (!maybeValue.IsNothing()) {
+                parentHwnd = (HWND)(maybeValue.FromJust());
+            }
+        }
+        
         auto it = host->loadedPlugins.find(id);
         if (it != host->loadedPlugins.end() && it->second->hasUI && !it->second->uiVisible) {
-            std::cout << "🎛️ Creating UI window for: " << it->second->name << std::endl;
+            std::cout << "🎛️ Creating native VST3 UI for: " << it->second->name << std::endl;
             
-            // Create a simple window for the plugin UI
-            std::string windowTitle = it->second->name + " - VST3 Plugin";
-            HWND hwnd = CreateWindowExA(
-                WS_EX_TOPMOST,
-                "STATIC",
-                windowTitle.c_str(),
-                WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-                CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
-                NULL, NULL, GetModuleHandle(NULL), NULL
-            );
-            
-            if (hwnd) {
-                it->second->uiWindow = hwnd;
-                it->second->uiVisible = true;
-                std::cout << "✅ UI window created successfully" << std::endl;
-                info.GetReturnValue().Set(Nan::New(true));
-            } else {
-                std::cout << "❌ Failed to create UI window" << std::endl;
-                info.GetReturnValue().Set(Nan::New(false));
-            }
+            bool success = host->createPluginUI(it->second.get(), parentHwnd);
+            info.GetReturnValue().Set(Nan::New(success));
         } else {
             std::cout << "⚠️ Plugin not found, has no UI, or UI already visible" << std::endl;
             info.GetReturnValue().Set(Nan::New(false));
@@ -311,6 +327,120 @@ private:
         Nan::Set(info_obj, Nan::New("pluginCount").ToLocalChecked(), Nan::New(static_cast<uint32_t>(host->loadedPlugins.size())));
         
         info.GetReturnValue().Set(info_obj);
+    }
+
+    static NAN_METHOD(GetPluginWindowHandle) {
+        VST3Host* host = Nan::ObjectWrap::Unwrap<VST3Host>(info.Holder());
+        
+        if (info.Length() < 1 || !info[0]->IsString()) {
+            info.GetReturnValue().Set(Nan::New(0));
+            return;
+        }
+
+        Nan::Utf8String pluginId(info[0]);
+        std::string id(*pluginId);
+        
+        auto it = host->loadedPlugins.find(id);
+        if (it != host->loadedPlugins.end() && it->second->uiWindow) {
+            // Return the window handle as a number that can be used by Electron
+            intptr_t hwndValue = reinterpret_cast<intptr_t>(it->second->uiWindow);
+            info.GetReturnValue().Set(Nan::New(static_cast<double>(hwndValue)));
+        } else {
+            info.GetReturnValue().Set(Nan::New(0));
+        }
+    }
+
+    bool createPluginUI(SimplePlugin* plugin, HWND parentWindow = nullptr) {
+        if (!plugin || !plugin->hasUI || !plugin->editController) {
+            std::cout << "❌ Cannot create UI: plugin invalid or no edit controller" << std::endl;
+            return false;
+        }
+
+        try {
+            // Get the plugin view from the edit controller
+            Steinberg::IPlugView* view = nullptr;
+            Steinberg::tresult result = plugin->editController->queryInterface(Steinberg::kIPlugViewIID, (void**)&view);
+            
+            if (result != Steinberg::kResultOk || !view) {
+                std::cout << "❌ Could not get plugin view interface" << std::endl;
+                return false;
+            }
+
+            plugin->plugView = view;
+
+            // Check if the plugin supports Windows platform
+            if (view->isPlatformTypeSupported("HWND") != Steinberg::kResultOk) {
+                std::cout << "❌ Plugin doesn't support Windows HWND platform" << std::endl;
+                view->release();
+                plugin->plugView = nullptr;
+                return false;
+            }
+
+            // Get the preferred size of the plugin UI
+            Steinberg::ViewRect rect;
+            if (view->getSize(&rect) == Steinberg::kResultOk) {
+                plugin->viewRect = rect;
+                std::cout << "📐 Plugin UI size: " << rect.right - rect.left << "x" << rect.bottom - rect.top << std::endl;
+            } else {
+                // Default size if plugin doesn't specify
+                plugin->viewRect = Steinberg::ViewRect(0, 0, 800, 600);
+                std::cout << "📐 Using default UI size: 800x600" << std::endl;
+            }
+
+            HWND hostWindow = nullptr;
+            
+            if (parentWindow) {
+                // Embed in provided parent window
+                plugin->parentWindow = parentWindow;
+                hostWindow = parentWindow;
+                std::cout << "🔗 Embedding UI in parent window" << std::endl;
+            } else {
+                // Create a new native window
+                std::string windowTitle = plugin->name + " - VST3 Plugin";
+                int width = plugin->viewRect.right - plugin->viewRect.left;
+                int height = plugin->viewRect.bottom - plugin->viewRect.top;
+                
+                hostWindow = CreateWindowExA(
+                    0,
+                    "STATIC",
+                    windowTitle.c_str(),
+                    WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+                    CW_USEDEFAULT, CW_USEDEFAULT, width + 16, height + 39, // Add window frame size
+                    NULL, NULL, GetModuleHandle(NULL), NULL
+                );
+                
+                if (!hostWindow) {
+                    std::cout << "❌ Failed to create host window" << std::endl;
+                    view->release();
+                    plugin->plugView = nullptr;
+                    return false;
+                }
+                
+                plugin->uiWindow = hostWindow;
+                std::cout << "🪟 Created native window for plugin UI" << std::endl;
+            }
+
+            // Attach the plugin view to our window
+            result = view->attached(hostWindow, "HWND");
+            if (result != Steinberg::kResultOk) {
+                std::cout << "❌ Failed to attach plugin view to window" << std::endl;
+                if (!parentWindow && hostWindow) {
+                    DestroyWindow(hostWindow);
+                    plugin->uiWindow = nullptr;
+                }
+                view->release();
+                plugin->plugView = nullptr;
+                return false;
+            }
+
+            plugin->uiVisible = true;
+            std::cout << "✅ Plugin UI created and attached successfully!" << std::endl;
+            return true;
+
+        } catch (const std::exception& e) {
+            std::cout << "❌ Exception creating plugin UI: " << e.what() << std::endl;
+            return false;
+        }
     }
 
     bool loadVST3Plugin(const std::string& path) {
@@ -366,27 +496,50 @@ private:
             plugin->name = (lastDot != std::string::npos) ? filename.substr(0, lastDot) : filename;
             plugin->id = plugin->name; // Use name as ID for simplicity
             
-            // Try to detect UI support by checking factory classes
-            plugin->hasUI = true; // Most VST3 plugins have UI, set to true by default
-            
-            // Try to query for edit controller support (indicates UI capability)
+            // Try to create actual plugin instances
             Steinberg::int32 classCount = factory->countClasses();
             std::cout << "🔍 Plugin has " << classCount << " factory classes" << std::endl;
             
-            bool hasEditController = false;
+            bool componentCreated = false;
+            bool editControllerCreated = false;
+            
             for (Steinberg::int32 i = 0; i < classCount; i++) {
-                // Check each class for edit controller interface
-                // This is a simplified check - in real VST3, you'd examine class info
-                hasEditController = true; // Assume true for simplicity
-                break;
+                // Try to create component
+                if (!componentCreated) {
+                    Steinberg::IComponent* component = nullptr;
+                    // Use a null FUID for first attempt - plugin factory will try to find appropriate class
+                    Steinberg::FUID nullFuid(0, 0, 0, 0);
+                    if (factory->createInstance(nullFuid, Steinberg::kIComponentIID, (void**)&component) == Steinberg::kResultOk && component) {
+                        if (component->initialize(nullptr) == Steinberg::kResultOk) {
+                            plugin->component = component;
+                            componentCreated = true;
+                            std::cout << "✅ Component created and initialized" << std::endl;
+                        } else {
+                            component->release();
+                        }
+                    }
+                }
+                
+                // Try to create edit controller
+                if (!editControllerCreated) {
+                    Steinberg::IEditController* editController = nullptr;
+                    Steinberg::FUID nullFuid(0, 0, 0, 0);
+                    if (factory->createInstance(nullFuid, Steinberg::kIEditControllerIID, (void**)&editController) == Steinberg::kResultOk && editController) {
+                        plugin->editController = editController;
+                        editControllerCreated = true;
+                        std::cout << "✅ Edit controller created" << std::endl;
+                    }
+                }
+                
+                if (componentCreated && editControllerCreated) break;
             }
             
-            if (hasEditController) {
-                plugin->hasUI = true;
-                std::cout << "✅ Plugin appears to have UI support" << std::endl;
+            // Determine UI support based on edit controller presence
+            plugin->hasUI = editControllerCreated;
+            if (plugin->hasUI) {
+                std::cout << "✅ Plugin has UI support (edit controller available)" << std::endl;
             } else {
-                plugin->hasUI = false;
-                std::cout << "ℹ️ Plugin may not have UI support" << std::endl;
+                std::cout << "ℹ️ Plugin has no UI support" << std::endl;
             }
             
             plugin->initialized = true;
