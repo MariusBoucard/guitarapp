@@ -547,12 +547,14 @@ private:
                 if (componentCreated && editControllerCreated) break;
             }
             
-            // Determine UI support based on edit controller presence
-            plugin->hasUI = editControllerCreated;
-            if (plugin->hasUI) {
-                std::cout << "✅ Plugin has UI support (edit controller available)" << std::endl;
+            // Determine UI support - for VST3, assume UI support unless explicitly no edit controller
+            // Most VST3 plugins have some form of UI, even if edit controller detection fails
+            plugin->hasUI = true; // Default to true for VST3 plugins
+            
+            if (editControllerCreated) {
+                std::cout << "✅ Plugin has UI support (edit controller confirmed)" << std::endl;
             } else {
-                std::cout << "ℹ️ Plugin has no UI support" << std::endl;
+                std::cout << "ℹ️ Plugin UI status: assumed available (edit controller not detected)" << std::endl;
             }
             
             plugin->initialized = true;

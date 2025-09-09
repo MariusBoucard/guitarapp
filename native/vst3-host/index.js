@@ -72,16 +72,34 @@ class VST3HostWrapper extends EventEmitter {
             if (success) {
                 console.log('✅ Plugin loaded successfully');
                 
-                // Don't try to access plugin details immediately as it can cause crashes
-                // Create a basic plugin object from the path
+                // Create basic plugin object from path
                 const pluginName = pluginPath.split(/[\\\/]/).pop().replace('.vst3', '');
-                const loadedPlugin = {
+                let loadedPlugin = {
                     id: pluginName,
                     name: pluginName,
                     path: pluginPath,
-                    hasUI: false,
+                    hasUI: true, // Assume VST3 plugins have UI by default
                     isLoaded: true
                 };
+                
+                // Try to get detailed plugin info after a small delay to avoid crashes
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                    const plugins = this.nativeHost.getLoadedPlugins();
+                    if (plugins && plugins.length > 0) {
+                        const detailedPlugin = plugins[plugins.length - 1];
+                        if (detailedPlugin) {
+                            loadedPlugin = {
+                                ...loadedPlugin,
+                                hasUI: detailedPlugin.hasUI !== undefined ? detailedPlugin.hasUI : true,
+                                initialized: detailedPlugin.initialized || true
+                            };
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Could not get detailed plugin info:', error.message);
+                    // Keep the basic plugin object
+                }
                 
                 this.emit('pluginLoaded', loadedPlugin);
                 
