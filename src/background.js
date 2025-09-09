@@ -40,12 +40,21 @@ async function createWindow() {
   
   win.setMenu(null)
   
-  // Configure session to reduce cache errors
+  // Configure session to reduce cache errors and enable fullscreen
   const session = win.webContents.session
   if (isDevelopment) {
     session.setPermissionRequestHandler(() => true)
     session.clearCache() // Clear cache on startup in dev mode
   }
+  
+  // Enable fullscreen permission for all origins
+  session.setPermissionRequestHandler((webContents, permission, callback) => {
+    if (permission === 'fullscreen') {
+      callback(true) // Allow fullscreen
+      return
+    }
+    callback(true) // Allow other permissions in development
+  })
   
   if (isDevelopment) {
     // Load the Vite dev server URL
