@@ -5,10 +5,155 @@
       <p class="vst3-subtitle">Load and control VST3 audio plugins</p>
     </div>
 
+    <!-- Audio Configuration Section -->
+    <div class="vst3-section">
+      <h3>🔊 Audio Configuration</h3>
+      <div class="audio-config" :class="{ 'config-complete': isAudioInitialized }">
+        <div class="audio-status">
+          <div class="status-indicator" :class="{ active: isAudioInitialized }">
+            <span class="status-icon">{{ isAudioInitialized ? '✅' : '⚠️' }}</span>
+            <span class="status-text">
+              {{ isAudioInitialized ? 'Audio System Ready' : 'Audio System Not Initialized' }}
+            </span>
+          </div>
+          <p class="status-description">
+            {{ isAudioInitialized 
+              ? 'VST3 plugins can now be loaded with proper audio configuration' 
+              : 'Configure and initialize audio settings before loading plugins for optimal performance' }}
+          </p>
+        </div>
+
+        <!-- Audio Configuration Grid -->
+        <div class="audio-config-grid">
+          <div class="config-group">
+            <h4>Sample Rate</h4>
+            <select v-model="audioConfig.sampleRate" :disabled="isAudioInitialized">
+              <option value="44100">44.1 kHz (CD Quality)</option>
+              <option value="48000">48 kHz (Professional)</option>
+              <option value="88200">88.2 kHz (High Quality)</option>
+              <option value="96000">96 kHz (Studio)</option>
+              <option value="192000">192 kHz (Ultra High)</option>
+            </select>
+          </div>
+
+          <div class="config-group">
+            <h4>Buffer Size</h4>
+            <select v-model="audioConfig.bufferSize" :disabled="isAudioInitialized">
+              <option value="64">64 samples (Low Latency)</option>
+              <option value="128">128 samples (Balanced)</option>
+              <option value="256">256 samples (Standard)</option>
+              <option value="512">512 samples (Stable)</option>
+              <option value="1024">1024 samples (High Latency)</option>
+            </select>
+          </div>
+
+          <div class="config-group">
+            <h4>Input Channels</h4>
+            <select v-model="audioConfig.inputChannels" :disabled="isAudioInitialized">
+              <option value="1">Mono (1 channel)</option>
+              <option value="2">Stereo (2 channels)</option>
+              <option value="4">Quad (4 channels)</option>
+              <option value="8">Surround (8 channels)</option>
+            </select>
+          </div>
+
+          <div class="config-group">
+            <h4>Output Channels</h4>
+            <select v-model="audioConfig.outputChannels" :disabled="isAudioInitialized">
+              <option value="1">Mono (1 channel)</option>
+              <option value="2">Stereo (2 channels)</option>
+              <option value="4">Quad (4 channels)</option>
+              <option value="8">Surround (8 channels)</option>
+            </select>
+          </div>
+
+          <div class="config-group">
+            <h4>Input Device</h4>
+            <select v-model="audioConfig.inputDevice" :disabled="isAudioInitialized">
+              <option value="">Default Input Device</option>
+              <option 
+                v-for="device in availableInputDevices" 
+                :key="device.deviceId" 
+                :value="device.deviceId"
+              >
+                {{ device.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="config-group">
+            <h4>Output Device</h4>
+            <select v-model="audioConfig.outputDevice" :disabled="isAudioInitialized">
+              <option value="">Default Output Device</option>
+              <option 
+                v-for="device in availableOutputDevices" 
+                :key="device.deviceId" 
+                :value="device.deviceId"
+              >
+                {{ device.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Audio Configuration Controls -->
+        <div class="audio-config-controls">
+          <button 
+            class="initialize-audio-btn"
+            @click="initializeAudioHost"
+            :disabled="isInitializingAudio || isAudioInitialized"
+            :class="{ 'initializing': isInitializingAudio }"
+          >
+            <span class="btn-icon">{{ isInitializingAudio ? '⏳' : '🎵' }}</span>
+            {{ isInitializingAudio ? 'Initializing Audio...' : 'Initialize Audio Host' }}
+          </button>
+
+          <button 
+            v-if="isAudioInitialized"
+            class="reset-audio-btn"
+            @click="resetAudioHost"
+          >
+            <span class="btn-icon">🔄</span>
+            Reset Audio Configuration
+          </button>
+        </div>
+
+        <!-- Audio Configuration Info -->
+        <div v-if="isAudioInitialized" class="audio-config-info">
+          <h4>Current Audio Configuration</h4>
+          <div class="config-info-grid">
+            <div class="config-info-item">
+              <span class="config-label">Sample Rate:</span>
+              <span class="config-value">{{ audioConfig.sampleRate }} Hz</span>
+            </div>
+            <div class="config-info-item">
+              <span class="config-label">Buffer Size:</span>
+              <span class="config-value">{{ audioConfig.bufferSize }} samples</span>
+            </div>
+            <div class="config-info-item">
+              <span class="config-label">Latency:</span>
+              <span class="config-value">{{ calculatedLatency }} ms</span>
+            </div>
+            <div class="config-info-item">
+              <span class="config-label">Channels:</span>
+              <span class="config-value">{{ audioConfig.inputChannels }}→{{ audioConfig.outputChannels }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Plugin Loader Section -->
     <div class="vst3-section">
       <h3>Plugin Loader</h3>
       <div class="plugin-loader">
+        <div v-if="!isAudioInitialized" class="audio-warning">
+          <span class="warning-icon">⚠️</span>
+          <span class="warning-text">
+            Initialize audio configuration first for optimal plugin performance
+          </span>
+        </div>
+        
         <button 
           class="load-plugin-btn"
           @click="selectVST3Plugin"
@@ -276,7 +421,23 @@ export default {
     const isProcessing = ref(false)
     const errorMessage = ref('')
     
-    // Audio devices
+    // Audio configuration state
+    const isAudioInitialized = ref(false)
+    const isInitializingAudio = ref(false)
+    const audioConfig = ref({
+      sampleRate: 44100,
+      bufferSize: 256,
+      inputChannels: 2,
+      outputChannels: 2,
+      inputDevice: '',
+      outputDevice: ''
+    })
+    
+    // Available audio devices
+    const availableInputDevices = ref([])
+    const availableOutputDevices = ref([])
+    
+    // Legacy audio devices (for backward compatibility)
     const inputDevices = ref([])
     const outputDevices = ref([])
     const selectedInputDevice = ref('')
@@ -303,6 +464,90 @@ export default {
     const analyser = ref(null)
     const processorNode = ref(null)
 
+    // Computed properties
+    const calculatedLatency = computed(() => {
+      if (!isAudioInitialized.value) return 0
+      return Math.round((audioConfig.value.bufferSize / audioConfig.value.sampleRate) * 1000 * 100) / 100
+    })
+
+    // Initialize audio host with VST3 backend
+    const initializeAudioHost = async () => {
+      if (isInitializingAudio.value || isAudioInitialized.value) return
+      
+      isInitializingAudio.value = true
+      errorMessage.value = ''
+      
+      try {
+        console.log('🎵 Initializing VST3 audio host with configuration:', audioConfig.value)
+        
+        // Check if VST3 native is available
+        if (!window.electronAPI?.vst3Native?.initializeAudio) {
+          throw new Error('VST3 native audio initialization not available')
+        }
+        
+        // Call the native VST3 audio initialization through IPC
+        const result = await window.electronAPI.vst3Native.initializeAudio({
+          sampleRate: parseInt(audioConfig.value.sampleRate),
+          bufferSize: parseInt(audioConfig.value.bufferSize),
+          inputChannels: parseInt(audioConfig.value.inputChannels),
+          outputChannels: parseInt(audioConfig.value.outputChannels),
+          inputDevice: audioConfig.value.inputDevice || 'default',
+          outputDevice: audioConfig.value.outputDevice || 'default'
+        })
+        
+        if (result.success) {
+          isAudioInitialized.value = true
+          sampleRate.value = audioConfig.value.sampleRate
+          console.log('✅ VST3 audio host initialized successfully')
+          console.log('🔊 Audio configuration active:', {
+            sampleRate: audioConfig.value.sampleRate,
+            bufferSize: audioConfig.value.bufferSize,
+            latency: calculatedLatency.value + 'ms',
+            channels: `${audioConfig.value.inputChannels}→${audioConfig.value.outputChannels}`
+          })
+        } else {
+          throw new Error(result.error || 'Failed to initialize audio host')
+        }
+      } catch (error) {
+        console.error('❌ Audio host initialization failed:', error)
+        errorMessage.value = `Failed to initialize audio host: ${error.message}`
+        isAudioInitialized.value = false
+      } finally {
+        isInitializingAudio.value = false
+      }
+    }
+
+    // Reset audio host
+    const resetAudioHost = async () => {
+      try {
+        console.log('🔄 Resetting VST3 audio host...')
+        
+        // Stop any current processing
+        if (isProcessing.value) {
+          await toggleProcessing()
+        }
+        
+        // Unload current plugin if any
+        if (currentPlugin.value) {
+          await unloadPlugin()
+        }
+        
+        // Reset audio state
+        isAudioInitialized.value = false
+        isInitializingAudio.value = false
+        
+        // Call native reset if available
+        if (window.vst3Audio && window.vst3Audio.resetAudio) {
+          await window.vst3Audio.resetAudio()
+        }
+        
+        console.log('✅ Audio host reset complete')
+      } catch (error) {
+        console.error('❌ Failed to reset audio host:', error)
+        errorMessage.value = `Failed to reset audio host: ${error.message}`
+      }
+    }
+
     // Initialize Web Audio API
     const initializeAudio = async () => {
       try {
@@ -312,6 +557,37 @@ export default {
       } catch (error) {
         console.error('Failed to initialize audio context:', error)
         errorMessage.value = 'Failed to initialize audio system'
+      }
+    }
+
+    // Get available audio devices for configuration
+    const getAvailableAudioDevices = async () => {
+      try {
+        // Request permissions first
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        stream.getTracks().forEach(track => track.stop()) // Stop immediately after getting permission
+        
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        availableInputDevices.value = devices.filter(device => 
+          device.kind === 'audioinput' && device.deviceId !== 'default'
+        )
+        availableOutputDevices.value = devices.filter(device => 
+          device.kind === 'audiooutput' && device.deviceId !== 'default'
+        )
+        
+        // Also update legacy device arrays for backward compatibility
+        inputDevices.value = availableInputDevices.value
+        outputDevices.value = availableOutputDevices.value
+        
+        console.log('🎵 Available audio devices found:', { 
+          inputs: availableInputDevices.value.length, 
+          outputs: availableOutputDevices.value.length 
+        })
+      } catch (error) {
+        console.error('❌ Failed to enumerate audio devices:', error)
+        // Continue without device enumeration - use defaults
+        availableInputDevices.value = []
+        availableOutputDevices.value = []
       }
     }
 
@@ -344,8 +620,8 @@ export default {
         
         const pluginPaths = await window.electronAPI.selectVst3Plugin()
         if (pluginPaths && pluginPaths.length > 0) {
-          // Load the first selected plugin
-          await loadVST3Plugin(pluginPaths[0])
+          // Load the first selected plugin with audio configuration
+          await loadVST3AudioPlugin(pluginPaths[0])
           
           // If multiple plugins selected, show info
           if (pluginPaths.length > 1) {
@@ -361,56 +637,56 @@ export default {
     }
 
     // Load VST3 Plugin
-    const loadVST3Plugin = async (pluginPath) => {
+    const loadVST3AudioPlugin = async (pluginPath) => {
       try {
-        console.log('Loading VST3 plugin from:', pluginPath)
+        console.log('🎵 Loading VST3 plugin with audio configuration:', pluginPath)
+        
+        // Warn if audio is not initialized
+        if (!isAudioInitialized.value) {
+          console.warn('⚠️ Audio host not initialized - plugin may not function optimally')
+        }
         
         // Check if native VST3 host is available
         if (window.electronAPI?.vst3Native?.loadPlugin) {
-          // Use native VST3 host
+          // Use native VST3 host - send just the plugin path for now
+          // The background.js handler will handle the audio config integration
           const result = await window.electronAPI.vst3Native.loadPlugin(pluginPath)
           
           if (result.success) {
-            console.log('Native VST3 plugin loaded successfully:', result.pluginId)
+            console.log('✅ Native VST3 plugin loaded successfully:', result.pluginId)
             
-            // Store plugin with native ID for UI operations
-            const pluginFileName = pluginPath.split(/[\\\/]/).pop().replace('.vst3', '')
+            // Store plugin with enhanced information
             currentPlugin.value = {
-              name: pluginFileName,
-              version: '1.0.0',
-              vendor: 'VST3 Plugin',
-              category: 'Effect/Instrument',
+              name: result.name || pluginPath.split(/[\\\/]/).pop().replace('.vst3', ''),
+              version: result.version || '1.0.0',
+              vendor: result.vendor || 'VST3 Plugin',
+              category: result.category || 'Effect/Instrument',
               path: pluginPath,
-              pluginId: result.pluginId, // Store the native plugin ID
-              hasUI: true,
-              isNative: true // Flag to indicate this is using native host
+              pluginId: result.pluginId,
+              hasUI: result.hasUI !== undefined ? result.hasUI : true,
+              isNative: true,
+              audioConfigured: isAudioInitialized.value
             }
             
-            // Get plugin parameters from native host if available
-            if (window.electronAPI?.vst3Native?.getPlugins) {
-              try {
-                const pluginsResult = await window.electronAPI.vst3Native.getPlugins()
-                console.log('Plugins result:', pluginsResult)
-                
-                if (pluginsResult.success && Array.isArray(pluginsResult.plugins)) {
-                  const loadedPlugin = pluginsResult.plugins.find(p => p.id === result.pluginId)
-                  if (loadedPlugin) {
-                    currentPlugin.value.name = loadedPlugin.name || currentPlugin.value.name
-                    console.log('Updated plugin name from native host:', loadedPlugin.name)
-                  }
-                }
-              } catch (error) {
-                console.warn('Failed to get plugin info:', error)
-                // Continue without plugin info - not critical
-              }
+            // Update performance metrics
+            if (isAudioInitialized.value) {
+              latency.value = calculatedLatency.value
+              sampleRate.value = audioConfig.value.sampleRate
             }
+            
+            console.log('🎹 Plugin loaded with configuration:', {
+              name: currentPlugin.value.name,
+              vendor: currentPlugin.value.vendor,
+              audioConfigured: currentPlugin.value.audioConfigured,
+              sampleRate: isAudioInitialized.value ? audioConfig.value.sampleRate : 'N/A'
+            })
             
           } else {
             throw new Error(result.error || 'Failed to load plugin with native host')
           }
         } else {
           // Fallback to simulated plugin loading
-          console.log('Native VST3 host not available, using simulation')
+          console.log('🔧 Native VST3 host not available, using simulation')
           
           const pluginFileName = pluginPath.split(/[\\\/]/).pop().replace('.vst3', '')
           currentPlugin.value = {
@@ -420,7 +696,8 @@ export default {
             category: 'Effect/Instrument',
             path: pluginPath,
             hasUI: true,
-            isNative: false // Flag to indicate this is simulated
+            isNative: false,
+            audioConfigured: isAudioInitialized.value
           }
         }
         
@@ -732,9 +1009,11 @@ export default {
 
     // Lifecycle
     onMounted(async () => {
+      console.log('🎵 VST3PluginComponent initializing...')
       await initializeAudio()
       await getAudioDevices()
-      console.log('VST3PluginComponent mounted')
+      await getAvailableAudioDevices()
+      console.log('✅ VST3PluginComponent mounted and ready')
     })
 
     onUnmounted(() => {
@@ -754,7 +1033,14 @@ export default {
       isProcessing,
       errorMessage,
       
-      // Audio devices
+      // Audio configuration state
+      isAudioInitialized,
+      isInitializingAudio,
+      audioConfig,
+      availableInputDevices,
+      availableOutputDevices,
+      
+      // Audio devices (legacy)
       inputDevices,
       outputDevices,
       selectedInputDevice,
@@ -775,8 +1061,16 @@ export default {
       showingPluginUI,
       pluginUIData,
       
+      // Computed
+      calculatedLatency,
+      
+      // Audio configuration methods
+      initializeAudioHost,
+      resetAudioHost,
+      
       // Methods
       selectVST3Plugin,
+      loadVST3AudioPlugin,
       unloadPlugin,
       toggleProcessing,
       updateParameter,
@@ -1421,5 +1715,214 @@ select option {
 
 .vst3-section {
   animation: fadeInUp 0.3s ease-out;
+}
+
+/* Audio Configuration Styles */
+.audio-config {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.audio-config.config-complete {
+  border: 2px solid rgba(76, 175, 80, 0.5);
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.audio-status {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-indicator.active {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+.status-icon {
+  font-size: 1.5rem;
+}
+
+.status-text {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.status-description {
+  margin: 0;
+  opacity: 0.8;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.audio-config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.config-group h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.config-group select {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.config-group select:focus {
+  border-color: rgba(76, 175, 80, 0.7);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.config-group select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.config-group select option {
+  background: #333;
+  color: white;
+}
+
+.audio-config-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.initialize-audio-btn, .reset-audio-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #FF6B6B 0%, #ee5a52 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  min-width: 200px;
+  justify-content: center;
+}
+
+.initialize-audio-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.initialize-audio-btn.initializing {
+  background: linear-gradient(135deg, #FF9800 0%, #f57c00 100%);
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+}
+
+.initialize-audio-btn:hover:not(:disabled), 
+.reset-audio-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.reset-audio-btn:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.initialize-audio-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+}
+
+.audio-config-info {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.audio-config-info h4 {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.config-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.config-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+}
+
+.config-label {
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.config-value {
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.audio-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(255, 152, 0, 0.2);
+  border: 1px solid rgba(255, 152, 0, 0.5);
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.warning-icon {
+  font-size: 1.2rem;
+  color: #FF9800;
+}
+
+.warning-text {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
 }
 </style>

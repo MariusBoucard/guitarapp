@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     hideUI: (pluginId) => ipcRenderer.invoke('vst3-native-hide-ui', pluginId),
     startProcessing: () => ipcRenderer.invoke('vst3-native-start-processing'),
     stopProcessing: () => ipcRenderer.invoke('vst3-native-stop-processing'),
-    getAudioDevices: () => ipcRenderer.invoke('vst3-native-get-audio-devices')
+    getAudioDevices: () => ipcRenderer.invoke('vst3-native-get-audio-devices'),
+    initializeAudio: (audioConfig) => ipcRenderer.invoke('vst3-initialize-audio', audioConfig)
   }
 });

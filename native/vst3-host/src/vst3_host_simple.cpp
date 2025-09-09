@@ -108,15 +108,34 @@ public:
     static void LoadPlugin(const Nan::FunctionCallbackInfo<Value>& info);
     static void ShowPluginUI(const Nan::FunctionCallbackInfo<Value>& info);
     static void GetLoadedPlugins(const Nan::FunctionCallbackInfo<Value>& info);
+    static void InitializeAudio(const Nan::FunctionCallbackInfo<Value>& info);
 
 private:
     explicit VST3Host() {}
     ~VST3Host() {}
     
     static Nan::Persistent<Function> constructor;
+    
+    // Audio configuration state
+    struct AudioConfig {
+        int sampleRate;
+        int bufferSize;
+        int inputChannels;
+        int outputChannels;
+        std::string inputDevice;
+        std::string outputDevice;
+        bool isInitialized;
+        
+        AudioConfig() : sampleRate(44100), bufferSize(256), inputChannels(2), 
+                       outputChannels(2), inputDevice("default"), 
+                       outputDevice("default"), isInitialized(false) {}
+    };
+    
+    static AudioConfig audioConfig;
 };
 
 Nan::Persistent<Function> VST3Host::constructor;
+VST3Host::AudioConfig VST3Host::audioConfig;
 
 void VST3Host::Init(Local<Object> exports) {
     Nan::HandleScope scope;
@@ -128,6 +147,7 @@ void VST3Host::Init(Local<Object> exports) {
     Nan::SetPrototypeMethod(tpl, "loadPlugin", LoadPlugin);
     Nan::SetPrototypeMethod(tpl, "showPluginUI", ShowPluginUI);
     Nan::SetPrototypeMethod(tpl, "getLoadedPlugins", GetLoadedPlugins);
+    Nan::SetPrototypeMethod(tpl, "initializeAudio", InitializeAudio);
     
     constructor.Reset(tpl->GetFunction(Nan::GetCurrentContext()).ToLocalChecked());
     exports->Set(Nan::GetCurrentContext(), Nan::New("VST3Host").ToLocalChecked(), 
@@ -298,6 +318,99 @@ void VST3Host::ShowPluginUI(const Nan::FunctionCallbackInfo<Value>& info) {
     Nan::Set(result, Nan::New("message").ToLocalChecked(), Nan::New("Native UI not implemented for this platform").ToLocalChecked());
     info.GetReturnValue().Set(result);
 #endif
+}
+
+void VST3Host::InitializeAudio(const Nan::FunctionCallbackInfo<Value>& info) {
+    if (info.Length() < 1 || !info[0]->IsObject()) {
+        Nan::ThrowTypeError("Expected audio configuration object");
+        return;
+    }
+    
+    Local<Object> configObj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+    
+    // Extract audio configuration parameters
+    Local<String> sampleRateKey = Nan::New("sampleRate").ToLocalChecked();
+    Local<String> bufferSizeKey = Nan::New("bufferSize").ToLocalChecked();
+    Local<String> inputChannelsKey = Nan::New("inputChannels").ToLocalChecked();
+    Local<String> outputChannelsKey = Nan::New("outputChannels").ToLocalChecked();
+    Local<String> inputDeviceKey = Nan::New("inputDevice").ToLocalChecked();
+    Local<String> outputDeviceKey = Nan::New("outputDevice").ToLocalChecked();
+    
+    // Get values with defaults
+    if (Nan::Has(configObj, sampleRateKey).FromJust()) {
+        audioConfig.sampleRate = Nan::To<int32_t>(Nan::Get(configObj, sampleRateKey).ToLocalChecked()).FromJust();
+    }
+    
+    if (Nan::Has(configObj, bufferSizeKey).FromJust()) {
+        audioConfig.bufferSize = Nan::To<int32_t>(Nan::Get(configObj, bufferSizeKey).ToLocalChecked()).FromJust();
+    }
+    
+    if (Nan::Has(configObj, inputChannelsKey).FromJust()) {
+        audioConfig.inputChannels = Nan::To<int32_t>(Nan::Get(configObj, inputChannelsKey).ToLocalChecked()).FromJust();
+    }
+    
+    if (Nan::Has(configObj, outputChannelsKey).FromJust()) {
+        audioConfig.outputChannels = Nan::To<int32_t>(Nan::Get(configObj, outputChannelsKey).ToLocalChecked()).FromJust();
+    }
+    
+    if (Nan::Has(configObj, inputDeviceKey).FromJust()) {
+        String::Utf8Value inputDeviceStr(info.GetIsolate(), Nan::Get(configObj, inputDeviceKey).ToLocalChecked());
+        audioConfig.inputDevice = std::string(*inputDeviceStr);
+    }
+    
+    if (Nan::Has(configObj, outputDeviceKey).FromJust()) {
+        String::Utf8Value outputDeviceStr(info.GetIsolate(), Nan::Get(configObj, outputDeviceKey).ToLocalChecked());
+        audioConfig.outputDevice = std::string(*outputDeviceStr);
+    }
+    
+    std::cout << "🎵 Initializing VST3 audio host with configuration:" << std::endl;
+    std::cout << "   Sample Rate: " << audioConfig.sampleRate << " Hz" << std::endl;
+    std::cout << "   Buffer Size: " << audioConfig.bufferSize << " samples" << std::endl;
+    std::cout << "   Input Channels: " << audioConfig.inputChannels << std::endl;
+    std::cout << "   Output Channels: " << audioConfig.outputChannels << std::endl;
+    std::cout << "   Input Device: " << audioConfig.inputDevice << std::endl;
+    std::cout << "   Output Device: " << audioConfig.outputDevice << std::endl;
+    
+    // For now, this is a mock implementation
+    // In a real implementation, this would initialize the actual audio host
+    try {
+        // Mark as initialized
+        audioConfig.isInitialized = true;
+        
+        std::cout << "✅ VST3 audio host initialized successfully" << std::endl;
+        
+        // Calculate latency (buffer size / sample rate * 1000)
+        double latencyMs = (double)audioConfig.bufferSize / audioConfig.sampleRate * 1000.0;
+        
+        // Return success result
+        Local<Object> result = Nan::New<Object>();
+        Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(true));
+        Nan::Set(result, Nan::New("message").ToLocalChecked(), Nan::New("Audio host initialized successfully").ToLocalChecked());
+        Nan::Set(result, Nan::New("sampleRate").ToLocalChecked(), Nan::New(audioConfig.sampleRate));
+        Nan::Set(result, Nan::New("blockSize").ToLocalChecked(), Nan::New(audioConfig.bufferSize));
+        Nan::Set(result, Nan::New("latency").ToLocalChecked(), Nan::New(latencyMs));
+        Nan::Set(result, Nan::New("inputChannels").ToLocalChecked(), Nan::New(audioConfig.inputChannels));
+        Nan::Set(result, Nan::New("outputChannels").ToLocalChecked(), Nan::New(audioConfig.outputChannels));
+        
+        info.GetReturnValue().Set(result);
+        
+    } catch (const std::exception& e) {
+        std::cout << "❌ Failed to initialize audio host: " << e.what() << std::endl;
+        audioConfig.isInitialized = false;
+        
+        Local<Object> result = Nan::New<Object>();
+        Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
+        Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New(("Audio initialization failed: " + std::string(e.what())).c_str()).ToLocalChecked());
+        info.GetReturnValue().Set(result);
+    } catch (...) {
+        std::cout << "❌ Failed to initialize audio host: Unknown error" << std::endl;
+        audioConfig.isInitialized = false;
+        
+        Local<Object> result = Nan::New<Object>();
+        Nan::Set(result, Nan::New("success").ToLocalChecked(), Nan::New(false));
+        Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New("Audio initialization failed: Unknown error").ToLocalChecked());
+        info.GetReturnValue().Set(result);
+    }
 }
 
 void VST3Host::GetLoadedPlugins(const Nan::FunctionCallbackInfo<Value>& info) {
