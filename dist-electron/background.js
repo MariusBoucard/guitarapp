@@ -10570,8 +10570,9 @@ try {
 }
 const __filename$1 = url.fileURLToPath(typeof document === "undefined" ? require("url").pathToFileURL(__filename).href : _documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === "SCRIPT" && _documentCurrentScript.src || new URL("background.js", document.baseURI).href);
 const __dirname$1 = require$$1.dirname(__filename$1);
-let VST3Host = null;
+let SimpleVST3Host = null;
 let vst3HostInstance = null;
+let audioInitialized = false;
 try {
   let vst3HostModule = null;
   const possiblePaths = [
@@ -10594,15 +10595,15 @@ try {
     }
   }
   if (vst3HostModule) {
-    VST3Host = vst3HostModule.VST3Host;
-    vst3HostInstance = new VST3Host();
-    console.log("✅ Native VST3 host wrapper loaded successfully");
-    console.log("🎹 VST3 Host wrapper initialized successfully");
+    SimpleVST3Host = vst3HostModule.SimpleVST3Host;
+    vst3HostInstance = new SimpleVST3Host();
+    console.log("✅ Native VST3 host loaded successfully");
+    console.log("🎹 VST3 Host initialized successfully");
   } else {
     throw new Error("Could not find VST3 module in any expected location");
   }
 } catch (error) {
-  console.log("⚠️  Native VST3 host wrapper not available:", error.message);
+  console.log("⚠️  Native VST3 host not available:", error.message);
   console.log('   Run "npm run vst3:build" to enable native VST3 support');
 }
 require$$0.protocol.registerSchemesAsPrivileged([
@@ -10761,32 +10762,35 @@ require$$0.ipcMain.handle("select-vst3-plugin", async () => {
   return [];
 });
 require$$0.ipcMain.handle("vst3-native-load-plugin", async (event, pluginPath) => {
-  if (vst3HostInstance) {
-    try {
-      const result = await vst3HostInstance.loadPlugin(pluginPath);
-      console.log("🔍 Plugin load result:", JSON.stringify(result, null, 2));
-      return result;
-    } catch (error) {
-      console.error("VST3 wrapper plugin load error:", error);
-      return { success: false, error: error.message };
-    }
-  } else if (VST3Host) {
-    try {
-      if (!vst3HostInstance) {
-        vst3HostInstance = new VST3Host();
-      }
-      const result = vst3HostInstance.loadPlugin(pluginPath);
-      console.log("🔍 Direct plugin load result:", JSON.stringify(result, null, 2));
-      if (result.success && result.id && !result.pluginId) {
-        result.pluginId = result.id;
-      }
-      return result;
-    } catch (error) {
-      console.error("Native VST3 plugin load error:", error);
-      return { success: false, error: error.message };
-    }
-  } else {
+  if (!vst3HostInstance) {
     return { success: false, error: "Native VST3 host not available" };
+  }
+  try {
+    console.log("🎵 Loading VST3 plugin:", pluginPath);
+    const loadResult = vst3HostInstance.loadPlugin(pluginPath);
+    if (loadResult) {
+      const pluginInfo = vst3HostInstance.getPluginInfo();
+      const pluginName = pluginPath.split(/[\\\/]/).pop().replace(".vst3", "");
+      const result = {
+        success: true,
+        pluginId: pluginName,
+        // Use plugin name as ID for simplicity
+        name: pluginName,
+        vendor: "VST3 Plugin",
+        version: "1.0.0",
+        category: "Effect/Instrument",
+        path: pluginPath,
+        hasUI: pluginInfo.hasEditor || false,
+        isLoaded: pluginInfo.loaded || false
+      };
+      console.log("✅ Plugin loaded successfully:", result);
+      return result;
+    } else {
+      return { success: false, error: "Failed to load VST3 plugin" };
+    }
+  } catch (error) {
+    console.error("❌ VST3 plugin load error:", error);
+    return { success: false, error: error.message };
   }
 });
 require$$0.ipcMain.handle("vst3-native-unload-plugin", async (event, pluginId) => {
@@ -10822,27 +10826,25 @@ require$$0.ipcMain.handle("vst3-native-get-plugins", async (event) => {
   }
 });
 require$$0.ipcMain.handle("vst3-native-show-ui", async (event, pluginId, parentWindowId) => {
-  if (vst3HostInstance) {
-    try {
-      let parentWindow = null;
-      if (parentWindowId) {
-        const window2 = require$$0.BrowserWindow.fromId(parentWindowId);
-        if (window2) {
-          parentWindow = window2.getNativeWindowHandle();
-        }
-      }
-      if (vst3HostInstance.showPluginUI) {
-        const result = vst3HostInstance.showPluginUI(pluginId, parentWindow);
-        return result;
-      } else {
-        return { success: false, error: "showPluginUI method not available" };
-      }
-    } catch (error) {
-      console.error("Native VST3 show UI error:", error);
-      return { success: false, error: error.message };
-    }
-  } else {
+  if (!vst3HostInstance) {
     return { success: false, error: "Native VST3 host not available" };
+  }
+  try {
+    console.log("🖥️ Opening VST3 plugin editor for:", pluginId);
+    const editorResult = vst3HostInstance.openEditor();
+    if (editorResult) {
+      console.log("✅ VST3 plugin editor opened successfully");
+      return {
+        success: true,
+        message: "Plugin editor opened",
+        pluginId
+      };
+    } else {
+      return { success: false, error: "Failed to open plugin editor" };
+    }
+  } catch (error) {
+    console.error("❌ VST3 show UI error:", error);
+    return { success: false, error: error.message };
   }
 });
 require$$0.ipcMain.handle("vst3-native-hide-ui", async (event, pluginId) => {
@@ -10850,9 +10852,16 @@ require$$0.ipcMain.handle("vst3-native-hide-ui", async (event, pluginId) => {
     return { success: false, error: "Native VST3 host not available" };
   }
   try {
-    return { success: true, message: "Plugin UI hiding not implemented in clean VST3 host" };
+    console.log("🔒 Closing VST3 plugin editor for:", pluginId);
+    vst3HostInstance.closeEditor();
+    console.log("✅ VST3 plugin editor closed successfully");
+    return {
+      success: true,
+      message: "Plugin editor closed",
+      pluginId
+    };
   } catch (error) {
-    console.error("Native VST3 hide UI error:", error);
+    console.error("❌ VST3 hide UI error:", error);
     return { success: false, error: error.message };
   }
 });
@@ -10896,23 +10905,31 @@ require$$0.ipcMain.handle("vst3-native-check-availability", async (event) => {
   };
 });
 require$$0.ipcMain.handle("vst3-initialize-audio", async (event, audioConfig) => {
+  if (!vst3HostInstance) {
+    return { success: false, error: "Native VST3 host not available" };
+  }
   try {
-    if (!vst3HostInstance) {
-      return { success: false, error: "VST3 host not initialized" };
-    }
-    console.log("🎧 Initializing VST3 audio host with configuration:", audioConfig);
-    const result = vst3HostInstance.initializeAudio(audioConfig);
-    if (result.success) {
-      console.log("✅ VST3 audio host initialized successfully");
+    console.log("🔊 Initializing VST3 audio with config:", audioConfig);
+    const initResult = vst3HostInstance.initializeAudio();
+    if (initResult) {
+      audioInitialized = true;
+      console.log("✅ VST3 audio initialized successfully");
       return {
         success: true,
-        message: "Audio host initialized",
-        sampleRate: result.sampleRate,
-        blockSize: result.blockSize
+        message: "Audio initialized successfully",
+        sampleRate: audioConfig.sampleRate || 44100,
+        blockSize: audioConfig.bufferSize || 256,
+        audioConfig: {
+          sampleRate: audioConfig.sampleRate || 44100,
+          bufferSize: audioConfig.bufferSize || 256,
+          inputChannels: audioConfig.inputChannels || 2,
+          outputChannels: audioConfig.outputChannels || 2,
+          inputDevice: audioConfig.inputDevice || "default",
+          outputDevice: audioConfig.outputDevice || "default"
+        }
       };
     } else {
-      console.error("❌ Failed to initialize VST3 audio host:", result.error);
-      return { success: false, error: result.error || "Unknown initialization error" };
+      return { success: false, error: "Failed to initialize VST3 audio" };
     }
   } catch (error) {
     console.error("❌ VST3 audio initialization error:", error);
@@ -11308,9 +11325,9 @@ require$$0.app.whenReady().then(async () => {
       }
     }
   }
-  if (VST3Host && !vst3HostInstance) {
+  if (SimpleVST3Host && !vst3HostInstance) {
     try {
-      vst3HostInstance = new VST3Host();
+      vst3HostInstance = new SimpleVST3Host();
       console.log("🎹 VST3 Host initialized successfully");
     } catch (error) {
       console.error("Failed to initialize VST3 Host:", error);

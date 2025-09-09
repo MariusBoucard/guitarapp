@@ -29,7 +29,7 @@
               "ExceptionHandling": 1,
               "RuntimeTypeInfo": "true",
               "RuntimeLibrary": 2,
-              "AdditionalOptions": ["/std:c++17"]
+              "AdditionalOptions": ["/std:c++20"]
             }
           }
         }]

@@ -48,8 +48,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\include\node;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\src;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\config;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\openssl\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\uv\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\zlib;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/Zc:__cplusplus -std:c++17 /std:c++17 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\Users\Marius\.electron-gyp\37.3.1\include\node;C:\Users\Marius\.electron-gyp\37.3.1\src;C:\Users\Marius\.electron-gyp\37.3.1\deps\openssl\config;C:\Users\Marius\.electron-gyp\37.3.1\deps\openssl\openssl\include;C:\Users\Marius\.electron-gyp\37.3.1\deps\uv\include;C:\Users\Marius\.electron-gyp\37.3.1\deps\zlib;C:\Users\Marius\.electron-gyp\37.3.1\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus -std:c++20 /Zm2000 /std:c++20 %(AdditionalOptions)</AdditionalOptions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -60,7 +60,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NOMINMAX;WIN32_LEAN_AND_MEAN;UNICODE;_UNICODE;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;_FILE_OFFSET_BITS=64;ELECTRON_ENSURE_CONFIG_GYPI;USING_ELECTRON_CONFIG_GYPI;V8_COMPRESS_POINTERS;V8_COMPRESS_POINTERS_IN_SHARED_CAGE;V8_31BIT_SMIS_ON_64BIT_ARCH;V8_ENABLE_SANDBOX;V8_EXTERNAL_CODE_SPACE;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;NOMINMAX;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;OPENSSL_NO_ASM;WIN32_LEAN_AND_MEAN;UNICODE;_UNICODE;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <StringPooling>true</StringPooling>
@@ -73,7 +73,7 @@
       <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <Link>
-      <AdditionalDependencies>winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\Marius\\AppData\\Local\\node-gyp\\Cache\\20.19.2\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib;uuid.lib;user32.lib;kernel32.lib;gdi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\Marius\\.electron-gyp\\37.3.1\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib;uuid.lib;user32.lib;kernel32.lib;gdi32.lib</AdditionalDependencies>
       <AdditionalOptions>/LTCG:INCREMENTAL /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
       <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -85,14 +85,14 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\include\node;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\src;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\config;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\openssl\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\uv\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\zlib;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NOMINMAX;WIN32_LEAN_AND_MEAN;UNICODE;_UNICODE;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Marius\.electron-gyp\37.3.1\include\node;C:\Users\Marius\.electron-gyp\37.3.1\src;C:\Users\Marius\.electron-gyp\37.3.1\deps\openssl\config;C:\Users\Marius\.electron-gyp\37.3.1\deps\openssl\openssl\include;C:\Users\Marius\.electron-gyp\37.3.1\deps\uv\include;C:\Users\Marius\.electron-gyp\37.3.1\deps\zlib;C:\Users\Marius\.electron-gyp\37.3.1\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;_FILE_OFFSET_BITS=64;ELECTRON_ENSURE_CONFIG_GYPI;USING_ELECTRON_CONFIG_GYPI;V8_COMPRESS_POINTERS;V8_COMPRESS_POINTERS_IN_SHARED_CAGE;V8_31BIT_SMIS_ON_64BIT_ARCH;V8_ENABLE_SANDBOX;V8_EXTERNAL_CODE_SPACE;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;NOMINMAX;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;OPENSSL_NO_ASM;WIN32_LEAN_AND_MEAN;UNICODE;_UNICODE;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\include\node;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\src;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\config;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\openssl\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\uv\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\zlib;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/Zc:__cplusplus -std:c++17 /std:c++17 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\Users\Marius\.electron-gyp\37.3.1\include\node;C:\Users\Marius\.electron-gyp\37.3.1\src;C:\Users\Marius\.electron-gyp\37.3.1\deps\openssl\config;C:\Users\Marius\.electron-gyp\37.3.1\deps\openssl\openssl\include;C:\Users\Marius\.electron-gyp\37.3.1\deps\uv\include;C:\Users\Marius\.electron-gyp\37.3.1\deps\zlib;C:\Users\Marius\.electron-gyp\37.3.1\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus -std:c++20 /Zm2000 /std:c++20 %(AdditionalOptions)</AdditionalOptions>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <DisableSpecificWarnings>4351;4355;4800;4251;4275;4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -105,7 +105,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NOMINMAX;WIN32_LEAN_AND_MEAN;UNICODE;_UNICODE;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;_FILE_OFFSET_BITS=64;ELECTRON_ENSURE_CONFIG_GYPI;USING_ELECTRON_CONFIG_GYPI;V8_COMPRESS_POINTERS;V8_COMPRESS_POINTERS_IN_SHARED_CAGE;V8_31BIT_SMIS_ON_64BIT_ARCH;V8_ENABLE_SANDBOX;V8_EXTERNAL_CODE_SPACE;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;NOMINMAX;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;OPENSSL_NO_ASM;WIN32_LEAN_AND_MEAN;UNICODE;_UNICODE;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <StringPooling>true</StringPooling>
@@ -118,7 +118,7 @@
       <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <Link>
-      <AdditionalDependencies>winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\Marius\\AppData\\Local\\node-gyp\\Cache\\20.19.2\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib;uuid.lib;user32.lib;kernel32.lib;gdi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\Marius\\.electron-gyp\\37.3.1\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib;uuid.lib;user32.lib;kernel32.lib;gdi32.lib</AdditionalDependencies>
       <AdditionalOptions>/LTCG:INCREMENTAL /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
       <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -130,8 +130,8 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\include\node;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\src;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\config;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\openssl\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\uv\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\zlib;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NOMINMAX;WIN32_LEAN_AND_MEAN;UNICODE;_UNICODE;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Marius\.electron-gyp\37.3.1\include\node;C:\Users\Marius\.electron-gyp\37.3.1\src;C:\Users\Marius\.electron-gyp\37.3.1\deps\openssl\config;C:\Users\Marius\.electron-gyp\37.3.1\deps\openssl\openssl\include;C:\Users\Marius\.electron-gyp\37.3.1\deps\uv\include;C:\Users\Marius\.electron-gyp\37.3.1\deps\zlib;C:\Users\Marius\.electron-gyp\37.3.1\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;_FILE_OFFSET_BITS=64;ELECTRON_ENSURE_CONFIG_GYPI;USING_ELECTRON_CONFIG_GYPI;V8_COMPRESS_POINTERS;V8_COMPRESS_POINTERS_IN_SHARED_CAGE;V8_31BIT_SMIS_ON_64BIT_ARCH;V8_ENABLE_SANDBOX;V8_EXTERNAL_CODE_SPACE;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;NOMINMAX;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;OPENSSL_NO_ASM;WIN32_LEAN_AND_MEAN;UNICODE;_UNICODE;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
