@@ -363,22 +363,68 @@ export default {
     // Load VST3 Plugin
     const loadVST3Plugin = async (pluginPath) => {
       try {
-        // In a real implementation, this would interface with a VST3 host
-        // For now, we'll simulate plugin loading
         console.log('Loading VST3 plugin from:', pluginPath)
         
-        // Simulate plugin info
-        const pluginFileName = pluginPath.split(/[\\\/]/).pop().replace('.vst3', '')
-        currentPlugin.value = {
-          name: pluginFileName,
-          version: '1.0.0',
-          vendor: 'VST3 Plugin',
-          category: 'Effect/Instrument',
-          path: pluginPath,
-          hasUI: true
+        // Check if native VST3 host is available
+        if (window.electronAPI?.vst3Native?.loadPlugin) {
+          // Use native VST3 host
+          const result = await window.electronAPI.vst3Native.loadPlugin(pluginPath)
+          
+          if (result.success) {
+            console.log('Native VST3 plugin loaded successfully:', result.pluginId)
+            
+            // Store plugin with native ID for UI operations
+            const pluginFileName = pluginPath.split(/[\\\/]/).pop().replace('.vst3', '')
+            currentPlugin.value = {
+              name: pluginFileName,
+              version: '1.0.0',
+              vendor: 'VST3 Plugin',
+              category: 'Effect/Instrument',
+              path: pluginPath,
+              pluginId: result.pluginId, // Store the native plugin ID
+              hasUI: true,
+              isNative: true // Flag to indicate this is using native host
+            }
+            
+            // Get plugin parameters from native host if available
+            if (window.electronAPI?.vst3Native?.getPlugins) {
+              try {
+                const pluginsResult = await window.electronAPI.vst3Native.getPlugins()
+                console.log('Plugins result:', pluginsResult)
+                
+                if (pluginsResult.success && Array.isArray(pluginsResult.plugins)) {
+                  const loadedPlugin = pluginsResult.plugins.find(p => p.id === result.pluginId)
+                  if (loadedPlugin) {
+                    currentPlugin.value.name = loadedPlugin.name || currentPlugin.value.name
+                    console.log('Updated plugin name from native host:', loadedPlugin.name)
+                  }
+                }
+              } catch (error) {
+                console.warn('Failed to get plugin info:', error)
+                // Continue without plugin info - not critical
+              }
+            }
+            
+          } else {
+            throw new Error(result.error || 'Failed to load plugin with native host')
+          }
+        } else {
+          // Fallback to simulated plugin loading
+          console.log('Native VST3 host not available, using simulation')
+          
+          const pluginFileName = pluginPath.split(/[\\\/]/).pop().replace('.vst3', '')
+          currentPlugin.value = {
+            name: pluginFileName,
+            version: '1.0.0',
+            vendor: 'VST3 Plugin',
+            category: 'Effect/Instrument',
+            path: pluginPath,
+            hasUI: true,
+            isNative: false // Flag to indicate this is simulated
+          }
         }
         
-        // Simulate parameters
+        // Simulate parameters for both native and simulated
         pluginParameters.value = [
           {
             id: 0,
@@ -426,9 +472,24 @@ export default {
     }
 
     // Unload plugin
-    const unloadPlugin = () => {
+    const unloadPlugin = async () => {
       if (isProcessing.value) {
         stopProcessing()
+      }
+      
+      // If it's a native plugin, unload it from native host
+      if (currentPlugin.value?.isNative && currentPlugin.value.pluginId && window.electronAPI?.vst3Native?.unloadPlugin) {
+        try {
+          console.log('Unloading native plugin:', currentPlugin.value.pluginId)
+          const result = await window.electronAPI.vst3Native.unloadPlugin(currentPlugin.value.pluginId)
+          if (result.success) {
+            console.log('Native plugin unloaded successfully')
+          } else {
+            console.error('Failed to unload native plugin:', result.error)
+          }
+        } catch (error) {
+          console.error('Error unloading native plugin:', error)
+        }
       }
       
       currentPlugin.value = null
@@ -594,22 +655,39 @@ export default {
       if (currentPlugin.value?.hasUI) {
         console.log('Showing native plugin UI for:', currentPlugin.value.name)
         
-        if (!window.electronAPI?.showVst3PluginUI) {
-          errorMessage.value = 'Native plugin UI requires Electron environment'
-          return
-        }
-        
         try {
-          const result = await window.electronAPI.showVst3PluginUI({
-            pluginPath: currentPlugin.value.path,
-            pluginName: currentPlugin.value.name
-          })
-          
-          if (result.success) {
-            console.log('Plugin UI window opened:', result.message)
-            // Optionally show a notification or update UI state
+          // Check if we have a native plugin with ID
+          if (currentPlugin.value.isNative && currentPlugin.value.pluginId && window.electronAPI?.vst3Native?.showUI) {
+            console.log('Using native VST3 UI for plugin ID:', currentPlugin.value.pluginId)
+            
+            const result = await window.electronAPI.vst3Native.showUI(currentPlugin.value.pluginId)
+            
+            if (result.success) {
+              console.log('Native plugin UI shown successfully:', result.message || 'UI opened')
+              // Show success message if available
+              if (result.message) {
+                // You could show a toast or notification here
+                console.log('Native UI message:', result.message)
+              }
+            } else {
+              errorMessage.value = result.error || 'Failed to show native plugin UI'
+            }
+          } else if (window.electronAPI?.showVst3PluginUI) {
+            // Fallback to mock UI window
+            console.log('Using mock VST3 UI window')
+            
+            const result = await window.electronAPI.showVst3PluginUI({
+              pluginPath: currentPlugin.value.path,
+              pluginName: currentPlugin.value.name
+            })
+            
+            if (result.success) {
+              console.log('Plugin UI window opened:', result.message)
+            } else {
+              errorMessage.value = result.message
+            }
           } else {
-            errorMessage.value = result.message
+            errorMessage.value = 'Native plugin UI requires Electron environment'
           }
         } catch (error) {
           console.error('Failed to show plugin UI:', error)

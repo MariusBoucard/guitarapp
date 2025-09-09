@@ -16,8 +16,13 @@
     "electron:build:win": "vite build && electron-builder --win",
     "electron:build:mac": "vite build && electron-builder --mac",
     "electron:build:linux": "vite build && electron-builder --linux",
-    "postinstall": "electron-builder install-app-deps",
-    "postuninstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps && npm run vst3:install",
+    "postuninstall": "electron-builder install-app-deps",
+    "vst3:install": "cd native/vst3-host && npm install",
+    "vst3:build": "cd native/vst3-host && npm run build",
+    "vst3:build-debug": "cd native/vst3-host && npm run build-debug",
+    "vst3:clean": "cd native/vst3-host && npm run clean",
+    "vst3:rebuild": "npm run vst3:clean && npm run vst3:build"
   },
   "main": "dist-electron/background.js",
   "dependencies": {

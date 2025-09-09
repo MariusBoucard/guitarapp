@@ -7,6 +7,11 @@ node_modules
 .env.local
 .env.*.local
 
+third_party
+font
+release
+dist-electron
+
 # Log files
 npm-debug.log*
 yarn-debug.log*
