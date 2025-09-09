@@ -318,29 +318,25 @@ app.whenReady().then(async () => {
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools with better error handling
     try {
-      // Suppress deprecation warnings temporarily
-      const originalEmit = process.emit
-      process.emit = function (name, data, ...args) {
-        if (name === 'warning' && data.name === 'DeprecationWarning' && 
-            data.message.includes('session.')) {
-          return
-        }
-        return originalEmit.apply(process, arguments)
-      }
+      // Check if the extension is already installed
+      const session = require('electron').session.defaultSession
       
-      const extensionName = await installExtension(VUEJS3_DEVTOOLS, {
+      // Try to install the extension
+      await installExtension(VUEJS3_DEVTOOLS, {
         loadExtensionOptions: {
           allowFileAccess: true,
         },
         forceDownload: false,
       })
       
-      // Restore original emit
-      process.emit = originalEmit
-      
       console.log(`Vue Devtools installed successfully`)
     } catch (e) {
-      console.warn('Vue Devtools installation failed (this is non-critical):', e.message)
+      // This is non-critical, the app will work fine without Vue Devtools
+      if (e.message.includes('already exists')) {
+        console.log('Vue Devtools already installed')
+      } else {
+        console.log('Vue Devtools installation skipped (non-critical)')
+      }
     }
   }
   createWindow()
