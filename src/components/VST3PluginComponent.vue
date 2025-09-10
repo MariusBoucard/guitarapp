@@ -5,23 +5,45 @@
       <p class="vst3-subtitle">Load and control VST3 audio plugins</p>
     </div>
 
-    <!-- Audio Configuration Section -->
-    <div class="vst3-section">
-      <h3>🔊 Audio Configuration</h3>
-      <div class="audio-config" :class="{ 'config-complete': isAudioInitialized }">
-        <div class="audio-status">
-          <div class="status-indicator" :class="{ active: isAudioInitialized }">
-            <span class="status-icon">{{ isAudioInitialized ? '✅' : '⚠️' }}</span>
-            <span class="status-text">
-              {{ isAudioInitialized ? 'Audio System Ready' : 'Audio System Not Initialized' }}
-            </span>
-          </div>
-          <p class="status-description">
-            {{ isAudioInitialized 
-              ? 'VST3 plugins can now be loaded with proper audio configuration' 
-              : 'Configure and initialize audio settings before loading plugins for optimal performance' }}
-          </p>
-        </div>
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button 
+        @click="activeTab = 'native'" 
+        :class="{ active: activeTab === 'native' }"
+        class="tab-button"
+      >
+        🔧 Native Host
+      </button>
+      <button 
+        @click="activeTab = 'editorhost'" 
+        :class="{ active: activeTab === 'editorhost' }"
+        class="tab-button"
+      >
+        🎛️ EditorHost Bridge
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- Native VST3 Host Tab -->
+      <div v-show="activeTab === 'native'" class="tab-panel">
+        <!-- Audio Configuration Section -->
+        <div class="vst3-section">
+          <h3>🔊 Audio Configuration</h3>
+          <div class="audio-config" :class="{ 'config-complete': isAudioInitialized }">
+            <div class="audio-status">
+              <div class="status-indicator" :class="{ active: isAudioInitialized }">
+                <span class="status-icon">{{ isAudioInitialized ? '✅' : '⚠️' }}</span>
+                <span class="status-text">
+                  {{ isAudioInitialized ? 'Audio System Ready' : 'Audio System Not Initialized' }}
+                </span>
+              </div>
+              <p class="status-description">
+                {{ isAudioInitialized 
+                  ? 'VST3 plugins can now be loaded with proper audio configuration' 
+                  : 'Configure and initialize audio settings before loading plugins for optimal performance' }}
+              </p>
+            </div>
 
         <!-- Audio Configuration Grid -->
         <div class="audio-config-grid">
@@ -405,16 +427,29 @@
           </div>
         </div>
       </div>
-    </div>
+      </div> <!-- End Native Tab Panel -->
+
+      <!-- EditorHost Bridge Tab -->
+      <div v-show="activeTab === 'editorhost'" class="tab-panel">
+        <EditorHostBridgeComponent />
+      </div>
+    </div> <!-- End Tab Content -->
   </div>
 </template>
 
 <script>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import EditorHostBridgeComponent from './EditorHostBridgeComponent.vue'
 
 export default {
   name: 'VST3PluginComponent',
+  components: {
+    EditorHostBridgeComponent
+  },
   setup() {
+    // Tab state
+    const activeTab = ref('native')
+    
     // Reactive state
     const currentPlugin = ref(null)
     const isLoading = ref(false)
@@ -1027,6 +1062,9 @@ export default {
     })
 
     return {
+      // Tab state
+      activeTab,
+      
       // State
       currentPlugin,
       isLoading,
@@ -1117,6 +1155,64 @@ export default {
   margin: 0;
   opacity: 0.8;
   font-size: 1.1rem;
+}
+
+/* Tab Navigation Styles */
+.tab-navigation {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px;
+  margin-bottom: 25px;
+  gap: 8px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tab-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+}
+
+.tab-content {
+  min-height: 600px;
+}
+
+.tab-panel {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .vst3-section {

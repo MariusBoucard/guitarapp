@@ -3,7 +3,8 @@
     {
       "target_name": "vst3_host",
       "sources": [
-        "src/vst3_host_with_bridge.cpp",        
+        "src/vst3_host_with_framework.cpp",
+        
         # VST3 SDK hosting framework sources
         "../../third_party/VST_SDK/vst3sdk/public.sdk/source/vst/hosting/module.cpp",
         "../../third_party/VST_SDK/vst3sdk/public.sdk/source/vst/hosting/module_win32.cpp",
@@ -45,30 +46,6 @@
         "SMTG_CPP17_AVAILABLE=1",
         "SMTG_CPP20_AVAILABLE=1"
       ],
-      "configurations": {
-        "Debug": {
-          "defines": [
-            "DEVELOPMENT=1",
-            "_DEBUG=1"
-          ],
-          "msvs_settings": {
-            "VCCLCompilerTool": {
-              "RuntimeLibrary": 3  # /MDd
-            }
-          }
-        },
-        "Release": {
-          "defines": [
-            "RELEASE=1",
-            "NDEBUG=1"
-          ],
-          "msvs_settings": {
-            "VCCLCompilerTool": {
-              "RuntimeLibrary": 2  # /MD
-            }
-          }
-        }
-      },
       "cflags_cc": [
         "/std:c++20",
         "/EHsc"
@@ -76,6 +53,7 @@
       "msvs_settings": {
         "VCCLCompilerTool": {
           "ExceptionHandling": 1,
+          "RuntimeLibrary": 2,
           "AdditionalOptions": [
             "/std:c++20"
           ]

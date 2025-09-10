@@ -28,5 +28,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
     stopProcessing: () => ipcRenderer.invoke('vst3-native-stop-processing'),
     getAudioDevices: () => ipcRenderer.invoke('vst3-native-get-audio-devices'),
     initializeAudio: (audioConfig) => ipcRenderer.invoke('vst3-initialize-audio', audioConfig)
+  },
+
+  // EditorHost Bridge APIs
+  editorHost: {
+    checkAvailability: () => ipcRenderer.invoke('editor-host-check-availability'),
+    setPath: (hostPath) => ipcRenderer.invoke('editor-host-set-path', hostPath),
+    launch: () => ipcRenderer.invoke('editor-host-launch'),
+    loadPlugin: (pluginPath) => ipcRenderer.invoke('editor-host-load-plugin', pluginPath),
+    embedWindow: (parentWindowHandle) => ipcRenderer.invoke('editor-host-embed-window', parentWindowHandle),
+    detachWindow: () => ipcRenderer.invoke('editor-host-detach-window'),
+    close: () => ipcRenderer.invoke('editor-host-close'),
+    isRunning: () => ipcRenderer.invoke('editor-host-is-running'),
+    getWindowInfo: () => ipcRenderer.invoke('editor-host-get-window-info'),
+    getBrowserWindowHandle: () => ipcRenderer.invoke('get-browser-window-handle')
   }
 });

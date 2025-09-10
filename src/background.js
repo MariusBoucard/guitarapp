@@ -35,7 +35,9 @@ const __dirname = dirname(__filename)
 
 // VST3 Host Integration
 let VST3HostWrapper = null
+let EditorHostBridgeWrapper = null
 let vst3HostInstance = null
+let editorHostBridgeInstance = null
 let audioInitialized = false
 
 // Try to load the VST3 host wrapper module
@@ -67,9 +69,24 @@ try {
   
   if (vst3HostModule && vst3HostModule.VST3HostWrapper) {
     VST3HostWrapper = vst3HostModule.VST3HostWrapper
+    EditorHostBridgeWrapper = vst3HostModule.EditorHostBridgeWrapper
+    
     vst3HostInstance = new VST3HostWrapper()
     console.log('✅ Native VST3 host wrapper loaded successfully')
     console.log('🎹 VST3 Host initialized successfully')
+    
+    // Initialize EditorHostBridge if available
+    if (EditorHostBridgeWrapper) {
+      editorHostBridgeInstance = new EditorHostBridgeWrapper()
+      console.log('✅ EditorHostBridge initialized successfully')
+      
+      // Set the default EditorHost path to the VST3PluginTestHost
+      const defaultEditorHostPath = join(__dirname, '../third_party/VST_SDK/vst3sdk/bin/Windows_x64/VST3PluginTestHost_x64_Installer_3.10.0.zip')
+      // Note: This path points to the installer. We'll need to extract or use the actual executable
+      console.log('📂 Default EditorHost path:', defaultEditorHostPath)
+    } else {
+      console.log('⚠️ EditorHostBridge not available')
+    }
   } else {
     throw new Error('Could not find VST3HostWrapper in any expected location')
   }
@@ -830,6 +847,162 @@ ipcMain.handle('close-vst3-plugin-ui', async (event, pluginPath) => {
     return { success: true, message: 'Plugin UI window closed' }
   }
   return { success: false, message: 'Plugin UI window not found' }
+})
+
+// ===========================================
+// EditorHost Bridge IPC Handlers
+// ===========================================
+
+ipcMain.handle('editor-host-set-path', async (event, hostPath) => {
+  try {
+    if (!editorHostBridgeInstance) {
+      return { success: false, error: 'EditorHostBridge not available' }
+    }
+    
+    console.log('🔧 Setting EditorHost path:', hostPath)
+    const result = editorHostBridgeInstance.setEditorHostPath(hostPath)
+    
+    return result
+  } catch (error) {
+    console.error('EditorHost set path error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('editor-host-launch', async (event) => {
+  try {
+    if (!editorHostBridgeInstance) {
+      return { success: false, error: 'EditorHostBridge not available' }
+    }
+    
+    console.log('🚀 Launching EditorHost...')
+    const result = await editorHostBridgeInstance.launchEditorHost()
+    
+    return result
+  } catch (error) {
+    console.error('EditorHost launch error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('editor-host-load-plugin', async (event, pluginPath) => {
+  try {
+    if (!editorHostBridgeInstance) {
+      return { success: false, error: 'EditorHostBridge not available' }
+    }
+    
+    console.log('🔌 Loading plugin in EditorHost:', pluginPath)
+    const result = await editorHostBridgeInstance.loadPlugin(pluginPath)
+    
+    return result
+  } catch (error) {
+    console.error('EditorHost load plugin error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('editor-host-embed-window', async (event, parentWindowHandle) => {
+  try {
+    if (!editorHostBridgeInstance) {
+      return { success: false, error: 'EditorHostBridge not available' }
+    }
+    
+    console.log('🔗 Embedding EditorHost window with parent handle:', parentWindowHandle)
+    const result = await editorHostBridgeInstance.embedWindow(parentWindowHandle)
+    
+    return result
+  } catch (error) {
+    console.error('EditorHost embed window error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('editor-host-detach-window', async (event) => {
+  try {
+    if (!editorHostBridgeInstance) {
+      return { success: false, error: 'EditorHostBridge not available' }
+    }
+    
+    console.log('🔓 Detaching EditorHost window...')
+    const result = await editorHostBridgeInstance.detachWindow()
+    
+    return result
+  } catch (error) {
+    console.error('EditorHost detach window error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('editor-host-close', async (event) => {
+  try {
+    if (!editorHostBridgeInstance) {
+      return { success: false, error: 'EditorHostBridge not available' }
+    }
+    
+    console.log('🛑 Closing EditorHost...')
+    const result = await editorHostBridgeInstance.closeEditorHost()
+    
+    return result
+  } catch (error) {
+    console.error('EditorHost close error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('editor-host-is-running', async (event) => {
+  try {
+    if (!editorHostBridgeInstance) {
+      return false
+    }
+    
+    return editorHostBridgeInstance.isRunning()
+  } catch (error) {
+    console.error('EditorHost is running check error:', error)
+    return false
+  }
+})
+
+ipcMain.handle('editor-host-get-window-info', async (event) => {
+  try {
+    if (!editorHostBridgeInstance) {
+      return { isRunning: false, isEmbedded: false }
+    }
+    
+    return editorHostBridgeInstance.getWindowInfo()
+  } catch (error) {
+    console.error('EditorHost get window info error:', error)
+    return { isRunning: false, isEmbedded: false }
+  }
+})
+
+ipcMain.handle('editor-host-check-availability', async (event) => {
+  try {
+    return {
+      available: editorHostBridgeInstance !== null,
+      isRunning: editorHostBridgeInstance ? editorHostBridgeInstance.isRunning() : false
+    }
+  } catch (error) {
+    console.error('EditorHost availability check error:', error)
+    return { available: false, isRunning: false }
+  }
+})
+
+// Get browser window handle for embedding
+ipcMain.handle('get-browser-window-handle', async (event) => {
+  try {
+    const focusedWindow = BrowserWindow.getFocusedWindow()
+    if (focusedWindow) {
+      const handle = focusedWindow.getNativeWindowHandle()
+      // Convert Buffer to number for Windows HWND
+      const hwnd = handle.readUIntLE(0, handle.length)
+      console.log('🎯 Browser window handle:', hwnd.toString(16))
+      return { success: true, handle: hwnd }
+    }
+    return { success: false, error: 'No focused window found' }
+  } catch (error) {
+    console.error('Get browser window handle error:', error)
+    return { success: false, error: error.message }
+  }
 })
 
 ipcMain.handle('scan-video-directory', async (event, directoryPath) => {

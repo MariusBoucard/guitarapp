@@ -2,12 +2,211 @@ const EventEmitter = require('events');
 
 // Try to load the native module
 let NativeVST3Host = null;
+let NativeEditorHostBridge = null;
+
 try {
     const nativeModule = require('./build/Release/vst3_host.node');
     NativeVST3Host = nativeModule.VST3Host || nativeModule.SimpleVST3Host;
+    NativeEditorHostBridge = nativeModule.EditorHostBridge;
     console.log('✅ Native VST3 module loaded successfully');
+    if (NativeEditorHostBridge) {
+        console.log('✅ EditorHostBridge available');
+    }
 } catch (error) {
     console.error('❌ Failed to load native VST3 module:', error.message);
+}
+
+/**
+ * EditorHost Bridge wrapper for external VST3 plugin host integration
+ */
+class EditorHostBridgeWrapper extends EventEmitter {
+    constructor() {
+        super();
+        this.bridge = null;
+        this.isInitialized = false;
+        this.currentEditorHostPath = null;
+        
+        if (NativeEditorHostBridge) {
+            try {
+                this.bridge = new NativeEditorHostBridge();
+                this.isInitialized = true;
+                console.log('✅ EditorHostBridge wrapper created');
+            } catch (error) {
+                console.error('❌ Failed to create EditorHostBridge instance:', error);
+            }
+        } else {
+            console.log('⚠️ EditorHostBridge not available');
+        }
+    }
+
+    /**
+     * Set the path to the editorHost executable
+     */
+    setEditorHostPath(hostPath) {
+        if (!this.bridge) {
+            return { success: false, error: 'EditorHostBridge not available' };
+        }
+
+        try {
+            const success = this.bridge.setEditorHostPath(hostPath);
+            if (success) {
+                this.currentEditorHostPath = hostPath;
+                console.log('📂 EditorHost path set:', hostPath);
+            }
+            return { success };
+        } catch (error) {
+            console.error('❌ Failed to set EditorHost path:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Launch the editorHost process
+     */
+    async launchEditorHost() {
+        if (!this.bridge) {
+            return { success: false, error: 'EditorHostBridge not available' };
+        }
+
+        try {
+            const success = this.bridge.launchEditorHost();
+            if (success) {
+                console.log('🚀 EditorHost launched successfully');
+                this.emit('editorHostLaunched');
+            }
+            return { success };
+        } catch (error) {
+            console.error('❌ Failed to launch EditorHost:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Load a plugin in the editorHost
+     */
+    async loadPlugin(pluginPath) {
+        if (!this.bridge) {
+            return { success: false, error: 'EditorHostBridge not available' };
+        }
+
+        try {
+            const success = this.bridge.loadPlugin(pluginPath);
+            if (success) {
+                console.log('🔌 Plugin load command sent:', pluginPath);
+                this.emit('pluginLoadRequested', pluginPath);
+            }
+            return { success, pluginPath };
+        } catch (error) {
+            console.error('❌ Failed to load plugin:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Embed the editorHost window into a parent window
+     */
+    async embedWindow(parentWindowHandle) {
+        if (!this.bridge) {
+            return { success: false, error: 'EditorHostBridge not available' };
+        }
+
+        try {
+            // Set parent window first
+            this.bridge.setParentWindow(parentWindowHandle);
+            
+            // Then embed
+            const success = this.bridge.embedWindow();
+            if (success) {
+                console.log('🔗 EditorHost window embedded successfully');
+                this.emit('windowEmbedded');
+            }
+            return { success };
+        } catch (error) {
+            console.error('❌ Failed to embed window:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Detach the embedded window
+     */
+    async detachWindow() {
+        if (!this.bridge) {
+            return { success: false, error: 'EditorHostBridge not available' };
+        }
+
+        try {
+            const success = this.bridge.detachWindow();
+            if (success) {
+                console.log('🔓 EditorHost window detached successfully');
+                this.emit('windowDetached');
+            }
+            return { success };
+        } catch (error) {
+            console.error('❌ Failed to detach window:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Close the editorHost process
+     */
+    async closeEditorHost() {
+        if (!this.bridge) {
+            return { success: false, error: 'EditorHostBridge not available' };
+        }
+
+        try {
+            const success = this.bridge.closeEditorHost();
+            if (success) {
+                console.log('🛑 EditorHost closed successfully');
+                this.emit('editorHostClosed');
+            }
+            return { success };
+        } catch (error) {
+            console.error('❌ Failed to close EditorHost:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Check if editorHost is running
+     */
+    isRunning() {
+        if (!this.bridge) return false;
+        
+        try {
+            return this.bridge.isEditorHostRunning();
+        } catch (error) {
+            console.error('❌ Failed to check EditorHost status:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Get window information
+     */
+    getWindowInfo() {
+        if (!this.bridge) {
+            return { isRunning: false, isEmbedded: false };
+        }
+
+        try {
+            return this.bridge.getWindowInfo();
+        } catch (error) {
+            console.error('❌ Failed to get window info:', error);
+            return { isRunning: false, isEmbedded: false };
+        }
+    }
+
+    /**
+     * Cleanup resources
+     */
+    cleanup() {
+        if (this.isRunning()) {
+            this.closeEditorHost();
+        }
+    }
 }
 
 /**
@@ -250,7 +449,10 @@ class VST3HostWrapper extends EventEmitter {
 // Backward compatibility exports
 module.exports = {
     VST3HostWrapper,
+    EditorHostBridgeWrapper,
     VST3Host: VST3HostWrapper, // Alias for compatibility
     SimpleVST3Host: VST3HostWrapper, // Alias for compatibility
-    isNativeSupported: () => NativeVST3Host !== null
+    EditorHostBridge: EditorHostBridgeWrapper, // Alias for compatibility
+    isNativeSupported: () => NativeVST3Host !== null,
+    isEditorHostBridgeSupported: () => NativeEditorHostBridge !== null
 };

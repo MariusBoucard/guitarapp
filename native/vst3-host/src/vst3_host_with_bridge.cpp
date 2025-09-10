@@ -1,11 +1,15 @@
 #include <nan.h>
 #include <windows.h>
+#include <tlhelp32.h>
+#include <psapi.h>
 #include <combaseapi.h>
 #include <objbase.h>
 #include <iostream>
 #include <string>
 #include <memory>
 #include <map>
+#include <thread>
+#include <chrono>
 
 // Include proper VST3 SDK headers
 #include "pluginterfaces/base/fplatform.h"
@@ -21,7 +25,14 @@
 using namespace Steinberg;
 using namespace Steinberg::Vst;
 
-// Simple plugin wrapper
+// Forward declarations
+class VST3Host;
+class EditorHostBridge;
+
+// Include the EditorHostBridge implementation
+#include "editor_host_bridge.cpp"
+
+// Simple plugin wrapper for VST3Host
 class SimplePlugin {
 public:
     std::string id;
@@ -60,6 +71,9 @@ public:
         if (module) FreeLibrary(module);
     }
 };
+
+// Include the VST3Host implementation from simple_vst3_host_clean.cpp
+// We'll copy the implementation here to avoid including .cpp files
 
 // VST3 Host class
 class VST3Host : public Nan::ObjectWrap {
@@ -209,61 +223,22 @@ private:
             SimplePlugin* plugin = it->second.get();
             
             std::cout << "🎛️ Attempting to show UI for plugin: " << plugin->name << std::endl;
-            std::cout << "   Has component: " << (plugin->component ? "YES" : "NO") << std::endl;
-            std::cout << "   Has editController: " << (plugin->editController ? "YES" : "NO") << std::endl;
-            std::cout << "   Has component: " << (plugin->component ? "YES" : "NO") << std::endl;
             
             IPlugView* view = nullptr;
             
-            // First try to get view from edit controller
+            // Try to get view from edit controller
             if (plugin->editController) {
-                std::cout << "🔍 Trying to get view from edit controller..." << std::endl;
-                
-                // Try different IPlugView interface IDs
-                FUID plugViewIIDs[] = {
-                    IPlugView::iid, // Official IPlugView
-                };
-                
-                bool viewFound = false;
-                for (int iidIndex = 0; iidIndex < 1; iidIndex++) {
-                    tresult result = plugin->editController->queryInterface(plugViewIIDs[iidIndex], (void**)&view);
-                    std::cout << "   IPlugView query " << iidIndex << " result: " << std::hex << result << std::dec << std::endl;
-                    
-                    if (result == kResultOk && view) {
-                        std::cout << "✅ Got plugin view from edit controller" << std::endl;
-                        viewFound = true;
-                        break;
-                    }
-                }
-                
-                if (!viewFound) {
-                    std::cout << "❌ Failed to get view from edit controller" << std::endl;
+                tresult result = plugin->editController->queryInterface(IPlugView::iid, (void**)&view);
+                if (result == kResultOk && view) {
+                    std::cout << "✅ Got plugin view from edit controller" << std::endl;
                 }
             }
             
-            // If that failed, try to get view from component (some plugins integrate UI into component)
+            // If that failed, try to get view from component
             if (!view && plugin->component) {
-                std::cout << "🔍 Trying to get view from component..." << std::endl;
-                
-                // Try different IPlugView interface IDs
-                FUID plugViewIIDs[] = {
-                    IPlugView::iid, // Official IPlugView
-                };
-                
-                bool viewFound = false;
-                for (int iidIndex = 0; iidIndex < 1; iidIndex++) {
-                    tresult result = plugin->component->queryInterface(plugViewIIDs[iidIndex], (void**)&view);
-                    std::cout << "   IPlugView query " << iidIndex << " result: " << std::hex << result << std::dec << std::endl;
-                    
-                    if (result == kResultOk && view) {
-                        std::cout << "✅ Got plugin view from component" << std::endl;
-                        viewFound = true;
-                        break;
-                    }
-                }
-                
-                if (!viewFound) {
-                    std::cout << "❌ Failed to get view from component" << std::endl;
+                tresult result = plugin->component->queryInterface(IPlugView::iid, (void**)&view);
+                if (result == kResultOk && view) {
+                    std::cout << "✅ Got plugin view from component" << std::endl;
                 }
             }
             
@@ -272,34 +247,24 @@ private:
                 
                 // Check if platform is supported
                 tresult platformResult = view->isPlatformTypeSupported("HWND");
-                std::cout << "   Platform supported: " << (platformResult == kResultOk ? "YES" : "NO") << std::endl;
                 
                 if (platformResult == kResultOk) {
-                    // Create a window for the plugin UI
-                    HWND parentWindow = GetConsoleWindow(); // Use console window as parent for now
+                    HWND parentWindow = GetConsoleWindow();
                     if (!parentWindow) {
                         parentWindow = GetDesktopWindow();
                     }
                     
                     plugin->parentWindow = parentWindow;
                     
-                    // Attach the view
                     tresult attachResult = view->attached(plugin->parentWindow, "HWND");
-                    std::cout << "   Attach result: " << std::hex << attachResult << std::dec << std::endl;
                     
                     if (attachResult == kResultOk) {
                         plugin->uiVisible = true;
                         std::cout << "✅ Plugin UI shown successfully" << std::endl;
                         info.GetReturnValue().Set(Nan::New(true));
                         return;
-                    } else {
-                        std::cout << "❌ Failed to attach plugin view" << std::endl;
                     }
-                } else {
-                    std::cout << "❌ Platform not supported by plugin" << std::endl;
                 }
-            } else {
-                std::cout << "❌ Could not get plugin view" << std::endl;
             }
         }
         
@@ -347,169 +312,91 @@ private:
         try {
             auto plugin = std::make_unique<SimplePlugin>();
             plugin->path = path;
-            plugin->id = path; // Use path as ID for now
+            plugin->id = path;
 
-            // Load the DLL
-            std::cout << "📂 Loading DLL: " << path << std::endl;
             HMODULE module = LoadLibraryA(path.c_str());
             if (!module) {
-                DWORD error = GetLastError();
-                std::cerr << "❌ Failed to load DLL. Error: " << error << std::endl;
                 return false;
             }
             plugin->module = module;
 
-            // Get the required functions
-            auto initDll = (InitDllFunc)GetProcAddress(module, "InitDll");
-            auto exitDll = (ExitDllFunc)GetProcAddress(module, "ExitDll");
             auto getFactory = (GetPluginFactoryFunc)GetProcAddress(module, "GetPluginFactory");
-
             if (!getFactory) {
-                std::cerr << "❌ Could not find GetPluginFactory function" << std::endl;
-                FreeLibrary(module);
-                return false;
-            }
-
-            // Initialize the plugin if InitDll exists
-            if (initDll && !initDll()) {
-                std::cerr << "❌ Plugin initialization failed" << std::endl;
                 FreeLibrary(module);
                 return false;
             }
 
             auto factory = getFactory();
             if (!factory) {
-                std::cerr << "❌ Could not get plugin factory" << std::endl;
                 FreeLibrary(module);
                 return false;
             }
 
-            // Get factory info
-            PFactoryInfo factoryInfo;
-            factory->getFactoryInfo(&factoryInfo);
-            std::cout << "🏭 Factory vendor: " << factoryInfo.vendor << std::endl;
-
-            // Enumerate classes
             int32 classCount = factory->countClasses();
-            std::cout << "🔍 Plugin has " << classCount << " factory classes" << std::endl;
-            
             bool componentCreated = false;
             bool editControllerCreated = false;
 
             for (int32 i = 0; i < classCount; i++) {
                 PClassInfo classInfo;
                 if (factory->getClassInfo(i, &classInfo) == kResultOk) {
-                    std::cout << "📋 Class " << i << ": " << classInfo.name << " (category: " << classInfo.category << ")" << std::endl;
-                    
-                    // Try to create audio effect component
                     if (strcmp(classInfo.category, "Audio Module Class") == 0) {
-                        std::cout << "🔍 Creating audio component from class " << i << std::endl;
-                        
                         FUnknown* unknownObject = nullptr;
                         tresult result = factory->createInstance(classInfo.cid, FUnknown::iid, (void**)&unknownObject);
                         
                         if (result == kResultOk && unknownObject) {
-                            // Query for IComponent interface
                             IComponent* component = nullptr;
                             result = unknownObject->queryInterface(IComponent::iid, (void**)&component);
                             
                             if (result == kResultOk && component) {
-                                // Initialize the component
                                 if (component->initialize(nullptr) == kResultOk) {
                                     plugin->component = component;
                                     componentCreated = true;
                                     plugin->name = classInfo.name;
-                                    std::cout << "✅ Component created and initialized successfully" << std::endl;
-                                } else {
-                                    std::cout << "❌ Component initialization failed" << std::endl;
-                                    component->release();
                                 }
-                            } else {
-                                std::cout << "❌ No IComponent interface found in this object" << std::endl;
                             }
-                            
-                            // Always release the unknown object
                             unknownObject->release();
-                        } else {
-                            std::cout << "❌ Failed to create VST3 object" << std::endl;
                         }
                     }
                     
-                    // Try to create edit controller from Component Controller Class or query from component
-                    if (!editControllerCreated) {
-                        if (strcmp(classInfo.category, "Component Controller Class") == 0) {
-                            std::cout << "🔍 Creating edit controller from Component Controller Class " << i << std::endl;
+                    if (strcmp(classInfo.category, "Component Controller Class") == 0) {
+                        FUnknown* unknownController = nullptr;
+                        tresult result = factory->createInstance(classInfo.cid, FUnknown::iid, (void**)&unknownController);
+                        
+                        if (result == kResultOk && unknownController) {
+                            IEditController* editController = nullptr;
+                            result = unknownController->queryInterface(IEditController::iid, (void**)&editController);
                             
-                            FUnknown* unknownController = nullptr;
-                            tresult result = factory->createInstance(classInfo.cid, FUnknown::iid, (void**)&unknownController);
-                            
-                            if (result == kResultOk && unknownController) {
-                                // Query for IEditController interface
-                                IEditController* editController = nullptr;
-                                result = unknownController->queryInterface(IEditController::iid, (void**)&editController);
-                                
-                                if (result == kResultOk && editController) {
-                                    // Initialize the edit controller
-                                    if (editController->initialize(nullptr) == kResultOk) {
-                                        plugin->editController = editController;
-                                        editControllerCreated = true;
-                                        std::cout << "✅ Edit controller created and initialized from separate class" << std::endl;
-                                    } else {
-                                        std::cout << "❌ Edit controller initialization failed" << std::endl;
-                                        editController->release();
-                                    }
+                            if (result == kResultOk && editController) {
+                                if (editController->initialize(nullptr) == kResultOk) {
+                                    plugin->editController = editController;
+                                    editControllerCreated = true;
                                 }
-                                unknownController->release();
                             }
+                            unknownController->release();
                         }
                     }
-                } else {
-                    std::cout << "❌ Failed to get class info for class " << i << std::endl;
                 }
                 
                 if (componentCreated && editControllerCreated) break;
             }
             
-            // If we have a component but no separate edit controller, try to get it from the component
-            // Some VST3 plugins combine component and controller in one class
+            // Try to get edit controller from component if not found separately
             if (componentCreated && !editControllerCreated && plugin->component) {
-                std::cout << "🔍 Trying to get edit controller interface from component..." << std::endl;
-                
                 IEditController* editController = nullptr;
                 tresult result = plugin->component->queryInterface(IEditController::iid, (void**)&editController);
-                std::cout << "   Edit controller query result: " << std::hex << result << std::dec << std::endl;
                 
                 if (result == kResultOk && editController) {
-                    // Initialize the edit controller
                     if (editController->initialize(nullptr) == kResultOk) {
                         plugin->editController = editController;
                         editControllerCreated = true;
-                        std::cout << "✅ Edit controller obtained and initialized from component (single-class plugin)" << std::endl;
-                    } else {
-                        std::cout << "❌ Edit controller initialization failed" << std::endl;
-                        editController->release();
                     }
-                } else {
-                    std::cout << "❌ Component does not provide edit controller interface" << std::endl;
                 }
             }
             
-            // Determine UI support - for VST3, assume UI support unless explicitly no edit controller
-            // Most VST3 plugins have some form of UI, even if edit controller detection fails
-            plugin->hasUI = true; // Default to true for VST3 plugins
-            
-            if (editControllerCreated) {
-                std::cout << "✅ Plugin has UI support (edit controller confirmed)" << std::endl;
-            } else {
-                std::cout << "ℹ️ Plugin UI status: assumed available (edit controller not detected)" << std::endl;
-            }
-            
+            plugin->hasUI = true;
             plugin->initialized = true;
 
-            // Store the plugin name before moving the object
             std::string pluginName = plugin->name;
-            
-            // Store plugin
             loadedPlugins[plugin->id] = std::move(plugin);
 
             std::cout << "🎉 Plugin loaded: " << pluginName << std::endl;
@@ -525,7 +412,9 @@ private:
 Nan::Persistent<v8::Function> VST3Host::constructor_template;
 
 NAN_MODULE_INIT(InitModule) {
+    // Initialize both classes
     VST3Host::Init(target);
+    EditorHostBridge::Init(target);
 }
 
 NODE_MODULE(vst3_host, InitModule)

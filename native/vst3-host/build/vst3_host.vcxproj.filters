@@ -7,6 +7,543 @@
     <Filter Include="..\src">
       <UniqueIdentifier>{8CDEE807-BC53-E450-C8B8-4DEBB66742D4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk">
+      <UniqueIdentifier>{2B9F1CB0-B1B2-5EBC-A997-972BCCFDFCD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst">
+      <UniqueIdentifier>{9733BF7C-8B46-6CD4-A28E-0B3B3E1901DF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting">
+      <UniqueIdentifier>{EBFD72C7-D6B9-ACBB-B07C-35E23105DFE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk">
+      <UniqueIdentifier>{2B9F1CB0-B1B2-5EBC-A997-972BCCFDFCD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst">
+      <UniqueIdentifier>{9733BF7C-8B46-6CD4-A28E-0B3B3E1901DF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting">
+      <UniqueIdentifier>{EBFD72C7-D6B9-ACBB-B07C-35E23105DFE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk">
+      <UniqueIdentifier>{2B9F1CB0-B1B2-5EBC-A997-972BCCFDFCD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst">
+      <UniqueIdentifier>{9733BF7C-8B46-6CD4-A28E-0B3B3E1901DF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting">
+      <UniqueIdentifier>{EBFD72C7-D6B9-ACBB-B07C-35E23105DFE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk">
+      <UniqueIdentifier>{2B9F1CB0-B1B2-5EBC-A997-972BCCFDFCD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst">
+      <UniqueIdentifier>{9733BF7C-8B46-6CD4-A28E-0B3B3E1901DF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting">
+      <UniqueIdentifier>{EBFD72C7-D6B9-ACBB-B07C-35E23105DFE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk">
+      <UniqueIdentifier>{2B9F1CB0-B1B2-5EBC-A997-972BCCFDFCD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst">
+      <UniqueIdentifier>{9733BF7C-8B46-6CD4-A28E-0B3B3E1901DF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting">
+      <UniqueIdentifier>{EBFD72C7-D6B9-ACBB-B07C-35E23105DFE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk">
+      <UniqueIdentifier>{2B9F1CB0-B1B2-5EBC-A997-972BCCFDFCD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst">
+      <UniqueIdentifier>{9733BF7C-8B46-6CD4-A28E-0B3B3E1901DF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting">
+      <UniqueIdentifier>{EBFD72C7-D6B9-ACBB-B07C-35E23105DFE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk">
+      <UniqueIdentifier>{2B9F1CB0-B1B2-5EBC-A997-972BCCFDFCD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst">
+      <UniqueIdentifier>{9733BF7C-8B46-6CD4-A28E-0B3B3E1901DF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting">
+      <UniqueIdentifier>{EBFD72C7-D6B9-ACBB-B07C-35E23105DFE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk">
+      <UniqueIdentifier>{2B9F1CB0-B1B2-5EBC-A997-972BCCFDFCD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst">
+      <UniqueIdentifier>{9733BF7C-8B46-6CD4-A28E-0B3B3E1901DF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting">
+      <UniqueIdentifier>{EBFD72C7-D6B9-ACBB-B07C-35E23105DFE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk">
+      <UniqueIdentifier>{2B9F1CB0-B1B2-5EBC-A997-972BCCFDFCD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst">
+      <UniqueIdentifier>{9733BF7C-8B46-6CD4-A28E-0B3B3E1901DF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting">
+      <UniqueIdentifier>{EBFD72C7-D6B9-ACBB-B07C-35E23105DFE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\pluginterfaces">
+      <UniqueIdentifier>{B38C3663-454A-F754-294F-777A0611D95B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\pluginterfaces\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\pluginterfaces">
+      <UniqueIdentifier>{B38C3663-454A-F754-294F-777A0611D95B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\pluginterfaces\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party">
+      <UniqueIdentifier>{D6C6CEA7-AAD0-03AD-2394-AC6FCBF8A498}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK">
+      <UniqueIdentifier>{478F01CA-107C-484A-BF5E-A2A531AFA865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk">
+      <UniqueIdentifier>{7285EA16-944E-80E7-8D2B-B9DBFB964380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base">
+      <UniqueIdentifier>{DBBAC0A6-BB0A-CA51-45CC-DA4574B671E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base\thread">
+      <UniqueIdentifier>{5800A1EC-03B8-D082-0EC7-1ABE85190475}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\..\..\third_party\VST_SDK\vst3sdk\base\thread\source">
+      <UniqueIdentifier>{8A6F5E6E-316F-22D4-1547-253B04CB32E7}</UniqueIdentifier>
+    </Filter>
     <Filter Include="C:">
       <UniqueIdentifier>{7B735499-E5DD-1C2B-6C26-70023832A1CF}</UniqueIdentifier>
     </Filter>
@@ -45,8 +582,68 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\simple_vst3_host_clean.cpp">
+    <ClCompile Include="..\src\vst3_host_with_bridge.cpp">
       <Filter>..\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\module.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\module_win32.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\plugprovider.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\hostclasses.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\eventlist.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\parameterchanges.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\processdata.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\pluginterfacesupport.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\connectionproxy.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\pluginterfaces\base\funknown.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\pluginterfaces\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\pluginterfaces\base\ustring.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\pluginterfaces\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fobject.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\base\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\updatehandler.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\base\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fstring.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\base\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fbuffer.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\base\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fdebug.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\base\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fdynlib.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\base\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fstreamer.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\base\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\timer.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\base\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\thread\source\flock.cpp">
+      <Filter>..\..\..\third_party\VST_SDK\vst3sdk\base\thread\source</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\Marius\Desktop\guitarapp\native\vst3-host\node_modules\@electron\node-gyp\src\win_delay_load_hook.cc">
       <Filter>C:\Users\Marius\Desktop\guitarapp\native\vst3-host\node_modules\@electron\node-gyp\src</Filter>
