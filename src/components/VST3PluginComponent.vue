@@ -303,7 +303,7 @@
         </div>
       </div>
     </div>
-
+      </div>
     <!-- Presets Section -->
     <div class="vst3-section" v-if="currentPlugin">
       <h3>Presets</h3>

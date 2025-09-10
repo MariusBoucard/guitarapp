@@ -19,6 +19,9 @@
         <button v-if="canPlay" @click="stop" class="stop-btn">
           ⏹️ Stop
         </button>
+        <button v-if="isLoaded" @click="logPlayerState" class="debug-btn">
+          🔍 Debug Audio
+        </button>
         <span v-if="isLoaded && !isPlayerReady" class="status-text">
           Loading player...
         </span>
@@ -140,22 +143,22 @@ export default {
         settings.player.enableElementHighlighting = true
         
         if (isElectron) {
-          // Electron-specific settings - try to enable audio
+          // Electron-specific settings - enable audio with proper paths
           settings.core.useWorkers = false  // Disable workers in Electron
-          settings.player.enablePlayer = true  // Enable player for cursor functionality
-          settings.player.playerMode = 1  // Enable audio synthesis
+          settings.player.enablePlayer = true  // Enable player
+          settings.player.enableAudioSynthesis = true  // Enable audio synthesis
+          settings.player.soundFont = './soundfont/sonivox.sf2'  // Use soundfont
           settings.player.enableCursor = true
           settings.player.enableUserInteraction = true
           settings.player.enableElementHighlighting = true
           settings.player.scrollMode = 'continuous'
-          settings.player.soundFont = './soundfont/sonivox.sf2'  // Try to use soundfont in Electron too
           
           // Set font directory to the location where Vite plugin copies fonts
           settings.core.fontDirectory = './font/'
         } else {
-          // Web settings
+          // Web settings - ensure proper soundfont loading
           settings.player.enablePlayer = true
-          settings.player.playerMode = 1 // Enable audio synthesis
+          settings.player.enableAudioSynthesis = true // Enable audio synthesis
           settings.player.soundFont = './soundfont/sonivox.sf2'
           settings.player.scrollMode = 'continuous' // Follow playback position
           
@@ -176,11 +179,26 @@ export default {
         })
         
         // Initialize Web Audio Context for browsers (required for audio playback)
-        if (!isElectron && typeof window !== 'undefined' && window.AudioContext) {
+        if (!isElectron && typeof window !== 'undefined') {
           try {
+            // Initialize Web Audio Context if not already done
             if (!window.alphaTabAudioContext) {
-              window.alphaTabAudioContext = new (window.AudioContext || window.webkitAudioContext)()
-              console.log('Web Audio Context initialized')
+              const AudioContext = window.AudioContext || window.webkitAudioContext
+              if (AudioContext) {
+                window.alphaTabAudioContext = new AudioContext()
+                console.log('Web Audio Context initialized for AlphaTab')
+                
+                // Resume context immediately if possible (for better browser compatibility)
+                if (window.alphaTabAudioContext.state === 'suspended') {
+                  window.alphaTabAudioContext.resume().then(() => {
+                    console.log('Audio context resumed')
+                  }).catch(err => {
+                    console.warn('Failed to resume audio context:', err)
+                  })
+                }
+              } else {
+                console.warn('Web Audio API not available in this browser')
+              }
             }
           } catch (audioError) {
             console.warn('Failed to initialize Web Audio Context:', audioError)
@@ -236,8 +254,13 @@ export default {
             console.log('Score loaded successfully:', {
               tracks: this.tracks.length,
               playerEnabled: this.alphaTabApi.settings?.player?.enablePlayer,
+              audioSynthesis: this.alphaTabApi.settings?.player?.enableAudioSynthesis,
+              soundFont: this.alphaTabApi.settings?.player?.soundFont,
               tempo: this.tempo
             })
+            
+            // Test soundfont loading
+            this.testSoundfontLoading()
             
             // For Electron mode, mark player as ready since we'll handle playback manually
             if (this.isElectron) {
@@ -323,11 +346,24 @@ export default {
             console.log('Player ready!')
             this.isPlayerReady = true
             
+            // Force audio context resume for browsers
+            if (!this.isElectron && window.alphaTabAudioContext) {
+              window.alphaTabAudioContext.resume().then(() => {
+                console.log('Audio context resumed on player ready')
+                this.isAudioReady = true
+              }).catch(err => {
+                console.warn('Failed to resume audio context on player ready:', err)
+              })
+            } else if (this.isElectron) {
+              this.isAudioReady = true
+            }
+            
             // Additional check for playback readiness
             console.log('Player readiness check:', {
               isReadyForPlayback: this.alphaTabApi.isReadyForPlayback,
-              playerMode: this.alphaTabApi.settings?.player?.playerMode,
-              enablePlayer: this.alphaTabApi.settings?.player?.enablePlayer
+              enableAudioSynthesis: this.alphaTabApi.settings?.player?.enableAudioSynthesis,
+              enablePlayer: this.alphaTabApi.settings?.player?.enablePlayer,
+              soundFont: this.alphaTabApi.settings?.player?.soundFont
             })
           })
         }
@@ -430,17 +466,31 @@ export default {
     
     async activateAudioContext() {
       // Activate Web Audio Context on user interaction (required by browsers)
-      if (typeof window !== 'undefined' && window.alphaTabAudioContext) {
+      if (typeof window !== 'undefined') {
         try {
-          if (window.alphaTabAudioContext.state === 'suspended') {
-            await window.alphaTabAudioContext.resume()
-            console.log('Audio context activated')
-            this.isAudioReady = true
-          } else if (window.alphaTabAudioContext.state === 'running') {
-            this.isAudioReady = true
+          // Initialize audio context if it doesn't exist
+          if (!window.alphaTabAudioContext) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext
+            if (AudioContext) {
+              window.alphaTabAudioContext = new AudioContext()
+              console.log('Audio context created on user interaction')
+            }
+          }
+          
+          if (window.alphaTabAudioContext) {
+            if (window.alphaTabAudioContext.state === 'suspended') {
+              await window.alphaTabAudioContext.resume()
+              console.log('Audio context activated')
+              this.isAudioReady = true
+            } else if (window.alphaTabAudioContext.state === 'running') {
+              this.isAudioReady = true
+              console.log('Audio context already running')
+            }
           }
         } catch (error) {
           console.warn('Failed to activate audio context:', error)
+          // For Electron or when Web Audio fails, assume audio is ready
+          this.isAudioReady = true
         }
       } else {
         // For Electron or when Web Audio isn't available, assume audio is ready
@@ -468,21 +518,51 @@ export default {
         await this.activateAudioContext()
       }
       
-      // Try AlphaTab's built-in player first (for both web and Electron with audio)
+      // Try AlphaTab's built-in player first
       if (this.alphaTabApi.isReadyForPlayback) {
         console.log('Using AlphaTab built-in player')
         try {
           if (this.isPlaying) {
             console.log('Pausing AlphaTab playback')
             this.alphaTabApi.pause()
+            this.isPlaying = false
           } else {
             console.log('Starting AlphaTab playback')
             this.alphaTabApi.play()
+            this.isPlaying = true
           }
           return
         } catch (error) {
           console.error('AlphaTab player error:', error)
           // Fall through to manual playback if AlphaTab player fails
+        }
+      }
+      
+      // If AlphaTab player isn't ready but we have a score, try to initialize it
+      if (!this.alphaTabApi.isReadyForPlayback && this.currentScore && this.tracks.length > 0) {
+        console.log('Attempting to initialize player...')
+        try {
+          // Re-render the current track to trigger player initialization
+          this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
+          
+          // Wait a bit and try again
+          setTimeout(() => {
+            if (this.alphaTabApi.isReadyForPlayback) {
+              this.playPause()
+            } else {
+              console.warn('Player still not ready after re-render, falling back to manual playback')
+              if (this.isElectron) {
+                if (this.isPlaying) {
+                  this.pauseManualPlayback()
+                } else {
+                  this.startManualPlayback()
+                }
+              }
+            }
+          }, 1000)
+          return
+        } catch (error) {
+          console.error('Failed to initialize player:', error)
         }
       }
       
@@ -497,15 +577,12 @@ export default {
         return
       }
       
-      // For web mode, ensure player is ready
-      if (!this.alphaTabApi.isReadyForPlayback) {
-        console.warn('Player not ready for playback')
-        if (this.currentScore) {
-          console.log('Attempting to re-initialize player with current score')
-          this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
-        }
-        return
-      }
+      // For web mode, show a message if player isn't ready
+      console.warn('Player not ready for playback and no fallback available')
+      this.error = 'Audio player is not ready yet. Please wait a moment and try again.'
+      setTimeout(() => {
+        this.error = null
+      }, 3000)
     },
     
     startManualPlayback() {
@@ -842,6 +919,53 @@ export default {
         console.warn('Error getting instrument name:', error)
         return 'Unknown Instrument'
       }
+    },
+    
+    async testSoundfontLoading() {
+      // Test if soundfont is accessible
+      try {
+        const soundfontUrl = './soundfont/sonivox.sf2'
+        const response = await fetch(soundfontUrl, { method: 'HEAD' })
+        if (response.ok) {
+          console.log('✅ Soundfont is accessible:', soundfontUrl)
+        } else {
+          console.warn('❌ Soundfont not accessible:', soundfontUrl, 'Status:', response.status)
+          // Try alternative path
+          const altUrl = '/soundfont/sonivox.sf2'
+          const altResponse = await fetch(altUrl, { method: 'HEAD' })
+          if (altResponse.ok) {
+            console.log('✅ Alternative soundfont path working:', altUrl)
+            // Update settings to use alternative path
+            if (this.alphaTabApi && this.alphaTabApi.settings) {
+              this.alphaTabApi.settings.player.soundFont = altUrl
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Error testing soundfont accessibility:', error)
+      }
+    },
+    
+    logPlayerState() {
+      // Debug helper to log current player state
+      if (this.alphaTabApi) {
+        console.log('🎵 Current Player State:', {
+          isLoaded: this.isLoaded,
+          isPlayerReady: this.isPlayerReady,
+          isAudioReady: this.isAudioReady,
+          isPlaying: this.isPlaying,
+          isReadyForPlayback: this.alphaTabApi.isReadyForPlayback,
+          settings: {
+            enablePlayer: this.alphaTabApi.settings?.player?.enablePlayer,
+            enableAudioSynthesis: this.alphaTabApi.settings?.player?.enableAudioSynthesis,
+            soundFont: this.alphaTabApi.settings?.player?.soundFont,
+          },
+          audioContext: window.alphaTabAudioContext ? {
+            state: window.alphaTabAudioContext.state,
+            sampleRate: window.alphaTabAudioContext.sampleRate
+          } : 'Not available'
+        })
+      }
     }
   }
 }
@@ -914,6 +1038,15 @@ export default {
 
 .stop-btn:hover {
   background: var(--danger-hover, #d32f2f) !important;
+}
+
+.debug-btn {
+  background: var(--info-color, #2196F3) !important;
+  font-size: 11px !important;
+}
+
+.debug-btn:hover {
+  background: var(--info-hover, #1976D2) !important;
 }
 
 .status-text {
