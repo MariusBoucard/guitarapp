@@ -589,7 +589,7 @@ h1, p, h3 {
 
 @media (max-width: 768px) {
   .guitar-training-container {
-    padding: var(--spacing-md);
+    padding:0;
   }
   
   .video-training-tree {
