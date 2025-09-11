@@ -198,7 +198,7 @@
 
 .scales-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   gap: var(--spacing-lg);
 }
 
@@ -209,6 +209,8 @@
   overflow: hidden;
   transition: all var(--transition-normal);
   box-shadow: 0 4px 8px var(--shadow-light);
+  min-width: 0; /* Allow cards to shrink */
+  width: 100%;
 }
 
 .scale-card:hover {
@@ -236,6 +238,7 @@
   justify-content: space-between;
   position: relative;
   overflow: hidden;
+  min-width: 0; /* Allow button content to shrink */
 }
 
 .scale-button::before {
@@ -275,7 +278,7 @@
   border-radius: var(--radius-sm);
   font-weight: var(--font-bold);
   font-size: 1.1rem;
-  min-width: 40px;
+  min-width: 20px;
   text-align: center;
 }
 
@@ -358,6 +361,64 @@
     flex-direction: column;
     gap: var(--spacing-xs);
     text-align: left;
+  }
+}
+
+/* Additional responsive behavior for very narrow containers */
+@media (max-width: 500px) {
+  .scales-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .scale-button {
+    padding: var(--spacing-md);
+    font-size: 0.9rem;
+  }
+  
+  .scale-info {
+    flex-direction: row;
+    gap: var(--spacing-sm);
+  }
+  
+  .scale-root {
+    font-size: 0.9rem;
+    padding: var(--spacing-xs);
+  }
+  
+  .scale-name {
+    font-size: 0.9rem;
+  }
+  
+  .notes-preview {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Handle very narrow containers (like in a sidebar) */
+@media (max-width: 320px) {
+  .gamme-finder-container {
+    padding: var(--spacing-md);
+  }
+  
+  .scales-grid {
+    gap: var(--spacing-sm);
+  }
+  
+  .scale-button {
+    padding: var(--spacing-sm);
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+  
+  .scale-info {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    align-items: center;
+  }
+  
+  .scale-arrow {
+    display: none; /* Hide arrow on very small screens */
   }
 }
 

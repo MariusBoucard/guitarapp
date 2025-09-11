@@ -51,7 +51,7 @@
             </div>
             
             <!-- Directory Info Display -->
-            <div v-if="directoryInfo.name" class="directory-info">
+            <!-- <div v-if="directoryInfo.name" class="directory-info">
               <h4>Current Directory: {{ directoryInfo.name }}</h4>
               <p><strong>Path:</strong> {{ directoryInfo.path || 'Root' }}</p>
               <p><strong>Total Trainings:</strong> {{ directoryInfo.totalTrainings }}</p>
@@ -60,7 +60,7 @@
                 <strong>Last Scanned:</strong> {{ formatDate(directoryInfo.lastScanned) }}
               </p>
               <button @click="clearDirectory" class="clear-btn">Clear Directory</button>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -84,6 +84,18 @@
           <button class="button" @click="stopVideo">Stop</button>
         </div>
 
+         <div style="text-align: center;">
+          <h3 style="display: block;float: top">Playing rate</h3>
+          <div class="slider" style="margin : auto">
+            <input 
+              type="range" 
+              min="10" 
+              max="300" 
+              v-model="speed"
+              @input="updateSpeed">
+            <p id="rangeValueVideo">{{ speed }}%</p>
+          </div>
+        </div>
         <!-- Time Controls -->
         <div class="slider-parent">
           <div class="slider-container">
@@ -124,18 +136,7 @@
         </div>
 
         <!-- Speed Control -->
-        <div style="text-align: center;">
-          <h3 style="display: block;float: top">Playing rate</h3>
-          <div class="slider" style="margin : auto">
-            <input 
-              type="range" 
-              min="10" 
-              max="300" 
-              v-model="speed"
-              @input="updateSpeed">
-            <p id="rangeValueVideo">{{ speed }}%</p>
-          </div>
-        </div>
+       
       </div>
     </div>
   </div>
@@ -716,7 +717,7 @@ export default {
 }
 
 .training-tree {
-  max-height: 500px;
+  max-height: 80vh;
   overflow-y: auto;
   padding-right: 8px;
 }
