@@ -35,7 +35,9 @@ export default defineConfig({
         },
       },
     ]),
-    renderer(),
+    renderer({
+      nodeIntegration: true
+    }),
   ],
   resolve: {
     alias: {
@@ -44,7 +46,10 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['guitar-chords', 'guitar-js'],
-    exclude: ['electron']
+    exclude: ['electron', '@coderline/alphaskia']
+  },
+  define: {
+    global: 'globalThis',
   },
   base: './',
   build: {

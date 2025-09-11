@@ -1,8 +1,17 @@
 <template>
   <div class="guitar-training-container">
+    <!-- Sidebar Toggle Button -->
+    <button 
+      class="sidebar-toggle-btn" 
+      @click="toggleRightColumn"
+      :title="isRightColumnFolded ? 'Show sidebar' : 'Hide sidebar'"
+    >
+      <span class="toggle-icon">{{ isRightColumnFolded ? '◀' : '▶' }}</span>
+    </button>
+    
     <!-- Main Content Area -->
     <div class="main-content">
-      <div class="row">
+      <div class="row" :class="{ 'sidebar-folded': isRightColumnFolded }">
         <div class="column">
           <div>
             <MancheComponent 
@@ -39,10 +48,7 @@
               @note-removed="handleKeyboardNoteRemove"
               @clear-all="handleKeyboardClearAll"
             ></KeyboardComponent>
-          </div>
-          <div class="row">
-            <div class="columnhalf"> 
-              <LoadPictureComponent v-show="appStore.pictureDisplay"></LoadPictureComponent>
+             <LoadPictureComponent v-show="appStore.pictureDisplay"></LoadPictureComponent>
               <NotesSelectedComponent 
                 :colorNotes="notesStore.colors" 
                 :listNotes="notesStore.noteSlectedList" 
@@ -51,9 +57,8 @@
                 @reinitSelected="appController.reinitNotesTracking()"
                 v-show="appStore.notesSelectedDisplay"
               ></NotesSelectedComponent> 
-            </div>
-            <div class="columnhalf">
-              <TuningComponent  
+                            <PlaySoundComponent v-show="appStore.soundDisplay"></PlaySoundComponent>
+                                                    <TuningComponent  
                 @lefty="appController.handleLeftyChange($event)" 
                 :lefty="appStore.lefty" 
                 :allNotes="notesStore.allNotes" 
@@ -66,11 +71,17 @@
                 :tuningList="tuningStore.tuningList" 
                 :cordesNumber="parseInt(tuningStore.nbStrings)"
               ></TuningComponent> 
-              <PlaySoundComponent v-show="appStore.soundDisplay"></PlaySoundComponent>
+
+          </div>
+          <div class="row">
+
+            <div class="columnhalf">
+
             </div>
           </div>
         </div>
-        <div class="columnd">
+        <div class="columnd" v-show="!isRightColumnFolded">
+
           <SuggestedChordsComponent 
             v-show="appStore.chordssuggestDisplay" 
             :nbnotes="notesStore.nbnotes" 
@@ -117,7 +128,7 @@
 </template>
 
 <script>
-import { inject, computed } from 'vue'
+import { inject, computed, ref } from 'vue'
 import { useAppStore } from '@/stores/appStore.js'
 import { useNotesStore } from '@/stores/notesStore.js'
 import { useTuningStore } from '@/stores/tuningStore.js'
@@ -175,6 +186,14 @@ export default {
     const tuningStore = useTuningStore()
     const gameStore = useGameStore()
     const videoStore = useVideoStore()
+    
+    // Sidebar fold/unfold state
+    const isRightColumnFolded = ref(false)
+    
+    // Toggle sidebar visibility
+    const toggleRightColumn = () => {
+      isRightColumnFolded.value = !isRightColumnFolded.value
+    }
     
     // Video tree computed property
     const videoTreeList = computed(() => videoStore.niouTrainingList)
@@ -254,7 +273,9 @@ export default {
       playVideoFromTree,
       handleKeyboardNoteSelect,
       handleKeyboardNoteRemove,
-      handleKeyboardClearAll
+      handleKeyboardClearAll,
+      isRightColumnFolded,
+      toggleRightColumn
     }
   }
 }
@@ -263,11 +284,42 @@ export default {
 <style scoped>
 .guitar-training-container {
   background: var(--bg-primary);
-  min-height: 100vh;
   padding: var(--spacing-lg);
   color: var(--text-primary);
   width: 100%;
-  height: 100%;
+  position: relative;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: var(--card-bg, #2c3e50);
+  border: 2px solid var(--border-accent, #3498db);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--btn-primary-hover, #34495e);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.toggle-icon {
+  color: var(--text-primary, #ffffff);
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .main-content {
@@ -297,6 +349,13 @@ export default {
   gap: var(--spacing-md);
   float: left;
   width: 80%;
+  transition: width 0.3s ease;
+}
+
+/* When sidebar is folded, expand the main column */
+.row.sidebar-folded .column {
+  width: 100%;
+  flex: 1;
 }
 
 .columnd {
@@ -307,6 +366,7 @@ export default {
   min-width: 280px;
   float: left;
   width: 20%;
+  transition: all 0.3s ease;
 }
 
 .columnhalf {
@@ -538,6 +598,29 @@ h1, p, h3 {
   
   .columnhalf {
     margin-bottom: var(--spacing-lg);
+  }
+  
+  /* Adjust toggle button for mobile */
+  .sidebar-toggle-btn {
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .toggle-icon {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-toggle-btn {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .toggle-icon {
+    font-size: 12px;
   }
 }
 

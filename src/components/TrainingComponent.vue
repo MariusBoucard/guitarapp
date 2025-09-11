@@ -1,5 +1,5 @@
 <template>
-  <div style="width:100%;height : 100%">
+  <div style="width:100%">
     <div class="training-container">
       <div class="training-layout">
         <!-- Left Panel - Playlist Management -->

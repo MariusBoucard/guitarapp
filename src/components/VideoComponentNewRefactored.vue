@@ -1,5 +1,5 @@
 <template>
-  <div style="width:100%;height : 100%" data-video-component="new-refactored">
+  <div style="width:100%;" data-video-component="new-refactored">
     <div class="two-columns">
       <div class="column-left">
         <div>
@@ -650,7 +650,6 @@ export default {
   display: grid;
   grid-template-columns: 450px 1fr;
   gap: 25px;
-  height: 100vh;
   max-width: 1600px;
   margin: 0 auto;
   padding: 20px;
