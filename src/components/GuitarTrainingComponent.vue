@@ -284,7 +284,7 @@ export default {
 <style scoped>
 .guitar-training-container {
   background: var(--bg-primary);
-  padding: var(--spacing-lg);
+  padding: 0;
   color: var(--text-primary);
   width: 100%;
   position: relative;
@@ -324,9 +324,9 @@ export default {
 
 .main-content {
   max-width: 100%;
-  margin: 0 auto;
+  margin: 0 0 0 0;
   width: 100%;
-  padding: var(--spacing-md);
+  padding:0;
 }
 
 .row {
