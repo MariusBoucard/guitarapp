@@ -26,6 +26,7 @@
   },
   "main": "dist-electron/background.js",
   "dependencies": {
+    "@coderline/alphaskia": "^3.4.135",
     "@coderline/alphatab": "^1.6.3",
     "core-js": "^3.45.1",
     "file-saver": "^2.0.5",
