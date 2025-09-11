@@ -287,7 +287,11 @@ export default {
   padding: 0;
   color: var(--text-primary);
   width: 100%;
+  min-height: 100vh; /* Ensure it takes at least full viewport height */
+  height: auto; /* Allow it to grow with content */
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Sidebar Toggle Button */
@@ -324,9 +328,12 @@ export default {
 
 .main-content {
   max-width: 100%;
-  margin: 0 0 0 0;
+  margin: 0;
   width: 100%;
-  padding:0;
+  padding: 0;
+  flex: 1; /* Take up remaining space */
+  display: flex;
+  flex-direction: column;
 }
 
 .row {
@@ -334,12 +341,8 @@ export default {
   gap: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
   flex-wrap: wrap;
-}
-
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
+  flex: 1; /* Allow row to expand */
+  align-items: stretch; /* Make columns equal height */
 }
 
 .column {
@@ -347,9 +350,9 @@ export default {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  float: left;
   width: 80%;
   transition: width 0.3s ease;
+  min-height: 0; /* Allow proper flex behavior */
 }
 
 /* When sidebar is folded, expand the main column */
@@ -364,9 +367,9 @@ export default {
   flex-direction: column;
   gap: var(--spacing-md);
   min-width: 280px;
-  float: left;
   width: 20%;
   transition: all 0.3s ease;
+  min-height: 0; /* Allow proper flex behavior */
 }
 
 .columnhalf {
