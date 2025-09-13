@@ -1,12 +1,12 @@
 <template>
   <div class="picture-loader-container">
-    <div class="header-section">
-      <h3 class="title">Picture Gallery</h3>
-      <p class="subtitle">Upload and view your guitar chord diagrams and images</p>
+    <div class="section-card">
+      <h3 class="section-title">Picture Gallery</h3>
+      <p class="text-center" style="color: var(--text-secondary); margin-bottom: 25px;">Upload and view your guitar chord diagrams and images</p>
     </div>
 
     <!-- Upload Section -->
-    <div class="upload-section">
+    <div class="section-card">
       <div class="upload-area" :class="{ 'dragover': isDragOver }" 
            @drop="handleDrop" 
            @dragover.prevent="isDragOver = true" 
@@ -15,7 +15,7 @@
         <div class="upload-content">
           <div class="upload-icon">📷</div>
           <p class="upload-text">Drop images here or click to browse</p>
-          <button class="upload-button" @click="triggerFileInput">
+          <button class="btn btn-primary" @click="triggerFileInput">
             <span class="button-icon">📁</span>
             Choose File
           </button>
@@ -32,10 +32,12 @@
     </div>
 
     <!-- Pictures Grid -->
-    <div class="pictures-section" v-if="picturesPath.length > 0">
-      <div class="section-header">
-        <h4 class="section-title">Your Images ({{ picturesPath.length }})</h4>
-        <button class="clear-all-btn" @click="clearAllPictures" v-if="picturesPath.length > 0">
+    <div class="section-card" v-if="picturesPath.length > 0">
+      <div class="flex-between mb-medium">
+        <h4 style="margin: 0; color: var(--text-primary); font-size: 1.3rem; font-weight: 600;">
+          Your Images ({{ picturesPath.length }})
+        </h4>
+        <button class="btn btn-danger-alt btn-small" @click="clearAllPictures">
           <span class="clear-icon">🗑️</span>
           Clear All
         </button>
@@ -54,27 +56,28 @@
           </div>
           <div class="picture-info">
             <span class="picture-name">{{ formatFileName(item.name) }}</span>
-            <button class="remove-btn" @click.stop="removePicture(index)">
-              <span class="remove-icon">✕</span>
-            </button>
+            <button class="btn-icon-round btn-danger" @click.stop="removePicture(index)"></button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- No Pictures State -->
-    <div class="no-pictures-state" v-else>
+    <div class="no-content-message" v-else>
       <div class="empty-icon">🖼️</div>
       <p class="empty-message">No images uploaded yet</p>
       <p class="empty-hint">Upload your first image to get started</p>
     </div>
 
     <!-- Image Display -->
-    <div class="image-display-section" v-if="imageUrl">
-      <div class="section-header">
-        <h4 class="section-title">Current Image</h4>
-        <button class="close-btn" @click="closeImage">
-          <span class="close-icon">✕</span>
+    <div class="section-card" v-if="imageUrl">
+      <div class="flex-between mb-medium">
+        <h4 style="margin: 0; color: var(--text-primary); font-size: 1.3rem; font-weight: 600;">
+          Current Image
+        </h4>
+        <button class="btn-icon-round" 
+                style="background: #95a5a6; color: white;"
+                @click="closeImage">
         </button>
       </div>
       
@@ -216,56 +219,31 @@ export default {
 
 <style scoped>
 .picture-loader-container {
-  width: 900px;
-  min-width: 900px;
+  width: 100%;
   max-width: 900px;
-  margin: 20px auto;
-  padding: 25px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-large, 25px);
 }
 
-.header-section {
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-.title {
-  margin: 0 0 8px 0;
-  color: #2c3e50;
-  font-size: 1.8rem;
-  font-weight: 600;
-}
-
-.subtitle {
-  margin: 0;
-  color: #7f8c8d;
-  font-size: 1rem;
-  font-weight: 400;
-}
-
-/* Upload Section */
-.upload-section {
-  margin-bottom: 25px;
-}
-
+/* Upload Area Styles */
 .upload-area {
-  border: 2px dashed #bdc3c7;
-  border-radius: 12px;
+  border: 2px dashed var(--border-secondary, #bdc3c7);
+  border-radius: var(--border-radius);
   padding: 40px 20px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.7);
-  transition: all 0.3s ease;
+  background: var(--bg-white-semi);
+  transition: var(--transition-medium);
   cursor: pointer;
 }
 
-.upload-area:hover, .upload-area.dragover {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+.upload-area:hover, 
+.upload-area.dragover {
+  border-color: var(--primary-color);
+  background: var(--bg-primary-light);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+  box-shadow: 0 8px 25px var(--bg-primary-border-light);
 }
 
 .upload-content {
@@ -280,110 +258,46 @@ export default {
 
 .upload-text {
   margin: 0 0 20px 0;
-  color: #5a6c7d;
+  color: var(--text-secondary);
   font-size: 1.1rem;
-}
-
-.upload-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  pointer-events: all;
-}
-
-.upload-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .button-icon {
   font-size: 1.1rem;
+  margin-right: 8px;
 }
 
 .file-input {
   display: none;
 }
 
-/* Section Headers */
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.section-title {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 1.3rem;
-  font-weight: 600;
-}
-
-.clear-all-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
-}
-
-.clear-all-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-}
-
-.clear-icon {
-  font-size: 1rem;
-}
-
 /* Pictures Grid */
-.pictures-section {
-  margin-bottom: 25px;
-}
-
 .pictures-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 15px;
+  margin-top: 15px;
 }
 
 .picture-card {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
+  background: var(--bg-white-translucent);
+  border-radius: var(--border-radius);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: var(--transition-medium);
+  box-shadow: var(--shadow-card);
   border: 2px solid transparent;
 }
 
 .picture-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  border-color: #667eea;
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color);
 }
 
 .picture-card.active {
-  border-color: #667eea;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 25px var(--bg-primary-border-light);
 }
 
 .picture-thumbnail {
@@ -400,7 +314,7 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: var(--transition-medium);
 }
 
 .picture-card:hover .picture-thumbnail img {
@@ -415,40 +329,14 @@ export default {
 }
 
 .picture-name {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 500;
   font-size: 0.9rem;
   flex: 1;
   text-align: left;
 }
 
-.remove-btn {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  transition: all 0.2s ease;
-}
-
-.remove-btn:hover {
-  background: #c0392b;
-  transform: scale(1.1);
-}
-
-/* No Pictures State */
-.no-pictures-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: #7f8c8d;
-}
-
+/* Empty State Styling */
 .empty-icon {
   font-size: 4rem;
   margin-bottom: 15px;
@@ -459,71 +347,42 @@ export default {
   font-size: 1.2rem;
   font-weight: 600;
   margin: 0 0 8px 0;
+  color: var(--text-secondary);
 }
 
 .empty-hint {
   margin: 0;
   font-size: 1rem;
   opacity: 0.8;
+  color: var(--text-secondary);
 }
 
 /* Image Display */
-.image-display-section {
-  margin-top: 25px;
-}
-
-.close-btn {
-  background: #95a5a6;
-  color: white;
-  border: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  transition: all 0.2s ease;
-}
-
-.close-btn:hover {
-  background: #7f8c8d;
-  transform: scale(1.1);
-}
-
 .image-container {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
+  background: var(--bg-white-translucent);
+  border-radius: var(--border-radius);
   padding: 15px;
   text-align: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-card);
 }
 
 .display-image {
   max-width: 100%;
   max-height: 400px;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-card);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .picture-loader-container {
     width: 95%;
-    min-width: unset;
-    max-width: unset;
     margin: 10px auto;
-    padding: 15px;
   }
 
   .pictures-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 10px;
-  }
-
-  .title {
-    font-size: 1.5rem;
   }
 
   .upload-area {

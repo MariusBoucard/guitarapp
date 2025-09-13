@@ -1,93 +1,106 @@
 <template>
-  <div style="width:100%">
-    <div class="training-container">
-      <div class="training-layout">
-        <!-- Left Panel - Playlist Management -->
-        <div class="playlist-section">
-          <h2>Training Playlists</h2>
-          
-          <!-- Playlist Tabs -->
-          <div class="playlist-tabs">
-            <ul class="horizontal-list">
-              <li v-for="training in trainingStore.trainingList" 
-                  @click="selectTraining(training)" 
-                  :class="backColor(training)" 
-                  :key="training.id">
-                <p>{{ training.name }}</p>
-              </li>
-            </ul>
-          </div>
+  <div class="video-container">
+    <div class="two-columns">
+      <!-- Left Panel - Playlist Management -->
+      <div class="column-left">
+        <h2 class="section-title">Training Playlists</h2>
+        
+        <!-- Playlist Tabs -->
+        <div class="section-card">
+          <ul class="list-unstyled list-horizontal">
+            <li v-for="training in trainingStore.trainingList" 
+                @click="selectTraining(training)" 
+                :class="backColor(training)" 
+                :key="training.id"
+                class="list-item">
+              <p>{{ training.name }}</p>
+            </li>
+          </ul>
+        </div>
 
-          <!-- Playlist Management Controls -->
-          <div class="playlist-controls">
-            <input v-model="currentName" type="text" placeholder="New playlist name" />
-            <div class="button-group">
-              <button @click="addTraining()">Add Playlist</button>
-              <button @click="removeTraining()">Remove Playlist</button>
-            </div>
+        <!-- Playlist Management Controls -->
+        <div class="section-card">
+          <input v-model="currentName" 
+                 type="text" 
+                 placeholder="New playlist name" 
+                 class="form-input" />
+          <div class="btn-group">
+            <button @click="addTraining()" class="btn btn-success">Add Playlist</button>
+            <button @click="removeTraining()" class="btn btn-danger-alt">Remove Playlist</button>
           </div>
+        </div>
 
-          <!-- Current Playlist Videos -->
-          <div class="playlist-content">
-            <h3 v-if="currentTraining">{{ currentTraining.name }} - Videos</h3>
-            <ol class="video-list">
-              <li v-for="(item, index) in currentPlaylistVideos" 
-                  :key="index" 
-                  @click="playVideoInTrainingPlayer(item)"
-                  class="video-item">
-                {{ getVideoDisplayName(item) }}
-                <button class="button-remove" @click.stop="removeVideoFromPlaylist(item)">×</button>
-              </li>
-            </ol>
-          </div>
-
-          <!-- File Selection Controls -->
-          <div class="file-controls">
-            <div class="button-wrap">
-              <button class="button-file" @click="selectSingleVideo">Add Single Video</button>
-              <button class="button-file" @click="selectTrainingDirectory">Add From Directory</button>
-              <button class="button-file" @click="openVideoModal">Browse Available Videos</button>
-              <label class="button-file" for="uploadVideo">Upload File (Web)</label>
-              <input id="uploadVideo" type="file" @change="loadVideo" accept="video/*">
-            </div>
-          </div>
-
-          <!-- Directory Browser (when directory is selected) -->
-          <div v-if="directoryVideos.length > 0" class="directory-browser">
-            <h3>Available Videos from Directory</h3>
-            <div class="directory-videos">
-              <div v-for="video in directoryVideos" :key="video.path" class="directory-video-item">
-                <span @click="playVideoInTrainingPlayer(video)">{{ video.name }}</span>
-                <button @click="addVideoToCurrentPlaylist(video)" class="button-add">Add to Playlist</button>
-              </div>
+        <!-- Current Playlist Videos -->
+        <div class="section-card" style="flex: 1;">
+          <h3 v-if="currentTraining" style="margin: 0 0 15px 0; color: var(--text-primary); font-weight: 600; font-size: 1.1rem; text-align: center; padding: 10px; background: var(--bg-primary-light); border-radius: 20px; border: 2px solid var(--bg-primary-border);">
+            {{ currentTraining.name }} - Videos
+          </h3>
+          <div class="list-scrollable" style="max-height: 300px;">
+            <div v-for="(item, index) in currentPlaylistVideos" 
+                 :key="index" 
+                 @click="playVideoInTrainingPlayer(item)"
+                 class="list-item-with-action">
+              <span>{{ getVideoDisplayName(item) }}</span>
+              <button class="btn-icon-round btn-danger-alt" @click.stop="removeVideoFromPlaylist(item)"></button>
             </div>
           </div>
         </div>
 
-        <!-- Right Panel - Video Player -->
-        <div class="video-player-section">
-          <h2>Training Video Player</h2>
-          <div class="video-container">
-            <video 
-              ref="trainingVideoPlayer"
-              style="width:100%;height:400px" 
-              @timeupdate="handleTimeUpdate" 
-              @loadedmetadata="handleVideoLoaded"
-              controls>
-              Your browser does not support the video tag.
-            </video>
+        <!-- File Selection Controls -->
+        <div class="section-card">
+          <div class="btn-group btn-group-vertical">
+            <button class="btn btn-primary" @click="selectSingleVideo">Add Single Video</button>
+            <button class="btn btn-primary" @click="selectTrainingDirectory">Add From Directory</button>
+            <button class="btn btn-primary" @click="openVideoModal">Browse Available Videos</button>
+            <label class="btn btn-primary" for="uploadVideo">Upload File (Web)</label>
+            <input id="uploadVideo" type="file" @change="loadVideo" accept="video/*" style="display: none;">
           </div>
-          
-          <!-- Video Controls -->
-          <div class="video-controls">
-            <div class="playback-controls">
-              <button class="control-button" @click="playVideo">▶ Play</button>
-              <button class="control-button" @click="pauseVideo">⏸ Pause</button>
-              <button class="control-button" @click="stopVideo">⏹ Stop</button>
-            </div>
+        </div>
 
-            <!-- Time Controls -->
-            <div class="time-controls">
+        <!-- Directory Browser (when directory is selected) -->
+        <div v-if="directoryVideos.length > 0" class="section-card">
+          <h3 style="margin: 0 0 15px 0; color: var(--text-primary); font-weight: 600; font-size: 1.1rem;">
+            Available Videos from Directory
+          </h3>
+          <div class="list-scrollable" style="max-height: 200px;">
+            <div v-for="video in directoryVideos" 
+                 :key="video.path" 
+                 class="list-item-with-action">
+              <span @click="playVideoInTrainingPlayer(video)">{{ video.name }}</span>
+              <button @click="addVideoToCurrentPlaylist(video)" class="btn btn-warning btn-small">Add to Playlist</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel - Video Player -->
+      <div class="column-right">
+        <h2 class="section-title">Training Video Player</h2>
+        
+        <!-- Video Player -->
+        <div class="video-player">
+          <video 
+            ref="trainingVideoPlayer"
+            class="video-player-full-height"
+            @timeupdate="handleTimeUpdate" 
+            @loadedmetadata="handleVideoLoaded"
+            controls>
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        
+        <!-- Video Controls -->
+        <div class="section-card">
+          <!-- Playback Controls -->
+          <div class="btn-group btn-group-center mb-medium">
+            <button class="btn btn-success" @click="playVideo">▶ Play</button>
+            <button class="btn btn-warning" @click="pauseVideo">⏸ Pause</button>
+            <button class="btn btn-danger" @click="stopVideo">⏹ Stop</button>
+          </div>
+
+          <!-- Time Controls -->
+          <div class="slider-section">
+            <div class="slider-grid">
               <div class="slider-container">
                 <label for="startSlider" class="slider-label">Start Time</label>
                 <input 
@@ -96,8 +109,9 @@
                   v-model="startTime" 
                   :max="endTime" 
                   min="0" 
-                  step="1">
-                <span class="time-value">{{ formatTime(startTime) }}</span>
+                  step="1"
+                  class="range-input">
+                <p class="slider-value">{{ formatTime(startTime) }}</p>
               </div>
 
               <div class="slider-container">
@@ -108,35 +122,38 @@
                   v-model="endTime" 
                   :min="startTime" 
                   :max="videoDuration" 
-                  step="1">
-                <span class="time-value">{{ formatTime(endTime) }}</span>
+                  step="1"
+                  class="range-input">
+                <p class="slider-value">{{ formatTime(endTime) }}</p>
               </div>
             </div>
+          </div>
 
-            <!-- Speed and Loop Controls -->
-            <div class="advanced-controls">
-              <div class="speed-control">
-                <label for="speedSlider">Speed: {{ speed }}%</label>
-                <input 
-                  id="speedSlider"
-                  type="range" 
-                  min="25" 
-                  max="200" 
-                  step="5"
-                  v-model="speed">
-              </div>
-
-              <div class="loop-control">
-                <label>
-                  <input type="checkbox" v-model="loop"> Loop
-                </label>
-              </div>
+          <!-- Speed and Loop Controls -->
+          <div class="slider-section">
+            <div class="slider-container">
+              <label for="speedSlider" class="slider-label">Speed: {{ speed }}%</label>
+              <input 
+                id="speedSlider"
+                type="range" 
+                min="25" 
+                max="200" 
+                step="5"
+                v-model="speed"
+                class="range-input-thick">
             </div>
 
-            <!-- Current Video Info -->
-            <div v-if="currentVideoName" class="video-info">
-              <h4>{{ currentVideoName }}</h4>
+            <div class="checkbox-container">
+              <label class="checkbox-label">Loop</label>
+              <input type="checkbox" v-model="loop" class="checkbox-input">
             </div>
+          </div>
+
+          <!-- Current Video Info -->
+          <div v-if="currentVideoName" class="section-card" style="background: var(--bg-primary-light); border: 2px solid var(--bg-primary-border);">
+            <h4 style="margin: 0; color: var(--primary-color); font-size: 1.1rem; font-weight: 600; text-align: center;">
+              {{ currentVideoName }}
+            </h4>
           </div>
         </div>
       </div>
@@ -147,70 +164,72 @@
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h2>Browse Available Videos</h2>
-          <button class="modal-close" @click="closeVideoModal">×</button>
+          <button class="btn-icon-round btn-danger-alt" @click="closeVideoModal"></button>
         </div>
         
         <div class="modal-body">
-          <div v-if="availableVideos.length === 0" class="no-videos">
+          <div v-if="availableVideos.length === 0" class="no-content-message">
             <p>No videos found. First load a directory in the Video Player component.</p>
           </div>
           
           <div v-else class="video-browser">
             <!-- Search filter -->
-            <div class="search-section">
-              <input 
-                v-model="videoSearchQuery" 
-                type="text" 
-                placeholder="Search videos..."
-                class="search-input"
-              />
-            </div>
+            <input 
+              v-model="videoSearchQuery" 
+              type="text" 
+              placeholder="Search videos..."
+              class="form-input"
+            />
             
             <!-- Training categories -->
-            <div v-for="(training, trainingIndex) in filteredAvailableVideos" 
-                 :key="trainingIndex" 
-                 class="training-category">
-              <h3 
-                @click="toggleTrainingCategory(trainingIndex)" 
-                class="training-header"
-                :class="{ expanded: training.show }"
-              >
-                📁 {{ training.trainingType }} ({{ getTrainingVideoCount(training) }} videos)
-              </h3>
-              
-              <div v-show="training.show" class="training-items">
-                <div v-for="(item, itemIndex) in training.trainings" 
-                     :key="itemIndex" 
-                     class="training-item">
-                  <h4 
-                    @click="toggleTrainingItem(trainingIndex, itemIndex)"
-                    class="item-header"
-                    :class="{ expanded: item.show }"
-                  >
-                    📂 {{ item.name }} 
-                    <span v-if="item.videos">({{ item.videos.length }} videos)</span>
-                  </h4>
-                  
-                  <div v-show="item.show" class="video-list-modal">
-                    <!-- Single video (direct file) -->
-                    <div v-if="item.isDirectFile" 
-                         class="video-item-modal"
-                         @click="selectVideoFromModal(item)">
-                      <span class="video-name">🎥 {{ item.name }}</span>
-                      <button class="button-select" @click.stop="addVideoFromModal(item)">
-                        Add to Playlist
-                      </button>
-                    </div>
+            <div class="training-tree">
+              <div v-for="(training, trainingIndex) in filteredAvailableVideos" 
+                   :key="trainingIndex" 
+                   class="training-category">
+                <h3 
+                  @click="toggleTrainingCategory(trainingIndex)" 
+                  class="training-category-header"
+                  :class="{ 'training-category-header-expanded': training.show }"
+                >
+                  📁 {{ training.trainingType }} ({{ getTrainingVideoCount(training) }} videos)
+                </h3>
+                
+                <div v-show="training.show" class="training-items">
+                  <div v-for="(item, itemIndex) in training.trainings" 
+                       :key="itemIndex" 
+                       class="training-item">
+                    <h4 
+                      @click="toggleTrainingItem(trainingIndex, itemIndex)"
+                      class="training-item-header"
+                      :class="{ 'training-item-header-expanded': item.show }"
+                    >
+                      📂 {{ item.name }} 
+                      <span v-if="item.videos">({{ item.videos.length }} videos)</span>
+                    </h4>
                     
-                    <!-- Multiple videos -->
-                    <div v-else v-for="(video, videoIndex) in item.videos || []" 
-                         :key="videoIndex"
-                         class="video-item-modal"
-                         @click="selectVideoFromModal(video)">
-                      <span class="video-name">🎥 {{ video.name }}</span>
-                      <button class="button-select" @click.stop="addVideoFromModal(video)">
-                        Add to Playlist
-                      </button>
+                    <div v-show="item.show">
+                      <ul class="video-list">
+                        <!-- Single video (direct file) -->
+                        <li v-if="item.isDirectFile" 
+                            class="video-item"
+                            @click="selectVideoFromModal(item)">
+                          🎥 {{ item.name }}
+                          <button class="btn btn-success btn-small" @click.stop="addVideoFromModal(item)">
+                            Add to Playlist
+                          </button>
+                        </li>
+                        
+                        <!-- Multiple videos -->
+                        <li v-else v-for="(video, videoIndex) in item.videos || []" 
+                            :key="videoIndex"
+                            class="video-item"
+                            @click="selectVideoFromModal(video)">
+                          🎥 {{ video.name }}
+                          <button class="btn btn-success btn-small" @click.stop="addVideoFromModal(video)">
+                            Add to Playlist
+                          </button>
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -220,7 +239,7 @@
         </div>
         
         <div class="modal-footer">
-          <button @click="closeVideoModal" class="button-cancel">Close</button>
+          <button @click="closeVideoModal" class="btn">Close</button>
         </div>
       </div>
     </div>
@@ -231,7 +250,7 @@
 import { useTrainingStore } from '@/stores/trainingStore.js'
 import { useVideoStore } from '@/stores/videoStore.js'
 import { serviceManager } from '@/services/index.js'
-
+import "../assets/css/global.css"
 export default {
   name: 'TrainingComponent',
   
@@ -326,8 +345,8 @@ export default {
     // Playlist Management
     backColor(training) {
       return training.id === this.trainingStore.selectedTraining 
-        ? "selected-training" 
-        : "unselected-training"
+        ? "list-item-selected" 
+        : ""
     },
 
     selectTraining(training) {
@@ -896,617 +915,8 @@ export default {
   }
 }
 </script>
-
 <style scoped>
-/* Main Container */
-.training-container {
-  width: 100%;
-  height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding: 20px;
-  box-sizing: border-box;
-  color: #2c3e50;
-}
-
-/* Layout */
-.training-layout {
-  display: grid;
-  grid-template-columns: 450px 1fr;
-  gap: 25px;
-  height: calc(100vh - 40px);
-  max-width: 1600px;
-  margin: 0 auto;
-}
-
-/* Left Panel - Playlist Section */
-.playlist-section {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.playlist-section::-webkit-scrollbar {
-  width: 6px;
-}
-
-.playlist-section::-webkit-scrollbar-track {
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 3px;
-}
-
-.playlist-section::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 3px;
-}
-
-.playlist-section h2 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 1.4rem;
-  font-weight: 700;
-  text-align: center;
-  padding: 15px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 25px;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-/* Right Panel - Video Player Section */
-.video-player-section {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.video-player-section h2 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 1.4rem;
-  font-weight: 700;
-  text-align: center;
-  padding: 15px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 25px;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-/* Playlist Tabs */
-.playlist-tabs {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.horizontal-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.horizontal-list li {
-  padding: 12px 16px;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  text-align: center;
-  font-weight: 500;
-  border: 2px solid transparent;
-}
-
-.selected-training {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  transform: translateY(-2px);
-  border-color: #667eea;
-}
-
-.unselected-training {
-  background: rgba(255, 255, 255, 0.9);
-  color: #2c3e50;
-  border-color: #e0e6ed;
-}
-
-.unselected-training:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: #667eea;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.horizontal-list li p {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-/* Playlist Controls */
-.playlist-controls {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.playlist-controls input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e0e6ed;
-  border-radius: 25px;
-  font-size: 0.9rem;
-  background: white;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-  color: #2c3e50;
-}
-
-.playlist-controls input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-}
-
-.button-group button {
-  flex: 1;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 25px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.button-group button:first-child {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-}
-
-.button-group button:first-child:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-}
-
-.button-group button:last-child {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
-}
-
-.button-group button:last-child:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-}
-
-/* Playlist Content */
-.playlist-content {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  flex: 1;
-}
-
-.playlist-content h3 {
-  margin: 0 0 15px 0;
-  color: #2c3e50;
-  font-weight: 600;
-  font-size: 1.1rem;
-  text-align: center;
-  padding: 10px;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 20px;
-  border: 2px solid rgba(102, 126, 234, 0.2);
-}
-
-.video-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 300px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.video-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.video-list::-webkit-scrollbar-track {
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 3px;
-}
-
-.video-list::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 3px;
-}
-
-.video-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 15px;
-  cursor: pointer;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-  font-weight: 500;
-  color: #2c3e50;
-}
-
-.video-item:hover {
-  background: rgba(102, 126, 234, 0.1);
-  border-color: #667eea;
-  transform: translateX(5px);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.button-remove {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
-}
-
-.button-remove:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
-}
-
-/* File Controls */
-.file-controls {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.button-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.button-file {
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  text-align: center;
-  text-decoration: none;
-  display: block;
-}
-
-.button-file:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-#uploadVideo {
-  display: none;
-}
-
-/* Directory Browser */
-.directory-browser {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.directory-browser h3 {
-  margin: 0 0 15px 0;
-  color: #2c3e50;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.directory-videos {
-  max-height: 200px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.directory-video-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 15px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.directory-video-item:hover {
-  border-color: #667eea;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.directory-video-item span {
-  cursor: pointer;
-  flex: 1;
-  font-weight: 500;
-  color: #2c3e50;
-}
-
-.directory-video-item span:hover {
-  color: #667eea;
-}
-
-.button-add {
-  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
-}
-
-.button-add:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
-}
-
-/* Video Player */
-.video-container {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.video-container video {
-  width: 100%;
-  height: 400px;
-  background: #000;
-}
-
-/* Video Controls */
-.video-controls {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.playback-controls {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.control-button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  min-width: 100px;
-}
-
-.control-button:nth-child(1) {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-}
-
-.control-button:nth-child(2) {
-  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
-}
-
-.control-button:nth-child(3) {
-  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
-}
-
-.control-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-}
-
-/* Time Controls */
-.time-controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.slider-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.slider-label {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 0.9rem;
-}
-
-.slider-container input[type="range"] {
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: #ecf0f1;
-  outline: none;
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-}
-
-.slider-container input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-  transition: all 0.2s ease;
-}
-
-.slider-container input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.time-value {
-  font-weight: 600;
-  color: #667eea;
-  text-align: center;
-  background: rgba(102, 126, 234, 0.1);
-  padding: 5px 10px;
-  border-radius: 15px;
-  font-size: 0.9rem;
-}
-
-/* Advanced Controls */
-.advanced-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 15px;
-}
-
-.speed-control {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-}
-
-.speed-control label {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 0.9rem;
-}
-
-.speed-control input[type="range"] {
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: #ecf0f1;
-  outline: none;
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-}
-
-.speed-control input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
-  transition: all 0.2s ease;
-}
-
-.speed-control input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
-}
-
-.loop-control {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.loop-control label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  color: #2c3e50;
-  font-size: 0.95rem;
-}
-
-.loop-control input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #667eea;
-  cursor: pointer;
-}
-
-/* Video Info */
-.video-info {
-  border-top: 2px solid rgba(102, 126, 234, 0.2);
-  padding-top: 15px;
-  margin-top: 15px;
-}
-
-.video-info h4 {
-  margin: 0;
-  color: #667eea;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-/* Modal Styles */
+/* Modal Overlay and Content */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1522,8 +932,8 @@ export default {
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 16px;
+  background: var(--bg-main-gradient);
+  border-radius: var(--border-radius-large);
   width: 90%;
   max-width: 900px;
   max-height: 90%;
@@ -1537,43 +947,21 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 25px;
-  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+  border-bottom: 2px solid var(--bg-primary-border);
 }
 
 .modal-header h2 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 700;
   font-size: 1.4rem;
-}
-
-.modal-close {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  border: none;
-  color: white;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 0;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
-}
-
-.modal-close:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
 }
 
 .modal-body {
   padding: 25px;
   flex: 1;
   overflow-y: auto;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--bg-white-semi);
 }
 
 .modal-body::-webkit-scrollbar {
@@ -1581,219 +969,49 @@ export default {
 }
 
 .modal-body::-webkit-scrollbar-track {
-  background: rgba(102, 126, 234, 0.1);
+  background: var(--bg-primary-light);
   border-radius: 3px;
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary-gradient);
   border-radius: 3px;
 }
 
 .modal-footer {
   padding: 25px;
-  border-top: 2px solid rgba(102, 126, 234, 0.2);
+  border-top: 2px solid var(--bg-primary-border);
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
-.search-section {
-  margin-bottom: 20px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e0e6ed;
-  border-radius: 25px;
-  font-size: 0.9rem;
-  background: white;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-  color: #2c3e50;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
-}
-
+/* Video Browser */
 .video-browser {
   max-height: 500px;
   overflow-y: auto;
 }
 
-.training-category {
-  margin-bottom: 15px;
-  border: 2px solid rgba(102, 126, 234, 0.2);
-  border-radius: 12px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.training-header {
-  background: rgba(102, 126, 234, 0.1);
-  padding: 15px 20px;
-  margin: 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.training-header:hover {
-  background: rgba(102, 126, 234, 0.2);
-}
-
-.training-header.expanded {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.training-items {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.training-item {
-  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-}
-
-.training-item:last-child {
-  border-bottom: none;
-}
-
-.item-header {
-  background: rgba(102, 126, 234, 0.05);
-  padding: 12px 25px;
-  margin: 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #2c3e50;
-}
-
-.item-header:hover {
-  background: rgba(102, 126, 234, 0.1);
-}
-
-.item-header.expanded {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
-}
-
-.video-list-modal {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.video-item-modal {
+/* Additional styling for video items in modal */
+.video-list .video-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 30px;
-  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-  cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 10px 25px;
+  margin: 0;
 }
 
-.video-item-modal:hover {
-  background: rgba(102, 126, 234, 0.1);
-}
-
-.video-item-modal:last-child {
-  border-bottom: none;
-}
-
-.video-name {
-  flex: 1;
-  font-size: 0.85rem;
-  color: #2c3e50;
-  font-weight: 500;
-}
-
-.button-select {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 15px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
-}
-
-.button-select:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-}
-
-.button-cancel {
-  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
-}
-
-.button-cancel:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
-}
-
-.no-videos {
-  text-align: center;
-  padding: 40px;
-  color: #7f8c8d;
-  font-style: italic;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .training-layout {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
-  .playlist-section {
-    max-height: 400px;
-  }
-}
-
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .training-container {
-    padding: 10px;
+  .modal-content {
+    width: 95%;
+    max-height: 95%;
   }
   
-  .playlist-section,
-  .video-player-section {
+  .modal-header,
+  .modal-body,
+  .modal-footer {
     padding: 15px;
-  }
-  
-  .time-controls {
-    grid-template-columns: 1fr;
-  }
-  
-  .advanced-controls {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .playback-controls {
-    flex-direction: column;
-  }
-  
-  .control-button {
-    width: 100%;
   }
 }
 </style>
