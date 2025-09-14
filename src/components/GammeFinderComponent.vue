@@ -1,52 +1,63 @@
 <template>
-  <div class="gamme-finder-container">
-    <div class="header-section">
-      <div class="current-scale">
-        <h3 class="current-scale-title">🎵 Current Scale</h3>
-        <p class="current-scale-value">{{ this.gammeSelected || 'No scale selected' }}</p>
+  <div class="card">
+    <!-- Header Section -->
+    <div class="card-header">
+      <div class="info-panel">
+        <h3 class="info-panel-title">🎵 Current Scale</h3>
+        <p class="info-panel-value">{{ this.gammeSelected || 'No scale selected' }}</p>
       </div>
       
-      <div class="color-option">
+      <div class="flex-center">
         <div class="checkbox-wrapper">
-          <input type="checkbox" v-model="this.colorScaleBool" id="colorScale" class="custom-checkbox">
+          <input 
+            type="checkbox" 
+            v-model="this.colorScaleBool" 
+            id="colorScale" 
+            class="checkbox-custom"
+          >
           <label for="colorScale" class="checkbox-label">
-            <span class="checkmark">✓</span>
+            <span class="checkbox-checkmark">✓</span>
             Color relative to position in scale
           </label>
         </div>
       </div>
     </div>
 
-    <div class="scales-section">
+    <!-- Scales Section -->
+    <div class="card-section">
       <h2 class="section-title">🎼 Available Scales</h2>
       
-      <div v-if="!listeGammes.length" class="no-scales-message">
+      <div v-if="!listeGammes.length" class="no-content-message">
         <p>No scales available. Please select some notes first.</p>
       </div>
       
-      <div v-else class="scales-grid">
-        <div v-for="gammes in this.listeGammes" :key="gammes" class="scale-card">
-          <div v-if="gammes !== undefined" class="scale-content">
+      <div v-else class="card-grid">
+        <div 
+          v-for="gammes in this.listeGammes" 
+          :key="gammes" 
+          class="card-item slide-in-up"
+        >
+          <div v-if="gammes !== undefined" class="card-content">
             <button 
-              class="scale-button" 
+              class="btn-card arrow-hover" 
               @click="this.setGamme(gammes.root, gammes.name)"
               :class="{ active: gammeSelected === `${gammes.root} - ${gammes.name}` }"
             >
-              <div class="scale-info">
-                <span class="scale-root">{{ gammes.root }}</span>
-                <span class="scale-name">{{ gammes.name }}</span>
+              <div class="content-info">
+                <span class="content-root">{{ gammes.root }}</span>
+                <span class="content-name">{{ gammes.name }}</span>
               </div>
-              <span class="scale-arrow">→</span>
+              <span class="arrow">→</span>
             </button>
 
-            <div class="notes-preview">
-              <div class="notes-label">Notes:</div>
-              <div class="notes-list">
+            <div class="preview-section">
+              <div class="preview-label">Notes:</div>
+              <div class="preview-content">
                 <span 
                   v-for="(note, index) in gammes.notes" 
                   :key="note" 
-                  class="note-chip"
-                  :style="{ '--note-index': index }"
+                  class="chip"
+                  :class="{ 'chip-alt': index % 2 === 0 }"
                 >
                   {{ note }}
                 </span>
@@ -58,395 +69,30 @@
     </div>
   </div>
 </template>
+
 <style scoped>
-.gamme-finder-container {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  margin: var(--spacing-lg) 0;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px var(--shadow-medium);
-  color: var(--text-primary);
-  transition: all var(--transition-normal);
+/* Component-specific overrides only */
+.chip {
+  /* Use CSS custom properties for dynamic coloring if needed */
+  --chip-index: var(--note-index, 0);
 }
 
-.gamme-finder-container:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px var(--shadow-dark);
+.chip:nth-child(odd) {
+  /* Already handled by chip-alt class */
 }
 
-.header-section {
-  margin-bottom: var(--spacing-xl);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 2px solid var(--border-accent);
+/* Any component-specific animations or behaviors */
+.card-item {
+  /* Animation delay handled by global classes */
 }
 
-.current-scale {
-  background: rgba(52, 152, 219, 0.1);
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-md);
-  border-left: 4px solid var(--secondary-blue);
-  margin-bottom: var(--spacing-lg);
-}
-
-.current-scale-title {
-  margin: 0 0 var(--spacing-sm) 0;
-  color: var(--secondary-blue);
-  font-size: 1.1rem;
-  font-weight: var(--font-semibold);
-}
-
-.current-scale-value {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: 1.2rem;
-  font-weight: var(--font-medium);
-  text-transform: capitalize;
-}
-
-.color-option {
-  display: flex;
-  justify-content: center;
-  margin-top: var(--spacing-lg);
-}
-
-.checkbox-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.custom-checkbox {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.checkbox-label {
-  position: relative;
-  padding-left: var(--spacing-xxl);
-  cursor: pointer;
-  color: var(--text-primary);
-  font-weight: var(--font-medium);
-  user-select: none;
-  transition: all var(--transition-normal);
-}
-
-.checkbox-label::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--border-accent);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  transition: all var(--transition-normal);
-}
-
-.custom-checkbox:checked + .checkbox-label::before {
-  background: var(--btn-primary);
-  border-color: var(--secondary-blue);
-}
-
-.checkmark {
-  position: absolute;
-  left: 3px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-primary);
-  font-size: 0.8rem;
-  opacity: 0;
-  transition: opacity var(--transition-normal);
-}
-
-.custom-checkbox:checked + .checkbox-label .checkmark {
-  opacity: 1;
-}
-
-.checkbox-label:hover::before {
-  border-color: var(--secondary-blue);
-  box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
-}
-
-.scales-section {
-  margin-top: var(--spacing-xl);
-}
-
-.section-title {
-  color: var(--text-primary);
-  font-size: 1.4rem;
-  font-weight: var(--font-semibold);
-  margin-bottom: var(--spacing-lg);
-  text-align: center;
-  padding-bottom: var(--spacing-md);
-}
-
-.no-scales-message {
-  text-align: center;
-  padding: var(--spacing-xxl);
-  color: var(--text-secondary);
-  font-style: italic;
-  background: rgba(52, 73, 94, 0.3);
-  border-radius: var(--radius-md);
-  border: 1px dashed var(--border-primary);
-}
-
-.scales-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-  gap: var(--spacing-lg);
-}
-
-.scale-card {
-  background: rgba(44, 62, 80, 0.6);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  transition: all var(--transition-normal);
-  box-shadow: 0 4px 8px var(--shadow-light);
-  min-width: 0; /* Allow cards to shrink */
-  width: 100%;
-}
-
-.scale-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px var(--shadow-medium);
-  border-color: var(--border-accent);
-}
-
-.scale-content {
-  padding: 0;
-}
-
-.scale-button {
-  width: 100%;
-  background: var(--btn-primary);
-  border: none;
-  color: var(--text-primary);
-  padding: var(--spacing-lg);
-  cursor: pointer;
-  font-weight: var(--font-semibold);
-  font-size: 1rem;
-  transition: all var(--transition-normal);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-  min-width: 0; /* Allow button content to shrink */
-}
-
-.scale-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left var(--transition-slow);
-}
-
-.scale-button:hover::before {
-  left: 100%;
-}
-
-.scale-button:hover {
-  background: var(--btn-primary-hover);
-  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
-}
-
-.scale-button.active {
-  background: var(--btn-success);
-  box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
-}
-
-.scale-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.scale-root {
-  background: rgba(255, 255, 255, 0.2);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-weight: var(--font-bold);
-  font-size: 1.1rem;
-  min-width: 20px;
-  text-align: center;
-}
-
-.scale-name {
-  font-weight: var(--font-medium);
-  text-transform: capitalize;
-}
-
-.scale-arrow {
-  font-size: 1.2rem;
-  transition: transform var(--transition-normal);
-}
-
-.scale-button:hover .scale-arrow {
-  transform: translateX(4px);
-}
-
-.notes-preview {
-  padding: var(--spacing-lg);
-  background: rgba(52, 73, 94, 0.3);
-}
-
-.notes-label {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: var(--font-medium);
-  margin-bottom: var(--spacing-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.notes-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-}
-
-.note-chip {
-  background: var(--secondary-blue);
-  color: var(--text-primary);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  font-weight: var(--font-medium);
-  transition: all var(--transition-normal);
-  cursor: default;
-  position: relative;
-  overflow: hidden;
-}
-
-.note-chip:hover {
-  background: var(--secondary-blue-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
-}
-
-.note-chip:nth-child(odd) {
-  background: var(--accent-purple);
-}
-
-.note-chip:nth-child(odd):hover {
-  background: #8e44ad;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .gamme-finder-container {
-    padding: var(--spacing-lg);
-  }
-  
-  .scales-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .checkbox-label {
-    font-size: 0.9rem;
-  }
-  
-  .scale-info {
-    flex-direction: column;
-    gap: var(--spacing-xs);
-    text-align: left;
-  }
-}
-
-/* Additional responsive behavior for very narrow containers */
-@media (max-width: 500px) {
-  .scales-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
-  }
-  
-  .scale-button {
-    padding: var(--spacing-md);
-    font-size: 0.9rem;
-  }
-  
-  .scale-info {
-    flex-direction: row;
-    gap: var(--spacing-sm);
-  }
-  
-  .scale-root {
-    font-size: 0.9rem;
-    padding: var(--spacing-xs);
-  }
-  
-  .scale-name {
-    font-size: 0.9rem;
-  }
-  
-  .notes-preview {
-    padding: var(--spacing-md);
-  }
-}
-
-/* Handle very narrow containers (like in a sidebar) */
+/* Mobile-specific adjustments that aren't covered globally */
 @media (max-width: 320px) {
-  .gamme-finder-container {
-    padding: var(--spacing-md);
+  .content-info {
+    /* Additional mobile tweaks if needed */
   }
-  
-  .scales-grid {
-    gap: var(--spacing-sm);
-  }
-  
-  .scale-button {
-    padding: var(--spacing-sm);
-    flex-direction: column;
-    gap: var(--spacing-xs);
-  }
-  
-  .scale-info {
-    flex-direction: column;
-    gap: var(--spacing-xs);
-    align-items: center;
-  }
-  
-  .scale-arrow {
-    display: none; /* Hide arrow on very small screens */
-  }
-}
-
-/* Animation for scale cards */
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.scale-card {
-  animation: slideInUp var(--transition-slow) ease-out;
-}
-
-.scale-card:nth-child(even) {
-  animation-delay: 0.1s;
-}
-
-.scale-card:nth-child(3n) {
-  animation-delay: 0.2s;
 }
 </style>
-
 <script>
 
 import * as myKey from '../../mydata.json';
