@@ -10,14 +10,14 @@
               <p>No video library loaded. Use "Select Training Directory" below to load your video collection.</p>
             </div>
             <div v-else class="training-tree">
-              <div v-for="(training, index) in trainingList" :key="index" class="training-category">
+              <div v-for="(training, index) in trainingList" :key="`training-${index}`" class="training-category">
                 <h3 @click="toggleTraining(index)" 
                     class="training-category-header" 
                     :class="{ 'training-category-header-expanded': training.show }">
                   📁 {{ training.trainingType }} ({{ getTotalVideosInTraining(training) }} videos)
                 </h3>
                 <div v-show="training.show" class="training-items">
-                  <div v-for="(item, subIndex) in training.trainings" :key="subIndex" class="training-item">
+                  <div v-for="(item, subIndex) in training.trainings" :key="`item-${index}-${subIndex}`" class="training-item">
                     <h4 @click="toggleItem(index, subIndex)" 
                         class="training-item-header"
                         :class="{ 'training-item-header-expanded': item.show }">
@@ -27,7 +27,7 @@
                       <li v-if="item.isDirectFile" @click="launchFile(item)" class="video-item">
                         🎥 {{ item.name }}
                       </li>
-                      <li v-else v-for="(video, videoIndex) in item.videos || []" :key="videoIndex"
+                      <li v-else v-for="(video, videoIndex) in item.videos || []" :key="`video-${index}-${subIndex}-${videoIndex}`"
                           @click="launchFile(video)" class="video-item">
                         🎥 {{ video.name }}
                       </li>
@@ -54,6 +54,11 @@
                 <button @click="reloadDirectory" class="btn btn-success btn-small">📂 Reload Directory</button>
                 <button @click="hideAutoReloadMessage" class="btn btn-secondary btn-small">Dismiss</button>
               </div>
+            </div>
+
+            <!-- Error Message -->
+            <div v-if="errorMessage" class="error-message">
+              <p>{{ errorMessage }}</p>
             </div>
           </div>
         </div>
@@ -143,56 +148,99 @@
 
 <script>
 import '../assets/css/global.css'
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useVideoStore } from '@/stores/videoStore'
 import { serviceManager } from '@/services'
 
 export default {
   name: 'VideoComponentNewRefactored',
-  setup() {
-    // Store and Services
-    const videoStore = useVideoStore()
-    const videoService = serviceManager.video
+  
+  data() {
+    return {
+      videoStore: useVideoStore(),
+      videoService: serviceManager.video,
+      errorMessage: '',
+      showAutoReloadMessage: false,
+      trainingList: []
+    }
+  },
 
-    // Reactive references
-    const videoPlayer = ref(null)
-    const errorMessage = ref('')
-    const showAutoReloadMessage = ref(false)
+  computed: {
+    currentVideoName() {
+      return this.videoStore.currentVideoName
+    },
+    
+    defaultPath: {
+      get() {
+        return this.videoStore.defaultPath
+      },
+      set(value) {
+        this.videoStore.defaultPath = value
+      }
+    },
 
-    // Computed properties from store
-    const trainingList = computed(() => videoStore.niouTrainingList)
-    const currentVideoName = computed(() => videoStore.currentVideoName)
-    const defaultPath = computed({
-      get: () => videoStore.defaultPath,
-      set: (value) => videoStore.defaultPath = value
-    })
+    startTime: {
+      get() {
+        return this.videoStore.startTime
+      },
+      set(value) {
+        this.videoStore.startTime = Number(value)
+      }
+    },
 
-    // Video playback computed properties
-    const startTime = computed({
-      get: () => videoStore.startTime,
-      set: (value) => videoStore.startTime = Number(value)
-    })
+    endTime: {
+      get() {
+        return this.videoStore.endTime
+      },
+      set(value) {
+        this.videoStore.endTime = Number(value)
+      }
+    },
 
-    const endTime = computed({
-      get: () => videoStore.endTime,
-      set: (value) => videoStore.endTime = Number(value)
-    })
+    speed: {
+      get() {
+        return this.videoStore.speed
+      },
+      set(value) {
+        this.videoStore.speed = Number(value)
+      }
+    },
 
-    const speed = computed({
-      get: () => videoStore.speed,
-      set: (value) => videoStore.speed = Number(value)
-    })
+    loop: {
+      get() {
+        return this.videoStore.loop
+      },
+      set(value) {
+        this.videoStore.loop = value
+      }
+    },
 
-    const loop = computed({
-      get: () => videoStore.loop,
-      set: (value) => videoStore.loop = value
-    })
+    videoDuration() {
+      return this.videoStore.videoLength
+    },
 
-    const videoDuration = computed(() => videoStore.videoLength)
-    const directoryInfo = computed(() => videoStore.directoryInfo)
+    directoryInfo() {
+      return this.videoStore.directoryInfo
+    }
+  },
 
-    // Methods
-    const selectTrainingDirectory = async () => {
+  watch: {
+    speed(newSpeed) {
+      this.updateSpeed()
+    },
+
+    // Watch for changes in the store's training list
+    'videoStore.niouTrainingList': {
+      handler(newList) {
+        this.trainingList = [...newList] // Force reactivity
+        // this.$forceUpdate() // Ensure the template updates
+      },
+      deep: true,
+      immediate: true
+    }
+  },
+
+  methods: {
+    async selectTrainingDirectory() {
       try {
         if (window.electronAPI && window.electronAPI.selectDirectory) {
           const selectedPath = await window.electronAPI.selectDirectory()
@@ -203,36 +251,45 @@ export default {
             if (scanResult.success && scanResult.videos.length > 0) {
               const videos = scanResult.videos
               
+              // Save the directory tree
               const saveResult = await window.electronAPI.saveDirectoryTree(selectedPath, videos)
               if (saveResult.success) {
                 console.log('Directory tree saved to:', saveResult.filePath)
               }
               
-              const trainingStructure = convertVideosToTrainingStructure(videos, selectedPath)
+              // Convert and set the training structure
+              const trainingStructure = this.convertVideosToTrainingStructure(videos, selectedPath)
               
-              videoStore.rootDirectoryPath = selectedPath
-              videoStore.directoryStructure.name = selectedPath.split(/[\\\/]/).pop()
-              videoStore.directoryStructure.path = selectedPath
-              videoStore.directoryStructure.lastScanned = new Date().toISOString()
+              // Update store
+              this.videoStore.rootDirectoryPath = selectedPath
+              this.videoStore.directoryStructure.name = selectedPath.split(/[\\\/]/).pop()
+              this.videoStore.directoryStructure.path = selectedPath
+              this.videoStore.directoryStructure.lastScanned = new Date().toISOString()
               
-              videoStore.setNiouTrainingList(trainingStructure)
-              videoStore.saveDirectoryInfo()
+              // Update the training list in store and local data
+              this.videoStore.setNiouTrainingList(trainingStructure)
+              this.trainingList = [...trainingStructure] // Force local update
               
-              errorMessage.value = ''
-              showAutoReloadMessage.value = false
+              this.videoStore.saveDirectoryInfo()
+              
+              this.errorMessage = ''
+              this.showAutoReloadMessage = false
+              
+              console.log('Training list updated:', this.trainingList)
             } else {
-              errorMessage.value = scanResult.error || 'No video files found in selected directory'
+              this.errorMessage = scanResult.error || 'No video files found in selected directory'
             }
           }
         } else {
-          errorMessage.value = 'Directory selection not available (Electron required)'
+          this.errorMessage = 'Directory selection not available (Electron required)'
         }
       } catch (error) {
-        errorMessage.value = `Failed to load training directory: ${error.message}`
+        this.errorMessage = `Failed to load training directory: ${error.message}`
+        console.error('Directory selection error:', error)
       }
-    }
+    },
 
-    const convertVideosToTrainingStructure = (videos, basePath) => {
+    convertVideosToTrainingStructure(videos, basePath) {
       const trainingMap = new Map()
       
       videos.forEach(video => {
@@ -268,54 +325,64 @@ export default {
         }
       })
       
-      return Array.from(trainingMap.values()).map(training => ({
+      const result = Array.from(trainingMap.values()).map(training => ({
         ...training,
         trainings: Array.from(training.trainings.values())
       }))
-    }
+      
+      console.log('Converted training structure:', result)
+      return result
+    },
 
-    const selectSingleVideo = async () => {
+    async selectSingleVideo() {
       try {
         if (window.electronAPI && window.electronAPI.selectVideoFile) {
           const filePath = await window.electronAPI.selectVideoFile()
           if (filePath) {
             const videoData = {
-              name: videoService.extractFilename(filePath),
+              name: this.videoService.extractFilename(filePath),
               url: filePath,
               isNative: true
             }
-            await launchFile(videoData)
+            await this.launchFile(videoData)
           }
         } else {
           throw new Error('Electron API not available')
         }
-        errorMessage.value = ''
+        this.errorMessage = ''
       } catch (error) {
-        errorMessage.value = `Failed to select video: ${error.message}`
+        this.errorMessage = `Failed to select video: ${error.message}`
       }
-    }
+    },
 
-    const toggleTraining = (index) => {
-      trainingList.value.forEach((training, i) => {
+    toggleTraining(index) {
+      // Close all other trainings
+      this.trainingList.forEach((training, i) => {
         if (i !== index) {
           training.show = false
         }
       })
-      videoStore.toggleTrainingVisibility(index)
-    }
+      // Toggle the selected training
+      this.videoStore.toggleTrainingVisibility(index)
+      // Update local list to reflect changes
+      this.trainingList = [...this.videoStore.niouTrainingList]
+    },
 
-    const toggleItem = (trainingIndex, itemIndex) => {
-      if (trainingList.value[trainingIndex]?.trainings) {
-        trainingList.value[trainingIndex].trainings.forEach((item, i) => {
+    toggleItem(trainingIndex, itemIndex) {
+      // Close all other items in this training
+      if (this.trainingList[trainingIndex]?.trainings) {
+        this.trainingList[trainingIndex].trainings.forEach((item, i) => {
           if (i !== itemIndex) {
             item.show = false
           }
         })
       }
-      videoStore.toggleItemVisibility(trainingIndex, itemIndex)
-    }
+      this.videoStore.toggleItemVisibility(trainingIndex, itemIndex)
+      // Update local list to reflect changes
+      this.trainingList = [...this.videoStore.niouTrainingList]
+    },
 
-    const getTotalVideosInTraining = (training) => {
+    getTotalVideosInTraining(training) {
       if (!training.trainings) return 0
       return training.trainings.reduce((total, item) => {
         if (item.isDirectFile) {
@@ -323,11 +390,11 @@ export default {
         }
         return total + (item.videos ? item.videos.length : 0)
       }, 0)
-    }
+    },
 
-    const launchFile = async (videoData) => {
+    async launchFile(videoData) {
       try {
-        const videoElement = videoPlayer.value
+        const videoElement = this.$refs.videoPlayer
         if (!videoElement) {
           throw new Error('Video player not found')
         }
@@ -340,203 +407,171 @@ export default {
           filePath = videoData
         } else if (videoData.url) {
           filePath = videoData.url
-        } else if (videoData.path && videoStore.rootDirectoryPath) {
-          filePath = `${videoStore.rootDirectoryPath}/${videoData.path}`.replace(/[\\\/]+/g, '/')
+        } else if (videoData.path && this.videoStore.rootDirectoryPath) {
+          filePath = `${this.videoStore.rootDirectoryPath}/${videoData.path}`.replace(/[\\\/]+/g, '/')
         } else {
           throw new Error('No valid file path available')
         }
         
-        await videoService.setVideoSource(videoElement, filePath)
+        await this.videoService.setVideoSource(videoElement, filePath)
         
-        videoStore.currentVideoName = videoData.name || 'Unknown Video'
-        videoStore.speed = 100
+        this.videoStore.currentVideoName = videoData.name || 'Unknown Video'
+        this.videoStore.speed = 100
         
-        errorMessage.value = ''
+        this.errorMessage = ''
         
       } catch (error) {
-        errorMessage.value = `Failed to load video: ${error.message}`
+        this.errorMessage = `Failed to load video: ${error.message}`
       }
-    }
+    },
 
-    const handleVideoLoaded = () => {
-      const video = videoPlayer.value
+    handleVideoLoaded() {
+      const video = this.$refs.videoPlayer
       if (video) {
         const duration = video.duration
-        videoStore.setVideoLength(duration)
+        this.videoStore.setVideoLength(duration)
       }
-    }
+    },
 
-    const handleTimeUpdate = () => {
-      const video = videoPlayer.value
+    handleTimeUpdate() {
+      const video = this.$refs.videoPlayer
       if (video) {
         const currentTime = video.currentTime
-        videoService.handleTimeUpdate(
+        this.videoService.handleTimeUpdate(
           video, 
           currentTime, 
-          startTime.value, 
-          endTime.value, 
-          loop.value
+          this.startTime, 
+          this.endTime, 
+          this.loop
         )
       }
-    }
+    },
 
-    const playVideo = async () => {
+    async playVideo() {
       try {
-        const video = videoPlayer.value
+        const video = this.$refs.videoPlayer
         if (video) {
-          const playbackRate = speed.value / 100
-          await videoService.playVideo(video, playbackRate)
+          const playbackRate = this.speed / 100
+          await this.videoService.playVideo(video, playbackRate)
         }
       } catch (error) {
-        errorMessage.value = `Playback failed: ${error.message}`
+        this.errorMessage = `Playback failed: ${error.message}`
       }
-    }
+    },
 
-    const pauseVideo = () => {
-      const video = videoPlayer.value
+    pauseVideo() {
+      const video = this.$refs.videoPlayer
       if (video) {
-        videoService.pauseVideo(video)
+        this.videoService.pauseVideo(video)
       }
-    }
+    },
 
-    const stopVideo = () => {
-      const video = videoPlayer.value
+    stopVideo() {
+      const video = this.$refs.videoPlayer
       if (video) {
-        videoService.stopVideo(video, startTime.value)
+        this.videoService.stopVideo(video, this.startTime)
       }
-    }
+    },
 
-    const updateSpeed = () => {
-      const video = videoPlayer.value
+    updateSpeed() {
+      const video = this.$refs.videoPlayer
       if (video) {
-        videoService.setPlaybackRate(video, speed.value)
+        this.videoService.setPlaybackRate(video, this.speed)
       }
-    }
+    },
 
-    const updatePlaybackSettings = () => {
-      videoStore.setVideoPlaybackSettings({
-        startTime: startTime.value,
-        endTime: endTime.value,
-        speed: speed.value,
-        loop: loop.value
+    updatePlaybackSettings() {
+      this.videoStore.setVideoPlaybackSettings({
+        startTime: this.startTime,
+        endTime: this.endTime,
+        speed: this.speed,
+        loop: this.loop
       })
-    }
+    },
 
-    const formatTime = (seconds) => {
-      return videoService.formatTime(seconds)
-    }
+    formatTime(seconds) {
+      return this.videoService.formatTime(seconds)
+    },
 
-    const hideAutoReloadMessage = () => {
-      showAutoReloadMessage.value = false
-    }
+    hideAutoReloadMessage() {
+      this.showAutoReloadMessage = false
+    },
 
-    const reloadDirectory = async () => {
+    async reloadDirectory() {
       try {
-        showAutoReloadMessage.value = false
+        this.showAutoReloadMessage = false
         
-        if (videoStore.rootDirectoryPath && window.electronAPI && window.electronAPI.scanVideoDirectory) {
-          const videos = await window.electronAPI.scanVideoDirectory(videoStore.rootDirectoryPath)
-          if (videos && videos.length > 0) {
-            const trainingStructure = convertVideosToTrainingStructure(videos, videoStore.rootDirectoryPath)
+        if (this.videoStore.rootDirectoryPath && window.electronAPI && window.electronAPI.scanVideoDirectory) {
+          const scanResult = await window.electronAPI.scanVideoDirectory(this.videoStore.rootDirectoryPath)
+          if (scanResult.success && scanResult.videos.length > 0) {
+            const trainingStructure = this.convertVideosToTrainingStructure(scanResult.videos, this.videoStore.rootDirectoryPath)
             
-            videoStore.setTrainingListWithMetadata(
-              trainingStructure,
-              null,
-              videoStore.rootDirectoryPath
-            )
+            this.videoStore.setNiouTrainingList(trainingStructure)
+            this.trainingList = [...trainingStructure] // Update local list
             
-            errorMessage.value = ''
+            this.errorMessage = ''
             return
           }
         }
         
-        errorMessage.value = 'Could not reload directory automatically. Please select the directory again.'
+        this.errorMessage = 'Could not reload directory automatically. Please select the directory again.'
         
       } catch (error) {
-        errorMessage.value = `Failed to reload directory: ${error.message}`
+        this.errorMessage = `Failed to reload directory: ${error.message}`
       }
     }
+  },
 
-    // Watchers
-    watch(speed, (newSpeed) => {
-      updateSpeed()
-    })
-
-    // Lifecycle
-    onMounted(async () => {
-      videoStore.loadFromStorage()
-      
-      if (window.electronAPI && window.electronAPI.loadDirectoryTree) {
-        try {
-          const result = await window.electronAPI.loadDirectoryTree()
+  async mounted() {
+    // Load from storage
+    this.videoStore.loadFromStorage()
+    
+    // Initialize training list from store
+    this.trainingList = [...this.videoStore.niouTrainingList]
+    
+    // Load saved directory tree
+    if (window.electronAPI && window.electronAPI.loadDirectoryTree) {
+      try {
+        const result = await window.electronAPI.loadDirectoryTree()
+        
+        if (result.success) {
+          this.videoStore.rootDirectoryPath = result.data.directoryPath
+          this.videoStore.directoryStructure.name = result.data.directoryPath.split(/[\\\/]/).pop()
+          this.videoStore.directoryStructure.path = result.data.directoryPath
+          this.videoStore.directoryStructure.lastScanned = result.data.lastScanned
           
-          if (result.success) {
-            videoStore.rootDirectoryPath = result.data.directoryPath
-            videoStore.directoryStructure.name = result.data.directoryPath.split(/[\\\/]/).pop()
-            videoStore.directoryStructure.path = result.data.directoryPath
-            videoStore.directoryStructure.lastScanned = result.data.lastScanned
-            
-            const trainingStructure = convertVideosToTrainingStructure(
-              result.data.tree, 
-              result.data.directoryPath
-            )
-            
-            videoStore.setNiouTrainingList(trainingStructure)
-          }
-        } catch (error) {
-          console.error('Failed to load saved directory tree:', error)
+          const trainingStructure = this.convertVideosToTrainingStructure(
+            result.data.tree, 
+            result.data.directoryPath
+          )
+          
+          this.videoStore.setNiouTrainingList(trainingStructure)
+          this.trainingList = [...trainingStructure] // Update local list
         }
+      } catch (error) {
+        console.error('Failed to load saved directory tree:', error)
       }
-      
-      const handleLaunchVideo = (event) => {
-        const videoData = event.detail
-        if (videoData) {
-          launchFile(videoData)
-        }
+    }
+    
+    // Listen for launch video events
+    const handleLaunchVideo = (event) => {
+      const videoData = event.detail
+      if (videoData) {
+        this.launchFile(videoData)
       }
-      
-      document.addEventListener('launch-video', handleLaunchVideo)
-      
-      onUnmounted(() => {
-        document.removeEventListener('launch-video', handleLaunchVideo)
-      })
-    })
+    }
+    
+    document.addEventListener('launch-video', handleLaunchVideo)
+    
+    // Store the cleanup function for unmount
+    this._cleanupVideoLauncher = () => {
+      document.removeEventListener('launch-video', handleLaunchVideo)
+    }
+  },
 
-    return {
-      // Refs
-      videoPlayer,
-      errorMessage,
-      showAutoReloadMessage,
-      
-      // Computed
-      trainingList,
-      currentVideoName,
-      defaultPath,
-      startTime,
-      endTime,
-      speed,
-      loop,
-      videoDuration,
-      directoryInfo,
-      
-      // Methods
-      selectTrainingDirectory,
-      selectSingleVideo,
-      toggleTraining,
-      toggleItem,
-      getTotalVideosInTraining,
-      launchFile,
-      handleVideoLoaded,
-      handleTimeUpdate,
-      playVideo,
-      pauseVideo,
-      stopVideo,
-      updateSpeed,
-      updatePlaybackSettings,
-      formatTime,
-      hideAutoReloadMessage,
-      reloadDirectory,
-      convertVideosToTrainingStructure
+  beforeUnmount() {
+    if (this._cleanupVideoLauncher) {
+      this._cleanupVideoLauncher()
     }
   }
 }
@@ -568,5 +603,19 @@ export default {
 .btn-secondary:hover {
   background: rgba(149, 165, 166, 0.3);
   transform: translateY(-1px);
+}
+
+.error-message {
+  margin: 15px 0;
+  padding: 15px;
+  background: rgba(231, 76, 60, 0.1);
+  border: 2px solid rgba(231, 76, 60, 0.3);
+  border-radius: var(--border-radius);
+  color: #e74c3c;
+}
+
+.error-message p {
+  margin: 0;
+  font-weight: 500;
 }
 </style>
