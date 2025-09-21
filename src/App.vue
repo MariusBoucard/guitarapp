@@ -124,7 +124,7 @@ export default {
   background: rgba(0, 0, 0, 0.1);
 }
 
-h1, p, h3 {
+/* h1, p, h3 {
   color: white;
-}
+} */
 </style>

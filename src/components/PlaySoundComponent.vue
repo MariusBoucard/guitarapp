@@ -1,5 +1,5 @@
 <template>
-  <div class="playsound-component">
+  <div class="card">
     <!-- Training List -->
     <div class="training-section">
       <ul class="horizontal-list">
@@ -98,7 +98,7 @@
 
     <!-- Speed Control -->
     <div class="speed-control">
-      <h3>Playing Rate</h3>
+      <h3 class="slider-label">Playing Rate</h3>
       <div class="slider">
         <input 
           type="range" 
@@ -119,7 +119,7 @@
 <script>
 import { useTrainingStore } from '../stores/trainingStore.js'
 import { useSongPlayerStore } from '../stores/songPlayerStore.js'
-import { serviceManager } from '../services'
+import { serviceManager } from '../services/index.js'
 
 export default {
   name: 'PlaySoundComponent',
@@ -303,11 +303,9 @@ export default {
 
 <style scoped>
 .playsound-component {
-  width: 900px;
-  min-width: 900px;
-  max-width: 900px;
-  margin: 20px auto;
-  padding: 25px;
+  width: 100%;
+  margin: 10px auto;
+  padding: 15px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -317,10 +315,10 @@ export default {
 
 /* Training Section */
 .training-section {
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   background: rgba(255, 255, 255, 0.7);
   border-radius: 12px;
-  padding: 20px;
+  padding: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -334,7 +332,6 @@ export default {
 }
 
 .horizontal-list li {
-  padding: 12px 16px;
   cursor: pointer;
   border-radius: 10px;
   border: 2px solid transparent;
@@ -353,7 +350,7 @@ export default {
 
 .unselectedTrain {
   background: rgba(255, 255, 255, 0.9);
-  color: #2c3e50;
+  color: #2c3e50 !important;
   border-color: #e0e6ed;
 }
 
@@ -430,7 +427,7 @@ export default {
   margin-bottom: 30px;
   background: rgba(255, 255, 255, 0.7);
   border-radius: 12px;
-  padding: 20px;
+  padding: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -440,7 +437,7 @@ export default {
   border: 2px solid rgba(102, 126, 234, 0.1);
   border-radius: 10px;
   padding: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(10px);
 }
@@ -463,7 +460,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 15px;
+  padding: 0px 15px;
   cursor: pointer;
   border-bottom: 1px solid rgba(102, 126, 234, 0.1);
   border-radius: 8px;
@@ -542,7 +539,7 @@ export default {
 /* Current Song */
 .current-song {
   font-weight: 500;
-  margin: 20px 0;
+  margin: 0px 0;
   padding: 15px 20px;
   background: rgba(102, 126, 234, 0.1);
   border-radius: 10px;
@@ -555,7 +552,7 @@ export default {
 /* Audio Player */
 audio {
   width: 100%;
-  margin: 20px 0;
+  margin: 10px 0;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -565,8 +562,8 @@ audio {
 .playback-controls {
   display: flex;
   justify-content: center;
-  gap: 15px;
-  margin: 25px 0;
+  gap: 5px;
+  margin: 5px 0;
 }
 
 .button {
@@ -609,10 +606,10 @@ audio {
 
 /* Time Controls */
 .time-controls {
-  margin: 30px 0;
+  margin: 10px 0;
   background: rgba(255, 255, 255, 0.7);
   border-radius: 12px;
-  padding: 20px;
+  padding: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -672,13 +669,6 @@ audio {
   font-weight: 500;
   color: #2c3e50;
   font-size: 0.95rem;
-}
-
-.checkbox-container input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #667eea;
-  cursor: pointer;
 }
 
 /* Speed Control */

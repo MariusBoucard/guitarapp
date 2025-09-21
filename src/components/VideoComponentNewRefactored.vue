@@ -85,7 +85,7 @@
 
         <!-- Speed Control -->
         <div class="text-center">
-          <h3 class="mb-medium">Playing rate</h3>
+          <h3 class="mb-medium slider-label">Playing rate</h3>
           <div class="slider-container">
             <input 
               type="range" 

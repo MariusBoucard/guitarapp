@@ -68,12 +68,12 @@
         </div>
         
         <div class="checkbox-container">
-          <label for="loopCheckbox" class="checkbox-label">Loop:</label>
+          <label for="loopCheckbox" class="slider-label">Loop:</label>
           <input id="loopCheckbox" type="checkbox" v-model="loop" class="checkbox-input">
         </div>
         
         <div class="text-center">
-          <h3 class="mb-medium">Playing Rate</h3>
+          <h3 class="mb-medium slider-label">Playing Rate</h3>
           <div class="slider-container">
             <input type="range" min="10" max="300" v-model="speed" class="range-input range-input-thick">
             <p class="slider-value" id="rangeValueVideo">{{ speed }}%</p>

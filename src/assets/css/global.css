@@ -276,6 +276,7 @@
   backdrop-filter: blur(10px);
   overflow-y: auto;
   display: flex;
+  height: fit-content;
   flex-direction: column;
   gap: 25px;
 }
@@ -597,7 +598,7 @@
 .slider-label {
   min-width: 120px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-dark);
   font-size: 0.9rem;
 }
 
@@ -606,7 +607,7 @@
   margin: 0;
   font-family: monospace;
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--text-dark) !important;
   text-align: center;
   background: var(--bg-primary-light);
   padding: 5px 10px;
@@ -841,7 +842,7 @@
 
 .training-item-header {
   background: var(--bg-white-translucent);
-  color: var(--text-primary);
+  color: var(--text-dark);
   padding: 12px 20px;
   margin: 0;
   cursor: pointer;
@@ -888,7 +889,7 @@
   border-bottom: 1px solid var(--bg-primary-light);
   cursor: pointer;
   transition: var(--transition-fast);
-  color: var(--text-primary);
+  color: var(--text-dark);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1043,6 +1044,7 @@
 @media (max-width: 1200px) {
   .two-columns {
     grid-template-columns: 1fr;
+    height: auto;
     gap: 20px;
   }
   
