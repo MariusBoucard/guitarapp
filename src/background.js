@@ -8,7 +8,11 @@ import { fileURLToPath } from 'url'
 // Import modular IPC handlers
 import { registerAllIPCHandlers } from './ipc/index.js'
 
-const isDevelopment = process.env.NODE_ENV !== 'production'
+// Treat the app as development when NODE_ENV !== 'production' and the
+// Electron app is not packaged. This prevents dev-only behavior (like
+// opening DevTools or installing dev extensions) in production builds
+// where NODE_ENV might not be set to 'production'.
+const isDevelopment = (process.env.NODE_ENV !== 'production') && !app.isPackaged
 
 // Disable Crashpad crash reporter to prevent connection errors
 app.commandLine.appendSwitch('disable-crash-reporter')
@@ -150,26 +154,30 @@ async function createWindow() {
       const indexPath = join(__dirname, '../dist/index.html')
       await win.loadFile(indexPath)
     }
-    if (!process.env.IS_TEST) {
-      win.webContents.openDevTools()
-      
-      // Disable some problematic DevTools features
-      win.webContents.on('devtools-opened', () => {
-        win.webContents.devToolsWebContents?.executeJavaScript(`
-          // Disable autofill in DevTools to prevent console errors
-          if (window.DevToolsAPI && window.DevToolsAPI.dispatchMessage) {
-            const originalDispatch = window.DevToolsAPI.dispatchMessage;
-            window.DevToolsAPI.dispatchMessage = function(message) {
-              if (message && message.includes('Autofill.enable')) {
-                return;
-              }
-              return originalDispatch.call(this, message);
-            };
-          }
-        `).catch(() => {
-          // Ignore errors from DevTools JavaScript execution
+    if (isDevelopment && !process.env.IS_TEST) {
+      try {
+        win.webContents.openDevTools()
+
+        // Disable some problematic DevTools features
+        win.webContents.on('devtools-opened', () => {
+          win.webContents.devToolsWebContents?.executeJavaScript(`
+            // Disable autofill in DevTools to prevent console errors
+            if (window.DevToolsAPI && window.DevToolsAPI.dispatchMessage) {
+              const originalDispatch = window.DevToolsAPI.dispatchMessage;
+              window.DevToolsAPI.dispatchMessage = function(message) {
+                if (message && message.includes('Autofill.enable')) {
+                  return;
+                }
+                return originalDispatch.call(this, message);
+              };
+            }
+          `).catch(() => {
+            // Ignore errors from DevTools JavaScript execution
+          });
         });
-      });
+      } catch (e) {
+        // If DevTools cannot be opened (e.g., in packaged app), ignore silently
+      }
     }
   } else {
     // Load the built files
@@ -210,11 +218,11 @@ app.on('activate', () => {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
   if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools with better error handling
+    // Install Vue Devtools with better error handling (dev only)
     try {
       // Check if the extension is already installed
       const session = require('electron').session.defaultSession
-      
+
       // Try to install the extension
       await installExtension(VUEJS3_DEVTOOLS, {
         loadExtensionOptions: {
@@ -222,11 +230,11 @@ app.whenReady().then(async () => {
         },
         forceDownload: false,
       })
-      
+
       console.log(`Vue Devtools installed successfully`)
     } catch (e) {
       // This is non-critical, the app will work fine without Vue Devtools
-      if (e.message.includes('already exists')) {
+      if (e && e.message && e.message.includes('already exists')) {
         console.log('Vue Devtools already installed')
       } else {
         console.log('Vue Devtools installation skipped (non-critical)')
