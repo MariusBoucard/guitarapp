@@ -40,11 +40,45 @@ export class AudioService {
           reject(new Error(`Failed to load audio: ${error.message}`));
         });
         
-        // Handle different file path types
-        if (filePath.startsWith('blob:')) {
-          audio.src = filePath;
+        // Handle different file path types and normalize to valid URLs:
+        // - blob: URLs are used as-is
+        // - existing file:// URLs are used as-is
+        // - Windows absolute paths (C:\...) must become file:///C:/path
+        // - Unix absolute paths (/path) become file:///path
+        // - Relative or http(s) URLs are used as-is
+        if (!filePath) {
+          return reject(new Error('Empty file path'))
+        }
+
+        const isBlob = filePath.startsWith('blob:')
+        const isFileUrl = filePath.startsWith('file:')
+        const isHttp = filePath.startsWith('http:') || filePath.startsWith('https:')
+
+        if (isBlob || isHttp || isFileUrl) {
+          audio.src = filePath
         } else {
-          audio.src = `file://${filePath}`;
+          // Normalize Windows paths like C:\foo\bar.mp3 -> file:///C:/foo/bar.mp3
+          const winAbsPath = /^[a-zA-Z]:\\/.test(filePath)
+          const uncPath = /^\\\\/.test(filePath)
+
+          if (winAbsPath) {
+            const forward = filePath.replace(/\\/g, '/')
+            const fileUrl = 'file:///' + forward.replace(/^\/+/, '')
+            audio.src = encodeURI(fileUrl)
+          } else if (uncPath) {
+            // UNC path \\server\share\file -> file://server/share/file
+            const withoutLeading = filePath.replace(/^\\+/, '')
+            const forward = withoutLeading.replace(/\\/g, '/')
+            const fileUrl = 'file://' + forward
+            audio.src = encodeURI(fileUrl)
+          } else if (filePath.startsWith('/')) {
+            // Unix absolute path
+            const fileUrl = 'file://' + filePath
+            audio.src = encodeURI(fileUrl)
+          } else {
+            // Treat as relative path or other scheme - use directly
+            audio.src = filePath
+          }
         }
       });
     } catch (error) {

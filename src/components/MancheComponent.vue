@@ -77,23 +77,7 @@
                 </li>
             </ul>
         </div>
-        <!-- <li  v-for="note in this.tuningintra" :key="note.cordeId">
-           
 
-              
-                    <p>{{  note.tuning }}</p>
-                    <p>{{ test() }}</p>
-                <div> 
-                
-                 <div v-if="isChoosed(note,index)" >
-                    <p>{{ renderChoosen(note,index) }}</p>
-
-                </div>
-                <div v-else>
-                    <p>caca</p>
-                </div>                    
-            </li> 
-            </div> -->
     </div>
 </template>
 <script>
@@ -189,7 +173,6 @@ export default {
         },
         test() {
 
-            // console.log(this.nbfrettes)
         },
         getStateButton() {
             if (this.sapinNoel) {
@@ -203,28 +186,11 @@ export default {
         }
         ,
         calcBack(lettre) {
-            // console.log(lettre)
-            //    console.log(lettre)
-            // if(this.sapinNoel){
-            //      if(lettre === this.notePlayed){
-            //         console.log("caca")
-            //         return 'red '
-            //     }
-            // }
 
             var couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
             return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
         },
         calcBack2(lettre) {
-            // console.log(lettre)
-            //    console.log(lettre)
-            // if(this.sapinNoel){
-            //      if(lettre === this.notePlayed){
-            //         console.log("caca")
-            //         return 'red '
-            //     }
-            // }
-            // console.log(lettre,this.notePlayed)
             if (lettre === this.notePlayed.slice(0, this.notePlayed.length)) {
                 return "white"
             }
@@ -233,14 +199,7 @@ export default {
         },
         calcBackNote(corde, index) {
             var lettre = this.renderChoosen(corde, index)
-            // console.log(lettre)
-            // console.log(corde,index)
-            //find the id of the root note of the cord and add the nb of index
-            
-            // Debug: Log the tuning we're looking for and available notes
-       //     console.log('Looking for tuning:', corde.tuning);
-        //    console.log('Available notes in allnotesc:', this.allnotesc.slice(0, 20).map(n => n.note)); // Show first 20 notes
-          // TODO FIX THIS ISSUE  
+
             var find = this.allnotesc.find(note => note.note === corde.tuning)
             
             // Check if find is undefined to prevent error
@@ -253,23 +212,11 @@ export default {
                 return 'white' // Return default color
             }
             
-            // console.log(find)
-            //Calcul sur index attention §§§§ changement index c est nb decalage
-            //il faut trouver de combien tu es décallé dans ce tab :
-            // var findcordliste = this.cordeListe[corde.cordeId]
-            // console.log('findcordeliste',findcordliste)
-            // var indexsurcorde1 = findcordliste.indexOf(index)
-            // console.log(indexsurcorde1)
-
-            // var indexsurcorde2 = findcordliste.indexOf(index,2)
-
-            //trouver les numeros ou il Y a qq chose
+    
 
             var newindex = find.id + index
 
-            // var newindex2 = find.id+indexsurcorde2
-
-            //    console.log(lettre)
+        
             if (this.sapinNoel) {
                 var noteoncase = this.allnotesc.find(note => note.id === newindex)
                 // console.log(noteoncase)
@@ -277,12 +224,7 @@ export default {
                     console.log("caca")
                     return 'red '
                 }
-                // noteoncase = this.allnotesc.find(note => note.id === (newindex+12))
-                // console.log(noteoncase)
-                //  if(noteoncase.note === this.notePlayed){
-                //     console.log("caca")
-                //     return 'red '
-                // }
+            
             }
 
             var couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)

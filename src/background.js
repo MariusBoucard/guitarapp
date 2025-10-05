@@ -200,10 +200,18 @@ app.on('window-all-closed', () => {
   }
 })
 app.once('ready', () => {
-  // Register file protocol handler (updated to remove deprecated callback)
+  // Register file protocol handler using fileURLToPath so file:// URLs
+  // are converted to correct OS file paths (handles Windows drive letters
+  // and percent-encoded characters like spaces).
   protocol.interceptFileProtocol('file', (request, callback) => {
-    const url = request.url.substr(7); // Remove 'file://' prefix
-    callback({ path: url });
+    try {
+      const filePath = fileURLToPath(request.url)
+      callback({ path: filePath })
+    } catch (err) {
+      console.error('Failed to resolve file URL for protocol handler:', request.url, err)
+      // Let the request fail with FILE_NOT_FOUND
+      callback({ error: -6 })
+    }
   });
 });
 
