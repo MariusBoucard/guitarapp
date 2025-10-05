@@ -15,10 +15,13 @@ export const useAppStore = defineStore('app', {
     scalesDisplay: true,
     videoDisplay: false,
     videoDisplayNew: true,
+    trainingDisplay: false,
     gameDisplay: false,
     chordssuggestDisplay: false,
     settingsView: false,
     keyboard: false,
+    tabReaderDisplay: false,
+    vst3PluginDisplay: false,
     
     // Global UI Properties
     lefty: false,
@@ -40,10 +43,13 @@ export const useAppStore = defineStore('app', {
       scalesDisplay: state.scalesDisplay,
       videoDisplay: state.videoDisplay,
       videoDisplayNew: state.videoDisplayNew,
+      trainingDisplay: state.trainingDisplay,
       gameDisplay: state.gameDisplay,
       chordssuggestDisplay: state.chordssuggestDisplay,
       settingsView: state.settingsView,
-      keyboard: state.keyboard
+      keyboard: state.keyboard,
+      tabReaderDisplay: state.tabReaderDisplay,
+      vst3PluginDisplay: state.vst3PluginDisplay
     })
   },
 
@@ -81,6 +87,10 @@ export const useAppStore = defineStore('app', {
       this.videoDisplayNew = !this.videoDisplayNew
     },
     
+    toggleTraining() {
+      this.trainingDisplay = !this.trainingDisplay
+    },
+    
     toggleGame() {
       this.gameDisplay = !this.gameDisplay
     },
@@ -95,6 +105,14 @@ export const useAppStore = defineStore('app', {
     
     toggleKeyboard() {
       this.keyboard = !this.keyboard
+    },
+    
+    toggleTabReader() {
+      this.tabReaderDisplay = !this.tabReaderDisplay
+    },
+    
+    toggleVST3Plugin() {
+      this.vst3PluginDisplay = !this.vst3PluginDisplay
     },
     
     toggleAutoGammeSelect() {

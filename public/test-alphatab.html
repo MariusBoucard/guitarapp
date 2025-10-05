@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaTab Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #alphaTab {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ccc;
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>AlphaTab Test Page</h1>
+    <div id="error-container"></div>
+    <div id="alphaTab"></div>
+    
+    <script type="module">
+        import { AlphaTabApi, Settings } from 'https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/alphaTab.mjs';
+        
+        try {
+            const settings = new Settings();
+            settings.core.engine = 'html5';
+            settings.display.scale = 0.8;
+            
+            // Disable player to avoid SoundFont issues
+            settings.player.enablePlayer = false;
+            settings.player.playerMode = 0;
+            
+            console.log('Creating AlphaTab API...');
+            const api = new AlphaTabApi(document.getElementById('alphaTab'), settings);
+            
+            api.error.on((error) => {
+                console.error('AlphaTab error:', error);
+                document.getElementById('error-container').innerHTML = 
+                    `<div class="error">AlphaTab Error: ${error}</div>`;
+            });
+            
+            api.renderFinished.on(() => {
+                console.log('Render finished successfully');
+            });
+            
+            console.log('AlphaTab initialized successfully');
+            
+        } catch (error) {
+            console.error('Failed to initialize AlphaTab:', error);
+            document.getElementById('error-container').innerHTML = 
+                `<div class="error">Initialization Error: ${error.message}</div>`;
+        }
+    </script>
+</body>
+</html>

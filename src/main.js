@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import { pinia } from './stores'
+import './assets/styles/colors.css'
 // const { contextBridge } = require('electron');
 
 // // Expose `process` to the renderer process

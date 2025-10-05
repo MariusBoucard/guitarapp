@@ -1,0 +1,156 @@
+/* Global Color Palette - Guitar App */
+:root {
+  /* Primary Colors */
+  --primary-dark: #2c3e50;
+  --primary-medium: #34495e;
+  --primary-light: #3a4f63;
+  --primary-accent: #4a5f7a;
+
+  /* Secondary Colors */
+  --secondary-blue: #3498db;
+  --secondary-blue-dark: #2980b9;
+  --secondary-blue-darker: #1f4e79;
+
+  /* Accent Colors */
+  --accent-red: #e74c3c;
+  --accent-green: #2ecc71;
+  --accent-orange: #f39c12;
+  --accent-purple: #9b59b6;
+
+  /* Text Colors */
+  --text-primary: #ecf0f1;
+  --text-secondary: #bdc3c7;
+  --text-muted: #95a5a6;
+  --text-dark: #2c3e50;
+
+  /* Background Colors */
+  --bg-primary: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+  --bg-secondary: linear-gradient(135deg, #3498db, #2980b9);
+  --bg-tertiary: linear-gradient(135deg, #2980b9, #1f4e79);
+  --bg-card: rgba(52, 73, 94, 0.9);
+  --bg-hover: #3a4f63;
+
+  /* Border Colors */
+  --border-primary: #34495e;
+  --border-accent: #3498db;
+  --border-active: #e74c3c;
+
+  /* Shadow Colors */
+  --shadow-light: rgba(0, 0, 0, 0.1);
+  --shadow-medium: rgba(0, 0, 0, 0.2);
+  --shadow-dark: rgba(0, 0, 0, 0.3);
+
+  /* Component Specific Colors */
+  --card-bg: rgba(44, 62, 80, 0.95);
+  --card-border: rgba(52, 73, 94, 0.8);
+  --input-bg: rgba(52, 73, 94, 0.7);
+  --input-border: #34495e;
+  --input-focus: #3498db;
+
+  /* Button Colors */
+  --btn-primary: linear-gradient(135deg, #3498db, #2980b9);
+  --btn-primary-hover: linear-gradient(135deg, #2980b9, #1f4e79);
+  --btn-secondary: linear-gradient(135deg, #95a5a6, #7f8c8d);
+  --btn-success: linear-gradient(135deg, #2ecc71, #27ae60);
+  --btn-danger: linear-gradient(135deg, #e74c3c, #c0392b);
+  --btn-warning: linear-gradient(135deg, #f39c12, #e67e22);
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-xxl: 24px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+
+  /* Font Weights */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+}
+
+/* Global Utility Classes */
+.gradient-bg {
+  background: var(--bg-primary);
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px var(--shadow-light);
+}
+
+.btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: var(--font-medium);
+  transition: all var(--transition-normal);
+  color: var(--text-primary);
+}
+
+.btn-primary {
+  background: var(--btn-primary);
+}
+
+.btn-primary:hover {
+  background: var(--btn-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px var(--shadow-medium);
+}
+
+.btn-secondary {
+  background: var(--btn-secondary);
+}
+
+.btn-success {
+  background: var(--btn-success);
+}
+
+.btn-danger {
+  background: var(--btn-danger);
+}
+
+.btn-warning {
+  background: var(--btn-warning);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.shadow-light {
+  box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.shadow-medium {
+  box-shadow: 0 4px 6px var(--shadow-medium);
+}
+
+.shadow-dark {
+  box-shadow: 0 8px 12px var(--shadow-dark);
+}

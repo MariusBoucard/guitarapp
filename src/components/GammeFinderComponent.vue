@@ -1,140 +1,98 @@
 <template>
-    <div style=" ; background-color: #86BBD8;">
-        <div class="custom-div">
-    <p>Scale in use {{ this.gammeSelected }}</p>
-    <h1>Scales you could use : </h1>
-    <input type="checkbox" v-model="this.colorScaleBool">
-    <label>Color relative to the position in the scale</label>
-</div>
-
-        <ul>
-
-            <li v-for="gammes in this.listeGammes" :key="gammes">
-                <div v-if="gammes !== undefined">
-                    <button class="buttonstyle" @click="this.setGamme(gammes.root, gammes.name)">{{ gammes.root }} - {{
-                        gammes.name }}</button>
-
-                    <ul>
-                        <li class="notesgammes" v-for="notes in gammes.notes" :key="notes">
-                            <p>{{ notes }}</p>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-        </ul>
+  <div class="card">
+    <!-- Header Section -->
+    <div class="card-header">
+      <div class="info-panel">
+        <h3 class="info-panel-title">🎵 Current Scale</h3>
+        <p class="info-panel-value">{{ this.gammeSelected || 'No scale selected' }}</p>
+      </div>
+      
+      <div class="flex-center">
+        <div class="checkbox-wrapper">
+          <input 
+            type="checkbox" 
+            v-model="this.colorScaleBool" 
+            id="colorScale" 
+            class="checkbox-custom"
+          >
+          <label for="colorScale" class="checkbox-label">
+            <span class="checkbox-checkmark">✓</span>
+            Color relative to position in scale
+          </label>
+        </div>
+      </div>
     </div>
-    
+
+    <!-- Scales Section -->
+    <div class="card-section">
+      <h2 class="section-title">🎼 Available Scales</h2>
+      
+      <div v-if="!listeGammes.length" class="no-content-message">
+        <p>No scales available. Please select some notes first.</p>
+      </div>
+      
+      <div v-else class="card-grid">
+        <div 
+          v-for="gammes in this.listeGammes" 
+          :key="gammes" 
+          class="card-item slide-in-up"
+        >
+          <div v-if="gammes !== undefined" class="card-content">
+            <button 
+              class="btn-card arrow-hover" 
+              @click="this.setGamme(gammes.root, gammes.name)"
+              :class="{ active: gammeSelected === `${gammes.root} - ${gammes.name}` }"
+            >
+              <div class="content-info">
+                <span class="content-root">{{ gammes.root }}</span>
+                <span class="content-name">{{ gammes.name }}</span>
+              </div>
+              <span class="arrow">→</span>
+            </button>
+
+            <div class="preview-section">
+              <div class="preview-label">Notes:</div>
+              <div class="preview-content">
+                <span 
+                  v-for="(note, index) in gammes.notes" 
+                  :key="note" 
+                  class="chip"
+                  :class="{ 'chip-alt': index % 2 === 0 }"
+                >
+                  {{ note }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
+
 <style scoped>
-.notesgammes {
-    display: inline-block;
-    padding: 10px;
-    border-right: 1px solid black;
+/* Component-specific overrides only */
+.chip {
+  /* Use CSS custom properties for dynamic coloring if needed */
+  --chip-index: var(--note-index, 0);
 }
 
-div {
-    background-color: #F6AE2D;
-    padding: 20px;
-    border-radius: 10px;
-    margin: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+.chip:nth-child(odd) {
+  /* Already handled by chip-alt class */
 }
 
-/* Style the header */
-h1 {
-    font-size: 1.5em;
-    margin-top: 0;
+/* Any component-specific animations or behaviors */
+.card-item {
+  /* Animation delay handled by global classes */
 }
 
-/* Style the checkbox and label */
-input[type="checkbox"] {
-    transform: scale(1.5);
-    margin-right: 10px;
-}
-
-/* Style the button */
-.buttonstyle {
-    background-color: #33658A;
-    color: #fff;
-    border: none;
-    padding: 5px 10px;
-    margin: 5px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-/* Style the list items */
-li {
-    list-style: none;
-}
-
-/* Style the notes */
-.notesgammes {
-    background-color: #f0f0f0;
-    padding: 5px;
-    margin: 5px;
-    border-radius: 5px;
-}
-
-/* Style the label text */
-label {
-    font-size: 0.9em;
-    font-weight: normal;
-}
-
-/* Add hover effect to buttons */
-.buttonstyle:hover {
-    background-color: #0056b3;
-}
-
-/* Add hover effect to notes */
-.notesgammes:hover {
-    background-color: #ddd;
-}
-
-.buttonstyle {
-
-    border: none;
-    padding: 15px 32px;
-    margin: 10px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    border-radius: 5px;
-
-}
-p {
-    color:black
-}
-.custom-div {
-    background-color: wheat;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-}
-
-.custom-div p {
-    font-size: 16px;
-    margin: 0;
-}
-
-.custom-div h1 {
-    font-size: 18px;
-    margin: 10px 0;
-}
-
-.custom-div input[type="checkbox"] {
-    transform: scale(1.2);
-    margin-right: 5px;
-}
-
-.custom-div label {
-    font-size: 14px;
-    font-weight: normal;
+/* Mobile-specific adjustments that aren't covered globally */
+@media (max-width: 320px) {
+  .content-info {
+    /* Additional mobile tweaks if needed */
+  }
 }
 </style>
-
 <script>
 
 import * as myKey from '../../mydata.json';
@@ -151,7 +109,6 @@ export default {
     data() {
         return {
             colorScaleBool : false,
-            notesSelectionnees: this.notesSelected,
             gammeSelectedIntra : this.gammeSelected,
             listeNotes: [
                 { id: 0, note: "A" },
@@ -169,7 +126,6 @@ export default {
             ],
             colorIntra : this.color,
             notesTab: ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"],
-            // listeGammes: [],
             scaleTypes: [
                 { name: 'Major', noteName: '', intervals: [0, 2, 4, 5, 7, 9, 11], notes: [] },
                 { name: 'Natural Minor', noteName: '', intervals: [0, 2, 3, 5, 7, 8, 10], notes: [] },
@@ -198,8 +154,13 @@ export default {
         }
     },
     computed : {
+        // Use the prop directly instead of copying it to data
+        notesSelectionnees() {
+            return this.notesSelected;
+        },
         listeGammes(){
             var notes = []
+            // Use the computed property instead of data
             this.notesSelectionnees.forEach(element => {
                 if (element.enabled) {
                     notes.push(element.note)
@@ -207,11 +168,6 @@ export default {
             });
 
              const scales = this.generateScales(notes);
-            //  console.log(scales)
-           
-            // scales.forEach(gamme => {
-            //     listeGammes.push(gamme)
-            // })
             return scales
 
         }
@@ -251,12 +207,18 @@ export default {
             // console.log(fonda,type)
             var gamme = this.generateGammes(type, fonda)
 
-            this.notesSelectionnees.forEach(n => n.enabled = false)
+            // Create a copy of the notes array and modify it
+            const updatedNotes = this.notesSelected.map(n => ({ ...n, enabled: false }))
             gamme.notes.forEach(note => {
-                var find = this.notesSelectionnees.find(notesel => notesel.note === note)
-                find.enabled = true
+                var find = updatedNotes.find(notesel => notesel.note === note)
+                if (find) {
+                    find.enabled = true
+                }
             })
-                this.$emit("newscale",fonda+" "+type)
+            
+            // Emit the updated notes back to parent instead of modifying props directly
+            this.$emit("notes-updated", updatedNotes)
+            this.$emit("newscale", fonda + " " + type)
 
         },
         generatePopulation(nomGamme) {
@@ -285,23 +247,18 @@ export default {
         generateScales(notes) {
             const scalesfinal = [];
             notes.sort();
-            // for (let i = 0; i < this.scaleTypes.length; i++) {
-
-            //     var population = this.generatePopulation(this.scaleTypes[i].name)
-                this.scalestot.forEach(elem => {
-                    if (elem && elem.notes && notes.every(val => elem.notes.includes(val))) {
-                        scalesfinal.push(elem)
-                    }
-
-                 }
-                )
-
-                //Generer l'ensemble des 12 mêmes gammes en fonction du type
-                //check pour lesquelles nos notes sont dedans, et les garder
             
-            return scalesfinal
-
-
+            this.scalestot.forEach((elem, index) => {
+                if (elem && elem.notes && Array.isArray(elem.notes)) {
+                    // Check if all selected notes are included in this scale
+                    const allNotesIncluded = notes.every(val => elem.notes.includes(val));
+                    if (allNotesIncluded) {
+                        scalesfinal.push(elem);
+                    }
+                }
+            });
+            
+            return scalesfinal;
         },
 
 
@@ -316,12 +273,7 @@ export default {
             });
 
              const scales = this.generateScales(notes);
-            //  console.log(scales)
-            this.listeGammes = scales
-            scales.forEach(gamme => {
-                this.listeGammes.push(gamme)
-            })
-            return this.listeGammes
+            return scales
         },
         generateGammes(type, rootnote) {
 
@@ -346,24 +298,29 @@ export default {
         
     },
     created() {
-        // const fullgammes = []
-        // this.scaleTypes.forEach(scale => {
-        //     this.generatePopulation(scale.name).forEach(gamme => fullgammes.push(gamme))
-        // })
-
-        // // Then put fullgamme in a file
-        // var blob = new Blob([JSON.stringify(fullgammes)], {type: "text/json"});
-        // saveAs(blob, "mydata.json");
-
-
-
-    this.scalestot = []
-    for(var i=0;i<84;i++){
-        this.scalestot.push(myKey[i])
-        // console.log(myKey[i])
-
-    }
-  },
+        // Load scales from JSON file
+        this.scalestot = []
+        try {
+            for(var i=0;i<84;i++){
+                if (myKey[i]) {
+                    this.scalestot.push(myKey[i])
+                }
+            }
+            console.log('Loaded scales from JSON:', this.scalestot.length);
+        } catch (error) {
+            console.error('Error loading scales from JSON:', error);
+        }
+        
+        // Fallback: generate scales if JSON didn't work
+        if (this.scalestot.length === 0) {
+            console.log('Generating scales as fallback...');
+            this.scaleTypes.forEach(scale => {
+                const population = this.generatePopulation(scale.name);
+                this.scalestot.push(...population);
+            });
+            console.log('Generated scales as fallback:', this.scalestot.length);
+        }
+    },
   watch : {
     colorScaleBool : {
         handler(){

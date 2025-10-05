@@ -401,49 +401,212 @@ export default {
 </script>
 
 <style scoped>
-.containerchords {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-}
-
-.columnchords {
-  width: 30%;
-  margin-bottom: 5px;
-  padding: 1px;
-}
-.chordtext{
-    color: white
-}
-
 .chords-container {
-    background-color: rgba(51, 101, 138, 0.3);
-    margin: 5px;
-    border-radius: 5%;
-    padding: 15px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+  margin: 20px auto;
+  padding: 15px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+  align-items: start;
 }
 
 .columnchords {
-    flex: 1;
-    text-align: center;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.columnchords:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .columnchords p {
-    font-size: 20px;
-    color: #F26419; /* Use specified color */
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 20px 0;
+  text-align: center;
+  padding: 10px 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 25px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.columnchords p::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.columnchords:hover p::before {
+  left: 100%;
 }
 
 ul {
-    list-style: none;
-    padding: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .chordtext {
-    font-size: 16px;
-    margin: 10px 0;
-    color: #F6AE2D; /* Use specified color */
+  font-size: 1rem;
+  font-weight: 500;
+  color: #2c3e50;
+  margin: 0;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.chordtext::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: -1;
+}
+
+.chordtext:hover {
+  transform: translateX(5px);
+  border-color: #667eea;
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.chordtext:hover::before {
+  opacity: 1;
+}
+
+.chordtext:active {
+  transform: translateX(5px) scale(0.98);
+}
+
+/* Musical notation styling */
+.chordtext:nth-child(1) { border-left: 4px solid #e74c3c; }
+.chordtext:nth-child(2) { border-left: 4px solid #f39c12; }
+.chordtext:nth-child(3) { border-left: 4px solid #f1c40f; }
+.chordtext:nth-child(4) { border-left: 4px solid #2ecc71; }
+.chordtext:nth-child(5) { border-left: 4px solid #3498db; }
+.chordtext:nth-child(6) { border-left: 4px solid #9b59b6; }
+.chordtext:nth-child(7) { border-left: 4px solid #e67e22; }
+
+/* Header icons for each column */
+.columnchords:nth-child(1) p::after {
+  content: "🎼";
+  margin-left: 8px;
+}
+
+.columnchords:nth-child(2) p::after {
+  content: "🎵";
+  margin-left: 8px;
+}
+
+.columnchords:nth-child(3) p::after {
+  content: "🎶";
+  margin-left: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .chords-container {
+    width: 95%;
+    min-width: unset;
+    max-width: unset;
+    margin: 10px auto;
+    padding: 15px;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .columnchords p {
+    font-size: 1.1rem;
+  }
+
+  .chordtext {
+    font-size: 0.9rem;
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .chords-container {
+    width: 95%;
+    min-width: unset;
+    max-width: unset;
+  }
+}
+
+/* Animation for loading */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.columnchords {
+  animation: slideInUp 0.6s ease forwards;
+}
+
+.columnchords:nth-child(1) { animation-delay: 0.1s; }
+.columnchords:nth-child(2) { animation-delay: 0.2s; }
+.columnchords:nth-child(3) { animation-delay: 0.3s; }
+
+/* Scroll enhancement for long chord lists */
+.columnchords {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.columnchords::-webkit-scrollbar {
+  width: 6px;
+}
+
+.columnchords::-webkit-scrollbar-track {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 3px;
+}
+
+.columnchords::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+}
+
+.columnchords::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
 }
 </style>

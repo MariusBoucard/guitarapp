@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F8DB7986-8D9C-328F-D8A6-0F99A3098FE7}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>vst3_host</RootNamespace>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Label="Locals">
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets">
+    <Import Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"/>
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <ExecutablePath>$(ExecutablePath);$(MSBuildProjectDirectory)\..\bin\;$(MSBuildProjectDirectory)\..\bin\</ExecutablePath>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <IntDir>$(Configuration)\obj\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.node</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.node</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.node</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.node</TargetExt>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetPath>$(OutDir)\$(ProjectName).node</TargetPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\include\node;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\src;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\config;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\openssl\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\uv\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\zlib;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\v8\include;..\node_modules\nan;..\..\..\third_party\VST_SDK\vst3sdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus -std:c++17 /std:c++20 %(AdditionalOptions)</AdditionalOptions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DisableSpecificWarnings>4351;4355;4800;4251;4275;4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitFramePointers>false</OmitFramePointers>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;UNICODE;_UNICODE;_WINDOWS;SMTG_OS_WINDOWS=1;SMTG_CPP17_AVAILABLE=1;SMTG_CPP20_AVAILABLE=1;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;DEVELOPMENT=1;_DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <StringPooling>true</StringPooling>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <WarningLevel>Level3</WarningLevel>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+    </ClCompile>
+    <Lib>
+      <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;uuid.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\Marius\\AppData\\Local\\node-gyp\\Cache\\20.19.2\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib</AdditionalDependencies>
+      <AdditionalOptions>/LTCG:INCREMENTAL /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
+      <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <OutputFile>$(OutDir)$(ProjectName).node</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetExt>.node</TargetExt>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\include\node;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\src;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\config;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\openssl\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\uv\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\zlib;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\v8\include;..\node_modules\nan;..\..\..\third_party\VST_SDK\vst3sdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;UNICODE;_UNICODE;_WINDOWS;SMTG_OS_WINDOWS=1;SMTG_CPP17_AVAILABLE=1;SMTG_CPP20_AVAILABLE=1;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;DEVELOPMENT=1;_DEBUG=1;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\include\node;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\src;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\config;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\openssl\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\uv\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\zlib;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\v8\include;..\node_modules\nan;..\..\..\third_party\VST_SDK\vst3sdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus -std:c++17 /std:c++20 %(AdditionalOptions)</AdditionalOptions>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DisableSpecificWarnings>4351;4355;4800;4251;4275;4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitFramePointers>true</OmitFramePointers>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;UNICODE;_UNICODE;_WINDOWS;SMTG_OS_WINDOWS=1;SMTG_CPP17_AVAILABLE=1;SMTG_CPP20_AVAILABLE=1;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;RELEASE=1;NDEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <StringPooling>true</StringPooling>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <WarningLevel>Level3</WarningLevel>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+    </ClCompile>
+    <Lib>
+      <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;uuid.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\Marius\\AppData\\Local\\node-gyp\\Cache\\20.19.2\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib</AdditionalDependencies>
+      <AdditionalOptions>/LTCG:INCREMENTAL /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
+      <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <OutputFile>$(OutDir)$(ProjectName).node</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetExt>.node</TargetExt>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\include\node;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\src;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\config;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\openssl\openssl\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\uv\include;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\zlib;C:\Users\Marius\AppData\Local\node-gyp\Cache\20.19.2\deps\v8\include;..\node_modules\nan;..\..\..\third_party\VST_SDK\vst3sdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=vst3_host;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;UNICODE;_UNICODE;_WINDOWS;SMTG_OS_WINDOWS=1;SMTG_CPP17_AVAILABLE=1;SMTG_CPP20_AVAILABLE=1;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;RELEASE=1;NDEBUG=1;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="..\binding.gyp"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\vst3_host_with_bridge.cpp">
+      <ObjectFileName>$(IntDir)\src\vst3_host_with_bridge.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\module.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\module.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\module_win32.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\module_win32.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\plugprovider.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\plugprovider.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\hostclasses.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\hostclasses.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\eventlist.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\eventlist.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\parameterchanges.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\parameterchanges.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\processdata.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\processdata.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\pluginterfacesupport.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\pluginterfacesupport.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\connectionproxy.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\public.sdk\source\vst\hosting\connectionproxy.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\pluginterfaces\base\funknown.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\pluginterfaces\base\funknown.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\pluginterfaces\base\ustring.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\pluginterfaces\base\ustring.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fobject.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\base\source\fobject.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\updatehandler.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\base\source\updatehandler.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fstring.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\base\source\fstring.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fbuffer.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\base\source\fbuffer.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fdebug.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\base\source\fdebug.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fdynlib.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\base\source\fdynlib.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\fstreamer.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\base\source\fstreamer.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\source\timer.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\base\source\timer.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\third_party\VST_SDK\vst3sdk\base\thread\source\flock.cpp">
+      <ObjectFileName>$(IntDir)\third_party\VST_SDK\vst3sdk\base\thread\source\flock.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Marius\Desktop\guitarapp\native\vst3-host\node_modules\@electron\node-gyp\src\win_delay_load_hook.cc"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+</Project>

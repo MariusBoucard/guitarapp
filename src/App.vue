@@ -27,7 +27,7 @@ import { AppController } from '@/controllers/appController.js'
 import { serviceManager } from '@/services/index.js'
 
 // Components
-import SidebarComponent from './components/SidebarComponentSimple.vue'
+import SidebarComponent from './components/SidebarComponent.vue'
 import GuitarTrainingComponent from './components/GuitarTrainingComponent.vue'
 
 export default {
@@ -124,7 +124,7 @@ export default {
   background: rgba(0, 0, 0, 0.1);
 }
 
-h1, p, h3 {
+/* h1, p, h3 {
   color: white;
-}
+} */
 </style>

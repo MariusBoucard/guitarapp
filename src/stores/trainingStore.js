@@ -7,25 +7,13 @@ export const useTrainingStore = defineStore('training', {
     selectedTraining: 0,
     currentTrainingName: "",
     
-    // Audio/Video paths
-    audioPath: [],
+    // Video paths
     videoPath: [],
-    songPath: [],
     
-    // Current playing state
-    currentSong: "",
+    // Current video state
     currentVideo: "",
-    songLength: 0,
     
-    // Playback settings
-    startTime: 0,
-    endTime: 0,
-    speed: 100,
-    pitch: 0,
-    loop: false,
-    
-    // Directory settings
-    defaultPath: "/media/marius/DISK GROS/",
+    // Niou training list (legacy)
     niouTrainingList: []
   }),
   
@@ -36,13 +24,8 @@ export const useTrainingStore = defineStore('training', {
     currentTrainingVideos: (state) => 
       state.currentTrainingData?.list || [],
     
-    formattedSongLength: (state) => {
-      const dateObj = new Date(state.songLength * 1000);
-      const minutes = dateObj.getUTCMinutes();
-      const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0');
-      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0');
-      return `${minutes}:${seconds}.${milliseconds}`;
-    }
+    currentTrainingAudioFiles: (state) => 
+      state.currentTrainingData?.audioFiles || []
   },
   
   actions: {
@@ -51,7 +34,8 @@ export const useTrainingStore = defineStore('training', {
       this.trainingList.push({
         id: this.trainingList.length,
         name: name || this.currentTrainingName,
-        list: []
+        list: [],      // videos for this training
+        audioFiles: [] // audio files for this training
       });
       this.reindexTrainings();
       this.saveTrainingsToStorage();
@@ -63,9 +47,58 @@ export const useTrainingStore = defineStore('training', {
       this.saveTrainingsToStorage();
     },
     
+    setSelectedTraining(trainingId) {
+      this.selectedTraining = trainingId;
+      this.videoPath = this.currentTrainingVideos;
+    },
+    
     selectTraining(training) {
       this.selectedTraining = training.id;
       this.videoPath = this.currentTrainingVideos;
+    },
+
+    // Video management for trainings
+    addVideoToTraining(trainingId, videoData) {
+      const training = this.trainingList.find(t => t.id === trainingId);
+      if (training) {
+        // Check if video already exists (by identifier)
+        const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData);
+        const exists = training.list.some(item => {
+          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item);
+          return existingIdentifier === identifier;
+        });
+        
+        if (!exists) {
+          training.list.push(videoData);
+          this.saveTrainingsToStorage();
+        }
+      }
+    },
+
+    removeVideoFromTraining(trainingId, videoData) {
+      const training = this.trainingList.find(t => t.id === trainingId);
+      if (training) {
+        const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData);
+        const index = training.list.findIndex(item => {
+          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item);
+          return existingIdentifier === identifier;
+        });
+        
+        if (index > -1) {
+          training.list.splice(index, 1);
+          this.saveTrainingsToStorage();
+        }
+      }
+    },
+
+    // Helper method to get video identifier
+    getVideoIdentifier(videoData) {
+      if (typeof videoData === 'string') return videoData;
+      // For videos with absolutePath, use the relative path as identifier
+      if (videoData.absolutePath && videoData.path) {
+        return videoData.path; // Use relative path as identifier
+      }
+      return videoData.fileHandleId || videoData.identifier || videoData.url || videoData.path;
     },
     
     reindexTrainings() {
@@ -75,25 +108,9 @@ export const useTrainingStore = defineStore('training', {
     },
     
     // File management
-    addAudioFile(filePath, fileName) {
-      this.audioPath.push(filePath);
-      this.songPath.push(filePath);
-      this.currentSong = fileName;
-      this.saveAudioToStorage();
-    },
-    
     addVideoFile(filePath) {
       this.videoPath.push(filePath);
       this.saveVideosToStorage();
-    },
-    
-    removeAudioFile(filePath) {
-      const index = this.audioPath.indexOf(filePath);
-      if (index > -1) {
-        this.audioPath.splice(index, 1);
-        this.songPath.splice(index, 1);
-      }
-      this.saveAudioToStorage();
     },
     
     removeVideoFile(filePath) {
@@ -104,32 +121,10 @@ export const useTrainingStore = defineStore('training', {
       this.saveVideosToStorage();
     },
     
-    // Playback control
-    setPlaybackSettings({ startTime, endTime, speed, pitch, loop }) {
-      if (startTime !== undefined) this.startTime = startTime;
-      if (endTime !== undefined) this.endTime = endTime;
-      if (speed !== undefined) this.speed = speed;
-      if (pitch !== undefined) this.pitch = pitch;
-      if (loop !== undefined) this.loop = loop;
-    },
-    
-    setSongLength(duration) {
-      this.songLength = duration;
-      this.endTime = duration;
-    },
-    
     // Storage methods
     saveTrainingsToStorage() {
       localStorage.setItem("songSave", JSON.stringify(this.trainingList));
       localStorage.setItem("videoSave", JSON.stringify(this.trainingList));
-    },
-    
-    saveAudioToStorage() {
-      localStorage.setItem("songLength", this.songPath.length);
-      this.songPath.forEach((song, index) => {
-        localStorage.setItem(`song${index}`, song);
-      });
-      this.saveTrainingsToStorage();
     },
     
     saveVideosToStorage() {
@@ -145,24 +140,32 @@ export const useTrainingStore = defineStore('training', {
       // Load trainings
       if (localStorage.getItem("songSave")) {
         this.trainingList = JSON.parse(localStorage.getItem("songSave"));
+        // Ensure backward compatibility - add audioFiles array to existing trainings
+        this.trainingList.forEach(training => {
+          if (!training.audioFiles) {
+            training.audioFiles = [];
+          }
+        });
       }
       
       // Load niou trainings
       if (localStorage.getItem("Trainings")) {
         this.niouTrainingList = JSON.parse(localStorage.getItem("Trainings"));
       }
-      
-      // Load individual songs (legacy support)
-      const songLength = localStorage.getItem("songLength");
-      if (songLength) {
-        for (let i = 0; i < parseInt(songLength); i++) {
-          const song = localStorage.getItem(`song${i}`);
-          if (song && !this.songPath.includes(song)) {
-            this.songPath.push(song);
-            this.audioPath.push(song);
+    },
+
+    loadTrainings() {
+      // Load video trainings specifically
+      if (localStorage.getItem("videoSave")) {
+        this.trainingList = JSON.parse(localStorage.getItem("videoSave"));
+        // Ensure backward compatibility - add audioFiles array to existing trainings
+        this.trainingList.forEach(training => {
+          if (!training.audioFiles) {
+            training.audioFiles = [];
           }
-        }
+        });
       }
+      this.reindexTrainings();
     }
   }
 })

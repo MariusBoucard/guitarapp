@@ -28,6 +28,15 @@ export class FileService {
   }
 
   /**
+   * Clear all stored FileHandles (useful on app restart)
+   */
+  clearFileHandles() {
+    console.log('Clearing all FileHandles, total cleared:', this.fileHandleMap.size);
+    this.fileHandleMap.clear();
+    this.handleIdCounter = 0;
+  }
+
+  /**
    * Select audio file using native dialog (Electron) or file input
    */
   async selectAudioFile() {
@@ -131,7 +140,7 @@ export class FileService {
       for await (const entry of directoryHandle.values()) {
         if (entry.kind === 'directory') {
           const trainingType = entry.name;
-          const trainings = await this.readSubDirectory(entry, trainingType, directoryHandle);
+          const trainings = await this.readSubDirectory(entry, trainingType, directoryHandle, basePath);
           
           // Count videos in this training
           const videoCount = trainings.reduce((count, training) => {
@@ -178,14 +187,14 @@ export class FileService {
   /**
    * Read subdirectory for training items with FileHandle tracking
    */
-  async readSubDirectory(directoryHandle, trainingType, rootHandle) {
+  async readSubDirectory(directoryHandle, trainingType, rootHandle, basePath = '') {
     const trainings = [];
     
     try {
       for await (const entry of directoryHandle.values()) {
         if (entry.kind === 'directory') {
           const name = entry.name;
-          const videos = await this.readFiles(entry, name, directoryHandle);
+          const videos = await this.readFiles(entry, name, directoryHandle, basePath);
           
           trainings.push({
             name,
@@ -197,9 +206,12 @@ export class FileService {
           // Handle direct video files in training directory
           if (this.isVideoFile(entry.name)) {
             const fileHandleId = this.storeFileHandle(entry);
+            const absolutePath = basePath ? `${basePath.replace(/[\\\/]+$/, '')}/${entry.name}` : entry.name;
+            
             trainings.push({
               name: entry.name,
               fileHandleId: fileHandleId, // Store ID instead of FileHandle
+              absolutePath: absolutePath, // Store absolute path
               isDirectFile: true,
               show: false
             });
@@ -218,7 +230,7 @@ export class FileService {
   /**
    * Read files from directory with FileHandle tracking
    */
-  async readFiles(directoryHandle, parentName, parentHandle) {
+  async readFiles(directoryHandle, parentName, parentHandle, basePath = '') {
     const files = [];
     
     try {
@@ -226,15 +238,20 @@ export class FileService {
         if (entry.kind === 'file') {
           if (this.isVideoFile(entry.name)) {
             const fileHandleId = this.storeFileHandle(entry);
+            const relativePath = `${parentName}/${entry.name}`;
+            const absolutePath = basePath ? `${basePath.replace(/[\\\/]+$/, '')}/${relativePath}` : relativePath;
+            
             files.push({
               name: entry.name,
               fileHandleId: fileHandleId, // Store ID instead of FileHandle
-              parentName: parentName
+              parentName: parentName,
+              path: relativePath, // Keep relative path for backwards compatibility
+              absolutePath: absolutePath // Store absolute path for direct access
             });
           }
         } else if (entry.kind === 'directory') {
           // Recursively read subdirectories
-          const subFiles = await this.readFiles(entry, `${parentName}/${entry.name}`, directoryHandle);
+          const subFiles = await this.readFiles(entry, `${parentName}/${entry.name}`, directoryHandle, basePath);
           files.push(...subFiles);
         }
       }

@@ -2,11 +2,13 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
+import { alphaTab } from '@coderline/alphatab/vite'
 import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    alphaTab(), // Add AlphaTab plugin first to handle fonts and assets
     vue({
       compilerOptions: {
         isCustomElement: tag => tag.startsWith('guitar')
@@ -16,6 +18,13 @@ export default defineConfig({
       {
         // Main-Process entry file of the Electron App.
         entry: 'src/background.js',
+        vite: {
+          build: {
+            rollupOptions: {
+              external: ['fs-extra', 'path', 'fs']
+            }
+          }
+        }
       },
       {
         entry: 'public/preload.js',
@@ -26,7 +35,9 @@ export default defineConfig({
         },
       },
     ]),
-    renderer(),
+    renderer({
+      nodeIntegration: true
+    }),
   ],
   resolve: {
     alias: {
@@ -35,14 +46,17 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['guitar-chords', 'guitar-js'],
-    exclude: ['electron']
+    exclude: ['electron', '@coderline/alphaskia']
+  },
+  define: {
+    global: 'globalThis',
   },
   base: './',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
     rollupOptions: {
-      external: ['electron']
+      external: ['electron', 'fs-extra', 'path', 'fs']
     }
   },
   server: {

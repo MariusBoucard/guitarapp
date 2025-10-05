@@ -1,682 +1,786 @@
-  <template>
-  <div class="play-sound-component">
-    <div>
+<template>
+  <div class="card">
+    <!-- Training List -->
+    <div class="training-section">
       <ul class="horizontal-list">
-            <li v-for="training in trainingComputed" @click="selectTrain(training)" :class="backColor(training)" :key="training">
-      <p>{{ training.name }}</p>
-      </li>
-  </ul>
-  <input v-model="currentName" type="text" />
-  <button @click="addTraining()">add</button>
-  <button @click="removeTraining()">remove</button>
-  </div>
-  
-  <div>
-  <ol class="ol-days">
-    <li  v-for="item in this.videoPathComputed" :key="item" @click="this.launchFile(item)">
-    {{ item.split("\\")[item.split("\\").length - 1] }}
-    <button class="button-cross" @click="remove(item)"></button>
-  </li>
-</ol>
-
-</div>
-
-    <div style="text-align: center;">
-
-        <div class="slider-parent">
-      <div class="slider-container">
-        <label for="startSlider" class="slider-label">Song Start</label>
-        <input id="startSlider" type="range" v-model="startTime" :max="endTime" min="0" step="1">
-        <p class="slider-value">{{ formatSeconds(startTime) }}</p>
-      </div>
-
-      <div class="slider-container">
-        <label for="endSlider" class="slider-label">Song End</label>
-        <input id="endSlider" type="range" v-model="endTime" :min="startTime" :max="songLength" step="1">
-        <p class="slider-value">{{ formatSeconds(endTime) }}</p>
-      </div>
-    </div>
-
-    <div class="loop-checkbox">
-      <label for="loopCheckbox" class="checkbox-label">Loop:</label>
-      <input id="loopCheckbox" type="checkbox" v-model="loop">
-    </div>
-        
-        <div class="container">
-          <div class="button-wrap">
-            <label class="buttonbis" for="upload">Upload File</label>
-            <input id="upload" type="file" @change="onFileChange">
-          </div>
-          <div class="button-wrap">
-            <button class="buttonbis" @click="selectAudioFileNative">Select Audio File (Native)</button>
-          </div>
-        </div>
-        <p style="font-weight: 300;">Song playing : {{ this.songPlaying }}</p>
-        <audio style=" width: 100%;" ref="audioPlayer" controls
-        
-        @timeupdate="onPlaying"
+        <li 
+          v-for="training in trainingStore.trainingList" 
+          @click="selectTraining(training)" 
+          :class="getTrainingClass(training)" 
+          :key="training.id"
         >
-        Your browser does not support the
-        <code>audio</code> element.
-      </audio>
-  
-    <div>
-      <button class="button" @click="play">play</button>
-      <button class="button"  @click="pause">pause</button>
-      <button class="button" @click="stop">stop</button>
-
-    </div>
-    <div style="text-align: center;">
-      <h3 style="display: block;float: top">Playing rate</h3>
-      <div class="slider" style="margin : auto">
-
-    <input type="range" min="0" max="300" oninput="rangeValue.innerText = this.value"  v-model="this.speed">
-    <p id="rangeValue">100</p>
-    </div>
-    </div>
-
-     <div style="text-align: center;">
-      <h3 style="display: block;float: top">Pitch</h3>
-      <div class="slider" style="margin : auto">
-
-    <input type="range" min="-12" max="12" oninput="toneValue.innerText = this.value"  v-model="this.pitch">
-    <p id="toneValue">0</p>
-    </div>
-    </div>
-  </div>
-  </div>
-  </template>
-  
-  <script>
-
-  export default {
-
-    data() {
-      return {
-        currentName:"",
-      selectedTraining:0,
-      trainingList : [],
-      videoPath :[],
+          <p>{{ training.name }}</p>
+        </li>
+      </ul>
       
-      loop: false,
-      startTime: 0,
-      endTime: 0,
-      songLength:0,
-        currentTime: 0,
-        seekValue: 0,
-        speed : 100,
-        songPath : [],
-        songPlaying : "",
+      <input v-model="trainingStore.currentTrainingName" type="text" placeholder="Training name" />
+      
+      <div class="training-controls">
+        <button @click="addTraining()">Add</button>
+        <button @click="removeTraining()">Remove</button>
+      </div>
+    </div>
 
-              pitch: 0, // 0 = normal, positive = up, negative = down
-      audioCtx: null,
-      sourceNode: null,
-      soundtouchNode: null,
-      };
-    },
-    watch: {
-    speed(newValue) {
-      this.valueChangedHandler(newValue);
-    },
-        pitch(newValue) {
-      if (this.wavesurfer) {
-        this.wavesurfer.setPitch(Number(newValue));
-      }    }
-  },
-  computed : {
-    trainingComputed() {
-      return this.trainingList
-    },
-     
-      videoPathComputed() {
-        return this.videoPath
-      },
-    oldPath () {
-        return this.songPath
+    <!-- Audio Files List -->
+    <div class="audio-files-section">
+      <ol class="audio-files-list">
+        <li 
+          v-for="item in songPlayerStore.audioPath" 
+          :key="item" 
+          @click="launchFile(item)"
+          class="audio-file-item"
+        >
+          {{ audioService.extractFilename(item) }}
+          <button class="button-cross" @click="removeAudioFile(item)"></button>
+        </li>
+      </ol>
+      
+      <!-- File Selection -->
+      <div class="file-selection">
+        <div class="button-wrap">
+          <button class="buttonbis" @click="selectAudioFileNative">Select Audio File</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Song Info -->
+    <p class="current-song">Song playing: {{ songPlayerStore.currentSong }}</p>
+    
+    <!-- Audio Player -->
+    <audio 
+      ref="audioPlayer" 
+      controls
+      style="width: 100%;"
+      @timeupdate="onTimeUpdate"
+      @loadedmetadata="onAudioLoaded"
+    >
+      Your browser does not support the audio element.
+    </audio>
+
+    <!-- Playback Controls -->
+    <div class="playback-controls">
+      <button class="button" @click="play">Play</button>
+      <button class="button" @click="pause">Pause</button>
+      <button class="button" @click="stop">Stop</button>
+    </div>
+
+    <!-- Time Controls -->
+    <div class="time-controls">
+      <div class="slider-container">
+        <label>Start Time: {{ audioService.formatTime(songPlayerStore.startTime) }}</label>
+        <input 
+          type="range" 
+          v-model="songPlayerStore.startTime" 
+          :max="songPlayerStore.endTime" 
+          min="0" 
+          step="0.1"
+        />
+      </div>
+      
+      <div class="slider-container">
+        <label>End Time: {{ audioService.formatTime(songPlayerStore.endTime) }}</label>
+        <input 
+          type="range" 
+          v-model="songPlayerStore.endTime" 
+          :min="songPlayerStore.startTime" 
+          :max="songPlayerStore.songLength" 
+          step="0.1"
+        />
+      </div>
+      
+      <div class="checkbox-container">
+        <label>
+          <input type="checkbox" v-model="songPlayerStore.loop" />
+          Loop
+        </label>
+      </div>
+    </div>
+
+    <!-- Speed Control -->
+    <div class="speed-control">
+      <h3 class="slider-label">Playing Rate</h3>
+      <div class="slider">
+        <input 
+          type="range" 
+          min="10" 
+          max="300" 
+          v-model="songPlayerStore.speed"
+          @input="onSpeedChange"
+        />
+        <p>{{ songPlayerStore.speed }}%</p>
+      </div>
+    </div>
+
+    <!-- Waveform Container -->
+    <div id="waveform" class="waveform-container"></div>
+  </div>
+</template>
+
+<script>
+import { useTrainingStore } from '../stores/trainingStore.js'
+import { useSongPlayerStore } from '../stores/songPlayerStore.js'
+import { serviceManager } from '../services/index.js'
+
+export default {
+  name: 'PlaySoundComponent',
+  
+  setup() {
+    const trainingStore = useTrainingStore()
+    const songPlayerStore = useSongPlayerStore()
+    const audioService = serviceManager.audio
+    const fileService = serviceManager.file
+    const storageService = serviceManager.storage
+    
+    return {
+      trainingStore,
+      songPlayerStore,
+      audioService,
+      fileService,
+      storageService
     }
   },
-    methods: {
-      backColor(item){
-      if(item.id===this.selectedTraining){
-        return  "selectedTrain"
-      }
-      else return "unselectedTrain"
-    },
-      redoIdTrain(){
-    for(var i =0;i<this.trainingList.length;i++)   {
-      this.trainingList.at(i).id = i
-    }
-    },
-      selectTrain(training){
-      this.selectedTraining=training.id
-      this.videoPath = this.trainingList.find(train => train.id === this.selectedTraining).list
-      console.log(this.videoPath)
-
-    },
-      addTraining(){
-      this.trainingList.push({"id" : this.trainingList.length, "name": this.currentName, "list" : []})
-      this.redoIdTrain()
-      console.log(this.trainingList)
-      localStorage.setItem("songSave",JSON.stringify(this.trainingList))
-
-    },
-
-      async selectAudioFileNative() {
-        try {
-          if (window.electronAPI && window.electronAPI.selectAudioFile) {
-            const filePath = await window.electronAPI.selectAudioFile();
-            if (filePath) {
-              // Extract filename from path
-              const fileName = filePath.split(/[\\/]/).pop();
-              
-              // Use the native file path directly
-              this.videoPath.push(filePath);
-              this.songPath.push(filePath);
-              this.saveSong();
-              this.songPlaying = fileName;
-
-              localStorage.setItem("songSave", JSON.stringify(this.trainingList));
-
-              // Load the audio file
-              const audioPlayer = this.$refs.audioPlayer;
-              const audioURL = `file://${filePath}`;
-              audioPlayer.addEventListener('loadedmetadata', () => {
-                this.songLength = audioPlayer.duration;
-                this.endTime = this.songLength;
-                this.startTime = 0;
-                console.log(this.songLength);
-                this.initWaveSurfer(audioURL);
-              });
-              audioPlayer.src = audioURL;
-            }
-          } else {
-            console.warn('Electron API not available, falling back to file input');
-          }
-        } catch (error) {
-          console.error('Error selecting audio file:', error);
-        }
-      },
-
-      removeTraining(){
-      this.trainingList.splice(this.selectedTraining,1)
-      this.redoIdTrain()
-      localStorage.setItem("songSave",JSON.stringify(this.trainingList))
-
-    },
-      remove(item){
-      console.log("pute")
-      var index = this.videoPath.indexOf(item)
-      if(index>-1){
-        console.log("great")
-
-        this.videoPath.splice(index, 1);
-      }
-      localStorage.setItem("songSave",JSON.stringify(this.trainingList))
-      console.log(this.videoPath)
-      localStorage.setItem("songLength", this.videoPath.length)
-      for (var i = 0; i < this.videoPath.length; i++) {
-        localStorage.setItem("song" + i, this.videoPath[i])
-      }
-    },
-        launchFile(filePath){
-        const reader = new FileReader();
-        console.log(filePath)
-        this.songPlaying = filePath.split("\\")[filePath.split("\\").length - 1]
-        const file = new File([filePath], filePath, { type: "audio/*" });
-        reader.onload = () => {
-          const audioPlayer = this.$refs.audioPlayer;
-          const audioURL = `file://${filePath}`;
-          audioPlayer.addEventListener('loadedmetadata', () => {
-      this.songLength = audioPlayer.duration;
-      this.endTime = this.songLength;
-      this.startTime =0;
-      console.log(this.songLength);
-    });
-          audioPlayer.src = audioURL;
-   
-        };
-        
-        reader.readAsDataURL(file);
-        },
-        valueChangedHandler(speedval){
-                this.setSpeed(speedval/100)
-        },
-        saveSong(){
-          localStorage.setItem("songLength",this.songPath.length)
-          for(var i=0;i<this.songPath.length;i++){
-            localStorage.setItem("song"+i,this.songPath[i])
-
-          }
-        },
-      onFileChange(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        
-        // In Electron, we might not have access to file.path for security reasons
-        // So we'll use the file name and create a blob URL instead
-        let filePath;
-        if (file.path) {
-          // If file.path is available (older Electron versions)
-          filePath = file.path.replace(/#/g, '%23');
-        } else {
-          // Use blob URL for newer security restrictions
-          filePath = URL.createObjectURL(file);
-        }
-        
-        this.videoPath.push(filePath);
-        this.songPath.push(filePath);
-        this.saveSong();
-        this.songPlaying = file.name;
-
-        localStorage.setItem("songSave", JSON.stringify(this.trainingList));
-
-        reader.onload = () => {
-          const audioPlayer = this.$refs.audioPlayer;
-          const audioURL = filePath.startsWith('blob:') ? filePath : `file://${filePath}`;
-          audioPlayer.addEventListener('loadedmetadata', () => {
-            this.songLength = audioPlayer.duration;
-            this.endTime = this.songLength;
-      this.startTime =0;
-      console.log(this.songLength);
-         const file = event.target.files[0];
-      const url = URL.createObjectURL(file);
-      this.initWaveSurfer(url);
-    });
-          audioPlayer.src = audioURL;
-
-        };
   
-         reader.readAsDataURL(file);
-      },
-      initWaveSurfer(fileUrl) {
-      if (this.wavesurfer) {
-        this.wavesurfer.destroy();
-      }
-      console.log('Loading file:', fileUrl)
-      // this.wavesurfer = WaveSurfer.create({
-      //   container: '#waveform',
-      //   waveColor: 'violet',
-      //   progressColor: 'purple',
-      //   plugins: [
-      //     PitchPlugin.create()
-      //   ]
-      // });
-      // this.wavesurfer.load(fileUrl);
-    },
-      play() {
-          if (this.wavesurfer) this.wavesurfer.play();
+  mounted() {
+    // Load data from storage
+    this.trainingStore.loadFromStorage()
+    this.songPlayerStore.loadFromStorage()
+    
+    // Initialize audio context
+    this.audioService.initializeAudioContext()
   },
-      pause() {
-      if (this.wavesurfer) this.wavesurfer.pause();
-      },
-      stop() {
-      if (this.wavesurfer) {
-        this.wavesurfer.stop();
-        this.wavesurfer.seekTo(0);
-      }
-      },
-      setSpeed(speed) {
-        this.$refs.audioPlayer.playbackRate = speed;
-      },
-      onPlaying() {
-        const { audioPlayer } = this.$refs;
-        if (!audioPlayer) {
-          return;
-        }
-        this.currentTime = audioPlayer.currentTime;
-        this.seekValue = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-        if (!this.loop && this.currentTime >= this.endTime) {
-        audioPlayer.pause();
-        audioPlayer.currentTime = this.startTime;
-        }
-        if (this.currentTime <= this.startTime) {
-        audioPlayer.currentTime = this.startTime;
-        }
-        if (this.loop && this.currentTime >= this.endTime) {
-        audioPlayer.currentTime = this.startTime;
-        }
-      },
-      onSeek() {
-        const { audioPlayer } = this.$refs;
-        const seekto = audioPlayer.duration * (this.seekValue / 100);
-        audioPlayer.currentTime = seekto;
-      },
-      handleTimeUpdate() {
-      
-    },
-    handleLooping() {
-      if (this.$refs.audioPlayer.currentTime >= this.endTime) {
-        this.$refs.audioPlayer.currentTime = this.startTime;
-      }
-    },
-    formatSeconds(seconds) {
-  const dateObj = new Date(seconds * 1000);
-  const minutes = dateObj.getUTCMinutes();
-  const secondsFormatted = dateObj.getUTCSeconds().toString().padStart(2, '0');
-  const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0');
-  return `${minutes}:${secondsFormatted}.${milliseconds}`;
-}
+  
+  methods: {
+    // Training management
+    selectTraining(training) {
+      this.trainingStore.selectTraining(training)
+      // Update audio path for the new training
+      this.songPlayerStore.updateAudioPathForTraining(this.trainingStore)
     },
     
-      mounted() {
-        this.$refs.audioPlayer.addEventListener("loadedmetadata", () => {
-      this.videoDuration = this.$refs.audioPlayer.duration;
-    });
-    if(localStorage.getItem("songSave")){
-
-      this.trainingList = JSON.parse(localStorage.getItem("songSave"))
-    } 
-    console.log(this.trainingList)
-    // var lenVideo= localStorage.getItem("songLength")
-    //   for(var i=0;i<lenVideo;i++){
-    //    var path2=  localStorage.getItem("song"+i)
-    //   //  this.videoFolder = localStorage.getItem("videoFolder")
-
-    //    console.log(path2)
-    //   //  const videoURL = URL.createObjectURL(path);
-    //             // this.$refs.video.src = path;
-
-    //             if (path2) {
-    //               // Make a request to a server-side script to load the video file
-    //               const filePath = path.resolve(path2);
-    //                     // this.videoPath.push(filePath);
-    //               this.speed = 100;
-    //               this.videoPath.push(path2)
-                  
-    //               // const  filePath = file.path
-
-    //               const videoURL = `file://${filePath}`;
-    //               this.$refs.audioPlayer.src = videoURL;
-    //               this.$refs.audioPlayer.addEventListener('loadedmetadata', () => {
-    //                 URL.revokeObjectURL(videoURL);
-    //               });
-
-    //             }
-    //   }
+    addTraining() {
+      this.trainingStore.addTraining()
+    },
+    
+    removeTraining() {
+      this.trainingStore.removeTraining()
+    },
+    
+    getTrainingClass(training) {
+      return training.id === this.trainingStore.selectedTraining 
+        ? "selectedTrain" 
+        : "unselectedTrain"
+    },
+    
+    // File management
+    async selectAudioFileNative() {
+      try {
+        if (!window.electronAPI?.selectAudioFile) {
+          throw new Error('Native file selection not available')
+        }
+        
+        const filePath = await window.electronAPI.selectAudioFile()
+        if (filePath) {
+          await this.loadAudioFile({
+            path: filePath,
+            name: this.audioService.extractFilename(filePath),
+            isNative: true
+          })
+        }
+      } catch (error) {
+        console.error('Error selecting audio file:', error)
+        // Could add user notification here
+      }
+    },
+    
+    async onFileChange(event) {
+      // Removed - only native file selection is used
+    },
+    
+    async loadAudioFile(fileData) {
+      try {
+        // Add to song player store
+        this.songPlayerStore.addAudioFile(this.trainingStore, fileData.path, fileData.name)
+        
+        // Load audio metadata
+        const audioData = await this.audioService.loadAudioFile(fileData.path)
+        
+        // Update audio player
+        this.$refs.audioPlayer.src = audioData.src
+        
+        // Store audio reference
+        this.currentAudio = audioData.audio
+      } catch (error) {
+        console.error('Error loading audio file:', error)
+      }
+    },
+    
+    removeAudioFile(filePath) {
+      this.songPlayerStore.removeAudioFile(this.trainingStore, filePath)
+    },
+    
+    async launchFile(filePath) {
+      try {
+        const fileName = this.audioService.extractFilename(filePath)
+        this.songPlayerStore.currentSong = fileName
+        
+        // Load the audio file
+        const audioData = await this.audioService.loadAudioFile(filePath)
+        this.$refs.audioPlayer.src = audioData.src
+        this.currentAudio = audioData.audio
+      } catch (error) {
+        console.error('Error launching file:', error)
+      }
+    },
+    
+    // Playback controls
+    async play() {
+      try {
+        await this.audioService.playAudio(
+          this.$refs.audioPlayer, 
+          this.songPlayerStore.speed / 100
+        )
+      } catch (error) {
+        console.error('Error playing audio:', error)
+      }
+    },
+    
+    pause() {
+      this.audioService.pauseAudio(this.$refs.audioPlayer)
+    },
+    
+    stop() {
+      try {
+        const audio = this.$refs.audioPlayer
+        if (audio) {
+          audio.pause()
+          audio.currentTime = this.songPlayerStore.startTime || 0
+        }
+      } catch (error) {
+        console.error('Error stopping audio:', error)
+      }
+    },
+    
+    onSpeedChange() {
+      const audio = this.$refs.audioPlayer
+      if (audio && this.songPlayerStore.speed) {
+        audio.playbackRate = this.songPlayerStore.speed / 100
+      }
+    },
+    
+    // Event handlers
+    onTimeUpdate() {
+      const audio = this.$refs.audioPlayer
+      if (!audio) return
+      
+      this.audioService.handleTimeUpdate(
+        audio,
+        audio.currentTime,
+        this.songPlayerStore.startTime,
+        this.songPlayerStore.endTime,
+        this.songPlayerStore.loop
+      )
+    },
+    
+    onAudioLoaded() {
+      const audio = this.$refs.audioPlayer
+      if (audio && audio.duration) {
+        this.songPlayerStore.setSongLength(audio.duration)
+        
+        // Initialize waveform if needed
+        this.audioService.initWaveSurfer('waveform', audio.src)
+      }
+    }
+  },
   
+  beforeUnmount() {
+    // Cleanup
+    if (this.currentAudio) {
+      this.audioService.cleanup()
+    }
   }
-  };
-  
-  </script>
-  <style>
-  .slider-parent {
-  display: flex;
-  justify-content: space-between;
+}
+</script>
+
+<style scoped>
+.playsound-component {
+  width: 100%;
+  margin: 10px auto;
+  padding: 15px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2c3e50;
+}
+
+/* Training Section */
+.training-section {
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.horizontal-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  list-style: none;
+  padding: 0;
   margin-bottom: 20px;
 }
 
-  .slider-container {
-  display: flex;
-  width: 50%;
-  flex-direction: column;
-  align-items: center;
-}
-
-.slider-label {
-  color: white;
-  font-weight: bold;
-}
-
-.slider-value {
-  color: white;
-  margin-bottom: 1px;
-}
-
-.loop-checkbox {
-  display: flex;
-  align-items: center;
-  justify-content: center; /* Added */
-  margin-top: 20px;
-  height: 30px; /* Added */
-}
-
-.checkbox-label {
-  color: white;
-  margin-right: 10px;
-}
-.slider {
-
-width: 60%;
-height : 60px;
-padding: 30px;
-padding-left: 40px;
-background: #fcfcfc;
-border-radius: 20px;
-display: flex;
-align-items: center;
-box-shadow: 0px 15px 40px #7E6D5766;
-}
-.slider p {
-font-size: 26px;
-font-weight: 600;
-font-family: Open Sans;
-padding-left: 30px;
-color: black;
-}
-.slider input[type="range"] {
-width: 420px;
-height: 2px;
-background: black;
-border: none;
-outline: none;
-}
-.slider input[type="range"]::-webkit-slider-thumb {
--webkit-appearance: none !important;
-width: 30px;
-height:30px;
-background: black;
-border: 2px solid black;
-border-radius: 50%;
-cursor: pointer;
-}
-.slider input[type="range"]::-webkit-slider-thumb:hover {
-background: black;
-}
-
-.container {
-        align-items: center;
-        width: 100%;
-        margin-left: 0;
-        padding: 0;
-      }
-      input[type="file"] {
-        z-index: -1;
-        top: 15px;
-        left: 20px;
-  margin-right: auto;
-  margin-left: auto;
-        font-size: 17px;
-        color: #b8b8b8;
-      }
-      .button-wrap {
-        position: relative;
-        margin: 0;
-        padding: 0;
-      }
-      .buttonbis {
-        position: relative;
-        display: inline-block;
-        background-color: #1d6355;
-        border-radius: 10px;
-        border: 4px double #cccccc;
-        color: #ffffff;
-        text-align: center;
-        font-size: 20px;
-  margin-right: auto;
-  margin-left: auto;
-        width: 100px;
-        transition: all 0.5s;
-        cursor: pointer;
-      }
-      .buttonbis:hover {
-        background-color: #00ab97;
-      }
-
-      audio::-webkit-media-controls-play-button{
-background-color:rgb(255, 255, 255);}
-
-audio:hover {transform: scale(1.1);filter: drop-shadow(2px 3px 3px #333);}
-audio::-webkit-media-controls-panel{
-  background-color: white;
-  border-radius: 0%;
-}
-audio::-webkit-media-controls-mute-button
-{
-  background-color: white;
-  color: black;
-}
-/*audio::-webkit-media-controls-play-button
-audio::-webkit-media-controls-timeline-container
-audio::-webkit-media-controls-current-time-display
-audio::-webkit-media-controls-time-remaining-display
-audio::-webkit-media-controls-timeline
-audio::-webkit-media-controls-volume-slider-container
-audio::-webkit-media-controls-volume-slider
-audio::-webkit-media-controls-seek-back-button
-audio::-webkit-media-controls-seek-forward-button
-audio::-webkit-media-controls-fullscreen-button
-audio::-webkit-media-controls-rewind-button
-audio::-webkit-media-controls-return-to-realtime-button
-audio::-webkit-media-controls-toggle-closed-captions-button */
-
-.ol-days,
-.ol-days * {
-  font-size: medium;
-	padding: 0;
-	box-sizing: border-box;
-}
-.ol-days {
-	width: 100%;
-	max-width: 100%;
-	margin-inline: auto;
-
-	/* flex-direction: column; */
-	gap: 0.25em;
-	font-size: clamp(1rem, 5vw, 2rem);
-	color: hsl(0, 0%, 90%);
-
-	list-style: none;
-	counter-reset: ol-days-counter;
-}
-.ol-days > li {
-	counter-increment: ol-days-counter;
-	padding-inline: 1em;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-	display: grid;
-  text-align: center;
-	grid-template-columns: 80% min-content ;
-	align-items: center;
-	background: linear-gradient(
-			hsla(0 0% 100% / 0.2),
-			transparent 50%,
-			hsla(0 0% 0% / 0.3)
-		),
-		var(--clr_bg);
-	transition: transform 250ms ease;
-  height: 70px;
-	cursor: default;
-	/* text-shadow: 0 0 5px hsla(0 0% 50% / 0.75); */
-}
-.ol-days > li:hover {
-	transform: scale(1.05);
-}
-
-.ol-days > li::before,
-.ol-days > li::after {
-	display: grid;
-  grid-template-columns: 10fr 1fr;
-  width: 100%;
-	align-items: center;
-	grid-row: 1;
-	text-align: center;
-}
-.ol-days > li::before {
-	grid-column: 1;
-  width: 50%;
-	padding-inline-end: 0.25em;
-}
-.ol-days > li::after {
-	content: counter(ol-days-counter, decimal-leading-zero);
-	grid-column: 2;
-  float: right;
-	width: 1.75em;
-	height: 3.5em;
-	background-image: linear-gradient(
-			90deg,
-			rgba(0, 0, 0, 0.3),
-			rgba(0, 0, 0, 0) 25%
-		),
-		radial-gradient(
-			circle at 0.125em center,
-			var(--clr_accent) 1.25em,
-			transparent calc(1.25em + 1px)
-		);
-	padding-inline-start: 0.1em;
-  grid-template-columns: 10fr 1fr;
-
-}
-.ol-days > li:nth-child(even)::before {
-	padding-inline-start: 1.25em;
-}
-
-.ol-days > li:nth-child(6n + 1) {
-	--clr_bg: #2e2b3c;
-	--clr_accent: #fb6767;
-}
-.ol-days > li:nth-child(6n + 2) {
-	--clr_bg: #47505f;
-	--clr_accent: #c14755;
-}
-.ol-days > li:nth-child(6n + 3) {
-	--clr_bg: #37aa8d;
-	--clr_accent: #a1cc6f;
-}
-.ol-days > li:nth-child(6n + 4) {
-	--clr_bg: #8fb568;
-	--clr_accent: #566574;
-}
-.ol-days > li:nth-child(6n + 5) {
-	--clr_bg: #24b8b8;
-	--clr_accent: #c4b36a;
-}
-.ol-days > li:nth-child(6n + 6) {
-	--clr_bg: #fc6868;
-	--clr_accent: #2e2b3c;
-}
-.button-cross {
-  display: inline-block;
-  position: relative;
-  margin-left: 1em;
-  width: 2em;
-  height: 2em;
-  border-radius: 50%;
-  border: none;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+.horizontal-list li {
   cursor: pointer;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-weight: 500;
 }
 
-.button-cross::before,
-.button-cross::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60%;
-  height: 2px;
-  background-color: #000;
+.selectedTrain {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
+}
+
+.unselectedTrain {
+  background: rgba(255, 255, 255, 0.9);
+  color: #2c3e50 !important;
+  border-color: #e0e6ed;
+}
+
+.unselectedTrain:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.horizontal-list li p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.training-section input[type="text"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e6ed;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  background: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.training-section input[type="text"]:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+}
+
+.training-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.training-controls button {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.training-controls button:first-child {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.training-controls button:first-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.training-controls button:last-child {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.training-controls button:last-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+/* Audio Files Section */
+.audio-files-section {
+  margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.audio-files-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.audio-files-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.audio-files-list::-webkit-scrollbar-track {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 4px;
+}
+
+.audio-files-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+.audio-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  background: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.audio-file-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.audio-file-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  transform: translateX(5px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.button-cross {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.button-cross:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
 }
 
 .button-cross::before {
-  transform: translate(-50%, -50%) rotate(45deg);
+  content: "✕";
 }
 
-.button-cross::after {
-  transform: translate(-50%, -50%) rotate(-45deg);
+.file-selection {
+  margin-bottom: 10px;
+}
+
+.button-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.buttonbis {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.buttonbis:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Current Song */
+.current-song {
+  font-weight: 500;
+  margin: 0px 0;
+  padding: 15px 20px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  color: #667eea;
+  text-align: center;
+  font-size: 1rem;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+/* Audio Player */
+audio {
+  width: 100%;
+  margin: 10px 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Playback Controls */
+.playback-controls {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin: 5px 0;
+}
+
+.button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button:nth-child(1) {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.button:nth-child(2) {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+}
+
+.button:nth-child(3) {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Time Controls */
+.time-controls {
+  margin: 10px 0;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.slider-container {
+  margin: 20px 0;
+}
+
+.slider-container label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.slider-container input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #ecf0f1;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.checkbox-container {
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox-container label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+/* Speed Control */
+.speed-control {
+  text-align: center;
+  margin: 30px 0;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.speed-control h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.slider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.slider input[type="range"] {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: #ecf0f1;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+.slider p {
+  margin: 0;
+  font-weight: 600;
+  color: #FF9800;
+  font-size: 1.1rem;
+  min-width: 60px;
+  background: rgba(255, 152, 0, 0.1);
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 152, 0, 0.2);
+}
+
+/* Waveform */
+.waveform-container {
+  height: 120px;
+  margin: 30px 0;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  border-radius: 10px;
+  background: rgba(102, 126, 234, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .playsound-component {
+    width: 95%;
+    min-width: unset;
+    max-width: unset;
+    margin: 10px auto;
+    padding: 15px;
+  }
+
+  .horizontal-list {
+    grid-template-columns: 1fr;
+  }
+
+  .training-controls {
+    flex-direction: column;
+  }
+
+  .playback-controls {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .button {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .slider {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .slider input[type="range"] {
+    width: 100%;
+  }
 }
 </style>

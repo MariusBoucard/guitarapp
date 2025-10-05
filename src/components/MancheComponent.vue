@@ -13,7 +13,7 @@
         <div class="column">
             <h1>{{ notePlayed }}</h1>
             <div class="circle" :style="{ backgroundColor: notePlayed ? calcBack(notePlayed.slice(0, notePlayed.length - 1)) : 'white' }">
-                <p class="note">{{ notePlayed.slice(0, notePlayed.length - 1) }}</p>
+                <p class="note">{{ notePlayed ? notePlayed.slice(0, notePlayed.length - 1) : '' }}</p>
             </div>
             <p>Activer le sapin de noel:</p>
             <button class="button" @click="allumerSapin" :style="{ backgroundColor: getStateButton() }">Sapinnnnn</button>
@@ -33,61 +33,49 @@
 </div>
 
 
-        <div width="300px">
-
-
+        <div class="manche-container">
             <ul :class="this.lefty ? 'ulmanche' : ''">
-                <li class="horizontalli ">
+                <li class="horizontalli">
                     <ul>
-                        <li style=" width: 40px" :style="{ height: calcHeight() }" v-for="note in this.tuningintra"
+                        <li :style="{ height: calcHeight() }" v-for="note in this.tuningintra"
                             :key="note.cordeId">
-                            <div class="circle" style="width:35px;height:35px"
+                            <div class="circle"
                                 :style="{ backgroundColor: calcBack2(note.tuning) }" v-if="isChoosedTune(note)">
-                                <p class="pp" style="font-size: 16px;"> {{ note.tuning.slice(0, note.tuning.length) }}
+                                <p class="pp"> {{ note.tuning.slice(0, note.tuning.length) }}
                                 </p>
                             </div>
-                            <div v-else>
+                            <div v-else class="tuning-note">
                                 {{ note.tuning.slice(0, note.tuning.length) }}
-
                             </div>
-
                         </li>
-
                     </ul>
                 </li>
 
-
-                <li class="horizontalli2 frette yolo" :style="{ width: calcWidth(index) }"
+                <li class="horizontalli2 frette" :style="{ width: calcWidth(index) }"
                     v-for="index in (this.nbfrettes - 1)" :key="index">
                     <div class="image-container">
-                        <img class="background-image" src="../assets/frettebackground.jpeg">
                         <div class="content">
-
                             <ul>
-                                <li class="lettre lithium" :style="{ height: calcHeight() }"
+                                <li class="lettre" :style="{ height: calcHeight() }"
                                     v-for="note in this.tuningintra" :key="note.cordeId"
-                                    v-on:click="chooseNote(note, index)">
-                                    <div display="flex" class="cord" v-if="isChoosed(note, index)">
+                                    @click="chooseNote(note, index)">
+                                    <div class="cord" v-if="isChoosed(note, index)">
                                         <hr class="line" :style="{ width: calcWidth(index) }">
                                         <div class="circle"
                                             :style="{ height: heightCircle(index), width: heightCircle(index), backgroundColor: calcBackNote(note, index) }">
                                             <p class="pp">{{ renderChoosen(note, index) }}</p>
                                         </div>
                                     </div>
-                                    <div display="flex" class="cord" v-else>
+                                    <div class="cord" v-else>
                                         <hr class="line" :style="{ width: calcWidth(index) }">
-
                                     </div>
                                 </li>
-
                             </ul>
                         </div>
                     </div>
-                    <p style="margin:0;padding:0;color : white"> {{ index }}</p>
+                    <p class="fret-number">{{ index }}</p>
                 </li>
             </ul>
-            <!-- {{ this.cordeListe   }} -->
-            <!-- {{ this.allnotesc }} -->
         </div>
         <!-- <li  v-for="note in this.tuningintra" :key="note.cordeId">
            
@@ -131,8 +119,8 @@ export default {
     },
     data() {
         return {
-            nbfrettes: this.nbFrettes,
-            tuningintra: this.tuning,
+            nbfrettes: this.nbFrettes || 12,
+            tuningintra: this.tuning || [],
             listeNotes: [
                 { id: 0, note: "A" },
                 { id: 1, note: "AS" },
@@ -148,13 +136,13 @@ export default {
                 { id: 11, note: "GS" },
             ],
             nbCordes: 6,
-            notesSelectedIntra2: this.notesSelected,
-            couleursnotes: this.colorNotes,
-            diapason: this.diap * 2.3,
-            currentNote: this.notePlayed,
+            notesSelectedIntra2: this.notesSelected || [],
+            couleursnotes: this.colorNotes || [],
+            diapason: (this.diap || 25.5) * 2.3,
+            currentNote: this.notePlayed || '',
             sapinNoel: false,
-            cheatEnabled: this.cheat,
-            gameOn: this.gamePlay,
+            cheatEnabled: this.cheat || false,
+            gameOn: this.gamePlay || false,
 
 
         }
@@ -225,7 +213,7 @@ export default {
             // }
 
             var couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
-            return couleur.color
+            return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
         },
         calcBack2(lettre) {
             // console.log(lettre)
@@ -241,14 +229,30 @@ export default {
                 return "white"
             }
             var couleur = this.couleursnotes.find((couleurs) => couleurs.note === lettre.slice(0, lettre.length - 1))
-            return couleur.color
+            return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
         },
         calcBackNote(corde, index) {
             var lettre = this.renderChoosen(corde, index)
             // console.log(lettre)
             // console.log(corde,index)
             //find the id of the root note of the cord and add the nb of index
+            
+            // Debug: Log the tuning we're looking for and available notes
+       //     console.log('Looking for tuning:', corde.tuning);
+        //    console.log('Available notes in allnotesc:', this.allnotesc.slice(0, 20).map(n => n.note)); // Show first 20 notes
+          // TODO FIX THIS ISSUE  
             var find = this.allnotesc.find(note => note.note === corde.tuning)
+            
+            // Check if find is undefined to prevent error
+            if (!find) {
+                console.warn('Note not found for tuning:', corde.tuning)
+                console.warn('AllNotesC length:', this.allnotesc.length)
+                // Try to find similar notes for debugging
+                const similarNotes = this.allnotesc.filter(note => note.note.startsWith(corde.tuning.charAt(0)))
+                console.warn('Similar notes found:', similarNotes.slice(0, 10).map(n => n.note))
+                return 'white' // Return default color
+            }
+            
             // console.log(find)
             //Calcul sur index attention §§§§ changement index c est nb decalage
             //il faut trouver de combien tu es décallé dans ce tab :
@@ -269,7 +273,7 @@ export default {
             if (this.sapinNoel) {
                 var noteoncase = this.allnotesc.find(note => note.id === newindex)
                 // console.log(noteoncase)
-                if (noteoncase.note === this.notePlayed) {
+                if (noteoncase && noteoncase.note === this.notePlayed) {
                     console.log("caca")
                     return 'red '
                 }
@@ -282,7 +286,7 @@ export default {
             }
 
             var couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
-            return couleur.color
+            return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
         },
         calcWidth(index) {
 
@@ -366,169 +370,375 @@ export default {
 
 </script>
 <style scoped>
-:root {
-    --mondiap: #ffffff;
-}
-
-.lettre {
-    padding: 0;
+/* Manche Container */
+.manche-container {
     width: 100%;
-    border-right: 5px solid rgb(255, 255, 255);
-
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: var(--spacing-md);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    margin: var(--spacing-md) 0;
+    box-shadow: 0 4px 12px var(--shadow-light);
 }
 
-:root {
-    --light: 80;
-    /* the threshold at which colors are considered "light." Range: integers from 0 to 100,
-recommended 50 - 70 */
-    --threshold: 60;
+/* Tuning notes styling */
+.tuning-note {
+    color: var(--text-secondary);
+    font-weight: var(--font-medium);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
+
+/* Fret numbers */
+.fret-number {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: var(--font-medium);
+    margin: 0;
+    padding: var(--spacing-xs);
+    background: rgba(44, 62, 80, 0.8);
+    border-radius: var(--radius-sm);
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Manche Component - Beautiful Guitar Fretboard */
 
 .container {
     width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin: var(--spacing-md) 0;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px var(--shadow-medium);
 }
 
 .row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 20px;
+    margin-bottom: var(--spacing-lg);
+    gap: var(--spacing-md);
 }
 
 .column {
     flex: 1;
-    padding: 20px;
+    padding: var(--spacing-lg);
     text-align: center;
-    border-radius: 10px;
-    background-color: none;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-md);
+    background: rgba(52, 73, 94, 0.3);
+    border: 1px solid var(--border-primary);
+    color: var(--text-primary);
 }
 
-h1 {
-    font-size: 24px;
+.column h1 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: var(--font-semibold);
+    margin: 0 0 var(--spacing-md) 0;
 }
 
-.circle {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-}
-
-.note {
-    font-size: 18px;
-}
-
-button {
-    border: 1px solid black;
-    border-radius: 5px;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 16px;
-    background-color: rgb(51, 101, 138) ;
-}
-
-button:hover {
-    background-color: #2F4858 !important;
-    color: #acacac;
+.column p {
+    color: var(--text-secondary);
+    margin: var(--spacing-sm) 0;
 }
 
 .score {
-    color: white;
+    color: var(--accent-green);
+    font-weight: var(--font-bold);
+    font-size: 1.2rem;
 }
 
-
-.pp {
-    background-color: rgba(125, 125, 125, 0.2);
-    color: rgb(0, 0, 0);
-    mix-blend-mode: difference;
-    filter: contrast(100%);
-    filter: brightness(50%);
+/* Manche (Fretboard) Layout - Always Single Line */
+.ulmanche {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    align-items: stretch;
+    list-style-type: none;
+    padding: 0;
+    margin: var(--spacing-lg) 0;
+    min-height: 300px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    background: url('../assets/frettebackground.jpeg');
+    background-size: cover;
+    background-position: center;
+    border-radius: var(--radius-lg);
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
+/* Default manche direction (left-handed reverses this) */
+ul:not(.ulmanche) {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: stretch;
+    list-style-type: none;
+    padding: 0;
+    margin: var(--spacing-lg) 0;
+    min-height: 300px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    background: url('../assets/frettebackground.jpeg');
+    background-size: cover;
+    background-position: center;
+    border-radius: var(--radius-lg);
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Tuning pegs column */
+.horizontalli {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 60px;
+    max-width: 60px;
+    background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    padding: var(--spacing-sm);
+    border-right: 3px solid #fff;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
+}
+
+.horizontalli ul {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.horizontalli li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    color: var(--text-primary);
+    font-weight: var(--font-semibold);
+    font-size: 0.9rem;
+}
+
+/* Fret columns */
+.horizontalli2 {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    height: 100%;
+    position: relative;
+}
+
+.frette {
+    background: rgba(139, 69, 19, 0.8);
+    border-right: 2px solid #fff;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+}
+
+.content ul {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+/* String/Note positions */
+.lettre {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    position: relative;
+}
+
+.lettre:hover {
+    background: rgba(52, 152, 219, 0.2);
+}
+
+/* String lines */
+.cord {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.line {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: 2px;
+    background: linear-gradient(90deg, #C0C0C0 0%, #E5E5E5 50%, #C0C0C0 100%);
+    margin: 0;
+    border: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+    transform: translate(-50%, -50%);
+}
+
+/* Different string thicknesses for realism */
+.lettre:nth-child(1) .line { height: 1px; } /* High E string - thinnest */
+.lettre:nth-child(2) .line { height: 1.5px; } /* B string */
+.lettre:nth-child(3) .line { height: 2px; } /* G string */
+.lettre:nth-child(4) .line { height: 2.5px; } /* D string */
+.lettre:nth-child(5) .line { height: 3px; } /* A string */
+.lettre:nth-child(6) .line { height: 5.25px; } /* Low E string - 1.5x thicker (3.5 * 1.5) */
+
+/* Note circles */
 .circle {
-    margin: 0 auto;
-
-
-    /* Any lightness value below the threshold will result in white, any above will result in black */
-
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
-    opacity: 1;
-    z-index: 99;
+    z-index: 10;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all var(--transition-normal);
+    cursor: pointer;
 }
 
-.case {
-    width: 100%;
-    height: 100px;
-    align-items: center;
-    justify-content: center;
+.circle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
+.circle .pp,
+.circle .note,
 .circle p {
-    color: #fff;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.frette {
-    background-image: url('/src/assets/frettebackground.png');
-    border-right: 1px solid rgb(255, 255, 255);
-    background-color: rgb(71, 47, 23);
-
-}
-
-.cord {
-    position: flex;
-}
-
-.line {
-    position: absolute;
-
-    margin: 25px 0 0 0;
-    /* width:  100%; */
-    color: white;
-}
-
-.yolo {
-    width: var(--mondiap);
-}
-
-.columnb {
-    float: left;
-    width: 33.33%;
-}
-
-.ulmanche {
-    display: flex;
-    flex-direction: row-reverse;
-    /* add this line to reverse the order */
-    justify-content: flex-end;
-    /* add this line to align the items to the right */
-    list-style-type: none;
-    padding: 0;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: var(--font-bold);
     margin: 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    mix-blend-mode: difference;
 }
 
-.horizontalli2 {
-    display: inline-block;
-    float: none;
+/* Buttons */
+.button {
+    background: var(--btn-primary);
+    border: none;
+    color: var(--text-primary);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: var(--font-medium);
+    transition: all var(--transition-normal);
+    margin: var(--spacing-sm);
 }
 
-.yolo {
-    margin-right: auto;
-    margin-left: 0;
-    width: var(--mondiap);
+.button:hover {
+    background: var(--btn-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-medium);
 }
 
-/* Clear floats after the columns */
-.row:after {
-    content: "";
-    display: table;
-    clear: both;
-}</style>
+/* Responsive design */
+@media (max-width: 768px) {
+    .ulmanche,
+    ul:not(.ulmanche) {
+        min-height: 250px;
+        overflow-x: scroll;
+    }
+    
+    .circle {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .circle .pp,
+    .circle .note,
+    .circle p {
+        font-size: 0.7rem;
+    }
+}
+
+/* Scrollbar styling */
+.ulmanche::-webkit-scrollbar,
+ul:not(.ulmanche)::-webkit-scrollbar {
+    height: 8px;
+}
+
+.ulmanche::-webkit-scrollbar-track,
+ul:not(.ulmanche)::-webkit-scrollbar-track {
+    background: var(--primary-dark);
+    border-radius: var(--radius-sm);
+}
+
+.ulmanche::-webkit-scrollbar-thumb,
+ul:not(.ulmanche)::-webkit-scrollbar-thumb {
+    background: var(--primary-medium);
+    border-radius: var(--radius-sm);
+}
+
+.ulmanche::-webkit-scrollbar-thumb:hover,
+ul:not(.ulmanche)::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-accent);
+}
+
+/* Ensure no wrapping and proper spacing */
+.ulmanche > *,
+ul:not(.ulmanche) > * {
+    flex-shrink: 0;
+}
+
+/* Animation for note selection */
+@keyframes noteSelect {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.circle.selected {
+    animation: noteSelect 0.3s ease-in-out;
+}
+
+/* CSS Custom Properties */
+:root {
+    --mondiap: 45px;
+    --light: 80;
+    --threshold: 60;
+}
+</style>
