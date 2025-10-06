@@ -25,13 +25,13 @@
     <div class="audio-files-section">
       <ol class="audio-files-list">
         <li 
-          v-for="item in songPlayerStore.audioPath" 
+          v-for="item in currentAudioFiles" 
           :key="item" 
           @click="launchFile(item)"
           class="audio-file-item"
         >
           {{ audioService.extractFilename(item) }}
-          <button class="button-cross" @click="removeAudioFile(item)"></button>
+          <button class="button-cross" @click.stop="removeAudioFile(item)"></button>
         </li>
       </ol>
       
@@ -140,6 +140,16 @@ export default {
     }
   },
   
+  computed: {
+    // Get audio files for the currently selected training
+    currentAudioFiles() {
+      if (!this.trainingStore.currentTrainingData) {
+        return []
+      }
+      return this.trainingStore.currentTrainingAudioFiles
+    }
+  },
+  
   mounted() {
     // Load data from storage
     this.trainingStore.loadFromStorage()
@@ -153,8 +163,7 @@ export default {
     // Training management
     selectTraining(training) {
       this.trainingStore.selectTraining(training)
-      // Update audio path for the new training
-      this.songPlayerStore.updateAudioPathForTraining(this.trainingStore)
+      // Audio files will automatically update via computed property
     },
     
     addTraining() {

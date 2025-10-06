@@ -19,7 +19,22 @@ export const useSongPlayerStore = defineStore('songPlayer', {
   }),
   
   getters: {
-    // Reference userStore data directly
+    // Get audio files for the currently selected training
+    // This should be called with trainingStore as a parameter from components
+    audioPathForTraining: () => (trainingStore) => {
+      if (!trainingStore || !trainingStore.currentTrainingData) {
+        // No training selected - return empty array
+        return []
+      }
+      
+      const training = trainingStore.currentTrainingData
+      if (!training.audioFiles) {
+        training.audioFiles = []
+      }
+      return training.audioFiles
+    },
+    
+    // Legacy getter for global audio files (kept for backward compatibility)
     audioPath() {
       const userStore = useUserStore()
       if (!userStore.currentUser?.data?.audioFiles) {
