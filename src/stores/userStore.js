@@ -378,13 +378,28 @@ export const useUserStore = defineStore('user', {
     // Storage methods
     saveUsersToStorage() {
       try {
-        localStorage.setItem('guitarapp_users', JSON.stringify(this.users))
+        const dataToSave = {
+          users: this.users,
+          currentUserId: this.currentUserId,
+          lastModified: new Date().toISOString()
+        }
+        
+        console.log('💾 SAVING TO STORAGE:', {
+          usersCount: this.users.length,
+          currentUserId: this.currentUserId,
+          currentUserName: this.currentUser?.name
+        })
+        
+        localStorage.setItem('guitarapp_users', JSON.stringify(dataToSave))
         localStorage.setItem('guitarapp_userMeta', JSON.stringify({
           lastExportDate: this.lastExportDate,
           lastImportDate: this.lastImportDate
         }))
+        
+        console.log('✅ SAVE COMPLETE')
       } catch (error) {
-        console.error('Failed to save users to storage:', error)
+        console.error('❌ Failed to save users to storage:', error)
+        throw error
       }
     },
     
@@ -392,7 +407,24 @@ export const useUserStore = defineStore('user', {
       try {
         const usersData = localStorage.getItem('guitarapp_users')
         if (usersData) {
-          this.users = JSON.parse(usersData)
+          const parsed = JSON.parse(usersData)
+          
+          console.log('📂 LOADING FROM STORAGE:', parsed)
+          
+          // Handle new format (with currentUserId) and old format (just array)
+          if (parsed.users && Array.isArray(parsed.users)) {
+            // New format
+            this.users = parsed.users
+            this.currentUserId = parsed.currentUserId || this.users[0]?.id
+            console.log('✅ Loaded new format:', this.users.length, 'users, current:', this.currentUserId)
+          } else if (Array.isArray(parsed)) {
+            // Old format (just array of users)
+            this.users = parsed
+            this.currentUserId = this.users[0]?.id
+            console.log('✅ Loaded old format:', this.users.length, 'users')
+          }
+        } else {
+          console.log('ℹ️  No saved users found - using defaults')
         }
         
         const metaData = localStorage.getItem('guitarapp_userMeta')
@@ -402,7 +434,7 @@ export const useUserStore = defineStore('user', {
           this.lastImportDate = meta.lastImportDate
         }
       } catch (error) {
-        console.error('Failed to load users from storage:', error)
+        console.error('❌ Failed to load users from storage:', error)
       }
     },
     

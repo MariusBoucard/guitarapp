@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, crashReporter } from 'electron'
+import { app, protocol, BrowserWindow, crashReporter, ipcMain } from 'electron'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -38,71 +38,16 @@ try {
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// VST3 Host Integration
-let VST3HostWrapper = null
-let EditorHostBridgeWrapper = null
-let vst3HostInstance = null
-let editorHostBridgeInstance = null
-
-// Try to load the VST3 host wrapper module
-try {
-  // Try different possible paths for the wrapper module
-  const possiblePaths = [
-    '../native/vst3-host/index.js',  // From src directory
-    './native/vst3-host/index.js',   // From app root
-    join(__dirname, '../native/vst3-host/index.js'), // Using path.join
-    join(process.cwd(), 'native/vst3-host/index.js'),  // From current working directory
-    join(__dirname, '../../native/vst3-host/index.js'), // From built app
-    'C:\\Users\\Marius\\Desktop\\guitarapp\\native\\vst3-host\\index.js' // Absolute path
-  ]
-  
-  console.log('🔍 Current working directory:', process.cwd())
-  console.log('🔍 __dirname:', __dirname)
-  
-  let vst3HostModule = null
-  for (const path of possiblePaths) {
-    try {
-      console.log('🔍 Trying to load VST3 wrapper from:', path)
-      vst3HostModule = require(path)
-      console.log('✅ VST3 wrapper loaded from:', path)
-      break
-    } catch (e) {
-      console.log('⚠️ Failed to load from:', path, '- Error:', e.message)
-    }
-  }
-  
-  if (vst3HostModule && vst3HostModule.VST3HostWrapper) {
-    VST3HostWrapper = vst3HostModule.VST3HostWrapper
-    EditorHostBridgeWrapper = vst3HostModule.EditorHostBridgeWrapper
-    
-    vst3HostInstance = new VST3HostWrapper()
-    console.log('✅ Native VST3 host wrapper loaded successfully')
-    console.log('🎹 VST3 Host initialized successfully')
-    
-    // Initialize EditorHostBridge if available
-    if (EditorHostBridgeWrapper) {
-      editorHostBridgeInstance = new EditorHostBridgeWrapper()
-      console.log('✅ EditorHostBridge initialized successfully')
-      
-      // Set the default EditorHost path to the VST3PluginTestHost
-      const defaultEditorHostPath = join(__dirname, '../third_party/VST_SDK/vst3sdk/bin/Windows_x64/VST3PluginTestHost_x64_Installer_3.10.0.zip')
-      // Note: This path points to the installer. We'll need to extract or use the actual executable
-      console.log('📂 Default EditorHost path:', defaultEditorHostPath)
-    } else {
-      console.log('⚠️ EditorHostBridge not available')
-    }
-  } else {
-    throw new Error('Could not find VST3HostWrapper in any expected location')
-  }
-} catch (error) {
-  console.log('⚠️  Native VST3 host not available:', error.message)
-  console.log('   Run "npm run vst3:build" to enable native VST3 support')
-}
+// VST3 Support Removed - was causing startup delays and quit issues
 
 // Register schemes before app ready
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
+
+// Track app quit state (must be before createWindow)
+let isQuitting = false
+let saveCompleted = false
 
 async function createWindow() {
   // Create the browser window.
@@ -186,10 +131,58 @@ async function createWindow() {
     // Remove DevTools opening in production for security
     // win.webContents.openDevTools()
   }
+  
+  // Intercept window close to save data first
+  win.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault() // Prevent window close
+      isQuitting = true
+      
+      console.log('📦 Window closing - requesting data save...')
+      
+      // Send save request to renderer
+      win.webContents.send('app-before-quit')
+      
+      console.log('⏰ Waiting up to 2 seconds for save confirmation...')
+      
+      // Wait for save or timeout
+      const timeout = setTimeout(() => {
+        if (!saveCompleted) {
+          console.log('⏱️  Save timeout (2s) - closing anyway')
+          saveCompleted = true
+          win.destroy() // Force close
+          app.quit()
+        }
+      }, 2000)
+      
+      // Check for save completion
+      const checkSave = setInterval(() => {
+        if (saveCompleted) {
+          console.log('✅ Save confirmed - closing window')
+          clearTimeout(timeout)
+          clearInterval(checkSave)
+          win.destroy() // Now close for real
+          app.quit()
+        }
+      }, 50)
+    }
+  })
+  
+  return win
 }
 
 // Register all IPC handlers using modular approach
-registerAllIPCHandlers(vst3HostInstance, editorHostBridgeInstance)
+registerAllIPCHandlers()
+
+// Handle save-complete message from renderer
+ipcMain.handle('app-save-complete', async () => {
+  console.log('📥 Received save-complete signal from renderer')
+  saveCompleted = true
+  return { success: true }
+})
+
+// NOTE: Save logic moved to window.on('close') in createWindow()
+// This ensures we have access to the window BEFORE it closes
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -249,9 +242,6 @@ app.whenReady().then(async () => {
       }
     }
   }
-  
-  // VST3 Host should already be initialized during module loading
-  console.log('🔍 VST3 Host status at app ready:', vst3HostInstance ? 'Available' : 'Not available')
   
   createWindow()
 })

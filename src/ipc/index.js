@@ -7,16 +7,15 @@
 
 import { registerFileHandlers } from './fileHandlers.js'
 import { registerVideoHandlers } from './videoHandlers.js'
-import { registerVST3Handlers } from './vst3Handlers.js'
-import { registerAudioHandlers } from './audioHandlers.js'
-import { registerEditorHostHandlers } from './editorHostHandlers.js'
+// VST3 support removed
+// import { registerVST3Handlers } from './vst3Handlers.js'
+// import { registerAudioHandlers } from './audioHandlers.js'
+// import { registerEditorHostHandlers } from './editorHostHandlers.js'
 
 /**
  * Register all IPC handlers
- * @param {Object} vst3HostInstance - The VST3 host instance
- * @param {Object} editorHostBridgeInstance - The EditorHost bridge instance
  */
-export function registerAllIPCHandlers(vst3HostInstance, editorHostBridgeInstance) {
+export function registerAllIPCHandlers() {
   console.log('🔧 Registering all IPC handlers...')
   
   // Register file and directory handlers
@@ -25,14 +24,10 @@ export function registerAllIPCHandlers(vst3HostInstance, editorHostBridgeInstanc
   // Register video handlers
   registerVideoHandlers()
   
-  // Register VST3 handlers (requires VST3 host instance)
-  registerVST3Handlers(vst3HostInstance)
-  
-  // Register audio handlers (requires VST3 host instance)
-  registerAudioHandlers(vst3HostInstance)
-  
-  // Register EditorHost handlers (requires EditorHost bridge instance)
-  registerEditorHostHandlers(editorHostBridgeInstance)
+  // VST3 handlers removed - feature disabled
+  // registerVST3Handlers(vst3HostInstance)
+  // registerAudioHandlers(vst3HostInstance)
+  // registerEditorHostHandlers(editorHostBridgeInstance)
   
   console.log('✅ All IPC handlers registered successfully')
 }
@@ -42,8 +37,9 @@ export function registerAllIPCHandlers(vst3HostInstance, editorHostBridgeInstanc
  */
 export {
   registerFileHandlers,
-  registerVideoHandlers,
-  registerVST3Handlers,
-  registerAudioHandlers,
-  registerEditorHostHandlers
+  registerVideoHandlers
+  // VST3 handlers removed
+  // registerVST3Handlers,
+  // registerAudioHandlers,
+  // registerEditorHostHandlers
 }

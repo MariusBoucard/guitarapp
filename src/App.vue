@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { onMounted, provide } from 'vue'
+import { onMounted, onBeforeUnmount, provide } from 'vue'
 import { useAppStore } from '@/stores/appStore.js'
 import { useNotesStore } from '@/stores/notesStore.js'
 import { useTuningStore } from '@/stores/tuningStore.js'
@@ -52,6 +52,50 @@ export default {
     // Provide controller to child components
     provide('appController', appController)
     
+    // Handle app quit event
+    const handleBeforeQuit = async () => {
+      console.log('� RENDERER: Received app-before-quit event!')
+      console.log('�📦 RENDERER: App is closing - saving data...')
+      
+      try {
+        // Check what we're about to save
+        const currentUser = userStore.currentUser
+        console.log('💾 RENDERER: Current user before save:', currentUser?.name, 'ID:', currentUser?.id)
+        console.log('💾 RENDERER: Number of users:', userStore.users?.length)
+        
+        // Save all user data
+        console.log('💾 RENDERER: Calling userStore.saveUsersToStorage()...')
+        userStore.saveUsersToStorage()
+        
+        // Verify it was saved to localStorage
+        const savedData = localStorage.getItem('guitarapp_users')
+        if (savedData) {
+          const parsed = JSON.parse(savedData)
+          console.log('✅ RENDERER: Data saved to localStorage!')
+          console.log('✅ RENDERER: Saved', parsed.users?.length, 'user(s)')
+          console.log('✅ RENDERER: Current user ID:', parsed.currentUserId)
+        } else {
+          console.error('❌ RENDERER: No data in localStorage after save!')
+        }
+        
+        // Notify main process that save is complete
+        console.log('📤 RENDERER: Notifying main process save is complete...')
+        if (window.electronAPI && window.electronAPI.saveComplete) {
+          await window.electronAPI.saveComplete()
+          console.log('✅ RENDERER: Main process notified')
+        } else {
+          console.error('❌ RENDERER: electronAPI.saveComplete not available!')
+        }
+      } catch (error) {
+        console.error('❌ RENDERER: Error saving data on quit:', error)
+        // Still notify main process even if save failed
+        if (window.electronAPI && window.electronAPI.saveComplete) {
+          await window.electronAPI.saveComplete()
+          console.log('✅ RENDERER: Main process notified (after error)')
+        }
+      }
+    }
+    
     // Initialize application on mount
     onMounted(async () => {
       try {
@@ -63,8 +107,29 @@ export default {
         await appController.initialize()
         appController.setupAutoSave()
         console.log('App Mounted')
+        
+        // Register before-quit listener
+        console.log('🔍 RENDERER: Checking for electronAPI...', !!window.electronAPI)
+        if (window.electronAPI) {
+          console.log('🔍 RENDERER: onBeforeQuit available?', !!window.electronAPI.onBeforeQuit)
+          console.log('🔍 RENDERER: saveComplete available?', !!window.electronAPI.saveComplete)
+        }
+        
+        if (window.electronAPI && window.electronAPI.onBeforeQuit) {
+          window.electronAPI.onBeforeQuit(handleBeforeQuit)
+          console.log('✅ RENDERER: Registered app quit handler')
+        } else {
+          console.error('❌ RENDERER: Cannot register quit handler - electronAPI not available')
+        }
       } catch (error) {
-        console.error('Failed to initialize app:', error)
+        console.error('❌ RENDERER: Failed to initialize app:', error)
+      }
+    })
+    
+    // Cleanup on unmount
+    onBeforeUnmount(() => {
+      if (window.electronAPI && window.electronAPI.removeBeforeQuitListener) {
+        window.electronAPI.removeBeforeQuitListener(handleBeforeQuit)
       }
     })
     
