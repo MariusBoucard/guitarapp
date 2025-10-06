@@ -1,171 +1,235 @@
 import { defineStore } from 'pinia'
+import { useUserStore } from './userStore'
 
 export const useTrainingStore = defineStore('training', {
   state: () => ({
-    // Training data
-    trainingList: [],
+    // UI State only (not user-specific data)
     selectedTraining: 0,
     currentTrainingName: "",
-    
-    // Video paths
-    videoPath: [],
-    
-    // Current video state
-    currentVideo: "",
-    
-    // Niou training list (legacy)
-    niouTrainingList: []
+    currentVideo: ""
   }),
   
   getters: {
-    currentTrainingData: (state) => 
-      state.trainingList.find(training => training.id === state.selectedTraining),
+    // Reference userStore data directly
+    trainingList() {
+      const userStore = useUserStore()
+      if (!userStore.currentUser?.data?.trainings) {
+        // Initialize if needed
+        if (userStore.currentUser) {
+          userStore.currentUser.data.trainings = []
+        }
+        return []
+      }
+      return userStore.currentUser.data.trainings
+    },
     
-    currentTrainingVideos: (state) => 
-      state.currentTrainingData?.list || [],
+    videoPath() {
+      const userStore = useUserStore()
+      return userStore.currentUser?.data?.videoFiles || []
+    },
     
-    currentTrainingAudioFiles: (state) => 
-      state.currentTrainingData?.audioFiles || []
+    niouTrainingList() {
+      const userStore = useUserStore()
+      if (!userStore.currentUser?.data?.niouTrainingList) {
+        if (userStore.currentUser && !userStore.currentUser.data.niouTrainingList) {
+          userStore.currentUser.data.niouTrainingList = []
+        }
+        return []
+      }
+      return userStore.currentUser.data.niouTrainingList
+    },
+    
+    currentTrainingData: (state) => {
+      const userStore = useUserStore()
+      const trainings = userStore.currentUser?.data?.trainings || []
+      return trainings.find(training => training.id === state.selectedTraining)
+    },
+    
+    currentTrainingVideos() {
+      return this.currentTrainingData?.list || []
+    },
+    
+    currentTrainingAudioFiles() {
+      return this.currentTrainingData?.audioFiles || []
+    }
   },
   
   actions: {
-    // Training management
+    // Training management - modify userStore data directly
     addTraining(name) {
-      this.trainingList.push({
-        id: this.trainingList.length,
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      const trainings = userStore.currentUser.data.trainings
+      trainings.push({
+        id: trainings.length,
         name: name || this.currentTrainingName,
         list: [],      // videos for this training
         audioFiles: [] // audio files for this training
-      });
-      this.reindexTrainings();
-      this.saveTrainingsToStorage();
+      })
+      this.reindexTrainings()
+      userStore.saveUsersToStorage()
     },
     
     removeTraining(index = this.selectedTraining) {
-      this.trainingList.splice(index, 1);
-      this.reindexTrainings();
-      this.saveTrainingsToStorage();
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      userStore.currentUser.data.trainings.splice(index, 1)
+      this.reindexTrainings()
+      userStore.saveUsersToStorage()
     },
     
     setSelectedTraining(trainingId) {
-      this.selectedTraining = trainingId;
-      this.videoPath = this.currentTrainingVideos;
+      this.selectedTraining = trainingId
     },
     
     selectTraining(training) {
-      this.selectedTraining = training.id;
-      this.videoPath = this.currentTrainingVideos;
+      this.selectedTraining = training.id
     },
 
-    // Video management for trainings
+    // Video management for trainings - modify userStore data directly
     addVideoToTraining(trainingId, videoData) {
-      const training = this.trainingList.find(t => t.id === trainingId);
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      const training = userStore.currentUser.data.trainings.find(t => t.id === trainingId)
       if (training) {
         // Check if video already exists (by identifier)
-        const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData);
+        const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData)
         const exists = training.list.some(item => {
-          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item);
-          return existingIdentifier === identifier;
-        });
+          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item)
+          return existingIdentifier === identifier
+        })
         
         if (!exists) {
-          training.list.push(videoData);
-          this.saveTrainingsToStorage();
+          training.list.push(videoData)
+          userStore.saveUsersToStorage()
         }
       }
     },
 
     removeVideoFromTraining(trainingId, videoData) {
-      const training = this.trainingList.find(t => t.id === trainingId);
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      const training = userStore.currentUser.data.trainings.find(t => t.id === trainingId)
       if (training) {
-        const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData);
+        const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData)
         const index = training.list.findIndex(item => {
-          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item);
-          return existingIdentifier === identifier;
-        });
+          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item)
+          return existingIdentifier === identifier
+        })
         
         if (index > -1) {
-          training.list.splice(index, 1);
-          this.saveTrainingsToStorage();
+          training.list.splice(index, 1)
+          userStore.saveUsersToStorage()
         }
       }
     },
 
     // Helper method to get video identifier
     getVideoIdentifier(videoData) {
-      if (typeof videoData === 'string') return videoData;
+      if (typeof videoData === 'string') return videoData
       // For videos with absolutePath, use the relative path as identifier
       if (videoData.absolutePath && videoData.path) {
-        return videoData.path; // Use relative path as identifier
+        return videoData.path // Use relative path as identifier
       }
-      return videoData.fileHandleId || videoData.identifier || videoData.url || videoData.path;
+      return videoData.fileHandleId || videoData.identifier || videoData.url || videoData.path
     },
     
     reindexTrainings() {
-      this.trainingList.forEach((training, index) => {
-        training.id = index;
-      });
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      userStore.currentUser.data.trainings.forEach((training, index) => {
+        training.id = index
+      })
     },
     
-    // File management
+    // File management - modify userStore data directly
     addVideoFile(filePath) {
-      this.videoPath.push(filePath);
-      this.saveVideosToStorage();
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      if (!userStore.currentUser.data.videoFiles) {
+        userStore.currentUser.data.videoFiles = []
+      }
+      userStore.currentUser.data.videoFiles.push(filePath)
+      userStore.saveUsersToStorage()
     },
     
     removeVideoFile(filePath) {
-      const index = this.videoPath.indexOf(filePath);
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      const videoFiles = userStore.currentUser.data.videoFiles || []
+      const index = videoFiles.indexOf(filePath)
       if (index > -1) {
-        this.videoPath.splice(index, 1);
+        videoFiles.splice(index, 1)
+        userStore.saveUsersToStorage()
       }
-      this.saveVideosToStorage();
     },
     
-    // Storage methods
+    // Storage methods - now delegates to userStore
     saveTrainingsToStorage() {
-      localStorage.setItem("songSave", JSON.stringify(this.trainingList));
-      localStorage.setItem("videoSave", JSON.stringify(this.trainingList));
+      const userStore = useUserStore()
+      userStore.saveUsersToStorage()
     },
     
     saveVideosToStorage() {
-      this.saveTrainingsToStorage();
+      const userStore = useUserStore()
+      userStore.saveUsersToStorage()
     },
     
     saveNiouTrainings() {
-      localStorage.setItem("Trainings", JSON.stringify(this.niouTrainingList));
+      const userStore = useUserStore()
+      userStore.saveUsersToStorage()
     },
     
-    // Load from storage
+    // Load from storage - migrate old data to userStore if needed
     loadFromStorage() {
-      // Load trainings
-      if (localStorage.getItem("songSave")) {
-        this.trainingList = JSON.parse(localStorage.getItem("songSave"));
-        // Ensure backward compatibility - add audioFiles array to existing trainings
-        this.trainingList.forEach(training => {
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      // Migration: Load old data into current user if user data is empty
+      if ((!userStore.currentUser.data.trainings || userStore.currentUser.data.trainings.length === 0) 
+          && localStorage.getItem("songSave")) {
+        const trainings = JSON.parse(localStorage.getItem("songSave"))
+        trainings.forEach(training => {
           if (!training.audioFiles) {
-            training.audioFiles = [];
+            training.audioFiles = []
           }
-        });
+        })
+        userStore.currentUser.data.trainings = trainings
       }
       
-      // Load niou trainings
-      if (localStorage.getItem("Trainings")) {
-        this.niouTrainingList = JSON.parse(localStorage.getItem("Trainings"));
+      // Migration: Load old niou trainings
+      if ((!userStore.currentUser.data.niouTrainingList || userStore.currentUser.data.niouTrainingList.length === 0)
+          && localStorage.getItem("Trainings")) {
+        userStore.currentUser.data.niouTrainingList = JSON.parse(localStorage.getItem("Trainings"))
       }
+      
+      userStore.saveUsersToStorage()
     },
 
     loadTrainings() {
-      // Load video trainings specifically
-      if (localStorage.getItem("videoSave")) {
-        this.trainingList = JSON.parse(localStorage.getItem("videoSave"));
-        // Ensure backward compatibility - add audioFiles array to existing trainings
-        this.trainingList.forEach(training => {
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      // Migration: Load old video trainings if current user has none
+      if ((!userStore.currentUser.data.trainings || userStore.currentUser.data.trainings.length === 0)
+          && localStorage.getItem("videoSave")) {
+        const trainings = JSON.parse(localStorage.getItem("videoSave"))
+        trainings.forEach(training => {
           if (!training.audioFiles) {
-            training.audioFiles = [];
+            training.audioFiles = []
           }
-        });
+        })
+        userStore.currentUser.data.trainings = trainings
+        this.reindexTrainings()
+        userStore.saveUsersToStorage()
       }
-      this.reindexTrainings();
     }
   }
 })

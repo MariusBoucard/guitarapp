@@ -325,25 +325,20 @@ export default {
       }
     },
     
-    async switchToUser(userId) {
+    switchToUser(userId) {
       try {
-        await this.userStore.switchUser(userId)
-        this.showMessage('Switched user successfully', 'success')
-        
-        // Reload the page to apply new user's data
-        setTimeout(() => {
-          window.location.reload()
-        }, 1000)
+        this.userStore.switchUser(userId)
+        this.showMessage('Switched user successfully - all stores updated', 'success')
+        // No need to reload - stores are reactive and will update automatically
       } catch (error) {
         this.showMessage(`Error switching user: ${error.message}`, 'error')
       }
     },
     
     // Import/Export
-    async exportUserData(userId) {
+    exportUserData(userId) {
       try {
-        // Note: exportUser is now async
-        const result = await this.userService.exportUserToFile(this.userStore, userId)
+        const result = this.userService.exportUserToFile(this.userStore, userId)
         this.showMessage(`Exported to ${result.filename}`, 'success')
       } catch (error) {
         this.showMessage(`Export failed: ${error.message}`, 'error')

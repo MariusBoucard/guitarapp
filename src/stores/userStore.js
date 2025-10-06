@@ -21,14 +21,40 @@ export const useUserStore = defineStore('user', {
         avatar: '',
         email: '',
         
-        // User-specific data (stores state snapshots)
+        // User-specific data (complete structure for proper initialization)
         data: {
           trainings: [],
           videos: [],
-          settings: {},
-          notes: {},
+          niouTrainingList: [],
+          videoMetadata: {
+            lastUpdated: null,
+            totalVideos: 0,
+            totalTrainings: 0,
+            averageDuration: 0
+          },
+          settings: {
+            mancheDisplay: true,
+            notesSelectedDisplay: true,
+            tunerDisplay: false,
+            pictureDisplay: false,
+            soundDisplay: false,
+            scalesDisplay: true,
+            videoDisplay: false,
+            videoDisplayNew: true,
+            gameDisplay: false,
+            chordssuggestDisplay: false
+          },
+          notes: {
+            noteSlectedList: [],
+            gammeSelected: ""
+          },
           colors: [],
-          tuning: {},
+          tuning: {
+            nbfrettes: 24,
+            diapason: 648,
+            nbStrings: 6,
+            tuningList: []
+          },
           audioFiles: [],
           videoFiles: []
         }
@@ -73,8 +99,8 @@ export const useUserStore = defineStore('user', {
   
   actions: {
     // Initialize - load users from storage and set active user
-    async initialize() {
-      await this.loadUsersFromStorage()
+    initialize() {
+      this.loadUsersFromStorage()
       
       // Set current user from storage or use default
       const savedUserId = localStorage.getItem('guitarapp_currentUserId')
@@ -102,6 +128,13 @@ export const useUserStore = defineStore('user', {
         data: {
           trainings: [],
           videos: [],
+          niouTrainingList: [],
+          videoMetadata: {
+            lastUpdated: null,
+            totalVideos: 0,
+            totalTrainings: 0,
+            averageDuration: 0
+          },
           settings: {
             mancheDisplay: true,
             notesSelectedDisplay: true,
@@ -202,16 +235,13 @@ export const useUserStore = defineStore('user', {
     },
     
     // Switch active user
-    async switchUser(userId) {
+    switchUser(userId) {
       if (!this.userExists(userId)) {
         throw new Error('User does not exist')
       }
       
-      // Save current user data before switching
-      if (this.currentUserId) {
-        await this.captureCurrentStoreStates()
-      }
-      
+      // Simply switch the current user - stores will automatically reflect new data
+      // because they use computed properties that reference currentUser.data
       this.currentUserId = userId
       const user = this.getUserById(userId)
       this.currentUserName = user.name
@@ -219,9 +249,6 @@ export const useUserStore = defineStore('user', {
       localStorage.setItem('guitarapp_currentUserId', userId)
       this.updateLastActive()
       this.saveUsersToStorage()
-      
-      // Load the new user's data into stores
-      await this.restoreUserStoreStates()
     },
     
     // Update user profile
@@ -247,150 +274,32 @@ export const useUserStore = defineStore('user', {
       }
     },
     
-    // Capture current state of all stores into user data
-    async captureCurrentStoreStates() {
-      const user = this.currentUser
-      if (!user) return
-      
-      // Import stores using dynamic import (works in browser)
-      const { useTrainingStore } = await import('./trainingStore.js')
-      const { useVideoStore } = await import('./videoStore.js')
-      const { useSettingsStore } = await import('./settingsStore.js')
-      const { useNotesStore } = await import('./notesStore.js')
-      const { useTuningStore } = await import('./tuningStore.js')
-      const { useSongPlayerStore } = await import('./songPlayerStore.js')
-      
-      const trainingStore = useTrainingStore()
-      const videoStore = useVideoStore()
-      const settingsStore = useSettingsStore()
-      const notesStore = useNotesStore()
-      const tuningStore = useTuningStore()
-      const songPlayerStore = useSongPlayerStore()
-      
-      // Capture state from each store
-      user.data.trainings = JSON.parse(JSON.stringify(trainingStore.trainingList))
-      user.data.videos = JSON.parse(JSON.stringify(videoStore.niouTrainingList))
-      user.data.audioFiles = JSON.parse(JSON.stringify(songPlayerStore.audioPath))
-      user.data.videoFiles = JSON.parse(JSON.stringify(videoStore.videoPath))
-      
-      user.data.settings = {
-        mancheDisplay: settingsStore.mancheDisplay,
-        notesSelectedDisplay: settingsStore.notesSelectedDisplay,
-        tunerDisplay: settingsStore.tunerDisplay,
-        pictureDisplay: settingsStore.pictureDisplay,
-        soundDisplay: settingsStore.soundDisplay,
-        scalesDisplay: settingsStore.scalesDisplay,
-        videoDisplay: settingsStore.videoDisplay,
-        videoDisplayNew: settingsStore.videoDisplayNew,
-        gameDisplay: settingsStore.gameDisplay,
-        chordssuggestDisplay: settingsStore.chordssuggestDisplay,
-        diapason: settingsStore.diapason,
-        nbStrings: settingsStore.nbStrings,
-        tuningList: JSON.parse(JSON.stringify(settingsStore.tuningList))
-      }
-      
-      user.data.notes = {
-        noteSlectedList: JSON.parse(JSON.stringify(notesStore.noteSlectedList)),
-        gammeSelected: notesStore.gammeSelected
-      }
-      
-      user.data.colors = JSON.parse(JSON.stringify(notesStore.colors))
-      
-      user.data.tuning = {
-        nbfrettes: tuningStore.nbfrettes,
-        diapason: tuningStore.diapason,
-        nbStrings: tuningStore.nbStrings,
-        tuningList: JSON.parse(JSON.stringify(tuningStore.tuningList))
-      }
-      
+    // No longer needed - stores reference user data directly
+    // Kept for backward compatibility with export/import
+    captureCurrentStoreStates() {
+      // Data is already in currentUser.data - no capture needed
+      // Just save to storage
       this.saveUsersToStorage()
     },
     
-    // Restore user's store states into current stores
-    async restoreUserStoreStates() {
-      const user = this.currentUser
-      if (!user || !user.data) return
-      
-      // Import stores using dynamic import
-      const { useTrainingStore } = await import('./trainingStore.js')
-      const { useVideoStore } = await import('./videoStore.js')
-      const { useSettingsStore } = await import('./settingsStore.js')
-      const { useNotesStore } = await import('./notesStore.js')
-      const { useTuningStore } = await import('./tuningStore.js')
-      const { useSongPlayerStore } = await import('./songPlayerStore.js')
-      
-      const trainingStore = useTrainingStore()
-      const videoStore = useVideoStore()
-      const settingsStore = useSettingsStore()
-      const notesStore = useNotesStore()
-      const tuningStore = useTuningStore()
-      const songPlayerStore = useSongPlayerStore()
-      
-      // Restore training data
-      if (user.data.trainings) {
-        trainingStore.trainingList = JSON.parse(JSON.stringify(user.data.trainings))
-      }
-      
-      // Restore video data
-      if (user.data.videos) {
-        videoStore.niouTrainingList = JSON.parse(JSON.stringify(user.data.videos))
-      }
-      
-      // Restore audio files
-      if (user.data.audioFiles) {
-        songPlayerStore.audioPath = JSON.parse(JSON.stringify(user.data.audioFiles))
-      }
-      
-      // Restore video files
-      if (user.data.videoFiles) {
-        videoStore.videoPath = JSON.parse(JSON.stringify(user.data.videoFiles))
-      }
-      
-      // Restore settings
-      if (user.data.settings) {
-        Object.keys(user.data.settings).forEach(key => {
-          if (key in settingsStore) {
-            settingsStore[key] = user.data.settings[key]
-          }
-        })
-      }
-      
-      // Restore notes
-      if (user.data.notes) {
-        if (user.data.notes.noteSlectedList) {
-          notesStore.noteSlectedList = JSON.parse(JSON.stringify(user.data.notes.noteSlectedList))
-        }
-        if (user.data.notes.gammeSelected) {
-          notesStore.gammeSelected = user.data.notes.gammeSelected
-        }
-      }
-      
-      // Restore colors
-      if (user.data.colors) {
-        notesStore.colors = JSON.parse(JSON.stringify(user.data.colors))
-      }
-      
-      // Restore tuning
-      if (user.data.tuning) {
-        Object.keys(user.data.tuning).forEach(key => {
-          if (key in tuningStore) {
-            tuningStore[key] = user.data.tuning[key]
-          }
-        })
-      }
+    // No longer needed - stores reference user data directly
+    // Kept for backward compatibility
+    restoreUserStoreStates() {
+      // Data is automatically reflected because stores use computed properties
+      // that reference currentUser.data
+      // Just ensure we save to storage
+      this.saveUsersToStorage()
     },
     
     // Export user data to JSON
-    async exportUser(userId) {
+    exportUser(userId) {
       const user = this.getUserById(userId)
       if (!user) {
         throw new Error('User not found')
       }
       
-      // Capture latest state if this is current user
-      if (userId === this.currentUserId) {
-        await this.captureCurrentStoreStates()
-      }
+      // Data is always up-to-date since stores reference user.data directly
+      // No need to capture state
       
       const exportData = {
         version: '1.0.0',
@@ -444,11 +353,9 @@ export const useUserStore = defineStore('user', {
     },
     
     // Export all users
-    async exportAllUsers() {
-      // Capture current user state
-      if (this.currentUserId) {
-        await this.captureCurrentStoreStates()
-      }
+    exportAllUsers() {
+      // Data is always up-to-date since stores reference user.data directly
+      // No need to capture state
       
       const exportData = {
         version: '1.0.0',

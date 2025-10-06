@@ -55,8 +55,8 @@ export default {
     // Initialize application on mount
     onMounted(async () => {
       try {
-        // Initialize user store first (loads user data)
-        await userStore.initialize()
+        // Initialize user store first (loads user data) - no longer async
+        userStore.initialize()
         console.log('User store initialized, current user:', userStore.currentUser?.name)
         
         // Then initialize app controller

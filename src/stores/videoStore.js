@@ -1,39 +1,26 @@
 import { defineStore } from 'pinia'
+import { useUserStore } from './userStore'
 
 export const useVideoStore = defineStore('video', {
   state: () => ({
-    // Video data
-    videoList: [],
+    // UI State only (not user-specific data)
     selectedVideo: 0,
     currentVideoName: "",
-    
-    // Video paths and directory management
-    videoPath: [],
-    rootDirectory: null, // DirectoryHandle for the root training directory
-    rootDirectoryPath: "", // String path to the root directory
-    currentDirectoryPath: "", // Current working directory path
-    defaultPath: "D:/guitarCourseNew/", // Default base path for directory selection
-    
-    // Current playing state
     currentVideo: "",
     videoLength: 0,
     
-    // Playback settings
+    // Playback settings (could be user-specific, kept here for simplicity)
     startTime: 0,
     endTime: 0,
     speed: 100,
     loop: false,
     
-    // Training structure (for videoComponentNew)
-    niouTrainingList: [],
-    trainingMetadata: {
-      lastUpdated: null,
-      totalVideos: 0,
-      totalTrainings: 0,
-      averageDuration: 0
-    },
+    // Directory management (session-specific, not user data)
+    rootDirectory: null, // DirectoryHandle for the root training directory
+    rootDirectoryPath: "", // String path to the root directory
+    currentDirectoryPath: "", // Current working directory path
+    defaultPath: "D:/guitarCourseNew/", // Default base path for directory selection
     
-    // Directory management
     directoryStructure: {
       name: "",
       path: "",
@@ -44,18 +31,71 @@ export const useVideoStore = defineStore('video', {
   }),
   
   getters: {
-    currentVideoData: (state) => 
-      state.videoList.find(video => video.id === state.selectedVideo),
+    // Reference userStore data directly
+    videoList() {
+      const userStore = useUserStore()
+      if (!userStore.currentUser?.data?.videos) {
+        if (userStore.currentUser) {
+          userStore.currentUser.data.videos = []
+        }
+        return []
+      }
+      return userStore.currentUser.data.videos
+    },
     
-    currentVideoFiles: (state) => 
-      state.currentVideoData?.list || [],
+    videoPath() {
+      const userStore = useUserStore()
+      return userStore.currentUser?.data?.videoFiles || []
+    },
+    
+    niouTrainingList() {
+      const userStore = useUserStore()
+      if (!userStore.currentUser?.data?.niouTrainingList) {
+        if (userStore.currentUser && !userStore.currentUser.data.niouTrainingList) {
+          userStore.currentUser.data.niouTrainingList = []
+        }
+        return []
+      }
+      return userStore.currentUser.data.niouTrainingList
+    },
+    
+    trainingMetadata() {
+      const userStore = useUserStore()
+      if (!userStore.currentUser?.data?.videoMetadata) {
+        if (userStore.currentUser && !userStore.currentUser.data.videoMetadata) {
+          userStore.currentUser.data.videoMetadata = {
+            lastUpdated: null,
+            totalVideos: 0,
+            totalTrainings: 0,
+            averageDuration: 0
+          }
+        }
+        return {
+          lastUpdated: null,
+          totalVideos: 0,
+          totalTrainings: 0,
+          averageDuration: 0
+        }
+      }
+      return userStore.currentUser.data.videoMetadata
+    },
+    
+    currentVideoData: (state) => {
+      const userStore = useUserStore()
+      const videos = userStore.currentUser?.data?.videos || []
+      return videos.find(video => video.id === state.selectedVideo)
+    },
+    
+    currentVideoFiles() {
+      return this.currentVideoData?.list || []
+    },
     
     formattedVideoLength: (state) => {
-      const dateObj = new Date(state.videoLength * 1000);
-      const minutes = dateObj.getUTCMinutes();
-      const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0');
-      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0');
-      return `${minutes}:${seconds}.${milliseconds}`;
+      const dateObj = new Date(state.videoLength * 1000)
+      const minutes = dateObj.getUTCMinutes()
+      const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0')
+      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0')
+      return `${minutes}:${seconds}.${milliseconds}`
     },
     
     // Directory and path getters
@@ -64,168 +104,235 @@ export const useVideoStore = defineStore('video', {
     effectiveBasePath: (state) => 
       state.rootDirectoryPath || state.defaultPath,
     
-    totalTrainingsCount: (state) => state.niouTrainingList.length,
+    totalTrainingsCount() {
+      return this.niouTrainingList.length
+    },
     
-    totalVideosCount: (state) => 
-      state.niouTrainingList.reduce((total, training) => {
+    totalVideosCount() {
+      return this.niouTrainingList.reduce((total, training) => {
         return total + training.trainings.reduce((trainingTotal, item) => {
-          return trainingTotal + (item.videos ? item.videos.length : 1);
-        }, 0);
-      }, 0),
+          return trainingTotal + (item.videos ? item.videos.length : 1)
+        }, 0)
+      }, 0)
+    },
     
-    trainingByIndex: (state) => (index) => state.niouTrainingList[index],
+    trainingByIndex() {
+      return (index) => this.niouTrainingList[index]
+    },
     
     directoryInfo: (state) => ({
       name: state.directoryStructure.name,
       path: state.directoryStructure.path,
       lastScanned: state.directoryStructure.lastScanned,
-      totalVideos: state.trainingMetadata.totalVideos,
-      totalTrainings: state.trainingMetadata.totalTrainings
+      totalVideos: state.trainingMetadata?.totalVideos || 0,
+      totalTrainings: state.trainingMetadata?.totalTrainings || 0
     })
   },
   
   actions: {
-    // Video training management
+    // Video training management - modify userStore data directly
     addVideoTraining(name) {
-      this.videoList.push({
-        id: this.videoList.length,
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      const videos = userStore.currentUser.data.videos
+      videos.push({
+        id: videos.length,
         name: name || this.currentVideoName,
         list: []
-      });
-      this.reindexVideoTrainings();
-      this.saveVideoTrainingsToStorage();
+      })
+      this.reindexVideoTrainings()
+      userStore.saveUsersToStorage()
     },
     
     removeVideoTraining(index = this.selectedVideo) {
-      this.videoList.splice(index, 1);
-      this.reindexVideoTrainings();
-      this.saveVideoTrainingsToStorage();
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      userStore.currentUser.data.videos.splice(index, 1)
+      this.reindexVideoTrainings()
+      userStore.saveUsersToStorage()
     },
     
     selectVideoTraining(training) {
-      this.selectedVideo = training.id;
-      this.videoPath = this.currentVideoFiles;
+      this.selectedVideo = training.id
     },
     
     reindexVideoTrainings() {
-      this.videoList.forEach((training, index) => {
-        training.id = index;
-      });
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      userStore.currentUser.data.videos.forEach((training, index) => {
+        training.id = index
+      })
     },
     
-    // File management
+    // File management - modify userStore data directly
     addVideoFile(filePath) {
-      this.videoPath.push(filePath);
-      this.saveVideoToStorage();
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      if (!userStore.currentUser.data.videoFiles) {
+        userStore.currentUser.data.videoFiles = []
+      }
+      userStore.currentUser.data.videoFiles.push(filePath)
+      userStore.saveUsersToStorage()
     },
     
     removeVideoFile(filePath) {
-      const index = this.videoPath.indexOf(filePath);
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      const videoFiles = userStore.currentUser.data.videoFiles || []
+      const index = videoFiles.indexOf(filePath)
       if (index > -1) {
-        this.videoPath.splice(index, 1);
+        videoFiles.splice(index, 1)
+        userStore.saveUsersToStorage()
       }
-      this.saveVideoToStorage();
     },
     
     // Playback control
     setVideoPlaybackSettings({ startTime, endTime, speed, loop }) {
-      if (startTime !== undefined) this.startTime = startTime;
-      if (endTime !== undefined) this.endTime = endTime;
-      if (speed !== undefined) this.speed = speed;
-      if (loop !== undefined) this.loop = loop;
+      if (startTime !== undefined) this.startTime = startTime
+      if (endTime !== undefined) this.endTime = endTime
+      if (speed !== undefined) this.speed = speed
+      if (loop !== undefined) this.loop = loop
     },
     
     setVideoLength(duration) {
-      this.videoLength = duration;
-      this.endTime = duration;
+      this.videoLength = duration
+      this.endTime = duration
     },
     
-    // Niou training management (directory-based)
+    // Niou training management (directory-based) - modify userStore data directly
     setNiouTrainingList(trainingList) {
-      this.niouTrainingList = trainingList;
-      this.saveNiouTrainings();
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      userStore.currentUser.data.niouTrainingList = trainingList
+      userStore.saveUsersToStorage()
     },
     
     toggleTrainingVisibility(index) {
-      if (this.niouTrainingList[index]) {
-        this.niouTrainingList[index].show = !this.niouTrainingList[index].show;
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      const niouList = userStore.currentUser.data.niouTrainingList
+      if (niouList[index]) {
+        niouList[index].show = !niouList[index].show
+        userStore.saveUsersToStorage()
       }
     },
     
     toggleItemVisibility(trainingIndex, itemIndex) {
-      if (this.niouTrainingList[trainingIndex]?.trainings?.[itemIndex]) {
-        this.niouTrainingList[trainingIndex].trainings[itemIndex].show = 
-          !this.niouTrainingList[trainingIndex].trainings[itemIndex].show;
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      const niouList = userStore.currentUser.data.niouTrainingList
+      if (niouList[trainingIndex]?.trainings?.[itemIndex]) {
+        niouList[trainingIndex].trainings[itemIndex].show = 
+          !niouList[trainingIndex].trainings[itemIndex].show
+        userStore.saveUsersToStorage()
       }
     },
     
     // Directory management actions
     setRootDirectory(directoryHandle, directoryPath) {
-      this.rootDirectory = directoryHandle;
-      this.rootDirectoryPath = directoryPath;
-      this.directoryStructure.handle = directoryHandle;
-      this.directoryStructure.name = directoryHandle?.name || '';
-      this.directoryStructure.path = directoryPath;
-      this.directoryStructure.lastScanned = new Date().toISOString();
-      this.saveDirectoryInfo();
+      this.rootDirectory = directoryHandle
+      this.rootDirectoryPath = directoryPath
+      this.directoryStructure.handle = directoryHandle
+      this.directoryStructure.name = directoryHandle?.name || ''
+      this.directoryStructure.path = directoryPath
+      this.directoryStructure.lastScanned = new Date().toISOString()
+      this.saveDirectoryInfo()
     },
     
     setCurrentDirectory(path) {
-      this.currentDirectoryPath = path;
+      this.currentDirectoryPath = path
     },
     
     updateTrainingMetadata() {
-      this.trainingMetadata.totalTrainings = this.niouTrainingList.length;
-      this.trainingMetadata.totalVideos = this.niouTrainingList.reduce((total, training) => {
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      const metadata = userStore.currentUser.data.videoMetadata || {}
+      const niouList = userStore.currentUser.data.niouTrainingList || []
+      
+      metadata.totalTrainings = niouList.length
+      metadata.totalVideos = niouList.reduce((total, training) => {
         return total + training.trainings.reduce((trainingTotal, item) => {
-          return trainingTotal + (item.videos ? item.videos.length : 1);
-        }, 0);
-      }, 0);
-      this.trainingMetadata.lastUpdated = new Date().toISOString();
+          return trainingTotal + (item.videos ? item.videos.length : 1)
+        }, 0)
+      }, 0)
+      metadata.lastUpdated = new Date().toISOString()
+      
+      userStore.currentUser.data.videoMetadata = metadata
+      userStore.saveUsersToStorage()
     },
     
     setTrainingListWithMetadata(trainingList, directoryHandle = null, directoryPath = '') {
-      this.niouTrainingList = trainingList;
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      userStore.currentUser.data.niouTrainingList = trainingList
       if (directoryHandle) {
-        this.setRootDirectory(directoryHandle, directoryPath);
+        this.setRootDirectory(directoryHandle, directoryPath)
       }
-      this.updateTrainingMetadata();
-      this.saveNiouTrainings();
-      this.saveTrainingMetadata();
+      this.updateTrainingMetadata()
+      userStore.saveUsersToStorage()
     },
     
     clearDirectory() {
-      this.rootDirectory = null;
-      this.rootDirectoryPath = '';
-      this.currentDirectoryPath = '';
-      this.niouTrainingList = []; // Clear the training list
+      const userStore = useUserStore()
+      
+      this.rootDirectory = null
+      this.rootDirectoryPath = ''
+      this.currentDirectoryPath = ''
       this.directoryStructure = {
         name: "",
         path: "",
         handle: null,
         lastScanned: null,
         totalSize: 0
-      };
-      this.removeDirectoryInfo();
-      this.clearStoredTrainingData(); // Clear stored data with old paths
+      }
+      
+      if (userStore.currentUser) {
+        userStore.currentUser.data.niouTrainingList = []
+        userStore.currentUser.data.videoMetadata = {
+          lastUpdated: null,
+          totalVideos: 0,
+          totalTrainings: 0,
+          averageDuration: 0
+        }
+        userStore.saveUsersToStorage()
+      }
+      
+      this.removeDirectoryInfo()
     },
 
     // Clear all stored training data (useful when paths are outdated)
     clearStoredTrainingData() {
-      localStorage.removeItem("Trainings");
-      localStorage.removeItem("trainingMetadata");
-      localStorage.removeItem("directoryInfo");
-      this.niouTrainingList = [];
-      this.trainingMetadata = {
-        lastUpdated: null,
-        totalVideos: 0,
-        totalTrainings: 0,
-        averageDuration: 0
-      };
-      console.log('Cleared all stored training data - fresh scan required');
+      const userStore = useUserStore()
+      
+      localStorage.removeItem("Trainings")
+      localStorage.removeItem("trainingMetadata")
+      localStorage.removeItem("directoryInfo")
+      
+      if (userStore.currentUser) {
+        userStore.currentUser.data.niouTrainingList = []
+        userStore.currentUser.data.videoMetadata = {
+          lastUpdated: null,
+          totalVideos: 0,
+          totalTrainings: 0,
+          averageDuration: 0
+        }
+        userStore.saveUsersToStorage()
+      }
+      
+      console.log('Cleared all stored training data - fresh scan required')
     },
     
-    // Storage methods
+    // Storage methods - now delegates to userStore
     saveDirectoryInfo() {
       const directoryInfo = {
         name: this.directoryStructure.name,
@@ -233,91 +340,104 @@ export const useVideoStore = defineStore('video', {
         lastScanned: this.directoryStructure.lastScanned,
         rootDirectoryPath: this.rootDirectoryPath,
         defaultPath: this.defaultPath
-      };
-      localStorage.setItem("directoryInfo", JSON.stringify(directoryInfo));
+      }
+      localStorage.setItem("directoryInfo", JSON.stringify(directoryInfo))
     },
     
     saveTrainingMetadata() {
-      localStorage.setItem("trainingMetadata", JSON.stringify(this.trainingMetadata));
+      const userStore = useUserStore()
+      userStore.saveUsersToStorage()
     },
     
     removeDirectoryInfo() {
-      localStorage.removeItem("directoryInfo");
+      localStorage.removeItem("directoryInfo")
     },
     
-    // Storage methods
     saveVideoTrainingsToStorage() {
-      localStorage.setItem("videoSave", JSON.stringify(this.videoList));
+      const userStore = useUserStore()
+      userStore.saveUsersToStorage()
     },
     
     saveVideoToStorage() {
-      this.saveVideoTrainingsToStorage();
+      const userStore = useUserStore()
+      userStore.saveUsersToStorage()
     },
     
     saveNiouTrainings() {
-      localStorage.setItem("Trainings", JSON.stringify(this.niouTrainingList));
+      const userStore = useUserStore()
+      userStore.saveUsersToStorage()
     },
     
-    // Load from storage
+    // Load from storage - migrate old data to userStore if needed
     loadFromStorage() {
-      // Load video trainings
-      if (localStorage.getItem("videoSave")) {
-        this.videoList = JSON.parse(localStorage.getItem("videoSave"));
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+      
+      // Migration: Load old video trainings if user has none
+      if ((!userStore.currentUser.data.videos || userStore.currentUser.data.videos.length === 0) 
+          && localStorage.getItem("videoSave")) {
+        userStore.currentUser.data.videos = JSON.parse(localStorage.getItem("videoSave"))
       }
       
-      // Load niou trainings
-      if (localStorage.getItem("Trainings")) {
-        this.niouTrainingList = JSON.parse(localStorage.getItem("Trainings"));
+      // Migration: Load old niou trainings if user has none
+      if ((!userStore.currentUser.data.niouTrainingList || userStore.currentUser.data.niouTrainingList.length === 0)
+          && localStorage.getItem("Trainings")) {
+        userStore.currentUser.data.niouTrainingList = JSON.parse(localStorage.getItem("Trainings"))
       }
       
-      // Load directory info
+      // Load directory info (session-specific, not user data)
       if (localStorage.getItem("directoryInfo")) {
-        const directoryInfo = JSON.parse(localStorage.getItem("directoryInfo"));
-        this.directoryStructure.name = directoryInfo.name || '';
-        this.directoryStructure.path = directoryInfo.path || '';
-        this.directoryStructure.lastScanned = directoryInfo.lastScanned;
-        this.rootDirectoryPath = directoryInfo.rootDirectoryPath || '';
-        this.defaultPath = directoryInfo.defaultPath || this.defaultPath;
+        const directoryInfo = JSON.parse(localStorage.getItem("directoryInfo"))
+        this.directoryStructure.name = directoryInfo.name || ''
+        this.directoryStructure.path = directoryInfo.path || ''
+        this.directoryStructure.lastScanned = directoryInfo.lastScanned
+        this.rootDirectoryPath = directoryInfo.rootDirectoryPath || ''
+        this.defaultPath = directoryInfo.defaultPath || this.defaultPath
         
         // Check if we have outdated Linux paths and clear them
         if (this.rootDirectoryPath.includes('/media/marius/DISK') || 
             this.rootDirectoryPath.includes('guitareCourseNew')) {
-          console.log('Detected outdated Linux paths, clearing stored data');
-          this.clearStoredTrainingData();
-          return; // Exit early since we cleared the data
+          console.log('Detected outdated Linux paths, clearing stored data')
+          this.clearStoredTrainingData()
+          return // Exit early since we cleared the data
         }
       }
       
-      // Load training metadata
-      if (localStorage.getItem("trainingMetadata")) {
-        this.trainingMetadata = {
-          ...this.trainingMetadata,
+      // Migration: Load training metadata
+      if ((!userStore.currentUser.data.videoMetadata || !userStore.currentUser.data.videoMetadata.lastUpdated)
+          && localStorage.getItem("trainingMetadata")) {
+        userStore.currentUser.data.videoMetadata = {
+          ...userStore.currentUser.data.videoMetadata,
           ...JSON.parse(localStorage.getItem("trainingMetadata"))
-        };
+        }
       }
       
       // Check for outdated paths in training data
-      if (this.niouTrainingList.length > 0) {
-        const hasOutdatedPaths = this.niouTrainingList.some(training => 
+      const niouList = userStore.currentUser.data.niouTrainingList || []
+      if (niouList.length > 0) {
+        const hasOutdatedPaths = niouList.some(training => 
           training.trainings?.some(item => 
             item.videos?.some(video => 
               video.path?.includes('/media/marius/DISK') || 
               video.absolutePath?.includes('/media/marius/DISK')
             )
           )
-        );
+        )
         
         if (hasOutdatedPaths) {
-          console.log('Detected outdated paths in training data, clearing...');
-          this.clearStoredTrainingData();
-          return; // Exit early since we cleared the data
+          console.log('Detected outdated paths in training data, clearing...')
+          this.clearStoredTrainingData()
+          return // Exit early since we cleared the data
         }
       }
       
       // Update metadata if we have training data but no metadata
-      if (this.niouTrainingList.length > 0 && !this.trainingMetadata.lastUpdated) {
-        this.updateTrainingMetadata();
+      const metadata = userStore.currentUser.data.videoMetadata
+      if (niouList.length > 0 && (!metadata || !metadata.lastUpdated)) {
+        this.updateTrainingMetadata()
       }
+      
+      userStore.saveUsersToStorage()
     },
 
     // Validate and clean FileHandle references
