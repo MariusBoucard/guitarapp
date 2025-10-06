@@ -3,6 +3,7 @@ import { VideoService } from './videoService.js'
 import { FileService } from './fileService.js'
 import { StorageService } from './storageService.js'
 import { SettingsService } from './settingsService.js'
+import { UserService } from './userService.js'
 
 /**
  * Service Manager - Central service locator
@@ -23,6 +24,7 @@ export class ServiceManager {
     this.services.set('file', new FileService(this));
     this.services.set('storage', new StorageService(this));
     this.services.set('settings', new SettingsService(this));
+    this.services.set('user', new UserService(this));
   }
 
   /**
@@ -69,6 +71,13 @@ export class ServiceManager {
    */
   get storage() {
     return this.getService('storage');
+  }
+
+  /**
+   * Get user service
+   */
+  get user() {
+    return this.getService('user');
   }
 
   /**

@@ -23,6 +23,7 @@ import { useAppStore } from '@/stores/appStore.js'
 import { useNotesStore } from '@/stores/notesStore.js'
 import { useTuningStore } from '@/stores/tuningStore.js'
 import { useGameStore } from '@/stores/gameStore.js'
+import { useUserStore } from '@/stores/userStore.js'
 import { AppController } from '@/controllers/appController.js'
 import { serviceManager } from '@/services/index.js'
 
@@ -43,6 +44,7 @@ export default {
     const notesStore = useNotesStore()
     const tuningStore = useTuningStore()
     const gameStore = useGameStore()
+    const userStore = useUserStore()
     
     // Initialize controller
     const appController = new AppController(serviceManager)
@@ -53,6 +55,11 @@ export default {
     // Initialize application on mount
     onMounted(async () => {
       try {
+        // Initialize user store first (loads user data)
+        await userStore.initialize()
+        console.log('User store initialized, current user:', userStore.currentUser?.name)
+        
+        // Then initialize app controller
         await appController.initialize()
         appController.setupAutoSave()
         console.log('App Mounted')
@@ -66,6 +73,7 @@ export default {
       notesStore,
       tuningStore,
       gameStore,
+      userStore,
       appController
     }
   }

@@ -207,6 +207,14 @@
             <span>⚙️ Settings</span>
             <span class="status-indicator" v-if="appStore.settingsView">●</span>
           </div>
+          <div 
+            class="sidebar-item" 
+            :class="{ active: appStore.userManagementDisplay }"
+            @click="appStore.toggleUserManagement()"
+          >
+            <span>👤 User Management</span>
+            <span class="status-indicator" v-if="appStore.userManagementDisplay">●</span>
+          </div>
         </div>
       </div>
     </div>

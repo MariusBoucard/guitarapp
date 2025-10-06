@@ -22,6 +22,7 @@ export const useAppStore = defineStore('app', {
     keyboard: false,
     tabReaderDisplay: false,
     vst3PluginDisplay: false,
+    userManagementDisplay: false,
     
     // Global UI Properties
     lefty: false,
@@ -49,7 +50,8 @@ export const useAppStore = defineStore('app', {
       settingsView: state.settingsView,
       keyboard: state.keyboard,
       tabReaderDisplay: state.tabReaderDisplay,
-      vst3PluginDisplay: state.vst3PluginDisplay
+      vst3PluginDisplay: state.vst3PluginDisplay,
+      userManagementDisplay: state.userManagementDisplay
     })
   },
 
@@ -113,6 +115,10 @@ export const useAppStore = defineStore('app', {
     
     toggleVST3Plugin() {
       this.vst3PluginDisplay = !this.vst3PluginDisplay
+    },
+    
+    toggleUserManagement() {
+      this.userManagementDisplay = !this.userManagementDisplay
     },
     
     toggleAutoGammeSelect() {
