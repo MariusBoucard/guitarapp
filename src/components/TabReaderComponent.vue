@@ -10,8 +10,11 @@
           @change="loadFile"
           style="display: none"
         />
-        <button @click="openFileDialog" class="load-btn">
-          Load Guitar Pro File
+        <button @click="openFileWithPicker" class="load-btn" v-if="supportsFileSystemAccess">
+          📂 Browse File
+        </button>
+        <button @click="openFileDialog" class="load-btn" v-else>
+          📂 Load Guitar Pro File
         </button>
         <button v-if="canPlay" @click="playPause" class="play-btn" :class="{ 'playing': isPlaying }">
           {{ isPlaying ? '⏸️ Pause' : '▶️ Play' }}
@@ -37,6 +40,10 @@
       <div class="playlists-container">
         <div v-if="tabPlaylists.length === 0" class="no-playlists">
           <p>No playlists yet. Create one to organize your tabs!</p>
+          <p class="help-text">
+            💡 Tip: Use "Browse File" button to load tabs with file access, 
+            then add them to playlists for quick loading with a single click!
+          </p>
         </div>
         
         <div v-for="playlist in tabPlaylists" :key="playlist.id" class="playlist-item">
@@ -63,10 +70,14 @@
             </div>
             
             <div v-else class="tabs-list">
-              <div v-for="tab in playlist.tabs" :key="tab.id" class="tab-item">
+              <div v-for="tab in playlist.tabs" :key="tab.id" class="tab-item" :class="{ 'has-handle': tab.fileHandleId }">
                 <div class="tab-info" @click="loadTabFromPlaylist(tab)">
-                  <span class="tab-name">{{ tab.name }}</span>
-                  <span v-if="tab.artist" class="tab-artist">{{ tab.artist }}</span>
+                  <span class="tab-icon">{{ tab.fileHandleId ? '📄' : '📋' }}</span>
+                  <div class="tab-details">
+                    <span class="tab-name">{{ tab.name }}</span>
+                    <span v-if="tab.artist" class="tab-artist">{{ tab.artist }}</span>
+                    <span v-if="!tab.fileHandleId" class="tab-warning">⚠️ No file access</span>
+                  </div>
                 </div>
                 <button @click="removeTabFromPlaylist(playlist.id, tab.id)" class="remove-tab-btn" title="Remove">
                   ✖
@@ -232,6 +243,7 @@
 <script>
 import { AlphaTabApi, Settings } from '@coderline/alphatab'
 import { useTabStore } from '../stores/tabStore.js'
+import { fileHandleService } from '../services/fileHandleService.js'
 
 export default {
   name: 'TabReaderComponent',
@@ -249,6 +261,8 @@ export default {
       expandedPlaylists: [],
       currentLoadedFile: null,
       currentLoadedFileName: '',
+      currentFileHandle: null, // Current file handle (not persisted)
+      currentFileHandleId: null, // ID of stored file handle in IndexedDB
       // Modal states
       showCreatePlaylistModal: false,
       showRenamePlaylistModal: false,
@@ -267,6 +281,9 @@ export default {
     },
     tabPlaylists() {
       return this.tabStore.tabPlaylists
+    },
+    supportsFileSystemAccess() {
+      return 'showOpenFilePicker' in window
     }
   },
   mounted() {
@@ -362,6 +379,33 @@ export default {
       this.$refs.fileInput.click()
     },
     
+    async openFileWithPicker() {
+      try {
+        // Use File System Access API
+        const [fileHandle] = await window.showOpenFilePicker({
+          types: [
+            {
+              description: 'Guitar Pro Files',
+              accept: {
+                'application/x-guitar-pro': ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb']
+              }
+            }
+          ],
+          multiple: false
+        })
+        
+        if (fileHandle) {
+          await this.loadFileFromHandle(fileHandle)
+        }
+      } catch (err) {
+        // User cancelled or error occurred
+        if (err.name !== 'AbortError') {
+          this.error = `Failed to open file: ${err.message}`
+          console.error('File picker error:', err)
+        }
+      }
+    },
+    
     async loadFile(event) {
       const file = event.target.files[0]
       if (!file) return
@@ -388,6 +432,64 @@ export default {
         // Store current file info for playlist management
         this.currentLoadedFile = file
         this.currentLoadedFileName = file.name.replace(/\.[^/.]+$/, '') // Remove extension
+        this.currentFileHandle = null // File input doesn't provide handle
+        
+        // Convert file to ArrayBuffer
+        const arrayBuffer = await this.fileToArrayBuffer(file)
+        
+        // Load the file in AlphaTab
+        const success = this.alphaTabApi.load(arrayBuffer)
+        if (!success) {
+          throw new Error('Failed to load the Guitar Pro file. The file might be corrupted or unsupported.')
+        }
+        
+      } catch (err) {
+        this.error = `Failed to load file: ${err.message}`
+        console.error('File loading error:', err)
+      }
+    },
+    
+    async loadFileFromHandle(fileHandle, handleId = null) {
+      try {
+        this.error = null
+        this.isLoaded = false
+        this.isPlayerReady = false
+        
+        if (!this.alphaTabApi) {
+          throw new Error('AlphaTab is not initialized. Please try again.')
+        }
+        
+        // Request permission if needed
+        const permission = await fileHandle.queryPermission({ mode: 'read' })
+        if (permission !== 'granted') {
+          const newPermission = await fileHandle.requestPermission({ mode: 'read' })
+          if (newPermission !== 'granted') {
+            throw new Error('File access permission denied')
+          }
+        }
+        
+        const file = await fileHandle.getFile()
+        
+        // Validate file type
+        const validExtensions = ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb']
+        const fileName = file.name.toLowerCase()
+        const isValidFile = validExtensions.some(ext => fileName.endsWith(ext))
+        
+        if (!isValidFile) {
+          throw new Error('Invalid file type. Please select a Guitar Pro file')
+        }
+        
+        // Store current file info
+        this.currentLoadedFile = file
+        this.currentLoadedFileName = file.name.replace(/\.[^/.]+$/, '')
+        this.currentFileHandle = fileHandle
+        
+        // Store file handle in IndexedDB if not already stored
+        if (!handleId) {
+          this.currentFileHandleId = await fileHandleService.storeFileHandle(fileHandle)
+        } else {
+          this.currentFileHandleId = handleId
+        }
         
         // Convert file to ArrayBuffer
         const arrayBuffer = await this.fileToArrayBuffer(file)
@@ -543,7 +645,8 @@ export default {
         name: this.currentLoadedFileName || 'Untitled Tab',
         path: this.currentLoadedFile.name || '',
         artist: '',
-        album: ''
+        album: '',
+        fileHandleId: this.currentFileHandleId // Store the file handle ID from IndexedDB
       }
       
       // Try to get more info from AlphaTab if available
@@ -561,18 +664,27 @@ export default {
     },
     
     async loadTabFromPlaylist(tab) {
-      // Set error message with file info
-      this.error = `Please load the file manually: ${tab.name}${tab.path ? '\n\nPath: ' + tab.path : ''}`
-      setTimeout(() => { this.error = null }, 5000)
-      
-      // In a full implementation with file handles, you could:
-      // try {
-      //   const response = await fetch(tab.path)
-      //   const arrayBuffer = await response.arrayBuffer()
-      //   this.alphaTabApi.load(arrayBuffer)
-      // } catch (error) {
-      //   this.error = `Failed to load tab: ${error.message}`
-      // }
+      // If we have a file handle ID, retrieve it from IndexedDB
+      if (tab.fileHandleId) {
+        try {
+          const fileHandle = await fileHandleService.getFileHandle(tab.fileHandleId)
+          
+          if (!fileHandle) {
+            throw new Error('File handle not found. It may have been cleared.')
+          }
+          
+          // Try to load the file
+          await this.loadFileFromHandle(fileHandle, tab.fileHandleId)
+        } catch (error) {
+          this.error = `Failed to load tab: ${error.message}`
+          setTimeout(() => { this.error = null }, 5000)
+          console.error('Error loading tab from playlist:', error)
+        }
+      } else {
+        // No file handle - need to ask user to select file
+        this.error = `This tab doesn't have file access saved. Please use "Browse File" button and re-add it to the playlist: ${tab.name}`
+        setTimeout(() => { this.error = null }, 5000)
+      }
     }
   }
 }
@@ -948,8 +1060,10 @@ export default {
   background: rgba(42, 42, 42, 0.98);
   border-bottom: 1px solid var(--border-color, #444);
   max-height: 400px;
+  min-height: 200px;
   overflow-y: auto;
   backdrop-filter: blur(5px);
+  flex-shrink: 0;
 }
 
 .playlists-header {
@@ -990,6 +1104,19 @@ export default {
   text-align: center;
   padding: 2rem;
   color: var(--text-muted, #888);
+}
+
+.no-playlists p {
+  margin: 0.5rem 0;
+}
+
+.help-text {
+  font-size: 0.9rem;
+  color: var(--text-muted, #888);
+  font-style: italic;
+  max-width: 600px;
+  margin: 1rem auto 0;
+  line-height: 1.4;
 }
 
 .playlist-item {
@@ -1083,6 +1210,10 @@ export default {
   transition: all 0.2s;
 }
 
+.tab-item.has-handle {
+  border-left: 3px solid var(--primary-color, #4CAF50);
+}
+
 .tab-item:hover {
   background: rgba(76, 175, 80, 0.1);
   border-color: var(--primary-color, #4CAF50);
@@ -1091,6 +1222,18 @@ export default {
 .tab-info {
   flex: 1;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.tab-details {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -1104,6 +1247,12 @@ export default {
 .tab-artist {
   color: var(--text-muted, #888);
   font-size: 0.85rem;
+}
+
+.tab-warning {
+  color: #ff9500;
+  font-size: 0.75rem;
+  font-style: italic;
 }
 
 .remove-tab-btn {

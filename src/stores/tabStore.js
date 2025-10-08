@@ -175,6 +175,7 @@ export const useTabStore = defineStore('tab', {
         path: tabData.path || '',
         artist: tabData.artist || '',
         album: tabData.album || '',
+        fileHandleId: tabData.fileHandleId || null, // Store the handle ID, not the handle itself
         addedAt: new Date().toISOString()
       }
       
