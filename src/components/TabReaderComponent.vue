@@ -25,6 +25,9 @@
         <button @click="showPlaylists = !showPlaylists" class="mixer-toggle-btn">
           {{ showPlaylists ? '📋 Hide Playlists' : '📋 Show Playlists' }}
         </button>
+        <button @click="showAudioSettings = !showAudioSettings" class="mixer-toggle-btn">
+          {{ showAudioSettings ? '🔊 Hide Audio' : '🔊 Audio Quality' }}
+        </button>
       </div>
     </div>
     
@@ -88,6 +91,85 @@
                 ➕ Add Current Tab
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Audio Settings Panel -->
+    <div v-if="showAudioSettings" class="audio-settings-panel">
+      <div class="settings-header">
+        <h4>Audio Quality Settings</h4>
+        <p class="help-text">
+          💡 Better soundfonts = better sound quality! Download high-quality soundfonts and select them below.
+        </p>
+      </div>
+      
+      <div class="settings-container">
+        <div class="setting-group">
+          <label class="setting-label">SoundFont Selection:</label>
+          <div class="soundfont-selector-row">
+            <select v-model="selectedSoundFont" @change="changeSoundFont" class="soundfont-select">
+              <option v-for="sf in availableSoundFonts" :key="sf.path" :value="sf.path">
+                {{ sf.name }} {{ sf.recommended ? '⭐' : '' }} {{ sf.warning ? '⚠️' : '' }} - {{ sf.size }}
+              </option>
+            </select>
+            <button @click="testSoundFont" class="test-soundfont-btn" title="Verify soundfont file">
+              🔍 Test
+            </button>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <label class="setting-label">
+            <input type="checkbox" v-model="performanceMode" @change="togglePerformanceMode" style="margin-right: 0.5rem;">
+            Performance Mode (Reduces CPU usage)
+          </label>
+          <p class="setting-hint">
+            Disables some audio effects for better performance with large soundfonts.
+          </p>
+        </div>
+        
+        <div class="info-box">
+          <h5>📥 How to Install Better SoundFonts:</h5>
+          <ol>
+            <li>Download a high-quality soundfont (see recommendations below)</li>
+            <li>Place the .sf2 or .sf3 file in: <code>public/soundfont/</code></li>
+            <li>Restart the app and select your soundfont from the dropdown</li>
+          </ol>
+          
+          <h5>🎵 Recommended Free SoundFonts (Optimized for Performance):</h5>
+          <div class="soundfont-recommendations">
+            <div class="recommendation recommended">
+              <strong>⭐ GeneralUser GS</strong> (30 MB) - BEST CHOICE
+              <br>Great quality, low CPU usage, perfect balance
+              <br><small>Download: <a href="https://schristiancollins.com/generaluser.php" target="_blank">schristiancollins.com</a></small>
+            </div>
+            <div class="recommendation recommended">
+              <strong>⭐ MuseScore General</strong> (35 MB SF3) - EXCELLENT PERFORMANCE
+              <br>Compressed format, very efficient, great sound
+              <br><small>Download: <a href="https://ftp.osuosl.org/pub/musescore/soundfont/MuseScore_General/" target="_blank">MuseScore FTP</a></small>
+            </div>
+            <div class="recommendation">
+              <strong>FluidR3 GM</strong> (142 MB) - High quality but heavy
+              <br>⚠️ Warning: May cause performance issues
+              <br><small>Download: <a href="https://member.keymusician.com/Member/FluidR3_GM/index.html" target="_blank">keymusician.com</a></small>
+            </div>
+            <div class="recommendation">
+              <strong>Salamander Grand Piano</strong> (Sound samples) - Lighter alternative
+              <br>For piano-focused playback, much lighter
+              <br><small>Search: "Salamander Grand Piano samples"</small>
+            </div>
+          </div>
+          
+          <div class="performance-tip">
+            💡 <strong>Performance Tip:</strong> Use SF3 files instead of SF2 when available. 
+            SF3 is compressed and uses significantly less CPU and memory!
+          </div>
+          
+          <div class="warning-box">
+            ⚠️ <strong>Note:</strong> The current "Sonivox" soundfont is optimized for mobile devices (low quality).
+            Replace it with a professional soundfont for dramatically better sound!
           </div>
         </div>
       </div>
@@ -258,7 +340,19 @@ export default {
       selectedTrack: 0,
       showMixer: false,
       showPlaylists: false,
+      showAudioSettings: false,
       expandedPlaylists: [],
+      selectedSoundFont: './soundfont/sonivox.sf2',
+      performanceMode: false,
+      availableSoundFonts: [
+        { name: 'MuseScore General HQ (⭐ Best Choice)', path: './soundfont/MuseScore_General.sf3', size: '35 MB', recommended: true },
+        { name: 'GeneralUser GS (Great Balance)', path: './soundfont/GeneralUser_GS.sf2', size: '30 MB', recommended: true },
+        { name: 'Sonivox (Original Default)', path: './soundfont/sonivox.sf2', size: '2 MB' },
+        { name: 'Sonivox (Compressed)', path: './soundfont/sonivox.sf3', size: '1 MB' },
+        { name: 'FluidR3 GM (High Quality - Heavy)', path: './soundfont/FluidR3_GM.sf2', size: '142 MB', warning: 'High CPU usage' },
+        { name: 'SGM-V2.01 (Pro Quality - Very Heavy)', path: './soundfont/SGM-V2.01.sf2', size: '239 MB', warning: 'Very high CPU' }
+      ],
+      customSoundFontFile: null,
       currentLoadedFile: null,
       currentLoadedFileName: '',
       currentFileHandle: null, // Current file handle (not persisted)
@@ -286,7 +380,35 @@ export default {
       return 'showOpenFilePicker' in window
     }
   },
-  mounted() {
+  async mounted() {
+    // Load saved soundfont preference
+    const savedSoundFont = localStorage.getItem('guitarapp_soundfont')
+    if (savedSoundFont) {
+      // Test if saved soundfont exists before using it
+      try {
+        const response = await fetch(savedSoundFont, { method: 'HEAD' })
+        if (response.ok) {
+          this.selectedSoundFont = savedSoundFont
+        } else {
+          console.warn('Saved soundfont not found, using default')
+          // Try MuseScore as default
+          this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
+        }
+      } catch (err) {
+        console.warn('Could not verify saved soundfont:', err)
+        this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
+      }
+    } else {
+      // Default to MuseScore instead of Sonivox
+      this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
+    }
+    
+    // Load performance mode preference
+    const savedPerformanceMode = localStorage.getItem('guitarapp_performanceMode')
+    if (savedPerformanceMode !== null) {
+      this.performanceMode = savedPerformanceMode === 'true'
+    }
+    
     this.$nextTick(() => {
       this.initializeAlphaTab()
     })
@@ -325,14 +447,27 @@ export default {
         settings.display.scale = 1.0  // Native scale for better performance
         settings.display.stretchForce = 0.8
         
+        // VIEWPORT RENDERING - Only render what's visible!
+        settings.display.layoutMode = 'page'  // Use page layout for proper viewport rendering
+        settings.core.enableLazyLoading = true  // Critical: only load visible content
+        
         // Player settings
         settings.player.enablePlayer = true
         settings.player.enableAudioSynthesis = true
-        settings.player.soundFont = './soundfont/sonivox.sf2'
+        settings.player.soundFont = this.selectedSoundFont
         settings.player.enableCursor = true  // Enable beat cursor
         settings.player.enableUserInteraction = true
         settings.player.enableElementHighlighting = true  // Highlight current element
-        settings.player.scrollMode = 'continuous'  // Auto-scroll with playback
+        settings.player.scrollMode = 'off'  // Disable AlphaTab's auto-scroll, we handle it manually
+        settings.player.scrollElement = this.$refs.alphaTab  // Set scroll container for reference
+        
+        // Apply performance mode settings
+        if (this.performanceMode) {
+          settings.player.vibrato = false  // Disable vibrato for better performance
+          settings.display.resources.effectFont = null  // Reduce font rendering
+        }
+        
+        // Core settings
         settings.core.fontDirectory = './font/'
         
         this.alphaTabApi = new AlphaTabApi(this.$refs.alphaTab, settings)
@@ -370,9 +505,73 @@ export default {
         this.isPlaying = false
       })
       
+      // Player position changed - handle auto-scrolling with AlphaTab's cursor
+      this.alphaTabApi.playerPositionChanged.on((e) => {
+        // AlphaTab generates a tall container (.at-surface) with all rendered content
+        // The .at-cursor-bar moves within this container as playback progresses
+        // We need to scroll the alphatab-container to keep the cursor visible
+        
+        if (!this.$refs.alphaTab) return
+        
+        const container = this.$refs.alphaTab
+        
+        // Find the cursor bar (AlphaTab's playback indicator with .at-cursor-bar class)
+        const cursorBar = container.querySelector('.at-cursor-bar')
+        
+        if (!cursorBar) return
+        
+        // Get cursor's position from the top of its offset parent (the tall AlphaTab surface)
+        const cursorOffsetTop = cursorBar.offsetTop
+        
+        // Get viewport info
+        const containerHeight = container.clientHeight
+        const currentScrollTop = container.scrollTop
+        
+        // Calculate the visible range
+        const visibleTop = currentScrollTop
+        const visibleBottom = currentScrollTop + containerHeight
+        
+        // Define comfort zone (keep cursor between 30% and 70% of viewport)
+        const comfortZoneTop = visibleTop + (containerHeight * 0.3)
+        const comfortZoneBottom = visibleTop + (containerHeight * 0.7)
+        
+        // Only scroll if cursor is outside comfort zone
+        if (cursorOffsetTop < comfortZoneTop || cursorOffsetTop > comfortZoneBottom) {
+          // Calculate target position to keep cursor at 40% from top
+          const targetScrollTop = cursorOffsetTop - (containerHeight * 0.4)
+          
+          // Clamp to valid scroll range
+          const maxScroll = container.scrollHeight - containerHeight
+          const clampedScroll = Math.max(0, Math.min(targetScrollTop, maxScroll))
+          
+          // Smooth scroll to the target position
+          container.scrollTo({
+            top: clampedScroll,
+            behavior: 'smooth'
+          })
+        }
+      })
+      
       // Error handling
       this.alphaTabApi.error.on((error) => {
-        this.error = `Error: ${error.message || error}`
+        if (error.type === 'FormatError' && error.message && error.message.includes('Soundfont')) {
+          this.error = `❌ Invalid SoundFont File
+
+The selected soundfont is not valid or corrupted.
+
+Possible causes:
+• File is not actually a .sf2/.sf3 soundfont
+• File was corrupted during download
+• Wrong file was placed in the folder
+
+Solutions:
+1. Re-download the soundfont from official source
+2. Verify the file extension is .sf2 or .sf3
+3. Try a different soundfont (e.g., GeneralUser GS)
+4. Switch back to Sonivox (default) which is already installed`
+        } else {
+          this.error = `Error: ${error.message || error}`
+        }
         console.error('AlphaTab error:', error)
       })
     },    openFileDialog() {
@@ -567,6 +766,185 @@ export default {
       this.alphaTabApi.changeTrackSolo([track], newSoloState)
       track.playbackInfo.isSolo = newSoloState
       this.$forceUpdate()
+    },
+    
+    // Audio settings methods
+    async changeSoundFont() {
+      if (!this.alphaTabApi) return
+      
+      try {
+        // Show loading message
+        this.error = 'Loading new soundfont... This may take a moment.'
+        
+        // Validate soundfont file
+        const validation = await this.validateSoundFont(this.selectedSoundFont)
+        if (!validation.valid) {
+          throw new Error(validation.error)
+        }
+        
+        // Store current state
+        const currentScore = this.alphaTabApi.score
+        const wasPlaying = this.isPlaying
+        const currentTime = this.alphaTabApi.timePosition
+        
+        if (wasPlaying) {
+          this.alphaTabApi.pause()
+        }
+        
+        // Save preference first
+        localStorage.setItem('guitarapp_soundfont', this.selectedSoundFont)
+        
+        // Destroy and reinitialize AlphaTab with new soundfont
+        this.alphaTabApi.destroy()
+        this.alphaTabApi = null
+        
+        // Wait a bit for cleanup
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        // Reinitialize with new soundfont
+        this.initializeAlphaTab()
+        
+        // Wait for initialization
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Reload the score if one was loaded
+        if (currentScore && this.currentLoadedFile) {
+          try {
+            // Get the score data as array buffer
+            let scoreData
+            if (this.currentLoadedFile instanceof File) {
+              scoreData = await this.currentLoadedFile.arrayBuffer()
+            } else if (this.currentFileHandle) {
+              // Reload from file handle
+              const file = await this.currentFileHandle.getFile()
+              scoreData = await file.arrayBuffer()
+            }
+            
+            if (scoreData) {
+              this.alphaTabApi.load(scoreData)
+              
+              // Wait for score to load with timeout
+              await new Promise((resolve) => {
+                const timeout = setTimeout(() => {
+                  clearInterval(checkReady)
+                  resolve()
+                }, 10000) // 10 second timeout
+                
+                const checkReady = setInterval(() => {
+                  if (this.isPlayerReady) {
+                    clearInterval(checkReady)
+                    clearTimeout(timeout)
+                    resolve()
+                  }
+                }, 100)
+              })
+              
+              // Restore playback position if it was playing
+              if (wasPlaying && currentTime > 0) {
+                this.alphaTabApi.timePosition = currentTime
+                // Optionally resume playback
+                // this.alphaTabApi.play()
+              }
+            }
+          } catch (reloadErr) {
+            console.warn('Could not reload score:', reloadErr)
+            this.error = '✅ SoundFont loaded! Please reload your tab file.'
+            setTimeout(() => { this.error = null }, 5000)
+            return
+          }
+        }
+        
+        this.error = '✅ SoundFont loaded successfully!'
+        setTimeout(() => { this.error = null }, 3000)
+        
+      } catch (err) {
+        this.error = err.message
+        console.error('SoundFont loading error:', err)
+        setTimeout(() => { this.error = null }, 5000)
+      }
+    },
+    
+    togglePerformanceMode() {
+      // Save preference
+      localStorage.setItem('guitarapp_performanceMode', this.performanceMode)
+      
+      // If AlphaTab is loaded, reinitialize with new settings
+      if (this.alphaTabApi) {
+        this.error = 'Performance mode changed. Reloading...'
+        setTimeout(async () => {
+          await this.changeSoundFont()
+        }, 500)
+      }
+    },
+    
+    async validateSoundFont(path) {
+      try {
+        // Check if file exists
+        const response = await fetch(path, { method: 'HEAD' })
+        if (!response.ok) {
+          return {
+            valid: false,
+            error: `SoundFont file not found at: ${path}\n\nPlease:\n1. Download the soundfont\n2. Place it in public/soundfont/\n3. Make sure the filename matches exactly`
+          }
+        }
+        
+        // Check file extension
+        const extension = path.toLowerCase().split('.').pop()
+        if (!['sf2', 'sf3'].includes(extension)) {
+          return {
+            valid: false,
+            error: `Invalid file format: .${extension}\n\nOnly .sf2 and .sf3 soundfonts are supported.`
+          }
+        }
+        
+        // Check file size (basic validation)
+        const contentLength = response.headers.get('content-length')
+        if (contentLength) {
+          const sizeMB = parseInt(contentLength) / (1024 * 1024)
+          if (sizeMB < 0.1) {
+            return {
+              valid: false,
+              error: `File is too small (${sizeMB.toFixed(2)} MB). It may be corrupted or not a valid soundfont.`
+            }
+          }
+        }
+        
+        // Try to read the file header to verify it's a valid soundfont
+        const headerResponse = await fetch(path, {
+          headers: { 'Range': 'bytes=0-11' }
+        })
+        
+        if (headerResponse.ok) {
+          const buffer = await headerResponse.arrayBuffer()
+          const view = new DataView(buffer)
+          
+          // Check for RIFF header (SF2 files start with "RIFF")
+          const riff = String.fromCharCode(view.getUint8(0), view.getUint8(1), view.getUint8(2), view.getUint8(3))
+          if (riff !== 'RIFF') {
+            return {
+              valid: false,
+              error: `Invalid soundfont format. File does not have a valid RIFF header.\n\nThe file may be:\n- Corrupted during download\n- Not actually a soundfont file\n- In an unsupported format`
+            }
+          }
+          
+          // Check for sfbk signature (SF2 files have "sfbk" at offset 8)
+          const sfbk = String.fromCharCode(view.getUint8(8), view.getUint8(9), view.getUint8(10), view.getUint8(11))
+          if (sfbk !== 'sfbk') {
+            return {
+              valid: false,
+              error: `Invalid soundfont format. File is a RIFF file but not a soundfont.\n\nMake sure you downloaded a .sf2 or .sf3 file, not a webpage or other file type.`
+            }
+          }
+        }
+        
+        return { valid: true }
+        
+      } catch (error) {
+        return {
+          valid: false,
+          error: `Error validating soundfont: ${error.message}\n\nMake sure the file is accessible and not corrupted.`
+        }
+      }
     },
     
     // Playlist management methods
@@ -831,10 +1209,11 @@ export default {
   background: white;
   border-radius: 4px;
   padding: 10px;
-  padding-bottom: 180px;
+  padding-bottom: 40px;  /* Reduced padding for better viewport rendering */
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
+  scroll-behavior: smooth;  /* Smooth scrolling for better UX */
 }
 
 /* AlphaTab's built-in cursor styling */
@@ -857,7 +1236,14 @@ export default {
   color: white;
   margin: 1rem;
   border-radius: 4px;
-  text-align: center;
+  text-align: left;
+  white-space: pre-line;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.error p {
+  margin: 0;
 }
 
 .bottom-panel {
@@ -1064,6 +1450,175 @@ export default {
   overflow-y: auto;
   backdrop-filter: blur(5px);
   flex-shrink: 0;
+}
+
+/* Audio Settings Panel */
+.audio-settings-panel {
+  background: rgba(42, 42, 42, 0.98);
+  border-bottom: 1px solid var(--border-color, #444);
+  max-height: 500px;
+  overflow-y: auto;
+  backdrop-filter: blur(5px);
+  flex-shrink: 0;
+}
+
+.settings-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color, #444);
+  background: rgba(26, 26, 26, 0.98);
+}
+
+.settings-header h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary-color, #4CAF50);
+  font-size: 1.1rem;
+}
+
+.settings-header .help-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted, #888);
+  font-style: italic;
+}
+
+.settings-container {
+  padding: 1rem;
+}
+
+.setting-group {
+  margin-bottom: 1.5rem;
+}
+
+.setting-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-color, #fff);
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.setting-hint {
+  margin: 0.5rem 0 0 0;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  color: var(--text-muted, #888);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.soundfont-select {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--input-bg, #333);
+  color: var(--text-color, #fff);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.soundfont-select:focus {
+  outline: none;
+  border-color: var(--primary-color, #4CAF50);
+}
+
+.info-box {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid var(--primary-color, #4CAF50);
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.info-box h5 {
+  margin: 0 0 0.75rem 0;
+  color: var(--primary-color, #4CAF50);
+  font-size: 1rem;
+}
+
+.info-box ol {
+  margin: 0 0 1.5rem 1.5rem;
+  padding: 0;
+  color: var(--text-color, #fff);
+  line-height: 1.6;
+}
+
+.info-box li {
+  margin-bottom: 0.5rem;
+}
+
+.info-box code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  color: #4CAF50;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+.soundfont-recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recommendation {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.75rem;
+  border-radius: 4px;
+  border-left: 3px solid var(--primary-color, #4CAF50);
+  color: var(--text-color, #fff);
+  line-height: 1.5;
+}
+
+.recommendation strong {
+  color: var(--primary-color, #4CAF50);
+  font-size: 1rem;
+}
+
+.recommendation small {
+  color: var(--text-muted, #888);
+}
+
+.recommendation a {
+  color: #2196F3;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.recommendation a:hover {
+  color: #64B5F6;
+  text-decoration: underline;
+}
+
+.recommendation.recommended {
+  border-left-color: #FFD700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.recommendation.recommended strong {
+  color: #FFD700;
+}
+
+.performance-tip {
+  margin-top: 1rem;
+  background: rgba(33, 150, 243, 0.1);
+  border: 1px solid #2196F3;
+  border-radius: 4px;
+  padding: 1rem;
+  color: #64B5F6;
+  line-height: 1.5;
+}
+
+.warning-box {
+  margin-top: 1.5rem;
+  background: rgba(255, 152, 0, 0.1);
+  border: 1px solid #ff9800;
+  border-radius: 4px;
+  padding: 1rem;
+  color: #ff9800;
+  line-height: 1.5;
 }
 
 .playlists-header {
