@@ -19,18 +19,6 @@
         <button v-if="canPlay" @click="stop" class="stop-btn">
           ⏹️ Stop
         </button>
-        <button v-if="isLoaded" @click="logPlayerState" class="debug-btn">
-          🔍 Debug Audio
-        </button>
-        <span v-if="isLoaded && !isPlayerReady" class="status-text">
-          Loading player...
-        </span>
-        <span v-if="isElectron && isLoaded && isPlayerReady" class="status-text electron-info">
-          � Desktop mode - Audio enabled
-        </span>
-        <span v-if="isElectron && isLoaded && !isPlayerReady" class="status-text electron-warning">
-          🔄 Loading audio player...
-        </span>
       </div>
     </div>
     
@@ -68,46 +56,22 @@ export default {
       isLoaded: false,
       isPlaying: false,
       isPlayerReady: false,
-      isAudioReady: false,
-      isElectron: false,
       error: null,
       tracks: [],
-      selectedTrack: 0,
-      currentScore: null,
-      originalFetch: null,
-      // Manual playback properties
-      playbackInterval: null,
-      currentTick: 0,
-      currentBeat: 0,
-      tempo: 120 // Default tempo (BPM)
+      selectedTrack: 0
     }
   },
   computed: {
     canPlay() {
-      // For Electron mode, just check if loaded; for web mode, check player readiness
-      return this.isLoaded && (this.isElectron || (this.isPlayerReady && this.alphaTabApi?.isReadyForPlayback))
+      return this.isLoaded && this.isPlayerReady
     }
   },
   mounted() {
-    
-    // Initialize AlphaTab with a delay to ensure DOM is ready
     this.$nextTick(() => {
-      setTimeout(() => {
-        this.initializeAlphaTab()
-      }, 200)
+      this.initializeAlphaTab()
     })
   },
   beforeUnmount() {
-    // Clean up manual playback
-    if (this.playbackInterval) {
-      clearInterval(this.playbackInterval)
-    }
-    
-    // Restore original fetch function
-    if (this.originalFetch) {
-      window.fetch = this.originalFetch
-    }
-    
     if (this.alphaTabApi) {
       this.alphaTabApi.destroy()
     }
@@ -115,103 +79,32 @@ export default {
   methods: {
     initializeAlphaTab() {
       try {
-        // Ensure the alphaTab element exists
         if (!this.$refs.alphaTab) {
-          console.error('AlphaTab container element not found')
           this.error = 'Failed to find AlphaTab container element'
           return
         }
 
-
-        // Clear any previous content
         this.$refs.alphaTab.innerHTML = ''
-
-        // Check if running in Electron
-        const isElectron = typeof window !== 'undefined' && window.process && window.process.type
-        this.isElectron = isElectron
-        
 
         const settings = new Settings()
         
-        // Basic settings following the documentation
-        settings.core.engine = 'svg'  // Use SVG for better compatibility
-        settings.display.scale = 0.8
+        // Optimized settings for fast rendering
+        settings.core.engine = 'html5'  // HTML5 Canvas is much faster than SVG
+        settings.core.useWorkers = true  // Enable workers for better performance
+        settings.display.scale = 1.0  // Native scale for better performance
+        settings.display.stretchForce = 0.8
         
-        // Player cursor settings for visual feedback
+        // Player settings
+        settings.player.enablePlayer = true
+        settings.player.enableAudioSynthesis = true
+        settings.player.soundFont = './soundfont/sonivox.sf2'
         settings.player.enableCursor = true
         settings.player.enableUserInteraction = true
-        settings.player.enableElementHighlighting = true
-        
-        if (isElectron) {
-          // Electron-specific settings - enable audio with proper paths
-          settings.core.useWorkers = false  // Disable workers in Electron
-          settings.player.enablePlayer = true  // Enable player
-          settings.player.enableAudioSynthesis = true  // Enable audio synthesis
-          settings.player.soundFont = './soundfont/sonivox.sf2'  // Use soundfont
-          settings.player.enableCursor = true
-          settings.player.enableUserInteraction = true
-          settings.player.enableElementHighlighting = true
-          settings.player.scrollMode = 'continuous'
-          
-          // Set font directory to the location where Vite plugin copies fonts
-          settings.core.fontDirectory = './font/'
-        } else {
-          // Web settings - ensure proper soundfont loading
-          settings.player.enablePlayer = true
-          settings.player.enableAudioSynthesis = true // Enable audio synthesis
-          settings.player.soundFont = './soundfont/sonivox.sf2'
-          settings.player.scrollMode = 'continuous' // Follow playback position
-          
-          // Use default font directory (Vite plugin handles this)
-          settings.core.fontDirectory = './font/'
-        }
-
-        // Initialize AlphaTab
-        console.log('Creating AlphaTab instance...')
-        console.log('Settings:', {
-          engine: settings.core.engine,
-          useWorkers: settings.core.useWorkers,
-          fontDirectory: settings.core.fontDirectory,
-          scale: settings.display.scale,
-          enablePlayer: settings.player.enablePlayer,
-          playerMode: settings.player.playerMode,
-          soundFont: settings.player.soundFont
-        })
-        
-        // Initialize Web Audio Context for browsers (required for audio playback)
-        if (!isElectron && typeof window !== 'undefined') {
-          try {
-            // Initialize Web Audio Context if not already done
-            if (!window.alphaTabAudioContext) {
-              const AudioContext = window.AudioContext || window.webkitAudioContext
-              if (AudioContext) {
-                window.alphaTabAudioContext = new AudioContext()
-                console.log('Web Audio Context initialized for AlphaTab')
-                
-                // Resume context immediately if possible (for better browser compatibility)
-                if (window.alphaTabAudioContext.state === 'suspended') {
-                  window.alphaTabAudioContext.resume().then(() => {
-                    console.log('Audio context resumed')
-                  }).catch(err => {
-                    console.warn('Failed to resume audio context:', err)
-                  })
-                }
-              } else {
-                console.warn('Web Audio API not available in this browser')
-              }
-            }
-          } catch (audioError) {
-            console.warn('Failed to initialize Web Audio Context:', audioError)
-          }
-        }
+        settings.player.scrollMode = 'continuous'
+        settings.core.fontDirectory = './font/'
         
         this.alphaTabApi = new AlphaTabApi(this.$refs.alphaTab, settings)
-        
-        // Setup event listeners with a small delay to ensure API is ready
-        setTimeout(() => {
-          this.setupEventListeners()
-        }, 100)
-        
+        this.setupEventListeners()
         
       } catch (err) {
         this.error = `Failed to initialize AlphaTab: ${err.message}`
@@ -220,199 +113,36 @@ export default {
     },
     
     setupEventListeners() {
-      if (!this.alphaTabApi) {
-        console.error('Cannot setup event listeners: AlphaTab API is null')
-        return
-      }
+      if (!this.alphaTabApi) return
 
-      // Check if event listeners are available
-      if (!this.alphaTabApi.scoreLoaded || typeof this.alphaTabApi.scoreLoaded.on !== 'function') {
-        console.error('AlphaTab event listeners not available yet, retrying...')
-        setTimeout(() => {
-          this.setupEventListeners()
-        }, 200)
-        return
-      }
-
-      console.log('Setting up AlphaTab event listeners...')
-
-      try {
-        // Score loaded event
-        if (this.alphaTabApi.scoreLoaded && this.alphaTabApi.scoreLoaded.on) {
-          this.alphaTabApi.scoreLoaded.on((score) => {
-            this.isLoaded = true
-            this.tracks = score.tracks || []
-            this.selectedTrack = 0
-            this.currentScore = score
-            this.error = null
-            
-            // Extract tempo from score if available
-            if (score.masterVolume && score.masterVolume.dynamicValue) {
-              this.tempo = score.masterVolume.dynamicValue || 120
-            }
-            
-            console.log('Score loaded successfully:', {
-              tracks: this.tracks.length,
-              playerEnabled: this.alphaTabApi.settings?.player?.enablePlayer,
-              audioSynthesis: this.alphaTabApi.settings?.player?.enableAudioSynthesis,
-              soundFont: this.alphaTabApi.settings?.player?.soundFont,
-              tempo: this.tempo
-            })
-            
-            // Test soundfont loading
-            this.testSoundfontLoading()
-            
-            // For Electron mode, mark player as ready since we'll handle playback manually
-            if (this.isElectron) {
-              this.isPlayerReady = true
-              console.log('Electron mode: Player marked as ready for manual playback')
-            } else {
-              // Force player initialization after score load for web mode
-              setTimeout(() => {
-                if (this.alphaTabApi && !this.isPlayerReady) {
-                  console.log('Attempting to trigger player ready state...')
-                  this.alphaTabApi.renderTracks([this.tracks[0]])
-                }
-              }, 500)
-            }
-          })
-        }
-        
-        // Render started event
-        if (this.alphaTabApi.renderStarted && this.alphaTabApi.renderStarted.on) {
-          this.alphaTabApi.renderStarted.on(() => {
-          })
-        }
-        
-        // Render finished event
-        if (this.alphaTabApi.renderFinished && this.alphaTabApi.renderFinished.on) {
-          this.alphaTabApi.renderFinished.on(() => {
-        
-            
-            // Debug: Check what was rendered
-            const container = this.$refs.alphaTab
-            if (container) {
-              const canvases = container.querySelectorAll('canvas')
-              const svgs = container.querySelectorAll('svg')
-              const surfaces = container.querySelectorAll('.at-surface')
-
-              // Force height on surface elements
-              surfaces.forEach((surface, index) => {
-                if (surface.offsetHeight === 0) {
-                  surface.style.minHeight = '400px'
-                  surface.style.height = 'auto'
-                  surface.style.display = 'block'
-                  surface.style.overflow = 'visible'
-                }
-              })
-              
-              // Force visibility for canvas elements
-              canvases.forEach((canvas, index) => {
-                canvas.style.display = 'block'
-                canvas.style.background = 'white'
-                canvas.style.maxWidth = '100%'
-              })
-              
-              // Also handle SVG elements
-              svgs.forEach((svg, index) => {
-                svg.style.display = 'block'
-                svg.style.background = 'white'
-                svg.style.maxWidth = '100%'
-              })
-              
-              // Try to force a re-layout
-              setTimeout(() => {
-                if (this.alphaTabApi && surfaces.length > 0) {
-                  this.alphaTabApi.render()
-                }
-              }, 100)
-            }
-          })
-        }
-        
-        // Player events - set up for all modes now since player is enabled
-        if (this.alphaTabApi.playerStateChanged && this.alphaTabApi.playerStateChanged.on) {
-          this.alphaTabApi.playerStateChanged.on((e) => {
-            console.log('Player state changed:', e.state)
-            // Only update isPlaying state if not in manual mode (Electron)
-            if (!this.isElectron) {
-              this.isPlaying = e.state === 1 // 1 = playing, 0 = paused/stopped
-            }
-          })
-        }
-        
-        if (this.alphaTabApi.playerReady && this.alphaTabApi.playerReady.on) {
-          this.alphaTabApi.playerReady.on(() => {
-            console.log('Player ready!')
-            this.isPlayerReady = true
-            
-            // Force audio context resume for browsers
-            if (!this.isElectron && window.alphaTabAudioContext) {
-              window.alphaTabAudioContext.resume().then(() => {
-                console.log('Audio context resumed on player ready')
-                this.isAudioReady = true
-              }).catch(err => {
-                console.warn('Failed to resume audio context on player ready:', err)
-              })
-            } else if (this.isElectron) {
-              this.isAudioReady = true
-            }
-            
-            // Additional check for playback readiness
-            console.log('Player readiness check:', {
-              isReadyForPlayback: this.alphaTabApi.isReadyForPlayback,
-              enableAudioSynthesis: this.alphaTabApi.settings?.player?.enableAudioSynthesis,
-              enablePlayer: this.alphaTabApi.settings?.player?.enablePlayer,
-              soundFont: this.alphaTabApi.settings?.player?.soundFont
-            })
-          })
-        }
-        
-        if (this.alphaTabApi.playerPositionChanged && this.alphaTabApi.playerPositionChanged.on) {
-          this.alphaTabApi.playerPositionChanged.on((e) => {
-            console.log('Player position:', e.currentTick, 'Beat:', e.currentBeat?.index)
-            
-            // Auto-scroll to current position in web mode
-            if (!this.isElectron && e.currentBeat) {
-              try {
-                // Try to scroll to the current beat position
-                const boundsLookup = this.alphaTabApi.renderer?.boundsLookup
-                if (boundsLookup) {
-                  const beatBounds = boundsLookup.findBeat(e.currentBeat)
-                  if (beatBounds) {
-                    this.scrollToCurrentMeasure(beatBounds)
-                  }
-                }
-              } catch (error) {
-                console.log('Auto-scroll in web mode failed:', error.message)
-              }
-            }
-            
-            this.$forceUpdate()
-          })
-        }
-        
-        if (this.alphaTabApi.playerFinished && this.alphaTabApi.playerFinished.on) {
-          this.alphaTabApi.playerFinished.on(() => {
-            console.log('Playback finished')
-            if (!this.isElectron) {
-              this.isPlaying = false
-            }
-          })
-        }
-        
-        // Error handling
-        if (this.alphaTabApi.error && this.alphaTabApi.error.on) {
-          this.alphaTabApi.error.on((error) => {
-            console.error('AlphaTab error:', error)
-            this.error = `AlphaTab error: ${error.message || error}`
-          })
-        }
-        
-      } catch (error) {
-        console.error('Error setting up event listeners:', error)
-        this.error = `Failed to setup event listeners: ${error.message}`
-      }
+      // Score loaded
+      this.alphaTabApi.scoreLoaded.on((score) => {
+        this.isLoaded = true
+        this.tracks = score.tracks || []
+        this.selectedTrack = 0
+        this.error = null
+      })
+      
+      // Player ready
+      this.alphaTabApi.playerReady.on(() => {
+        this.isPlayerReady = true
+      })
+      
+      // Player state changes
+      this.alphaTabApi.playerStateChanged.on((e) => {
+        this.isPlaying = e.state === 1
+      })
+      
+      // Player finished
+      this.alphaTabApi.playerFinished.on(() => {
+        this.isPlaying = false
+      })
+      
+      // Error handling
+      this.alphaTabApi.error.on((error) => {
+        this.error = `Error: ${error.message || error}`
+        console.error('AlphaTab error:', error)
+      })
     },    openFileDialog() {
       this.$refs.fileInput.click()
     },
@@ -464,508 +194,24 @@ export default {
       })
     },
     
-    async activateAudioContext() {
-      // Activate Web Audio Context on user interaction (required by browsers)
-      if (typeof window !== 'undefined') {
-        try {
-          // Initialize audio context if it doesn't exist
-          if (!window.alphaTabAudioContext) {
-            const AudioContext = window.AudioContext || window.webkitAudioContext
-            if (AudioContext) {
-              window.alphaTabAudioContext = new AudioContext()
-              console.log('Audio context created on user interaction')
-            }
-          }
-          
-          if (window.alphaTabAudioContext) {
-            if (window.alphaTabAudioContext.state === 'suspended') {
-              await window.alphaTabAudioContext.resume()
-              console.log('Audio context activated')
-              this.isAudioReady = true
-            } else if (window.alphaTabAudioContext.state === 'running') {
-              this.isAudioReady = true
-              console.log('Audio context already running')
-            }
-          }
-        } catch (error) {
-          console.warn('Failed to activate audio context:', error)
-          // For Electron or when Web Audio fails, assume audio is ready
-          this.isAudioReady = true
-        }
+    playPause() {
+      if (!this.alphaTabApi || !this.alphaTabApi.isReadyForPlayback) return
+      
+      if (this.isPlaying) {
+        this.alphaTabApi.pause()
       } else {
-        // For Electron or when Web Audio isn't available, assume audio is ready
-        this.isAudioReady = true
-      }
-    },
-    
-    async playPause() {
-      console.log('playPause called, current state:', {
-        alphaTabApi: !!this.alphaTabApi,
-        isReadyForPlayback: this.alphaTabApi?.isReadyForPlayback,
-        isPlaying: this.isPlaying,
-        isPlayerReady: this.isPlayerReady,
-        isAudioReady: this.isAudioReady,
-        isElectron: this.isElectron
-      })
-      
-      if (!this.alphaTabApi) {
-        console.warn('AlphaTab API not available')
-        return
-      }
-      
-      // Activate audio context on first user interaction
-      if (!this.isAudioReady) {
-        await this.activateAudioContext()
-      }
-      
-      // Try AlphaTab's built-in player first
-      if (this.alphaTabApi.isReadyForPlayback) {
-        console.log('Using AlphaTab built-in player')
-        try {
-          if (this.isPlaying) {
-            console.log('Pausing AlphaTab playback')
-            this.alphaTabApi.pause()
-            this.isPlaying = false
-          } else {
-            console.log('Starting AlphaTab playback')
-            this.alphaTabApi.play()
-            this.isPlaying = true
-          }
-          return
-        } catch (error) {
-          console.error('AlphaTab player error:', error)
-          // Fall through to manual playback if AlphaTab player fails
-        }
-      }
-      
-      // If AlphaTab player isn't ready but we have a score, try to initialize it
-      if (!this.alphaTabApi.isReadyForPlayback && this.currentScore && this.tracks.length > 0) {
-        console.log('Attempting to initialize player...')
-        try {
-          // Re-render the current track to trigger player initialization
-          this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
-          
-          // Wait a bit and try again
-          setTimeout(() => {
-            if (this.alphaTabApi.isReadyForPlayback) {
-              this.playPause()
-            } else {
-              console.warn('Player still not ready after re-render, falling back to manual playback')
-              if (this.isElectron) {
-                if (this.isPlaying) {
-                  this.pauseManualPlayback()
-                } else {
-                  this.startManualPlayback()
-                }
-              }
-            }
-          }, 1000)
-          return
-        } catch (error) {
-          console.error('Failed to initialize player:', error)
-        }
-      }
-      
-      // Fallback: Use manual playback for Electron mode or if AlphaTab player isn't ready
-      if (this.isElectron) {
-        console.log('Using manual playback fallback')
-        if (this.isPlaying) {
-          this.pauseManualPlayback()
-        } else {
-          this.startManualPlayback()
-        }
-        return
-      }
-      
-      // For web mode, show a message if player isn't ready
-      console.warn('Player not ready for playback and no fallback available')
-      this.error = 'Audio player is not ready yet. Please wait a moment and try again.'
-      setTimeout(() => {
-        this.error = null
-      }, 3000)
-    },
-    
-    startManualPlayback() {
-      console.log('Starting manual playback for Electron mode')
-      this.isPlaying = true
-      this.currentTick = 0
-      this.currentBeat = 0
-      
-      // Get the first track for timing calculations
-      const track = this.tracks[this.selectedTrack]
-      if (!track || !track.staves || track.staves.length === 0) {
-        console.error('No track or staves available for playback')
-        return
-      }
-      
-      // Calculate timing based on the score's tempo
-      const masterBar = this.currentScore.masterBars[0]
-      const actualTempo = masterBar ? masterBar.tempo : this.tempo
-      
-      // Calculate interval (120 BPM = 500ms per quarter note)
-      const beatInterval = (60 / actualTempo) * 250 // Faster updates for smoother cursor
-      
-      let currentMasterBarIndex = 0
-      let currentBeatInBar = 0
-      let previousY = 0 // Track previous Y position to detect line changes
-      
-      this.playbackInterval = setInterval(() => {
-        try {
-          // Move to next beat
-          currentBeatInBar++
-          
-          // Check if we need to move to next bar
-          const currentMasterBar = this.currentScore.masterBars[currentMasterBarIndex]
-          if (currentMasterBar && currentBeatInBar >= currentMasterBar.timeSignatureDenominator) {
-            currentBeatInBar = 0
-            currentMasterBarIndex++
-          }
-          
-          // Stop if we've reached the end
-          if (currentMasterBarIndex >= this.currentScore.masterBars.length) {
-            this.pauseManualPlayback()
-            return
-          }
-          
-          
-          // Try to position cursor using AlphaTab's beat positioning
-          if (this.alphaTabApi && this.currentScore.masterBars[currentMasterBarIndex]) {
-            const masterBar = this.currentScore.masterBars[currentMasterBarIndex]
-            const track = this.tracks[this.selectedTrack]
-            
-            if (track.staves[0] && track.staves[0].bars[currentMasterBarIndex]) {
-              const bar = track.staves[0].bars[currentMasterBarIndex]
-              
-              // Try different positioning methods
-              try {
-                // Method 1: Use tickPosition if available
-                if (typeof this.alphaTabApi.tickPosition === 'function') {
-                  this.alphaTabApi.tickPosition(currentMasterBarIndex * 960 + currentBeatInBar * 240)
-                }
-                // Method 2: Use playerPositionChanged event simulation
-                else if (this.alphaTabApi.renderer && this.alphaTabApi.renderer.boundsLookup) {
-                  const boundsLookup = this.alphaTabApi.renderer.boundsLookup
-                  const beatBounds = boundsLookup.findBeat(bar.voices[0].beats[currentBeatInBar])
-                  if (beatBounds) {
-                    const currentY = beatBounds.realBounds.y
-                    
-                    // Check for line change (significant Y position change)
-                    if (previousY > 0 && Math.abs(currentY - previousY) > 50) {
-                      // Force immediate scroll for line changes
-                      this.scrollToNewLine(beatBounds)
-                    } else {
-                      // Normal scrolling
-                      this.scrollToCurrentMeasure(beatBounds)
-                    }
-                    
-                    // Update previous Y position
-                    previousY = currentY
-                    
-                    // Simulate cursor positioning
-                    this.highlightCurrentBeat(beatBounds)
-                  }
-                }
-                
-                // Method 3: Fallback - try to find measure elements and scroll to them
-                this.scrollToMeasureByIndex(currentMasterBarIndex)
-                
-              } catch (e) {
-                console.log('Cursor positioning method failed:', e.message)
-              }
-            }
-          }
-          
-        } catch (error) {
-          console.error('Error in manual playback:', error)
-        }
-      }, beatInterval)
-    },
-    
-    highlightCurrentBeat(beatBounds) {
-      // Manual cursor highlighting
-      const container = this.$refs.alphaTab
-      if (!container) return
-      
-      // Remove previous cursor
-      const existingCursor = container.querySelector('.manual-cursor')
-      if (existingCursor) {
-        existingCursor.remove()
-      }
-      
-      // Create new cursor element
-      const cursor = document.createElement('div')
-      cursor.className = 'manual-cursor'
-      cursor.style.position = 'absolute'
-      cursor.style.left = beatBounds.realBounds.x + 'px'
-      cursor.style.top = beatBounds.realBounds.y + 'px'
-      cursor.style.width = '3px'
-      cursor.style.height = beatBounds.realBounds.h + 'px'
-      cursor.style.backgroundColor = '#ff0000'
-      cursor.style.opacity = '0.8'
-      cursor.style.zIndex = '1000'
-      cursor.style.pointerEvents = 'none'
-      
-      container.appendChild(cursor)
-    },
-    
-    scrollToCurrentMeasure(beatBounds) {
-      // Auto-scroll to keep the current measure visible
-      const container = this.$refs.alphaTab
-      if (!container || !beatBounds) return
-      
-      const containerRect = container.getBoundingClientRect()
-      const beatX = beatBounds.realBounds.x
-      const beatY = beatBounds.realBounds.y
-      
-      // Calculate current scroll position
-      const scrollLeft = container.scrollLeft
-      const scrollTop = container.scrollTop
-      const containerWidth = container.clientWidth
-      const containerHeight = container.clientHeight
-      
-
-      
-      // Horizontal scrolling - keep beat in center third of view
-      const leftThreshold = containerWidth * 0.15
-      const rightThreshold = containerWidth * 0.85
-      const relativeX = beatX - scrollLeft
-      
-      let needsHorizontalScroll = false
-      let targetScrollLeft = scrollLeft
-      
-      if (relativeX < leftThreshold) {
-        // Scroll left to center the beat
-        targetScrollLeft = Math.max(0, beatX - containerWidth / 3)
-        needsHorizontalScroll = true
-      } else if (relativeX > rightThreshold) {
-        // Scroll right to center the beat
-        targetScrollLeft = beatX - (containerWidth * 0.7)
-        needsHorizontalScroll = true
-      }
-      
-      // Vertical scrolling - much more aggressive for line changes
-      const topThreshold = containerHeight * 0.25
-      const bottomThreshold = containerHeight * 0.75
-      const relativeY = beatY - scrollTop
-      
-      let needsVerticalScroll = false
-      let targetScrollTop = scrollTop
-      
-      // More aggressive vertical scrolling to catch line changes
-      if (relativeY < topThreshold) {
-        // Beat is too high, scroll up to center it
-        targetScrollTop = Math.max(0, beatY - containerHeight / 3)
-        needsVerticalScroll = true
-      } else if (relativeY > bottomThreshold) {
-        // Beat is too low, scroll down to center it
-        targetScrollTop = beatY - (containerHeight * 0.7)
-        needsVerticalScroll = true
-      }
-      
-      // Also check if beat is completely outside the visible area
-      if (beatY < scrollTop || beatY > scrollTop + containerHeight) {
-        // Beat is completely out of view, center it
-        targetScrollTop = Math.max(0, beatY - containerHeight / 2)
-        needsVerticalScroll = true
-      }
-      
-      // Perform scrolling if needed
-      if (needsHorizontalScroll || needsVerticalScroll) {
-
-        
-        container.scrollTo({
-          left: needsHorizontalScroll ? targetScrollLeft : scrollLeft,
-          top: needsVerticalScroll ? targetScrollTop : scrollTop,
-          behavior: 'smooth'
-        })
-      }
-    },
-    
-    scrollToNewLine(beatBounds) {
-      // Aggressive scrolling for line changes - immediately center the new line
-      const container = this.$refs.alphaTab
-      if (!container || !beatBounds) return
-      
-      const beatY = beatBounds.realBounds.y
-      const containerHeight = container.clientHeight
-      
-      
-      // Center the new line immediately
-      const targetScrollTop = Math.max(0, beatY - containerHeight / 2)
-      
-      container.scrollTo({
-        top: targetScrollTop,
-        behavior: 'auto' // Immediate scroll for line changes, no smooth animation
-      })
-      
-      // After immediate vertical scroll, do smooth horizontal adjustment if needed
-      setTimeout(() => {
-        this.scrollToCurrentMeasure(beatBounds)
-      }, 50)
-    },
-    
-    scrollToMeasureByIndex(measureIndex) {
-      // Fallback method: find measure elements by searching for bar/measure indicators
-      const container = this.$refs.alphaTab
-      if (!container) return
-      
-      try {
-        // Look for various possible measure/bar elements
-        const possibleSelectors = [
-          `[data-bar="${measureIndex}"]`,
-          `[data-measure="${measureIndex}"]`,
-          `.at-bar[data-index="${measureIndex}"]`,
-          `.at-measure-${measureIndex}`,
-          `.bar-${measureIndex}`
-        ]
-        
-        for (const selector of possibleSelectors) {
-          const measureElement = container.querySelector(selector)
-          if (measureElement) {
-            measureElement.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-              inline: 'center'
-            })
-            return
-          }
-        }
-        
-        // If no specific measure found, try to calculate approximate position
-        // Based on measure index and estimated measure width
-        const estimatedMeasureWidth = 200 // Approximate width per measure
-        const targetX = measureIndex * estimatedMeasureWidth
-        
-        container.scrollTo({
-          left: Math.max(0, targetX - container.clientWidth / 2),
-          behavior: 'smooth'
-        })
-        
-        
-      } catch (error) {
-        console.log('Fallback scrolling failed:', error.message)
-      }
-    },
-    
-    pauseManualPlayback() {
-      this.isPlaying = false
-      if (this.playbackInterval) {
-        clearInterval(this.playbackInterval)
-        this.playbackInterval = null
-      }
-      
-      // Remove manual cursor
-      const container = this.$refs.alphaTab
-      if (container) {
-        const existingCursor = container.querySelector('.manual-cursor')
-        if (existingCursor) {
-          existingCursor.remove()
-        }
+        this.alphaTabApi.play()
       }
     },
     
     stop() {
-      if (!this.alphaTabApi) {
-        console.warn('AlphaTab API not available')
-        return
-      }
-      
-      // Stop both AlphaTab player and manual playback
-      try {
-        // Try to stop AlphaTab player if it's active
-        if (this.alphaTabApi.isReadyForPlayback) {
-          console.log('Stopping AlphaTab playback')
-          this.alphaTabApi.stop()
-        }
-      } catch (error) {
-        console.log('AlphaTab stop failed:', error.message)
-      }
-      
-      // Always stop manual playback (in case it's running)
-      console.log('Stopping manual playback')
-      this.pauseManualPlayback()
-      this.currentTick = 0
-      this.currentBeat = 0
-      this.isPlaying = false
+      if (!this.alphaTabApi || !this.alphaTabApi.isReadyForPlayback) return
+      this.alphaTabApi.stop()
     },
     
     changeTrack() {
       if (!this.alphaTabApi || !this.isLoaded || this.selectedTrack >= this.tracks.length) return
-      
-      
-      try {
-        // Render only the selected track using proper API
-        this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
-      } catch (error) {
-        console.error('Error changing track:', error)
-        this.error = `Failed to change track: ${error.message}`
-      }
-    },
-    
-    getInstrumentName(track) {
-      // Safely get instrument name with fallbacks
-      try {
-        if (track && track.channel && track.channel.instrument && track.channel.instrument.name) {
-          return track.channel.instrument.name
-        }
-        if (track && track.channel && track.channel.instrument) {
-          return 'Instrument'
-        }
-        if (track && track.playbackInfo && track.playbackInfo.program !== undefined) {
-          return `Program ${track.playbackInfo.program}`
-        }
-        return 'Unknown Instrument'
-      } catch (error) {
-        console.warn('Error getting instrument name:', error)
-        return 'Unknown Instrument'
-      }
-    },
-    
-    async testSoundfontLoading() {
-      // Test if soundfont is accessible
-      try {
-        const soundfontUrl = './soundfont/sonivox.sf2'
-        const response = await fetch(soundfontUrl, { method: 'HEAD' })
-        if (response.ok) {
-          console.log('✅ Soundfont is accessible:', soundfontUrl)
-        } else {
-          console.warn('❌ Soundfont not accessible:', soundfontUrl, 'Status:', response.status)
-          // Try alternative path
-          const altUrl = '/soundfont/sonivox.sf2'
-          const altResponse = await fetch(altUrl, { method: 'HEAD' })
-          if (altResponse.ok) {
-            console.log('✅ Alternative soundfont path working:', altUrl)
-            // Update settings to use alternative path
-            if (this.alphaTabApi && this.alphaTabApi.settings) {
-              this.alphaTabApi.settings.player.soundFont = altUrl
-            }
-          }
-        }
-      } catch (error) {
-        console.warn('Error testing soundfont accessibility:', error)
-      }
-    },
-    
-    logPlayerState() {
-      // Debug helper to log current player state
-      if (this.alphaTabApi) {
-        console.log('🎵 Current Player State:', {
-          isLoaded: this.isLoaded,
-          isPlayerReady: this.isPlayerReady,
-          isAudioReady: this.isAudioReady,
-          isPlaying: this.isPlaying,
-          isReadyForPlayback: this.alphaTabApi.isReadyForPlayback,
-          settings: {
-            enablePlayer: this.alphaTabApi.settings?.player?.enablePlayer,
-            enableAudioSynthesis: this.alphaTabApi.settings?.player?.enableAudioSynthesis,
-            soundFont: this.alphaTabApi.settings?.player?.soundFont,
-          },
-          audioContext: window.alphaTabAudioContext ? {
-            state: window.alphaTabAudioContext.state,
-            sampleRate: window.alphaTabAudioContext.sampleRate
-          } : 'Not available'
-        })
-      }
+      this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
     }
   }
 }
@@ -1107,53 +353,8 @@ export default {
   min-height: 400px;
   background: white;
   border-radius: 4px;
-  margin: 10px;
+  padding: 10px;
   overflow: auto;
-  scroll-behavior: smooth;
-  position: relative;
-}
-
-/* Ensure both canvas and SVG elements are visible */
-.alphatab-container canvas,
-.alphatab-container svg {
-  display: block !important;
-  max-width: 100%;
-  background: white;
-}
-
-/* Force visibility of any AlphaTab elements */
-:deep(.alphaTab) {
-  background: white !important;
-  min-height: 400px !important;
-}
-
-:deep(.alphaTab canvas),
-:deep(.alphaTab svg) {
-  display: block !important;
-  background: white !important;
-}
-
-/* Add basic styling for music notation elements */
-:deep(.at-surface) {
-  background: white !important;
-  font-family: Arial, Helvetica, sans-serif !important;
-  min-height: 400px !important;
-  height: auto !important;
-  display: block !important;
-  overflow: visible !important;
-  width: 100% !important;
-}
-
-/* Force visibility of any rendered content inside surface */
-:deep(.at-surface *) {
-  font-family: Arial, Helvetica, sans-serif !important;
-  display: block !important;
-}
-
-/* Style for music symbols - fallback to basic glyphs */
-:deep(.at) {
-  font-family: Arial, Helvetica, sans-serif !important;
-  font-size: 34px !important;
 }
 
 .error {
@@ -1186,68 +387,5 @@ export default {
   border: 1px solid var(--border-color, #444);
   border-radius: 4px;
   min-width: 200px;
-}
-
-/* AlphaTab specific styles */
-:deep(.alphaTab) {
-  background: white !important;
-  font-family: Arial, Helvetica, sans-serif !important;
-}
-
-:deep(.at-surface) {
-  background: white !important;
-}
-
-/* Force system fonts for all AlphaTab text elements */
-:deep(.at-surface *) {
-  font-family: Arial, Helvetica, sans-serif !important;
-}
-
-/* Ensure tablature numbers are visible */
-:deep(.at-surface text) {
-  font-family: Arial, Helvetica, sans-serif !important;
-  fill: #000 !important;
-}
-
-/* Override any font loading styles */
-:deep(.at-font-face) {
-  display: none !important;
-}
-
-:deep(.at-viewport) {
-  background: white !important;
-}
-
-/* Player cursor and highlighting styles */
-:deep(.at-cursor-bar) {
-  background: #ff0000 !important;
-  opacity: 0.8 !important;
-  width: 3px !important;
-  z-index: 1000 !important;
-}
-
-:deep(.at-selection) {
-  background: rgba(255, 0, 0, 0.2) !important;
-}
-
-:deep(.at-cursor-beat) {
-  background: rgba(255, 0, 0, 0.3) !important;
-}
-
-/* Ensure cursor elements are visible */
-:deep(.at-cursor) {
-  display: block !important;
-  visibility: visible !important;
-}
-
-/* Manual cursor for Electron mode */
-.manual-cursor {
-  position: absolute !important;
-  background: #ff0000 !important;
-  opacity: 0.8 !important;
-  width: 3px !important;
-  z-index: 1000 !important;
-  pointer-events: none !important;
-  transition: left 0.1s ease-in-out !important;
 }
 </style>
