@@ -334,4 +334,142 @@ export class UserService {
       throw new Error(`Failed to clone user: ${error.message}`)
     }
   }
+
+  /**
+   * Export tab playlists to JSON file
+   */
+  async exportTabPlaylistsToFile(userStore, userId) {
+    try {
+      const user = userStore.getUserById(userId)
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      const tabData = user.data.tabs || { playlists: [], files: [], metadata: {} }
+      
+      const exportData = {
+        version: '1.0.0',
+        exportDate: new Date().toISOString(),
+        userName: user.name,
+        tabs: tabData
+      }
+      
+      const jsonStr = JSON.stringify(exportData, null, 2)
+      const blob = new Blob([jsonStr], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `tabs_${this.sanitizeFilename(user.name)}_${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      URL.revokeObjectURL(url)
+      
+      return { success: true, filename: link.download }
+    } catch (error) {
+      console.error('Error exporting tab playlists:', error)
+      throw new Error(`Failed to export tab playlists: ${error.message}`)
+    }
+  }
+
+  /**
+   * Import tab playlists from JSON file
+   */
+  async importTabPlaylistsFromFile(userStore, userId, mergeWithExisting = true) {
+    return new Promise((resolve, reject) => {
+      try {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = '.json'
+        
+        input.onchange = async (event) => {
+          const file = event.target.files[0]
+          if (!file) {
+            reject(new Error('No file selected'))
+            return
+          }
+          
+          try {
+            const text = await file.text()
+            const importData = JSON.parse(text)
+            
+            if (!this.validateTabPlaylistImport(importData)) {
+              reject(new Error('Invalid tab playlist file format'))
+              return
+            }
+            
+            const user = userStore.getUserById(userId)
+            if (!user) {
+              reject(new Error('User not found'))
+              return
+            }
+            
+            // Initialize tabs structure if needed
+            if (!user.data.tabs) {
+              user.data.tabs = { playlists: [], files: [], metadata: {} }
+            }
+            
+            if (mergeWithExisting) {
+              // Merge playlists
+              const existingPlaylistNames = new Set(
+                user.data.tabs.playlists.map(p => p.name)
+              )
+              
+              importData.tabs.playlists.forEach(playlist => {
+                if (!existingPlaylistNames.has(playlist.name)) {
+                  // Regenerate IDs to avoid conflicts
+                  playlist.id = Date.now() + Math.random()
+                  playlist.tabs.forEach(tab => {
+                    tab.id = Date.now() + Math.random()
+                  })
+                  user.data.tabs.playlists.push(playlist)
+                }
+              })
+              
+              // Merge files
+              const existingFiles = new Set(user.data.tabs.files)
+              importData.tabs.files.forEach(file => {
+                if (!existingFiles.has(file)) {
+                  user.data.tabs.files.push(file)
+                }
+              })
+            } else {
+              // Replace existing
+              user.data.tabs = importData.tabs
+            }
+            
+            userStore.saveUsersToStorage()
+            
+            resolve({
+              success: true,
+              playlistsImported: importData.tabs.playlists.length,
+              importDate: importData.exportDate
+            })
+          } catch (error) {
+            reject(new Error(`Failed to parse import file: ${error.message}`))
+          }
+        }
+        
+        input.onerror = () => {
+          reject(new Error('Failed to read file'))
+        }
+        
+        input.click()
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  /**
+   * Validate tab playlist import data
+   */
+  validateTabPlaylistImport(data) {
+    if (!data || typeof data !== 'object') return false
+    if (!data.version || !data.tabs) return false
+    if (!Array.isArray(data.tabs.playlists)) return false
+    return true
+  }
 }

@@ -59,7 +59,16 @@ export const useUserStore = defineStore('user', {
         },
         audioFiles: [],
         videoFiles: [],
-        pictures: []
+        pictures: [],
+        tabs: {
+          playlists: [],
+          files: [],
+          metadata: {
+            lastUpdated: null,
+            totalTabs: 0,
+            totalPlaylists: 0
+          }
+        }
       }
     }]
     
@@ -266,7 +275,16 @@ export const useUserStore = defineStore('user', {
           },
           audioFiles: [],
           videoFiles: [],
-          pictures: []
+          pictures: [],
+          tabs: {
+            playlists: [],
+            files: [],
+            metadata: {
+              lastUpdated: null,
+              totalTabs: 0,
+              totalPlaylists: 0
+            }
+          }
         }
       }
       

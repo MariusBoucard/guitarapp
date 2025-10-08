@@ -19,6 +19,66 @@
         <button v-if="canPlay" @click="stop" class="stop-btn">
           ⏹️ Stop
         </button>
+        <button @click="showPlaylists = !showPlaylists" class="mixer-toggle-btn">
+          {{ showPlaylists ? '📋 Hide Playlists' : '📋 Show Playlists' }}
+        </button>
+      </div>
+    </div>
+    
+    <!-- Playlists Panel -->
+    <div v-if="showPlaylists" class="playlists-panel">
+      <div class="playlists-header">
+        <h4>Tab Playlists</h4>
+        <button @click="showCreatePlaylistModal = true" class="create-playlist-btn">
+          ➕ New Playlist
+        </button>
+      </div>
+      
+      <div class="playlists-container">
+        <div v-if="tabPlaylists.length === 0" class="no-playlists">
+          <p>No playlists yet. Create one to organize your tabs!</p>
+        </div>
+        
+        <div v-for="playlist in tabPlaylists" :key="playlist.id" class="playlist-item">
+          <div class="playlist-header" @click="togglePlaylist(playlist.id)">
+            <span class="playlist-toggle">{{ expandedPlaylists.includes(playlist.id) ? '▼' : '▶' }}</span>
+            <span class="playlist-name">{{ playlist.name }}</span>
+            <span class="playlist-count">({{ playlist.tabs.length }} tabs)</span>
+            <div class="playlist-actions">
+              <button @click.stop="renamePlaylistPrompt(playlist)" class="action-btn" title="Rename">
+                ✏️
+              </button>
+              <button @click.stop="deletePlaylistConfirm(playlist)" class="action-btn danger" title="Delete">
+                🗑️
+              </button>
+            </div>
+          </div>
+          
+          <div v-if="expandedPlaylists.includes(playlist.id)" class="playlist-content">
+            <div v-if="playlist.tabs.length === 0" class="no-tabs">
+              <p>No tabs in this playlist yet.</p>
+              <button @click="addCurrentTabToPlaylist(playlist.id)" v-if="isLoaded" class="add-current-btn">
+                ➕ Add Current Tab
+              </button>
+            </div>
+            
+            <div v-else class="tabs-list">
+              <div v-for="tab in playlist.tabs" :key="tab.id" class="tab-item">
+                <div class="tab-info" @click="loadTabFromPlaylist(tab)">
+                  <span class="tab-name">{{ tab.name }}</span>
+                  <span v-if="tab.artist" class="tab-artist">{{ tab.artist }}</span>
+                </div>
+                <button @click="removeTabFromPlaylist(playlist.id, tab.id)" class="remove-tab-btn" title="Remove">
+                  ✖
+                </button>
+              </div>
+              
+              <button @click="addCurrentTabToPlaylist(playlist.id)" v-if="isLoaded" class="add-current-btn">
+                ➕ Add Current Tab
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -101,11 +161,77 @@
         </div>
       </div>
     </div>
+    
+    <!-- Create Playlist Modal -->
+    <div v-if="showCreatePlaylistModal" class="modal-overlay" @click="showCreatePlaylistModal = false">
+      <div class="modal-content" @click.stop>
+        <h4>Create New Playlist</h4>
+        <input 
+          v-model="newPlaylistName" 
+          type="text" 
+          placeholder="Enter playlist name"
+          class="modal-input"
+          @keyup.enter="confirmCreatePlaylist"
+          @keyup.esc="showCreatePlaylistModal = false"
+          ref="playlistNameInput"
+        />
+        <div class="modal-actions">
+          <button @click="showCreatePlaylistModal = false" class="modal-btn cancel-btn">
+            Cancel
+          </button>
+          <button @click="confirmCreatePlaylist" class="modal-btn confirm-btn">
+            Create
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Rename Playlist Modal -->
+    <div v-if="showRenamePlaylistModal" class="modal-overlay" @click="cancelRename">
+      <div class="modal-content" @click.stop>
+        <h4>Rename Playlist</h4>
+        <input 
+          v-model="newPlaylistName" 
+          type="text" 
+          placeholder="Enter new playlist name"
+          class="modal-input"
+          @keyup.enter="confirmRename"
+          @keyup.esc="cancelRename"
+          ref="renameInput"
+        />
+        <div class="modal-actions">
+          <button @click="cancelRename" class="modal-btn cancel-btn">
+            Cancel
+          </button>
+          <button @click="confirmRename" class="modal-btn confirm-btn">
+            Rename
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteConfirm" class="modal-overlay" @click="cancelDelete">
+      <div class="modal-content" @click.stop>
+        <h4>Delete Playlist</h4>
+        <p>Are you sure you want to delete playlist "{{ playlistToDelete?.name }}"?</p>
+        <p class="modal-note">This will not delete the tab files.</p>
+        <div class="modal-actions">
+          <button @click="cancelDelete" class="modal-btn cancel-btn">
+            Cancel
+          </button>
+          <button @click="confirmDelete" class="modal-btn delete-btn">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { AlphaTabApi, Settings } from '@coderline/alphatab'
+import { useTabStore } from '../stores/tabStore.js'
 
 export default {
   name: 'TabReaderComponent',
@@ -118,18 +244,46 @@ export default {
       error: null,
       tracks: [],
       selectedTrack: 0,
-      showMixer: false
+      showMixer: false,
+      showPlaylists: false,
+      expandedPlaylists: [],
+      currentLoadedFile: null,
+      currentLoadedFileName: '',
+      // Modal states
+      showCreatePlaylistModal: false,
+      showRenamePlaylistModal: false,
+      newPlaylistName: '',
+      playlistToRename: null,
+      playlistToDelete: null,
+      showDeleteConfirm: false
     }
   },
   computed: {
     canPlay() {
       return this.isLoaded && this.isPlayerReady
+    },
+    tabStore() {
+      return useTabStore()
+    },
+    tabPlaylists() {
+      return this.tabStore.tabPlaylists
     }
   },
   mounted() {
     this.$nextTick(() => {
       this.initializeAlphaTab()
     })
+    // Initialize tab store data
+    this.tabStore.loadFromStorage()
+  },
+  watch: {
+    showCreatePlaylistModal(newVal) {
+      if (newVal) {
+        this.$nextTick(() => {
+          this.$refs.playlistNameInput?.focus()
+        })
+      }
+    }
   },
   beforeUnmount() {
     if (this.alphaTabApi) {
@@ -231,6 +385,10 @@ export default {
           throw new Error('Invalid file type. Please select a Guitar Pro file (.gp, .gp3, .gp4, .gp5, .gpx, .gp6, .ptb)')
         }
         
+        // Store current file info for playlist management
+        this.currentLoadedFile = file
+        this.currentLoadedFileName = file.name.replace(/\.[^/.]+$/, '') // Remove extension
+        
         // Convert file to ArrayBuffer
         const arrayBuffer = await this.fileToArrayBuffer(file)
         
@@ -307,6 +465,114 @@ export default {
       this.alphaTabApi.changeTrackSolo([track], newSoloState)
       track.playbackInfo.isSolo = newSoloState
       this.$forceUpdate()
+    },
+    
+    // Playlist management methods
+    confirmCreatePlaylist() {
+      if (this.newPlaylistName && this.newPlaylistName.trim()) {
+        const playlistId = this.tabStore.createPlaylist(this.newPlaylistName.trim())
+        this.expandedPlaylists.push(playlistId)
+        this.showCreatePlaylistModal = false
+        this.newPlaylistName = ''
+      }
+    },
+    
+    togglePlaylist(playlistId) {
+      const index = this.expandedPlaylists.indexOf(playlistId)
+      if (index > -1) {
+        this.expandedPlaylists.splice(index, 1)
+      } else {
+        this.expandedPlaylists.push(playlistId)
+      }
+    },
+    
+    renamePlaylistPrompt(playlist) {
+      this.playlistToRename = playlist
+      this.newPlaylistName = playlist.name
+      this.showRenamePlaylistModal = true
+      this.$nextTick(() => {
+        this.$refs.renameInput?.focus()
+      })
+    },
+    
+    confirmRename() {
+      if (this.newPlaylistName && this.newPlaylistName.trim() && 
+          this.playlistToRename && this.newPlaylistName !== this.playlistToRename.name) {
+        this.tabStore.renamePlaylist(this.playlistToRename.id, this.newPlaylistName.trim())
+      }
+      this.cancelRename()
+    },
+    
+    cancelRename() {
+      this.showRenamePlaylistModal = false
+      this.playlistToRename = null
+      this.newPlaylistName = ''
+    },
+    
+    deletePlaylistConfirm(playlist) {
+      this.playlistToDelete = playlist
+      this.showDeleteConfirm = true
+    },
+    
+    confirmDelete() {
+      if (this.playlistToDelete) {
+        this.tabStore.deletePlaylist(this.playlistToDelete.id)
+        // Remove from expanded list
+        const index = this.expandedPlaylists.indexOf(this.playlistToDelete.id)
+        if (index > -1) {
+          this.expandedPlaylists.splice(index, 1)
+        }
+      }
+      this.cancelDelete()
+    },
+    
+    cancelDelete() {
+      this.showDeleteConfirm = false
+      this.playlistToDelete = null
+    },
+    
+    addCurrentTabToPlaylist(playlistId) {
+      if (!this.isLoaded || !this.currentLoadedFile) {
+        this.error = 'No tab is currently loaded'
+        setTimeout(() => { this.error = null }, 3000)
+        return
+      }
+      
+      // Extract metadata from current tab
+      const tabData = {
+        name: this.currentLoadedFileName || 'Untitled Tab',
+        path: this.currentLoadedFile.name || '',
+        artist: '',
+        album: ''
+      }
+      
+      // Try to get more info from AlphaTab if available
+      if (this.alphaTabApi?.score) {
+        tabData.name = this.alphaTabApi.score.title || tabData.name
+        tabData.artist = this.alphaTabApi.score.artist || ''
+        tabData.album = this.alphaTabApi.score.album || ''
+      }
+      
+      this.tabStore.addTabToPlaylist(playlistId, tabData)
+    },
+    
+    removeTabFromPlaylist(playlistId, tabId) {
+      this.tabStore.removeTabFromPlaylist(playlistId, tabId)
+    },
+    
+    async loadTabFromPlaylist(tab) {
+      // Set error message with file info
+      this.error = `Please load the file manually: ${tab.name}${tab.path ? '\n\nPath: ' + tab.path : ''}`
+      setTimeout(() => { this.error = null }, 5000)
+      
+      // In a full implementation with file handles, you could:
+      // try {
+      //   const response = await fetch(tab.path)
+      //   const arrayBuffer = await response.arrayBuffer()
+      //   this.alphaTabApi.load(arrayBuffer)
+      // } catch (error) {
+      //   this.error = `Failed to load tab: ${error.message}`
+      // }
     }
   }
 }
@@ -675,5 +941,304 @@ export default {
   background: #FFC107;
   border-color: #FFC107;
   color: #000;
+}
+
+/* Playlists Panel */
+.playlists-panel {
+  background: rgba(42, 42, 42, 0.98);
+  border-bottom: 1px solid var(--border-color, #444);
+  max-height: 400px;
+  overflow-y: auto;
+  backdrop-filter: blur(5px);
+}
+
+.playlists-header {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color, #444);
+  background: rgba(26, 26, 26, 0.98);
+}
+
+.playlists-header h4 {
+  margin: 0;
+  color: var(--primary-color, #4CAF50);
+  font-size: 1.1rem;
+}
+
+.create-playlist-btn {
+  padding: 0.5rem 1rem;
+  background: var(--primary-color, #4CAF50);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s;
+}
+
+.create-playlist-btn:hover {
+  background: var(--primary-hover, #45a049);
+}
+
+.playlists-container {
+  padding: 1rem;
+}
+
+.no-playlists {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted, #888);
+}
+
+.playlist-item {
+  margin-bottom: 0.75rem;
+  background: var(--header-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.playlist-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.playlist-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.playlist-toggle {
+  color: var(--primary-color, #4CAF50);
+  font-size: 0.9rem;
+  width: 20px;
+}
+
+.playlist-name {
+  color: var(--text-color, #fff);
+  font-weight: bold;
+  flex: 1;
+}
+
+.playlist-count {
+  color: var(--text-muted, #888);
+  font-size: 0.9rem;
+}
+
+.playlist-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.action-btn {
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: 1px solid var(--border-color, #444);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary-color, #4CAF50);
+}
+
+.action-btn.danger:hover {
+  border-color: var(--danger-color, #f44336);
+}
+
+.playlist-content {
+  padding: 0.75rem;
+  border-top: 1px solid var(--border-color, #444);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.no-tabs {
+  text-align: center;
+  padding: 1rem;
+  color: var(--text-muted, #888);
+}
+
+.tabs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background: var(--input-bg, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.tab-item:hover {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: var(--primary-color, #4CAF50);
+}
+
+.tab-info {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tab-name {
+  color: var(--text-color, #fff);
+  font-weight: 500;
+}
+
+.tab-artist {
+  color: var(--text-muted, #888);
+  font-size: 0.85rem;
+}
+
+.remove-tab-btn {
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: 1px solid var(--border-color, #444);
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--text-muted, #888);
+  transition: all 0.2s;
+}
+
+.remove-tab-btn:hover {
+  background: var(--danger-color, #f44336);
+  border-color: var(--danger-color, #f44336);
+  color: white;
+}
+
+.add-current-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: transparent;
+  border: 2px dashed var(--border-color, #444);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--primary-color, #4CAF50);
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.add-current-btn:hover {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: var(--primary-color, #4CAF50);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: var(--header-bg, #2a2a2a);
+  border: 2px solid var(--border-color, #444);
+  border-radius: 8px;
+  padding: 1.5rem;
+  min-width: 400px;
+  max-width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content h4 {
+  margin: 0 0 1rem 0;
+  color: var(--primary-color, #4CAF50);
+  font-size: 1.2rem;
+}
+
+.modal-content p {
+  margin: 0.5rem 0;
+  color: var(--text-color, #fff);
+}
+
+.modal-note {
+  font-size: 0.9rem;
+  color: var(--text-muted, #888);
+  font-style: italic;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--input-bg, #333);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 4px;
+  color: var(--text-color, #fff);
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #4CAF50);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.cancel-btn {
+  background: var(--input-bg, #333);
+  color: var(--text-color, #fff);
+  border: 1px solid var(--border-color, #444);
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.confirm-btn {
+  background: var(--primary-color, #4CAF50);
+  color: white;
+}
+
+.confirm-btn:hover {
+  background: var(--primary-hover, #45a049);
+}
+
+.delete-btn {
+  background: var(--danger-color, #f44336);
+  color: white;
+}
+
+.delete-btn:hover {
+  background: var(--danger-hover, #d32f2f);
 }
 </style>
