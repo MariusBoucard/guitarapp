@@ -154,17 +154,29 @@ import { serviceManager } from '@/services'
 export default {
   name: 'VideoComponentNewRefactored',
   
+  setup() {
+    const videoStore = useVideoStore()
+    const videoService = serviceManager.video
+    
+    return {
+      videoStore,
+      videoService
+    }
+  },
+  
   data() {
     return {
-      videoStore: useVideoStore(),
-      videoService: serviceManager.video,
       errorMessage: '',
-      showAutoReloadMessage: false,
-      trainingList: []
+      showAutoReloadMessage: false
     }
   },
 
   computed: {
+    // Reference store's training list directly (per-user data)
+    trainingList() {
+      return this.videoStore.niouTrainingList
+    },
+    
     currentVideoName() {
       return this.videoStore.currentVideoName
     },
@@ -226,16 +238,6 @@ export default {
   watch: {
     speed(newSpeed) {
       this.updateSpeed()
-    },
-
-    // Watch for changes in the store's training list
-    'videoStore.niouTrainingList': {
-      handler(newList) {
-        this.trainingList = [...newList] // Force reactivity
-        // this.$forceUpdate() // Ensure the template updates
-      },
-      deep: true,
-      immediate: true
     }
   },
 
@@ -266,16 +268,15 @@ export default {
               this.videoStore.directoryStructure.path = selectedPath
               this.videoStore.directoryStructure.lastScanned = new Date().toISOString()
               
-              // Update the training list in store and local data
+              // Update the training list in store (per-user data)
               this.videoStore.setNiouTrainingList(trainingStructure)
-              this.trainingList = [...trainingStructure] // Force local update
               
               this.videoStore.saveDirectoryInfo()
               
               this.errorMessage = ''
               this.showAutoReloadMessage = false
               
-              console.log('Training list updated:', this.trainingList)
+              console.log('Training list updated:', this.videoStore.niouTrainingList)
             } else {
               this.errorMessage = scanResult.error || 'No video files found in selected directory'
             }
@@ -356,30 +357,28 @@ export default {
     },
 
     toggleTraining(index) {
-      // Close all other trainings
-      this.trainingList.forEach((training, i) => {
+      // Close all other trainings first (directly in store data)
+      const trainingList = this.videoStore.niouTrainingList
+      trainingList.forEach((training, i) => {
         if (i !== index) {
           training.show = false
         }
       })
       // Toggle the selected training
       this.videoStore.toggleTrainingVisibility(index)
-      // Update local list to reflect changes
-      this.trainingList = [...this.videoStore.niouTrainingList]
     },
 
     toggleItem(trainingIndex, itemIndex) {
-      // Close all other items in this training
-      if (this.trainingList[trainingIndex]?.trainings) {
-        this.trainingList[trainingIndex].trainings.forEach((item, i) => {
+      // Close all other items in this training (directly in store data)
+      const trainingList = this.videoStore.niouTrainingList
+      if (trainingList[trainingIndex]?.trainings) {
+        trainingList[trainingIndex].trainings.forEach((item, i) => {
           if (i !== itemIndex) {
             item.show = false
           }
         })
       }
       this.videoStore.toggleItemVisibility(trainingIndex, itemIndex)
-      // Update local list to reflect changes
-      this.trainingList = [...this.videoStore.niouTrainingList]
     },
 
     getTotalVideosInTraining(training) {
@@ -507,7 +506,6 @@ export default {
             const trainingStructure = this.convertVideosToTrainingStructure(scanResult.videos, this.videoStore.rootDirectoryPath)
             
             this.videoStore.setNiouTrainingList(trainingStructure)
-            this.trainingList = [...trainingStructure] // Update local list
             
             this.errorMessage = ''
             return
@@ -523,11 +521,8 @@ export default {
   },
 
   async mounted() {
-    // Load from storage
+    // Load from storage (loads per-user data)
     this.videoStore.loadFromStorage()
-    
-    // Initialize training list from store
-    this.trainingList = [...this.videoStore.niouTrainingList]
     
     // Load saved directory tree
     if (window.electronAPI && window.electronAPI.loadDirectoryTree) {
@@ -546,7 +541,6 @@ export default {
           )
           
           this.videoStore.setNiouTrainingList(trainingStructure)
-          this.trainingList = [...trainingStructure] // Update local list
         }
       } catch (error) {
         console.error('Failed to load saved directory tree:', error)
