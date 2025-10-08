@@ -89,15 +89,35 @@
 </template>
   
 <script>
+import { usePictureStore } from '../stores/pictureStore'
+
 export default {
+  setup() {
+    const pictureStore = usePictureStore()
+    
+    return {
+      pictureStore
+    }
+  },
+
   data() {
     return {
-      imageUrl: '',
-      picturesPath: [],
-      selectedPicture: null,
-      isDragOver: false,
-      imageCache: new Map() // Cache for image previews
+      isDragOver: false
     };
+  },
+
+  computed: {
+    picturesPath() {
+      return this.pictureStore.pictureList
+    },
+
+    imageUrl() {
+      return this.pictureStore.currentImageUrl
+    },
+
+    selectedPicture() {
+      return this.pictureStore.selectedPictureIndex
+    }
   },
   methods: {
     triggerFileInput() {
@@ -116,20 +136,8 @@ export default {
       });
     },
     
-    launchFile(file, index) {
-      this.selectedPicture = index;
-      
-      if (this.imageCache.has(file.name)) {
-        this.imageUrl = this.imageCache.get(file.name);
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.imageUrl = reader.result;
-        this.imageCache.set(file.name, reader.result);
-      };
-      reader.readAsDataURL(file);
+    launchFile(picture, index) {
+      this.pictureStore.selectPicture(index);
     },
     
     handleFileChange(event) {
@@ -143,50 +151,37 @@ export default {
     },
     
     addPicture(file) {
-      // Check if file already exists
-      const exists = this.picturesPath.some(pic => 
-        pic.name === file.name && pic.size === file.size
-      );
-      
-      if (!exists) {
-        this.picturesPath.push(file);
-        // Auto-select and display the newly added picture
-        const newIndex = this.picturesPath.length - 1;
-        this.launchFile(file, newIndex);
-      }
+      // Convert file to base64 data URL
+      const reader = new FileReader();
+      reader.onload = () => {
+        const pictureData = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified,
+          dataUrl: reader.result
+        };
+        
+        const added = this.pictureStore.addPicture(pictureData);
+        if (added) {
+          // Auto-select and display the newly added picture
+          const newIndex = this.pictureStore.pictureList.length - 1;
+          this.pictureStore.selectPicture(newIndex);
+        }
+      };
+      reader.readAsDataURL(file);
     },
     
     removePicture(index) {
-      const removedFile = this.picturesPath[index];
-      this.picturesPath.splice(index, 1);
-      
-      // Clear cache for removed file
-      this.imageCache.delete(removedFile.name);
-      
-      // If removed picture was selected, clear or select another
-      if (this.selectedPicture === index) {
-        if (this.picturesPath.length > 0) {
-          const newIndex = Math.min(index, this.picturesPath.length - 1);
-          this.launchFile(this.picturesPath[newIndex], newIndex);
-        } else {
-          this.imageUrl = '';
-          this.selectedPicture = null;
-        }
-      } else if (this.selectedPicture > index) {
-        this.selectedPicture--;
-      }
+      this.pictureStore.removePicture(index);
     },
     
     clearAllPictures() {
-      this.picturesPath = [];
-      this.imageUrl = '';
-      this.selectedPicture = null;
-      this.imageCache.clear();
+      this.pictureStore.clearAllPictures();
     },
     
     closeImage() {
-      this.imageUrl = '';
-      this.selectedPicture = null;
+      this.pictureStore.clearSelection();
     },
     
     formatFileName(name) {
@@ -197,21 +192,8 @@ export default {
       return name;
     },
     
-    getImagePreview(file) {
-      if (this.imageCache.has(file.name)) {
-        return this.imageCache.get(file.name);
-      }
-      
-      // Create preview asynchronously
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.imageCache.set(file.name, reader.result);
-        this.$forceUpdate(); // Trigger re-render to show preview
-      };
-      reader.readAsDataURL(file);
-      
-      // Return placeholder while loading
-      return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZjVmNWY1Ii8+CjxwYXRoIGQ9Ik0yMCAyNUwyNSAxNUgxNUwyMCAyNVoiIGZpbGw9IiNjY2MiLz4KPC9zdmc+';
+    getImagePreview(picture) {
+      return this.pictureStore.getImagePreview(picture.name);
     }
   },
 };

@@ -58,7 +58,8 @@ export const useUserStore = defineStore('user', {
           ]
         },
         audioFiles: [],
-        videoFiles: []
+        videoFiles: [],
+        pictures: []
       }
     }]
     
@@ -264,7 +265,8 @@ export const useUserStore = defineStore('user', {
             ]
           },
           audioFiles: [],
-          videoFiles: []
+          videoFiles: [],
+          pictures: []
         }
       }
       
@@ -516,6 +518,14 @@ export const useUserStore = defineStore('user', {
             this.currentUserId = this.users[0]?.id
             console.log('✅ LOAD: Loaded old format:', this.users.length, 'users')
           }
+
+          // Data migration: Ensure all users have pictures array
+          this.users.forEach(user => {
+            if (!user.data.pictures) {
+              user.data.pictures = []
+              console.log('🔄 MIGRATION: Added pictures array to user:', user.name)
+            }
+          })
         } else {
           console.log('⚠️ LOAD: No saved users found in localStorage - using defaults')
           console.log('⚠️ LOAD: Default users:', this.users.map(u => u.name).join(', '))
