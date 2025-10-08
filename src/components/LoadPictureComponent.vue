@@ -8,6 +8,7 @@
     <!-- Upload Section -->
     <div class="section-card">
       <div class="upload-area" :class="{ 'dragover': isDragOver }" 
+           @click="triggerFileInput"
            @drop="handleDrop" 
            @dragover.prevent="isDragOver = true" 
            @dragleave="isDragOver = false"
@@ -15,7 +16,7 @@
         <div class="upload-content">
           <div class="upload-icon">📷</div>
           <p class="upload-text">Drop images here or click to browse</p>
-          <button class="btn btn-primary" @click="triggerFileInput">
+          <button class="btn btn-primary" @click.stop="triggerFileInput">
             <span class="button-icon">📁</span>
             Choose File
           </button>
@@ -89,14 +90,17 @@
 </template>
   
 <script>
+import { ref } from 'vue'
 import { usePictureStore } from '../stores/pictureStore'
 
 export default {
   setup() {
     const pictureStore = usePictureStore()
+    const fileInput = ref(null)
     
     return {
-      pictureStore
+      pictureStore,
+      fileInput
     }
   },
 
@@ -121,7 +125,9 @@ export default {
   },
   methods: {
     triggerFileInput() {
-      this.$refs.fileInput.click();
+      if (this.fileInput) {
+        this.fileInput.click();
+      }
     },
     
     handleDrop(event) {
@@ -226,10 +232,6 @@ export default {
   background: var(--bg-primary-light);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px var(--bg-primary-border-light);
-}
-
-.upload-content {
-  pointer-events: none;
 }
 
 .upload-icon {

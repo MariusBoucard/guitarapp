@@ -213,25 +213,14 @@
   position: relative;
   padding-left: var(--spacing-xxl);
   cursor: pointer;
-  color: var(--text-primary);
+  color: var(--text-dark);
   font-weight: var(--font-medium);
   user-select: none;
+  margin: 10px 10px 10px 10px;
   transition: var(--transition-normal);
 }
 
-.checkbox-label::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--border-accent);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  transition: var(--transition-normal);
-}
+
 
 .checkbox-custom:checked + .checkbox-label::before {
   background: var(--btn-primary);

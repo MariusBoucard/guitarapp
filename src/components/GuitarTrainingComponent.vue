@@ -95,71 +95,6 @@
           >
           </NoteToPlayComponent>
           <VideoSettingsComponent :videoFolderAll="appStore.videoFolder"></VideoSettingsComponent>
-          
-          <!-- Song Player State Management -->
-          <div class="song-player-state-manager" v-show="appStore.soundDisplay">
-            <h3>Song Player State</h3>
-            <div class="state-controls">
-              <div class="file-input-group">
-                <input 
-                  type="text" 
-                  v-model="stateFileName" 
-                  placeholder="Enter state file name"
-                  class="state-filename-input"
-                />
-                <div class="button-group">
-                  <button @click="saveSongPlayerState" class="save-btn">
-                    💾 Save State
-                  </button>
-                  <button @click="loadSongPlayerState" class="load-btn">
-                    📂 Load State
-                  </button>
-                </div>
-              </div>
-              
-              <div class="saved-states-list">
-                <h4>Saved States:</h4>
-                <div class="states-container" v-if="savedStates.length > 0">
-                  <div 
-                    v-for="state in savedStates" 
-                    :key="state.name"
-                    class="saved-state-item"
-                  >
-                    <span class="state-name">{{ state.name }}</span>
-                    <span class="state-date">{{ formatDate(state.timestamp) }}</span>
-                    <div class="state-actions">
-                      <button @click="loadSpecificState(state.name)" class="load-specific-btn">
-                        📂
-                      </button>
-                      <button @click="deleteState(state.name)" class="delete-btn">
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <p v-else class="no-states-message">No saved states found</p>
-              </div>
-              
-              <div class="export-import-section">
-                <h4>Export/Import:</h4>
-                <div class="export-import-controls">
-                  <button @click="exportAllStates" class="export-btn">
-                    📤 Export All
-                  </button>
-                  <input 
-                    type="file" 
-                    ref="importFileInput"
-                    @change="importStates"
-                    accept=".json"
-                    style="display: none;"
-                  />
-                  <button @click="$refs.importFileInput.click()" class="import-btn">
-                    📥 Import
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
           <ColorComponent 
             v-show="appStore.settingsView" 
             :couleurdict="notesStore.colors"
@@ -633,11 +568,12 @@ export default {
   padding: 0;
   color: var(--text-primary);
   width: 100%;
-  min-height: 100vh; /* Ensure it takes at least full viewport height */
-  height: auto; /* Allow it to grow with content */
+  min-height: 100vh;
+  height: 100vh; /* Fixed height to viewport */
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Prevent container overflow */
 }
 
 /* Sidebar Toggle Button */
@@ -677,18 +613,22 @@ export default {
   margin: 0;
   width: 100%;
   padding: 0;
-  flex: 1; /* Take up remaining space */
+  flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: auto; /* Allow scrolling within main content */
+  height: 100%; /* Take full height of parent */
 }
 
 .row {
   display: flex;
   gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-lg);
-  flex-wrap: wrap;
-  flex: 1; /* Allow row to expand */
-  align-items: stretch; /* Make columns equal height */
+  margin-bottom: 0; /* Remove bottom margin to prevent overflow */
+  flex-wrap: nowrap; /* Prevent wrapping on larger screens */
+  flex: 1;
+  align-items: stretch;
+  min-height: 0; /* Important for proper scrolling */
+  overflow: hidden; /* Prevent row overflow */
 }
 
 .column {
@@ -696,15 +636,18 @@ export default {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  width: 80%;
-  transition: width 0.3s ease;
-  min-height: 0; /* Allow proper flex behavior */
+  min-width: 0; /* Allow flex shrinking */
+  transition: flex 0.3s ease;
+  overflow-y: auto; /* Allow vertical scrolling */
+  overflow-x: hidden; /* Prevent horizontal overflow */
+  padding: var(--spacing-md);
+  height: 100%; /* Take full height */
 }
 
 /* When sidebar is folded, expand the main column */
 .row.sidebar-folded .column {
-  width: 100%;
-  flex: 1;
+  flex: 1; /* Take all available space */
+  max-width: 100%;
 }
 
 .columnd {
@@ -713,9 +656,12 @@ export default {
   flex-direction: column;
   gap: var(--spacing-md);
   min-width: 280px;
-  width: 20%;
+  max-width: 400px; /* Prevent sidebar from getting too wide */
   transition: all 0.3s ease;
-  min-height: 0; /* Allow proper flex behavior */
+  overflow-y: auto; /* Allow vertical scrolling */
+  overflow-x: hidden; /* Prevent horizontal overflow */
+  padding: var(--spacing-md);
+  height: 100%; /* Take full height */
 }
 
 .columnhalf {
@@ -723,12 +669,52 @@ export default {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  float: left;
-  width: 50%;
+  min-width: 0; /* Allow flex shrinking */
+  max-width: 50%;
 }
 
 h1, p, h3 {
   color: var(--text-primary);
+}
+
+/* Custom Scrollbars for main columns */
+.column::-webkit-scrollbar,
+.columnd::-webkit-scrollbar {
+  width: 8px;
+}
+
+.column::-webkit-scrollbar-track,
+.columnd::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.column::-webkit-scrollbar-thumb,
+.columnd::-webkit-scrollbar-thumb {
+  background: rgba(52, 152, 219, 0.5);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.column::-webkit-scrollbar-thumb:hover,
+.columnd::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 152, 219, 0.8);
+}
+
+/* Ensure child components don't overflow */
+.column > *,
+.columnd > * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Prevent images and media from overflowing */
+.column img,
+.columnd img,
+.column video,
+.columnd video {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Video Training Tree Styles */
@@ -917,36 +903,53 @@ h1, p, h3 {
 @media (max-width: 1200px) {
   .row {
     flex-direction: column;
+    flex-wrap: nowrap;
+    overflow-y: auto;
   }
   
   .columnd {
     min-width: auto;
+    max-width: 100%;
     width: 100%;
-    float: none;
+    height: auto;
+    max-height: none;
   }
   
   .column {
     width: 100%;
-    float: none;
+    max-width: 100%;
+    height: auto;
   }
   
   .columnhalf {
     width: 100%;
-    float: none;
+    max-width: 100%;
   }
 }
 
 @media (max-width: 768px) {
   .guitar-training-container {
-    padding:0;
+    padding: 0;
+    height: 100vh;
+  }
+
+  .main-content {
+    padding: var(--spacing-sm);
   }
   
-  .video-training-tree {
-    padding: var(--spacing-lg);
+  .column,
+  .columnd {
+    padding: var(--spacing-sm);
+  }
+  
+  .video-training-tree,
+  .song-player-state-manager {
+    padding: var(--spacing-md);
+    margin: var(--spacing-sm) 0;
   }
   
   .columnhalf {
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
   }
   
   /* Adjust toggle button for mobile */
@@ -973,34 +976,6 @@ h1, p, h3 {
   }
 }
 
-/* Song Player State Management Styles */
-.song-player-state-manager {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  margin: var(--spacing-lg) 0;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px var(--shadow-medium);
-  color: var(--text-primary);
-}
-
-.song-player-state-manager h3 {
-  color: var(--text-primary);
-  font-size: 1.3rem;
-  font-weight: var(--font-semibold);
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 2px solid var(--border-accent);
-  text-align: center;
-}
-
-.song-player-state-manager h4 {
-  color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: var(--font-medium);
-  margin: var(--spacing-lg) 0 var(--spacing-md) 0;
-}
 
 .state-controls {
   display: flex;

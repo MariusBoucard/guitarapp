@@ -1,31 +1,50 @@
 <template>
     <div class="chords-container">
-    <div class="columnchords">
-        <p>Stacking Thirds</p>
-        <ul>
-            <li class="chordtext" v-for="chord in StackingThirdsChords" :key="chord">
-                {{ chord.chord }}
-            </li>
-        </ul>
-    </div>
-    <div class="columnchords">
-        <p>Diatonic Chords</p>
-        <ul>
-            <li class="chordtext" v-for="chord2 in DiatonicChords" :key="chord2">
-                {{ chord2.chord }}
-            </li>
-        </ul>
-    </div>
-    <div class="columnchords">
-        <p>Seventh Chords</p>
-        <ul>
-            <li class="chordtext" v-for="chord3 in SeventhChords" :key="chord3">
-                {{ chord3.chord }}
-            </li>
-        </ul>
-    </div>
-</div>
+        <!-- Stacking Thirds -->
+        <div class="columnchords" :class="{ 'collapsed': collapsed.stackingThirds }">
+            <p @click="toggleCollapse('stackingThirds')" class="chord-header">
+                <span class="title-text">Stacking Thirds</span>
+                <span class="toggle-icon">{{ collapsed.stackingThirds ? '▼' : '▲' }}</span>
+            </p>
+            <transition name="slide-fade">
+                <ul v-show="!collapsed.stackingThirds">
+                    <li class="chordtext" v-for="chord in StackingThirdsChords" :key="chord">
+                        {{ chord.chord }}
+                    </li>
+                </ul>
+            </transition>
+        </div>
 
+        <!-- Diatonic Chords -->
+        <div class="columnchords" :class="{ 'collapsed': collapsed.diatonic }">
+            <p @click="toggleCollapse('diatonic')" class="chord-header">
+                <span class="title-text">Diatonic Chords</span>
+                <span class="toggle-icon">{{ collapsed.diatonic ? '▼' : '▲' }}</span>
+            </p>
+            <transition name="slide-fade">
+                <ul v-show="!collapsed.diatonic">
+                    <li class="chordtext" v-for="chord2 in DiatonicChords" :key="chord2">
+                        {{ chord2.chord }}
+                    </li>
+                </ul>
+            </transition>
+        </div>
+
+        <!-- Seventh Chords -->
+        <div class="columnchords" :class="{ 'collapsed': collapsed.seventh }">
+            <p @click="toggleCollapse('seventh')" class="chord-header">
+                <span class="title-text">Seventh Chords</span>
+                <span class="toggle-icon">{{ collapsed.seventh ? '▼' : '▲' }}</span>
+            </p>
+            <transition name="slide-fade">
+                <ul v-show="!collapsed.seventh">
+                    <li class="chordtext" v-for="chord3 in SeventhChords" :key="chord3">
+                        {{ chord3.chord }}
+                    </li>
+                </ul>
+            </transition>
+        </div>
+    </div>
 </template>
 <script>
 import { useNotesStore } from '@/stores/notesStore'
@@ -38,6 +57,11 @@ export default {
     
     data() {
         return {
+            collapsed: {
+                stackingThirds: false,
+                diatonic: false,
+                seventh: false
+            },
             relativeKey: "",
             DiatonicChords: [],
             SeventhChords: [],
@@ -318,6 +342,10 @@ export default {
     },
     
     methods: {
+        toggleCollapse(section) {
+            this.collapsed[section] = !this.collapsed[section];
+        },
+        
         setRelativeScale(){
 
         },
@@ -425,10 +453,9 @@ export default {
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 25px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .columnchords {
@@ -441,11 +468,11 @@ export default {
 }
 
 .columnchords:hover {
-  transform: translateY(-5px);
+  transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.columnchords p {
+.chord-header {
   font-size: 1.2rem;
   font-weight: 700;
   color: #2c3e50;
@@ -458,9 +485,37 @@ export default {
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.columnchords p::before {
+.chord-header:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.chord-header:active {
+  transform: scale(0.98);
+}
+
+.toggle-icon {
+  font-size: 0.9rem;
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.collapsed .toggle-icon {
+  transform: rotate(0deg);
+}
+
+.columnchords:not(.collapsed) .toggle-icon {
+  transform: rotate(180deg);
+}
+
+.chord-header::before {
   content: '';
   position: absolute;
   top: 0;
@@ -471,8 +526,25 @@ export default {
   transition: left 0.5s ease;
 }
 
-.columnchords:hover p::before {
+.chord-header:hover::before {
   left: 100%;
+}
+
+/* Slide fade transitions for collapse/expand */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-20px);
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
 }
 
 ul {
@@ -537,22 +609,6 @@ ul {
 .chordtext:nth-child(6) { border-left: 4px solid #9b59b6; }
 .chordtext:nth-child(7) { border-left: 4px solid #e67e22; }
 
-/* Header icons for each column */
-.columnchords:nth-child(1) p::after {
-  content: "🎼";
-  margin-left: 8px;
-}
-
-.columnchords:nth-child(2) p::after {
-  content: "🎵";
-  margin-left: 8px;
-}
-
-.columnchords:nth-child(3) p::after {
-  content: "🎶";
-  margin-left: 8px;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .chords-container {
@@ -561,25 +617,16 @@ ul {
     max-width: unset;
     margin: 10px auto;
     padding: 15px;
-    grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 15px;
   }
 
-  .columnchords p {
+  .chord-header {
     font-size: 1.1rem;
   }
 
   .chordtext {
     font-size: 0.9rem;
     padding: 10px 14px;
-  }
-}
-
-@media (max-width: 1024px) and (min-width: 769px) {
-  .chords-container {
-    width: 95%;
-    min-width: unset;
-    max-width: unset;
   }
 }
 
