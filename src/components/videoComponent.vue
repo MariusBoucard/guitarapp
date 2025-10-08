@@ -86,23 +86,22 @@
   
 <script>
 import "../assets/css/global.css"
+import { useVideoStore } from '../stores/videoStore.js'
+
 export default {
+  setup() {
+    const videoStore = useVideoStore()
+    return {
+      videoStore
+    }
+  },
+  
   data() {
     return {
       niouTrainingList: [],
-      defaultPath: "/media/marius/DISK GROS/",
-      startTime: 0,
-      endTime: 0,
-      videoDuration: 0,
-      loop: false,
       currentName: "",
-      selectedTraining: 0,
-      trainingList: [],
       currentTime: 0,
       seekValue: 0,
-      speed: 100,
-      videoPath: [],
-      videoPlaying: "",
       chunkSize: 10 * 1024 * 1024, // 10 MB
       file: null,
       sourceBuffer: null,
@@ -119,12 +118,48 @@ export default {
     },
   },
   computed: {
+    // Reference videoStore getters
     trainingComputed() {
-      return this.trainingList
+      return this.videoStore.videoList
     },
-     
+    
     videoPathComputed() {
-      return this.videoPath
+      // Get videos for the currently selected training
+      const currentTraining = this.videoStore.videoList.find(t => t.id === this.videoStore.selectedVideo)
+      return currentTraining?.list || []
+    },
+    
+    selectedTraining() {
+      return this.videoStore.selectedVideo
+    },
+    
+    startTime: {
+      get() { return this.videoStore.startTime },
+      set(value) { this.videoStore.startTime = value }
+    },
+    
+    endTime: {
+      get() { return this.videoStore.endTime },
+      set(value) { this.videoStore.endTime = value }
+    },
+    
+    videoDuration: {
+      get() { return this.videoStore.videoLength },
+      set(value) { this.videoStore.setVideoLength(value) }
+    },
+    
+    loop: {
+      get() { return this.videoStore.loop },
+      set(value) { this.videoStore.loop = value }
+    },
+    
+    speed: {
+      get() { return this.videoStore.speed },
+      set(value) { this.videoStore.speed = value }
+    },
+    
+    defaultPath() {
+      return this.videoStore.defaultPath
     }
   },
   methods: {
@@ -228,34 +263,30 @@ export default {
     },
 
     selectTrain(training) {
-      this.selectedTraining = training.id
-      this.videoPath = this.trainingList.find(train => train.id === this.selectedTraining).list
+      this.videoStore.selectVideoTraining(training)
     },
 
     addTraining() {
-      this.trainingList.push({ "id": this.trainingList.length, "name": this.currentName, "list": [] })
-      this.redoIdTrain()
-      localStorage.setItem("videoSave", JSON.stringify(this.trainingList))
+      this.videoStore.addVideoTraining(this.currentName)
+      this.currentName = "" // Clear input after adding
     },
 
     removeTraining() {
-      this.trainingList.splice(this.selectedTraining, 1)
-      this.redoIdTrain()
-      localStorage.setItem("videoSave", JSON.stringify(this.trainingList))
-    },
-
-    redoIdTrain() {
-      for (var i = 0; i < this.trainingList.length; i++) {
-        this.trainingList.at(i).id = i
+      if (this.videoStore.videoList.length > 0) {
+        this.videoStore.removeVideoTraining(this.selectedTraining)
       }
     },
 
     remove(item) {
-      var index = this.videoPath.indexOf(item)
-      if (index > -1) {
-        this.videoPath.splice(index, 1);
+      // Remove from current training's list
+      const currentTraining = this.videoStore.videoList.find(t => t.id === this.selectedTraining)
+      if (currentTraining) {
+        const index = currentTraining.list.indexOf(item)
+        if (index > -1) {
+          currentTraining.list.splice(index, 1)
+          this.videoStore.saveVideoTrainingsToStorage()
+        }
       }
-      localStorage.setItem("videoSave", JSON.stringify(this.trainingList))
     },
 
     async launchFile(file) {
@@ -282,7 +313,13 @@ export default {
         filePath = URL.createObjectURL(file);
       }
 
-      this.videoPath.push(filePath);
+      // Add to current training's list
+      const currentTraining = this.videoStore.videoList.find(t => t.id === this.selectedTraining)
+      if (currentTraining) {
+        currentTraining.list.push(filePath)
+        this.videoStore.saveVideoTrainingsToStorage()
+      }
+      
       this.speed = 100;
       
       const videoURL = filePath.startsWith('blob:') ? filePath : `file://${filePath}`;
@@ -291,8 +328,6 @@ export default {
         URL.revokeObjectURL(videoURL);
         this.endTime = this.$refs.video.duration
       });
-  
-      localStorage.setItem("videoSave", JSON.stringify(this.trainingList))
     },
 
     async selectVideoFileNative() {
@@ -304,7 +339,14 @@ export default {
         const filePath = await window.electronAPI.selectVideoFile();
         if (filePath) {
           const sanitizedPath = filePath.replace(/#/g, '%23');
-          this.videoPath.push(sanitizedPath);
+          
+          // Add to current training's list
+          const currentTraining = this.videoStore.videoList.find(t => t.id === this.selectedTraining)
+          if (currentTraining) {
+            currentTraining.list.push(sanitizedPath)
+            this.videoStore.saveVideoTrainingsToStorage()
+          }
+          
           this.speed = 100;
           
           const videoURL = `file://${sanitizedPath}`;
@@ -312,8 +354,6 @@ export default {
           this.$refs.video.addEventListener('loadedmetadata', () => {
             this.endTime = this.$refs.video.duration;
           });
-          
-          localStorage.setItem("videoSave", JSON.stringify(this.trainingList));
         }
       } catch (error) {
         console.error('Error selecting video file:', error);
@@ -345,9 +385,9 @@ export default {
     this.$refs.video.addEventListener("loadedmetadata", () => {
       this.videoDuration = this.$refs.video.duration;
     });
-    if (localStorage.getItem("videoSave")) {
-      this.trainingList = JSON.parse(localStorage.getItem("videoSave"))
-    }
+    
+    // Load data from userStore via videoStore
+    this.videoStore.loadFromStorage()
   }
 }
 </script>
