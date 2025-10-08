@@ -133,15 +133,17 @@ export default {
     methods: {
         isChoosedTune(note) {
             // console.log(note.tuning)
+            if (!note || !note.tuning) return false
             var find = this.notesSelectedIntra.find(notes => notes.note === note.tuning.slice(0, note.tuning.length - 1))
             // console.log(find)
-            return find.enabled
+            return find ? find.enabled : false
         },
         isChoosed(corde, index) {
 
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
+            if (!note) return false
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
-            return enabledornot.enabled
+            return enabledornot ? enabledornot.enabled : false
             // var find = this.listeNotes.find((note) => note.id === frette )
             // // console.log(find)
             // var test = this.notesSelectedIntra.find((notes) => notes.note === find.note)
@@ -149,8 +151,11 @@ export default {
             // return test.enabled
         },
         chooseNote(corde, index) {
+            if (!corde || !this.cordeListe[corde.cordeId]) return
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
+            if (!note) return
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
+            if (!enabledornot) return
             
             // Emit event to parent instead of modifying directly
             this.$emit('note-toggled', {
@@ -160,10 +165,11 @@ export default {
             this.$emit('unselectgamme')
         },
         renderChoosen(corde, index) {
-
+            if (!corde || !this.cordeListe[corde.cordeId]) return ''
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
+            if (!note) return ''
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
-            return enabledornot.note
+            return enabledornot ? enabledornot.note : ''
         },
         test() {
 

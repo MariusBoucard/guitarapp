@@ -60,18 +60,8 @@
                 @reinitSelected="appController.reinitNotesTracking()"
                 v-show="appStore.notesSelectedDisplay"
               ></NotesSelectedComponent> 
-                                                    <TuningComponent  
-                @lefty="appController.handleLeftyChange($event)" 
-                :lefty="appStore.lefty" 
-                :allNotes="notesStore.allNotes" 
-                v-show="appStore.settingsView" 
-                @diap="appController.handleDiapasonChange($event)" 
-                :diapason="parseInt(tuningStore.diapason)" 
-                :notesColor="notesStore.colors" 
-                :notesnumber="notesStore.nbnotes" 
-                :notesval="notesStore.allNotes" 
-                :tuningList="tuningStore.tuningList" 
-                :cordesNumber="parseInt(tuningStore.nbStrings)"
+              <TuningComponent  
+                v-show="appStore.settingsView"
               ></TuningComponent> 
 
           </div>

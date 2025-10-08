@@ -48,7 +48,14 @@ export const useUserStore = defineStore('user', {
           nbfrettes: 24,
           diapason: 648,
           nbStrings: 6,
-          tuningList: []
+          tuningList: [
+            { cordeId: 0, tuning: "E4" },
+            { cordeId: 1, tuning: "B3" },
+            { cordeId: 2, tuning: "G3" },
+            { cordeId: 3, tuning: "D3" },
+            { cordeId: 4, tuning: "A2" },
+            { cordeId: 5, tuning: "E2" }
+          ]
         },
         audioFiles: [],
         videoFiles: []
@@ -210,16 +217,7 @@ export const useUserStore = defineStore('user', {
             videoDisplayNew: true,
             gameDisplay: false,
             chordssuggestDisplay: false,
-            diapason: 440,
-            nbStrings: 6,
-            tuningList: [
-              { cordeId: 0, tuning: "E4" },
-              { cordeId: 1, tuning: "B3" },
-              { cordeId: 2, tuning: "G3" },
-              { cordeId: 3, tuning: "D3" },
-              { cordeId: 4, tuning: "A2" },
-              { cordeId: 5, tuning: "E2" }
-            ]
+            diapason: 440
           },
           notes: {
             noteSlectedList: [
@@ -255,15 +253,14 @@ export const useUserStore = defineStore('user', {
           tuning: {
             nbfrettes: 24,
             diapason: 648,
-            nbStrings: 7,
+            nbStrings: 6,
             tuningList: [
-              { cordeId: 0, tuning: 'E5' },
-              { cordeId: 1, tuning: 'B4' },
-              { cordeId: 2, tuning: 'G4' },
-              { cordeId: 3, tuning: 'D4' },
-              { cordeId: 4, tuning: 'A3' },
-              { cordeId: 5, tuning: 'E3' },
-              { cordeId: 6, tuning: 'A2' }
+              { cordeId: 0, tuning: 'E4' },
+              { cordeId: 1, tuning: 'B3' },
+              { cordeId: 2, tuning: 'G3' },
+              { cordeId: 3, tuning: 'D3' },
+              { cordeId: 4, tuning: 'A2' },
+              { cordeId: 5, tuning: 'E2' }
             ]
           },
           audioFiles: [],

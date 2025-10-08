@@ -11,9 +11,9 @@
           <h3>🔢 Number of Strings</h3>
         </div>
         <div class="counter-control">
-          <button @click="this.delCorde()" class="counter-button minus-button">−</button>
-          <div class="counter-display">{{ this.nbCordes }}</div>
-          <button @click="this.addCorde()" class="counter-button plus-button">+</button>
+          <button @click="delCorde()" class="counter-button minus-button">−</button>
+          <div class="counter-display">{{ nbCordes }}</div>
+          <button @click="addCorde()" class="counter-button plus-button">+</button>
         </div>
       </div>
 
@@ -28,9 +28,9 @@
             <select 
               class="note-select" 
               :style="{ backgroundColor: colorFromNote(corde.tuning) }"
-              @change="onChangeTune($event, corde.cordeId)">
-              <option selected="selected">{{ corde.tuning }}</option>
-              <option v-for="option in this.notesall" :value="option.note" :key="option.id">
+              @change="onChangeTune($event, corde.cordeId)"
+              :value="corde.tuning">
+              <option v-for="option in notesall" :value="option.note" :key="option.id">
                 {{ option.note }}
               </option>
             </select>
@@ -47,15 +47,15 @@
           <div class="diapason-control">
             <label class="control-label">Scale Length</label>
             <div class="counter-control">
-              <button @click="this.diapasonMoins()" class="counter-button minus-button">−</button>
-              <div class="counter-display">{{ this.diap }}</div>
-              <button @click="this.diapasonPlus()" class="counter-button plus-button">+</button>
+              <button @click="diapasonMoins()" class="counter-button minus-button">−</button>
+              <div class="counter-display">{{ diap }}</div>
+              <button @click="diapasonPlus()" class="counter-button plus-button">+</button>
             </div>
           </div>
           
           <div class="lefty-control">
             <label class="checkbox-container">
-              <input type="checkbox" v-model="this.leftyintra">
+              <input type="checkbox" v-model="leftyintra">
               <span class="checkmark"></span>
               <span class="checkbox-label">🔄 Left-handed Mode</span>
             </label>
@@ -66,112 +66,80 @@
   </div>
 </template>
 <script>
+import { useTuningStore } from '../stores/tuningStore'
+import { useNotesStore } from '../stores/notesStore'
+import { useAppStore } from '../stores/appStore'
 
 export default {
-  props: {
-    lefty : {required : true, type : Boolean},
-    allNotes : {required : true, type : [Object]},
-    cordesNumber: { required: true, type: Number },
-    diapason: { required: true, type: Number },
-    tuningList: { required: true, type: [Object] },
-    notesnumber: { required: true, type: [Object] },
-    notesColor: { required: true, type: [Object] }
+  setup() {
+    const tuningStore = useTuningStore()
+    const notesStore = useNotesStore()
+    const appStore = useAppStore()
+
+    return {
+      tuningStore,
+      notesStore,
+      appStore
+    }
   },
   methods: {
     addCorde() {
-
-      this.listTuning.push({ cordeId: this.nbCordes, tuning: "A2" })
-      this.nbCordes++
-      this.listTuning.forEach(
-              col => localStorage.setItem(col.cordeId+'tuning',col.tuning)
-            )
-            localStorage.setItem('nbCordes',this.listTuning.length)
+      const newStringCount = this.tuningStore.nbStrings + 1
+      this.tuningStore.setNumberOfStrings(newStringCount)
     },
+
     delCorde() {
-      this.listTuning.pop()
-      this.nbCordes--
-      this.listTuning.forEach(
-              col => localStorage.setItem(col.cordeId+'tuning',col.tuning)
-            )
-            localStorage.setItem('nbCordes',this.listTuning.length)
-    },
-    onChangeTune(event, corde) {
-
-      var found = this.listTuning.find((cor) => cor.cordeId === corde)
-      found.tuning = event.target.value
-      this.listTuning.forEach(
-              col => localStorage.setItem(col.cordeId+'tuning',col.tuning)
-            )
-            localStorage.setItem('nbCordes',this.listTuning.length)
-    },
-    colorFromNote(tuning) {
-      // console.log(tuning)
-
-      var find = this.couleurnoteliste.find((col) => col.note === tuning.slice(0,tuning.length-1))
-      return find.color
-    },
-    diapasonPlus() {
-      this.diap += 10
-      this.$emit('diap', this.diap);
-      localStorage.setItem("diapason",this.diap)
-
-
-    },
-    diapasonMoins() {
-      this.diap -= 10
-      // console.log("diapmoins")
-
-      // console.log("Find das userc" + this.diap)
-      this.$emit('diap', this.diap);
-      localStorage.setItem("diapason",this.diap)
-
-    }
-
-  },
-  computed : {
-    notesall() {
-      return this.allNotes
-    }
-  },
-  watch : {
-      leftyintra : {
-        handler() {
-          this.$emit('lefty',this.leftyintra)
-        }
-      },
-      tuningList : {
-        handler() {
-          this.listTuning = this.tuningList
-          this.$forceUpdate()
-        }
-      },
-      cordesNumber : {
-        handler() {
-          this.nbCordes = this.cordesNumber
-          this.$forceUpdate()
-
-        }
-      },
-      notesColor : {
-        handler(){
-          this.couleurnoteliste =  this.notesColor
-          this.$forceUpdate()
-
-
-        }
+      if (this.tuningStore.nbStrings > 1) {
+        const newStringCount = this.tuningStore.nbStrings - 1
+        this.tuningStore.setNumberOfStrings(newStringCount)
       }
+    },
 
+    onChangeTune(event, cordeId) {
+      this.tuningStore.updateStringTuning(cordeId, event.target.value)
+    },
+
+    colorFromNote(tuning) {
+      const noteName = tuning.slice(0, tuning.length - 1)
+      const find = this.notesStore.colors.find((col) => col.note === noteName)
+      return find ? find.color : '#ffffff'
+    },
+
+    diapasonPlus() {
+      const newDiapason = this.tuningStore.diapason + 10
+      this.tuningStore.changeDiapason(newDiapason)
+    },
+
+    diapasonMoins() {
+      const newDiapason = this.tuningStore.diapason - 10
+      this.tuningStore.changeDiapason(newDiapason)
+    }
   },
-  data() {
-    return {
-      diap: this.diapason,
-      nbnotes: this.notesnumber,
-      nbCordes: this.cordesNumber,
-      listTuning: this.tuningList,
-      couleurnoteliste: this.notesColor,
-      leftyintra : this.lefty
-      // notesall : this.allNotes
-    };
+  computed: {
+    notesall() {
+      return this.notesStore.allNotes
+    },
+
+    nbCordes() {
+      return this.tuningStore.nbStrings
+    },
+
+    tuningList() {
+      return this.tuningStore.tuningList
+    },
+
+    diap() {
+      return this.tuningStore.diapason
+    },
+
+    leftyintra: {
+      get() {
+        return this.appStore.lefty
+      },
+      set(value) {
+        this.appStore.setLefty(value)
+      }
+    }
   }
 
 }
