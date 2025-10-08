@@ -6,65 +6,96 @@
 import { defineStore } from 'pinia'
 
 export const useUserStore = defineStore('user', {
-  state: () => ({
-    // Current active user
-    currentUserId: null,
-    currentUserName: '',
+  state: () => {
+    console.log('🔴 STATE INITIALIZER: Creating initial state...')
     
-    // List of all users
-    users: [
-      {
-        id: 'default',
-        name: 'Default User',
-        createdAt: new Date().toISOString(),
-        lastActive: new Date().toISOString(),
-        avatar: '',
-        email: '',
-        
-        // User-specific data (complete structure for proper initialization)
-        data: {
-          trainings: [],
-          videos: [],
-          niouTrainingList: [],
-          videoMetadata: {
-            lastUpdated: null,
-            totalVideos: 0,
-            totalTrainings: 0,
-            averageDuration: 0
-          },
-          settings: {
-            mancheDisplay: true,
-            notesSelectedDisplay: true,
-            tunerDisplay: false,
-            pictureDisplay: false,
-            soundDisplay: false,
-            scalesDisplay: true,
-            videoDisplay: false,
-            videoDisplayNew: true,
-            gameDisplay: false,
-            chordssuggestDisplay: false
-          },
-          notes: {
-            noteSlectedList: [],
-            gammeSelected: ""
-          },
-          colors: [],
-          tuning: {
-            nbfrettes: 24,
-            diapason: 648,
-            nbStrings: 6,
-            tuningList: []
-          },
-          audioFiles: [],
-          videoFiles: []
+    // Try to load from localStorage DURING state creation
+    let initialUsers = [{
+      id: 'default',
+      name: 'Default User',
+      createdAt: new Date().toISOString(),
+      lastActive: new Date().toISOString(),
+      avatar: '',
+      email: '',
+      data: {
+        trainings: [],
+        videos: [],
+        niouTrainingList: [],
+        videoMetadata: {
+          lastUpdated: null,
+          totalVideos: 0,
+          totalTrainings: 0,
+          averageDuration: 0
+        },
+        settings: {
+          mancheDisplay: true,
+          notesSelectedDisplay: true,
+          tunerDisplay: false,
+          pictureDisplay: false,
+          soundDisplay: false,
+          scalesDisplay: true,
+          videoDisplay: false,
+          videoDisplayNew: true,
+          gameDisplay: false,
+          chordssuggestDisplay: false
+        },
+        notes: {
+          noteSlectedList: [],
+          gammeSelected: ""
+        },
+        colors: [],
+        tuning: {
+          nbfrettes: 24,
+          diapason: 648,
+          nbStrings: 6,
+          tuningList: []
+        },
+        audioFiles: [],
+        videoFiles: []
+      }
+    }]
+    
+    let initialCurrentUserId = null
+    
+    // Try to load from localStorage RIGHT NOW during state creation
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const savedData = localStorage.getItem('guitarapp_users')
+        if (savedData) {
+          console.log('🔴 STATE INITIALIZER: Found saved data in localStorage!')
+          const parsed = JSON.parse(savedData)
+          if (parsed.users && Array.isArray(parsed.users)) {
+            initialUsers = parsed.users
+            initialCurrentUserId = parsed.currentUserId
+            console.log('🔴 STATE INITIALIZER: Loaded', initialUsers.length, 'users from localStorage')
+            initialUsers.forEach((u, idx) => {
+              console.log(`   ${idx + 1}. ${u.name} (${u.id})`)
+            })
+          }
+        } else {
+          console.log('🔴 STATE INITIALIZER: No saved data, using default user')
         }
       }
-    ],
+    } catch (error) {
+      console.error('🔴 STATE INITIALIZER: Error loading from localStorage:', error)
+    }
     
-    // Import/Export metadata
-    lastExportDate: null,
-    lastImportDate: null
-  }),
+    return {
+      // Initialization flag to prevent saves during load
+      isInitializing: false,
+      
+      // Current active user
+      currentUserId: initialCurrentUserId,
+      currentUserName: '',
+      
+      // List of all users (loaded from localStorage or default)
+      users: initialUsers,
+      
+      // Import/Export metadata
+      lastExportDate: null,
+      lastImportDate: null
+    }
+  },
   
   getters: {
     // Get current active user
@@ -100,17 +131,50 @@ export const useUserStore = defineStore('user', {
   actions: {
     // Initialize - load users from storage and set active user
     initialize() {
-      this.loadUsersFromStorage()
+      console.log('='.repeat(80))
+      console.log('🚀 INITIALIZE: Starting user store initialization...')
+      console.log('🚀 INITIALIZE: Current users at start:', this.users.length)
+      this.users.forEach((u, idx) => {
+        console.log(`   ${idx + 1}. ${u.name} (${u.id}) - trainings: ${u.data?.trainings?.length || 0}`)
+      })
+      console.log('='.repeat(80))
       
-      // Set current user from storage or use default
-      const savedUserId = localStorage.getItem('guitarapp_currentUserId')
-      if (savedUserId && this.userExists(savedUserId)) {
-        this.currentUserId = savedUserId
-      } else if (this.users.length > 0) {
-        this.currentUserId = this.users[0].id
-        this.currentUserName = this.users[0].name
+      this.isInitializing = true
+      
+      // Check if we already loaded from localStorage during state creation
+      const alreadyLoadedFromStorage = this.users.length > 0 && this.users[0].id !== 'default'
+      
+      if (!alreadyLoadedFromStorage) {
+        console.log('🔄 INITIALIZE: Loading from localStorage...')
+        this.loadUsersFromStorage()
+      } else {
+        console.log('✅ INITIALIZE: Data already loaded from localStorage during state creation')
       }
       
+      console.log('🔍 INITIALIZE: After load - users:', this.users.length, 'currentUserId:', this.currentUserId)
+      this.users.forEach((u, idx) => {
+        console.log(`   ${idx + 1}. ${u.name} (${u.id}) - trainings: ${u.data?.trainings?.length || 0}`)
+      })
+      
+      // currentUserId should already be set by loadUsersFromStorage or state initializer
+      // But if not, fall back to checking separate storage or defaults
+      if (!this.currentUserId) {
+        const savedUserId = localStorage.getItem('guitarapp_currentUserId')
+        if (savedUserId && this.userExists(savedUserId)) {
+          this.currentUserId = savedUserId
+          console.log('🔍 INITIALIZE: Set from legacy guitarapp_currentUserId:', savedUserId)
+        } else if (this.users.length > 0) {
+          this.currentUserId = this.users[0].id
+          this.currentUserName = this.users[0].name
+          console.log('🔍 INITIALIZE: Set to first user:', this.users[0].name)
+        }
+      }
+      
+      console.log('✅ INITIALIZE: Complete - Current user:', this.currentUser?.name, 'ID:', this.currentUserId)
+      
+      this.isInitializing = false
+      
+      // NOW it's safe to update and save
       this.updateLastActive()
     },
     
@@ -377,6 +441,12 @@ export const useUserStore = defineStore('user', {
     
     // Storage methods
     saveUsersToStorage() {
+      // Don't save during initialization to prevent overwriting loaded data
+      if (this.isInitializing) {
+        console.log('⏸️  SAVE SKIPPED: Still initializing, will save after load complete')
+        return false
+      }
+      
       try {
         const dataToSave = {
           users: this.users,
@@ -387,16 +457,31 @@ export const useUserStore = defineStore('user', {
         console.log('💾 SAVING TO STORAGE:', {
           usersCount: this.users.length,
           currentUserId: this.currentUserId,
-          currentUserName: this.currentUser?.name
+          currentUserName: this.currentUser?.name,
+          firstUser: this.users[0]?.name
         })
         
-        localStorage.setItem('guitarapp_users', JSON.stringify(dataToSave))
+        const jsonString = JSON.stringify(dataToSave)
+        console.log('📝 JSON to save (first 200 chars):', jsonString.substring(0, 200))
+        
+        localStorage.setItem('guitarapp_users', jsonString)
         localStorage.setItem('guitarapp_userMeta', JSON.stringify({
           lastExportDate: this.lastExportDate,
           lastImportDate: this.lastImportDate
         }))
         
+        // CRITICAL: Verify the write was successful
+        const verification = localStorage.getItem('guitarapp_users')
+        if (verification) {
+          const verifyParsed = JSON.parse(verification)
+          console.log('✅ SAVE VERIFIED - Written to localStorage:', verifyParsed.users.length, 'users')
+          console.log('✅ Current user ID saved:', verifyParsed.currentUserId)
+        } else {
+          console.error('❌ VERIFICATION FAILED - Nothing in localStorage!')
+        }
+        
         console.log('✅ SAVE COMPLETE')
+        return true
       } catch (error) {
         console.error('❌ Failed to save users to storage:', error)
         throw error
@@ -405,26 +490,38 @@ export const useUserStore = defineStore('user', {
     
     loadUsersFromStorage() {
       try {
+        console.log('🔍 LOAD: Checking localStorage for guitarapp_users...')
         const usersData = localStorage.getItem('guitarapp_users')
+        
         if (usersData) {
-          const parsed = JSON.parse(usersData)
+          console.log('📦 LOAD: Found data in localStorage (length:', usersData.length, 'chars)')
+          console.log('📝 LOAD: First 200 chars:', usersData.substring(0, 200))
           
-          console.log('📂 LOADING FROM STORAGE:', parsed)
+          const parsed = JSON.parse(usersData)
+          console.log('📂 LOAD: Parsed data:', {
+            hasUsers: !!parsed.users,
+            isArray: Array.isArray(parsed.users || parsed),
+            currentUserId: parsed.currentUserId,
+            usersCount: (parsed.users || parsed).length
+          })
           
           // Handle new format (with currentUserId) and old format (just array)
           if (parsed.users && Array.isArray(parsed.users)) {
             // New format
             this.users = parsed.users
             this.currentUserId = parsed.currentUserId || this.users[0]?.id
-            console.log('✅ Loaded new format:', this.users.length, 'users, current:', this.currentUserId)
+            console.log('✅ LOAD: Loaded new format:', this.users.length, 'users')
+            console.log('✅ LOAD: Current user ID:', this.currentUserId)
+            console.log('✅ LOAD: User names:', this.users.map(u => u.name).join(', '))
           } else if (Array.isArray(parsed)) {
             // Old format (just array of users)
             this.users = parsed
             this.currentUserId = this.users[0]?.id
-            console.log('✅ Loaded old format:', this.users.length, 'users')
+            console.log('✅ LOAD: Loaded old format:', this.users.length, 'users')
           }
         } else {
-          console.log('ℹ️  No saved users found - using defaults')
+          console.log('⚠️ LOAD: No saved users found in localStorage - using defaults')
+          console.log('⚠️ LOAD: Default users:', this.users.map(u => u.name).join(', '))
         }
         
         const metaData = localStorage.getItem('guitarapp_userMeta')

@@ -95,6 +95,12 @@
     <div class="import-export-section">
       <h3>Import & Export</h3>
       <div class="actions-grid">
+        <button @click="saveAllUsersNow" class="btn-primary" title="Manually save all users to localStorage">
+          💾 Save All Users Now
+        </button>
+        <button @click="checkStorage" class="btn-secondary" title="Check what's saved in localStorage">
+          🔍 Check Storage
+        </button>
         <button @click="importUser" class="btn-secondary">
           📥 Import User
         </button>
@@ -263,6 +269,76 @@ export default {
   },
   
   methods: {
+    // Manual save and diagnostic methods
+    saveAllUsersNow() {
+      try {
+        console.log('🔵 MANUAL SAVE: User clicked "Save All Users Now"')
+        console.log('🔵 Current users before save:', this.userStore.users.length)
+        this.userStore.users.forEach((user, idx) => {
+          console.log(`  ${idx + 1}. ${user.name} (${user.id})`)
+        })
+        
+        this.userStore.saveUsersToStorage()
+        
+        // Verify it was saved
+        const savedData = localStorage.getItem('guitarapp_users')
+        if (savedData) {
+          const parsed = JSON.parse(savedData)
+          console.log('✅ MANUAL SAVE: Verified in localStorage:', parsed.users.length, 'users')
+          this.showMessage(`✅ Saved ${parsed.users.length} users to localStorage`, 'success')
+        } else {
+          console.error('❌ MANUAL SAVE: Nothing in localStorage after save!')
+          this.showMessage('❌ Save failed - no data in localStorage', 'error')
+        }
+        
+        this.updateStorageStats()
+      } catch (error) {
+        console.error('❌ MANUAL SAVE: Error:', error)
+        this.showMessage(`Error saving: ${error.message}`, 'error')
+      }
+    },
+    
+    checkStorage() {
+      try {
+        console.log('='.repeat(80))
+        console.log('🔍 STORAGE CHECK: Reading localStorage...')
+        
+        const savedData = localStorage.getItem('guitarapp_users')
+        if (savedData) {
+          const parsed = JSON.parse(savedData)
+          console.log('📦 Found data in localStorage:')
+          console.log('   - Format:', parsed.users ? 'NEW (with metadata)' : 'OLD (array only)')
+          console.log('   - Users count:', (parsed.users || parsed).length)
+          console.log('   - Current user ID:', parsed.currentUserId || 'not set')
+          
+          const users = parsed.users || parsed
+          users.forEach((user, idx) => {
+            console.log(`   ${idx + 1}. ${user.name} (${user.id})`)
+            console.log(`      - Email: ${user.email || 'none'}`)
+            console.log(`      - Created: ${user.createdAt}`)
+            console.log(`      - Trainings: ${user.data?.trainings?.length || 0}`)
+            console.log(`      - Videos: ${user.data?.videos?.length || 0}`)
+          })
+          
+          console.log('📊 In-memory store state:')
+          console.log('   - Users count:', this.userStore.users.length)
+          console.log('   - Current user ID:', this.userStore.currentUserId)
+          this.userStore.users.forEach((user, idx) => {
+            console.log(`   ${idx + 1}. ${user.name} (${user.id})`)
+          })
+          
+          this.showMessage(`Found ${users.length} users in localStorage. Check console for details.`, 'success')
+        } else {
+          console.log('⚠️ No data found in localStorage')
+          this.showMessage('⚠️ No data found in localStorage', 'warning')
+        }
+        console.log('='.repeat(80))
+      } catch (error) {
+        console.error('❌ Error checking storage:', error)
+        this.showMessage(`Error: ${error.message}`, 'error')
+      }
+    },
+    
     // User Management
     async createNewUser() {
       try {
@@ -271,16 +347,20 @@ export default {
           return
         }
         
+        console.log('🟢 Creating new user:', this.newUserForm.name)
         const userId = this.userStore.createUser(
           this.newUserForm.name,
           this.newUserForm.email
         )
+        console.log('🟢 User created with ID:', userId)
+        console.log('🟢 Total users now:', this.userStore.users.length)
         
         this.showMessage(`User "${this.newUserForm.name}" created successfully`, 'success')
         this.showCreateUserDialog = false
         this.newUserForm = { name: '', email: '' }
         this.updateStorageStats()
       } catch (error) {
+        console.error('❌ Error creating user:', error)
         this.showMessage(`Error creating user: ${error.message}`, 'error')
       }
     },

@@ -16,6 +16,10 @@ const app = createApp(App, {
 // Add Pinia for state management
 app.use(pinia)
 
+// Expose Pinia globally so main process can access stores for emergency save
+window.$pinia = pinia
+window.__VUE_APP__ = app
+
 // const { EventEmitter } = require('events');
 // EventEmitter.defaultMaxListeners = 1000000;
 // const image = app.nativeImage.createFromPath(
@@ -24,5 +28,7 @@ app.use(pinia)
 //   );
 //   app.dock.setIcon(image);
 app.mount('#app')
+
+console.log('🚀 Vue app mounted with Pinia exposed globally')
 
 

@@ -45,9 +45,11 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
 
-// Track app quit state (must be before createWindow)
+// Track app quit state
 let isQuitting = false
-let saveCompleted = false
+
+// Set app name for consistent userData path
+app.setName('GuitarApp')
 
 async function createWindow() {
   // Create the browser window.
@@ -77,7 +79,9 @@ async function createWindow() {
   const session = win.webContents.session
   if (isDevelopment) {
     session.setPermissionRequestHandler(() => true)
-    session.clearCache() // Clear cache on startup in dev mode
+    // REMOVED: session.clearCache() - This was clearing localStorage on every restart!
+    // Only clear cache if explicitly needed for debugging
+    console.log('📁 localStorage will persist in:', app.getPath('userData'))
   }
   
   // Enable fullscreen permission for all origins
@@ -132,10 +136,10 @@ async function createWindow() {
     // win.webContents.openDevTools()
   }
   
-  // Intercept window close to save data first
-  win.on('close', (event) => {
+  // Intercept window close to save data before quit
+  win.on('close', async (event) => {
     if (!isQuitting) {
-      event.preventDefault() // Prevent window close
+      event.preventDefault()
       isQuitting = true
       
       console.log('📦 Window closing - requesting data save...')
@@ -143,28 +147,12 @@ async function createWindow() {
       // Send save request to renderer
       win.webContents.send('app-before-quit')
       
-      console.log('⏰ Waiting up to 2 seconds for save confirmation...')
-      
-      // Wait for save or timeout
-      const timeout = setTimeout(() => {
-        if (!saveCompleted) {
-          console.log('⏱️  Save timeout (2s) - closing anyway')
-          saveCompleted = true
-          win.destroy() // Force close
-          app.quit()
-        }
-      }, 2000)
-      
-      // Check for save completion
-      const checkSave = setInterval(() => {
-        if (saveCompleted) {
-          console.log('✅ Save confirmed - closing window')
-          clearTimeout(timeout)
-          clearInterval(checkSave)
-          win.destroy() // Now close for real
-          app.quit()
-        }
-      }, 50)
+      // Wait briefly for renderer to save, then close
+      setTimeout(() => {
+        console.log('🚪 Closing application...')
+        win.destroy()
+        app.quit()
+      }, 500) // Short delay to allow save to complete
     }
   })
   
@@ -174,15 +162,11 @@ async function createWindow() {
 // Register all IPC handlers using modular approach
 registerAllIPCHandlers()
 
-// Handle save-complete message from renderer
+// Handle save-complete message from renderer (optional confirmation)
 ipcMain.handle('app-save-complete', async () => {
-  console.log('📥 Received save-complete signal from renderer')
-  saveCompleted = true
+  console.log('📥 Save-complete signal from renderer')
   return { success: true }
 })
-
-// NOTE: Save logic moved to window.on('close') in createWindow()
-// This ensures we have access to the window BEFORE it closes
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -218,6 +202,11 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
+  console.log('🚀 App starting...')
+  console.log('📁 User data directory:', app.getPath('userData'))
+  console.log('📁 App data directory:', app.getPath('appData'))
+  console.log('💾 localStorage will be stored in the user data directory')
+  
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools with better error handling (dev only)
     try {
