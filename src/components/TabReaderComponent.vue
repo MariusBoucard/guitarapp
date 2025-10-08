@@ -34,13 +34,72 @@
       </div>
     </div>
     
-    <div v-if="isLoaded" class="track-selector">
-      <label>Select Track:</label>
-      <select v-model="selectedTrack" @change="changeTrack">
-        <option v-for="(track, index) in tracks" :key="index" :value="index">
-          {{ track.name }} ({{ track.channel?.instrument?.name || 'Unknown Instrument' }})
-        </option>
-      </select>
+    <div v-if="isLoaded" class="bottom-panel">
+      <div class="track-selector">
+        <label>Select Track:</label>
+        <select v-model="selectedTrack" @change="changeTrack">
+          <option v-for="(track, index) in tracks" :key="index" :value="index">
+            {{ track.name }} ({{ track.channel?.instrument?.name || 'Unknown Instrument' }})
+          </option>
+        </select>
+        <button @click="showMixer = !showMixer" class="mixer-toggle-btn">
+          {{ showMixer ? '🎚️ Hide Mixer' : '🎚️ Show Mixer' }}
+        </button>
+      </div>
+      
+      <div v-if="showMixer" class="mixer-panel">
+        <h4>Track Mixer</h4>
+        <div class="mixer-tracks">
+          <div v-for="(track, index) in tracks" :key="index" class="mixer-track">
+            <div class="track-header">
+              <input 
+                type="checkbox" 
+                :checked="!track.playbackInfo.isMute"
+                @change="toggleMute(index)"
+                :id="'mute-' + index"
+              />
+              <label :for="'mute-' + index" class="track-name">
+                {{ track.name }}
+              </label>
+            </div>
+            <div class="track-controls">
+              <div class="control-group">
+                <label>Volume</label>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="16" 
+                  :value="track.playbackInfo.volume"
+                  @input="changeVolume(index, $event.target.value)"
+                  class="volume-slider"
+                />
+                <span class="value-display">{{ track.playbackInfo.volume }}</span>
+              </div>
+              <div class="control-group">
+                <label>Pan</label>
+                <input 
+                  type="range" 
+                  min="-64" 
+                  max="63" 
+                  :value="track.playbackInfo.balance"
+                  @input="changePanning(index, $event.target.value)"
+                  class="pan-slider"
+                />
+                <span class="value-display">{{ track.playbackInfo.balance }}</span>
+              </div>
+              <div class="control-group solo-group">
+                <button 
+                  @click="toggleSolo(index)"
+                  :class="{ 'active': track.playbackInfo.isSolo }"
+                  class="solo-btn"
+                >
+                  S
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -58,7 +117,8 @@ export default {
       isPlayerReady: false,
       error: null,
       tracks: [],
-      selectedTrack: 0
+      selectedTrack: 0,
+      showMixer: false
     }
   },
   computed: {
@@ -213,6 +273,40 @@ export default {
     changeTrack() {
       if (!this.alphaTabApi || !this.isLoaded || this.selectedTrack >= this.tracks.length) return
       this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
+    },
+    
+    changeVolume(trackIndex, volume) {
+      if (!this.alphaTabApi || !this.tracks[trackIndex]) return
+      const volumeValue = parseInt(volume)
+      this.alphaTabApi.changeTrackVolume([this.tracks[trackIndex]], volumeValue)
+      this.tracks[trackIndex].playbackInfo.volume = volumeValue
+      this.$forceUpdate()
+    },
+    
+    changePanning(trackIndex, balance) {
+      if (!this.alphaTabApi || !this.tracks[trackIndex]) return
+      const balanceValue = parseInt(balance)
+      this.alphaTabApi.changeTrackBalance([this.tracks[trackIndex]], balanceValue)
+      this.tracks[trackIndex].playbackInfo.balance = balanceValue
+      this.$forceUpdate()
+    },
+    
+    toggleMute(trackIndex) {
+      if (!this.alphaTabApi || !this.tracks[trackIndex]) return
+      const track = this.tracks[trackIndex]
+      const newMuteState = !track.playbackInfo.isMute
+      this.alphaTabApi.changeTrackMute([track], newMuteState)
+      track.playbackInfo.isMute = newMuteState
+      this.$forceUpdate()
+    },
+    
+    toggleSolo(trackIndex) {
+      if (!this.alphaTabApi || !this.tracks[trackIndex]) return
+      const track = this.tracks[trackIndex]
+      const newSoloState = !track.playbackInfo.isSolo
+      this.alphaTabApi.changeTrackSolo([track], newSoloState)
+      track.playbackInfo.isSolo = newSoloState
+      this.$forceUpdate()
     }
   }
 }
@@ -221,7 +315,8 @@ export default {
 <style scoped>
 .tab-reader-container {
   width: 100%;
-  height: 100%;
+  min-height: 600px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   background: var(--bg-color, #1a1a1a);
@@ -230,6 +325,7 @@ export default {
   overflow: hidden;
   border: 1px solid #444;
   margin: 10px 0;
+  position: relative;
 }
 
 .tab-reader-header {
@@ -334,9 +430,11 @@ export default {
 
 .tab-content {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   position: relative;
-  min-height: 400px;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
 }
 
 .no-file {
@@ -351,11 +449,13 @@ export default {
 
 .alphatab-container {
   width: 100%;
-  min-height: 400px;
+  flex: 1;
   background: white;
   border-radius: 4px;
   padding: 10px;
-  overflow: auto;
+  padding-bottom: 180px;
+  overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -382,10 +482,20 @@ export default {
   text-align: center;
 }
 
+.bottom-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(42, 42, 42, 0.98);
+  border-top: 1px solid var(--border-color, #444);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
 .track-selector {
   padding: 1rem;
-  background: var(--header-bg, #2a2a2a);
-  border-top: 1px solid var(--border-color, #444);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -403,5 +513,167 @@ export default {
   border: 1px solid var(--border-color, #444);
   border-radius: 4px;
   min-width: 200px;
+  flex: 1;
+}
+
+.mixer-toggle-btn {
+  padding: 0.5rem 1rem;
+  background: var(--primary-color, #4CAF50);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s;
+}
+
+.mixer-toggle-btn:hover {
+  background: var(--primary-hover, #45a049);
+}
+
+.mixer-panel {
+  padding: 1rem;
+  background: rgba(26, 26, 26, 0.98);
+  border-top: 1px solid var(--border-color, #444);
+  max-height: 350px;
+  overflow-y: auto;
+  backdrop-filter: blur(5px);
+}
+
+.mixer-panel h4 {
+  margin: 0 0 1rem 0;
+  color: var(--primary-color, #4CAF50);
+  font-size: 1.1rem;
+}
+
+.mixer-tracks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.mixer-track {
+  background: var(--header-bg, #2a2a2a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.track-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color, #444);
+}
+
+.track-header input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.track-name {
+  color: var(--text-color, #fff);
+  font-weight: bold;
+  font-size: 0.9rem;
+  cursor: pointer;
+  flex: 1;
+}
+
+.track-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.control-group label {
+  color: var(--text-muted, #888);
+  font-size: 0.85rem;
+  width: 50px;
+}
+
+.volume-slider,
+.pan-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--input-bg, #333);
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb,
+.pan-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary-color, #4CAF50);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover,
+.pan-slider::-webkit-slider-thumb:hover {
+  background: var(--primary-hover, #45a049);
+}
+
+.volume-slider::-moz-range-thumb,
+.pan-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary-color, #4CAF50);
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s;
+}
+
+.volume-slider::-moz-range-thumb:hover,
+.pan-slider::-moz-range-thumb:hover {
+  background: var(--primary-hover, #45a049);
+}
+
+.value-display {
+  color: var(--text-color, #fff);
+  font-size: 0.85rem;
+  min-width: 30px;
+  text-align: right;
+  font-family: monospace;
+}
+
+.solo-group {
+  justify-content: flex-end;
+}
+
+.solo-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 2px solid var(--border-color, #444);
+  background: var(--input-bg, #333);
+  color: var(--text-muted, #888);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.solo-btn:hover {
+  border-color: #FFC107;
+  color: #FFC107;
+}
+
+.solo-btn.active {
+  background: #FFC107;
+  border-color: #FFC107;
+  color: #000;
 }
 </style>
