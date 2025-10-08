@@ -22,6 +22,7 @@
               :showgame="appStore.gameDisplay" 
               :gamePlay="gameStore.isPlayingRoot" 
               v-show="appStore.mancheDisplay"  
+              @note-toggled="handleMancheNoteToggle"
               @unselectgamme="appController.unselectGamme()" 
               :allnotesc="notesStore.allNotesC" 
               :allnotes="notesStore.allNotes" 
@@ -609,6 +610,11 @@ export default {
       // Clear all selected notes
       appController.reinitNotesTracking()
     }
+
+    const handleMancheNoteToggle = (noteData) => {
+      // MancheComponent toggles notes - convert to store format
+      appController.handleNoteSelectionChange(noteData)
+    }
     
     return {
       appStore,
@@ -625,6 +631,7 @@ export default {
       handleKeyboardNoteSelect,
       handleKeyboardNoteRemove,
       handleKeyboardClearAll,
+      handleMancheNoteToggle,
       isRightColumnFolded,
       toggleRightColumn,
       // Song Player State Management

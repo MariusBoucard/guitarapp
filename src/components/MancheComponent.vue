@@ -120,8 +120,6 @@ export default {
                 { id: 11, note: "GS" },
             ],
             nbCordes: 6,
-            notesSelectedIntra2: this.notesSelected || [],
-            couleursnotes: this.colorNotes || [],
             diapason: (this.diap || 25.5) * 2.3,
             currentNote: this.notePlayed || '',
             sapinNoel: false,
@@ -151,19 +149,15 @@ export default {
             // return test.enabled
         },
         chooseNote(corde, index) {
-
             var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
             var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
+            
+            // Emit event to parent instead of modifying directly
+            this.$emit('note-toggled', {
+                note: note.note,
+                enabled: !enabledornot.enabled
+            })
             this.$emit('unselectgamme')
-
-            // console.log('caca')
-            enabledornot.enabled = !enabledornot.enabled
-            this.notesSelectedIntra2.forEach(
-                col => {
-                    localStorage.setItem(col.note + "Selected", col.enabled)
-                    //  console.log(col.enabled)
-                }
-            )
         },
         renderChoosen(corde, index) {
 
@@ -194,7 +188,7 @@ export default {
             if (lettre === this.notePlayed.slice(0, this.notePlayed.length)) {
                 return "white"
             }
-            var couleur = this.couleursnotes.find((couleurs) => couleurs.note === lettre.slice(0, lettre.length - 1))
+            var couleur = this.colorNotes.find((couleurs) => couleurs.note === lettre.slice(0, lettre.length - 1))
             return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
         },
         calcBackNote(corde, index) {
@@ -267,12 +261,6 @@ export default {
                 this.diapason = this.diap * 2.3
                 this.$forceUpdate()
             }
-        },
-        colorNotes: {
-            handler() {
-                console.log("changed")
-                this.$forceUpdate();
-            }
         }
     },
 
@@ -282,7 +270,8 @@ export default {
             return this.colorNotes
         },
         notesSelectedIntra() {
-            return this.notesSelectedIntra2
+            // Use the prop directly for reactivity
+            return this.notesSelected || []
         },
         caca() {
             return this.currentNote
