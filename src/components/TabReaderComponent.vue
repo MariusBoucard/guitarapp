@@ -98,9 +98,10 @@ export default {
         settings.player.enablePlayer = true
         settings.player.enableAudioSynthesis = true
         settings.player.soundFont = './soundfont/sonivox.sf2'
-        settings.player.enableCursor = true
+        settings.player.enableCursor = true  // Enable beat cursor
         settings.player.enableUserInteraction = true
-        settings.player.scrollMode = 'continuous'
+        settings.player.enableElementHighlighting = true  // Highlight current element
+        settings.player.scrollMode = 'continuous'  // Auto-scroll with playback
         settings.core.fontDirectory = './font/'
         
         this.alphaTabApi = new AlphaTabApi(this.$refs.alphaTab, settings)
@@ -355,6 +356,21 @@ export default {
   border-radius: 4px;
   padding: 10px;
   overflow: auto;
+  position: relative;
+}
+
+/* AlphaTab's built-in cursor styling */
+.alphatab-container :deep(.at-cursor-bar) {
+  background: rgba(255, 0, 0, 0.3) !important;
+  width: 3px !important;
+}
+
+.alphatab-container :deep(.at-cursor-beat) {
+  background: rgba(255, 0, 0, 0.25) !important;
+}
+
+.alphatab-container :deep(.at-highlight) {
+  background: rgba(255, 200, 0, 0.3) !important;
 }
 
 .error {
