@@ -263,7 +263,10 @@ export default {
 
   data() {
     return {
+      // Playlist management
       currentName: "",
+      
+      // Directory browsing (temporary UI state)
       directoryVideos: [],
       directoryInfo: {
         name: "",
@@ -272,12 +275,14 @@ export default {
         totalVideos: 0,
         lastScanned: null
       },
-      // Modal state
+      
+      // Modal state (UI only)
       showVideoModal: false,
       videoSearchQuery: "",
       expandedTrainings: new Set(),
       expandedItems: new Set(),
-      // Video player state
+      
+      // Video player state (component-specific, not saved per user)
       currentVideoName: "",
       videoDuration: 0,
       startTime: 0,
@@ -285,6 +290,7 @@ export default {
       speed: 100,
       loop: false,
       isPlaying: false,
+      
       // Blob URL cleanup
       cleanupBlobUrl: null
     }

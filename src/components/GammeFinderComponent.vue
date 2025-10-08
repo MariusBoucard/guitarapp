@@ -96,20 +96,17 @@
 <script>
 
 import * as myKey from '../../mydata.json';
+import { useNotesStore } from '@/stores/notesStore'
 // import  saveAs from 'file-saver';
 export default {
-    props: {
-        //Peut etre qu'on peut definir un array de note ici
-        notesSelected: { required: true, type: [Object] },
-        color: { required: true, type: [Object] },
-        nbnotes: { required: true, type: [Object] },
-        colorsave : { required : true, type : [Object]},
-        gammeSelected : { required: true, type: String },
+    setup() {
+        const notesStore = useNotesStore()
+        return { notesStore }
     },
+    
     data() {
         return {
             colorScaleBool : false,
-            gammeSelectedIntra : this.gammeSelected,
             listeNotes: [
                 { id: 0, note: "A" },
                 { id: 1, note: "AS" },
@@ -154,10 +151,32 @@ export default {
         }
     },
     computed : {
-        // Use the prop directly instead of copying it to data
+        // Reference store data directly (per-user)
+        notesSelected() {
+            return this.notesStore.noteSlectedList
+        },
+        
+        color() {
+            return this.notesStore.colors
+        },
+        
+        nbnotes() {
+            return this.notesStore.nbnotes
+        },
+        
+        colorsave() {
+            return this.notesStore.colorSave
+        },
+        
+        gammeSelected() {
+            return this.notesStore.gammeSelected
+        },
+        
+        // Use the computed property instead of data
         notesSelectionnees() {
             return this.notesSelected;
         },
+        
         listeGammes(){
             var notes = []
             // Use the computed property instead of data
@@ -207,19 +226,20 @@ export default {
             // console.log(fonda,type)
             var gamme = this.generateGammes(type, fonda)
 
-            // Create a copy of the notes array and modify it
-            const updatedNotes = this.notesSelected.map(n => ({ ...n, enabled: false }))
+            // Update notes in store directly
+            this.notesStore.noteSlectedList.forEach(note => {
+                note.enabled = false
+            })
+            
             gamme.notes.forEach(note => {
-                var find = updatedNotes.find(notesel => notesel.note === note)
+                var find = this.notesStore.noteSlectedList.find(notesel => notesel.note === note)
                 if (find) {
                     find.enabled = true
                 }
             })
             
-            // Emit the updated notes back to parent instead of modifying props directly
-            this.$emit("notes-updated", updatedNotes)
-            this.$emit("newscale", fonda + " " + type)
-
+            // Update scale in store
+            this.notesStore.setScale(fonda + " " + type)
         },
         generatePopulation(nomGamme) {
             // console.log(nomGamme)
@@ -333,19 +353,15 @@ export default {
             console.log("Rootnote gamme "+rootnote+type)
             if(this.colorScaleBool && rootnote !== "" && type !== ""){
                 //Parse over the name to get the rootNote
-                this.colorSave = this.color
                 //get the intervals :
-                localStorage.setItem("oldnotescolor",JSON.stringify(this.colorSave))
-
-                this.colorIntra = this.generateColors(rootnote,type)
-                console.log(this.colorIntra)
-                this.$emit("colorgamme",this.colorIntra)
+                const newColors = this.generateColors(rootnote, type)
+                console.log(newColors)
+                // Update colors in store
+                this.notesStore.changeColor(newColors)
             }
             else{
-                this.colorIntra = this.colorSave
-                this.$emit("colorgamme",this.colorIntra)
-
-
+                // Reset to saved colors
+                this.notesStore.changeColor(this.colorsave)
             }
         }
     }

@@ -28,12 +28,14 @@
 
 </template>
 <script>
+import { useNotesStore } from '@/stores/notesStore'
+
 export default {
-    props: {
-        selectedGamme: { required: true, type: String },
-        selectedNotes: { required: true, type: [Object] },
-        nbnotes: { required: true, type: [Object] }
+    setup() {
+        const notesStore = useNotesStore()
+        return { notesStore }
     },
+    
     data() {
         return {
             relativeKey: "",
@@ -300,6 +302,21 @@ export default {
 
         }
     },
+    computed: {
+        // Reference store data directly (per-user)
+        selectedGamme() {
+            return this.notesStore.gammeSelected
+        },
+        
+        selectedNotes() {
+            return this.notesStore.noteSlectedList
+        },
+        
+        nbnotes() {
+            return this.notesStore.nbnotes
+        }
+    },
+    
     methods: {
         setRelativeScale(){
 

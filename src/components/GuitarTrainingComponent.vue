@@ -90,14 +90,9 @@
           ></TunerComponent>
                             <PlaySoundComponent v-show="appStore.soundDisplay"></PlaySoundComponent>
 
-          <SuggestedChordsComponent 
-            v-show="appStore.chordssuggestDisplay" 
-            :nbnotes="notesStore.nbnotes" 
-            :selectedNotes="notesStore.noteSlectedList" 
-            :selectedGamme="notesStore.gammeSelected"
-          />
-        
-          <NoteToPlayComponent  
+      <SuggestedChordsComponent 
+        v-show="appStore.chordssuggestDisplay"
+      />          <NoteToPlayComponent  
             v-show="appStore.gameDisplay" 
             @noteexpected="appController.handleGameNoteExpected($event)" 
             @cheatchanged="appController.handleGameCheatChanged($event)" 
@@ -180,15 +175,7 @@
             :couleurdict="notesStore.colors"
           ></ColorComponent>
           <GammeFinderComponent 
-            @colorgamme="appController.handleColorChange($event)"  
-            @notes-updated="appController.handleNotesUpdate($event)"
-            :colorsave="notesStore.colorSave" 
-            :color="notesStore.colors" 
-            :nbnotes="notesStore.nbnotes" 
-            :gammeSelected="notesStore.gammeSelected" 
-            @newscale="appController.handleScaleSelection($event)" 
-            v-show="appStore.scalesDisplay" 
-            :notesSelected="notesStore.noteSlectedList"
+            v-show="appStore.scalesDisplay"
           ></GammeFinderComponent>
         </div>
       </div>
