@@ -1,16 +1,19 @@
 /**
  * Notes Store - Musical notes, scales, and colors state
  * This is the Model layer for musical data in MVC architecture
+ * 
+ * Now references current user's data from userStore for per-user note selection
  */
 import { defineStore } from 'pinia'
+import { useUserStore } from './userStore'
 
 export const useNotesStore = defineStore('notes', {
   state: () => ({
-    // Current note being played
+    // Current note being played (session state, not saved per user)
     notePlayed: "",
     noteexpected: "",
     
-    // Notes configuration
+    // Notes configuration (static reference data)
     nbnotes: [
       { id: 0, note: "A" },
       { id: 1, note: "AS" },
@@ -41,38 +44,7 @@ export const useNotesStore = defineStore('notes', {
       { id: 11, note: "B" },
     ],
     
-    // Selected notes
-    noteSlectedList: [
-      { note: 'A', enabled: false },
-      { note: 'AS', enabled: false },
-      { note: 'B', enabled: false },
-      { note: 'C', enabled: false },
-      { note: 'CS', enabled: false },
-      { note: 'D', enabled: false },
-      { note: 'DS', enabled: false },
-      { note: 'E', enabled: true },
-      { note: 'F', enabled: false },
-      { note: 'FS', enabled: false },
-      { note: 'G', enabled: false },
-      { note: 'GS', enabled: false }
-    ],
-    
-    // Note colors
-    colors: [
-      { note: "A", color: "black" },
-      { note: "AS", color: "grey" },
-      { note: "B", color: "white" },
-      { note: "C", color: "blue" },
-      { note: "CS", color: "lightblue" },
-      { note: "D", color: "red" },
-      { note: "DS", color: "pink" },
-      { note: "E", color: "green" },
-      { note: "F", color: "brown" },
-      { note: "FS", color: "#b5651d" },
-      { note: "G", color: "yellow" },
-      { note: "GS", color: "lightyellow" },
-    ],
-    
+    // Default color save (for reset functionality)
     colorSave: [
       { note: "A", color: "black" },
       { note: "AS", color: "grey" },
@@ -87,9 +59,6 @@ export const useNotesStore = defineStore('notes', {
       { note: "G", color: "yellow" },
       { note: "GS", color: "lightyellow" },
     ],
-    
-    // Scale/Gamme selection
-    gammeSelected: "",
     
     // Notes played tracking for auto-gamme selection
     notesPlayedList: [],
@@ -114,6 +83,63 @@ export const useNotesStore = defineStore('notes', {
   }),
 
   getters: {
+    // Reference to userStore
+    userStore() {
+      return useUserStore()
+    },
+    
+    // Per-user note selection (from userStore)
+    noteSlectedList() {
+      const currentUser = this.userStore.currentUser
+      if (!currentUser?.data?.notes?.noteSlectedList) {
+        // Return default if user data not initialized
+        return [
+          { note: 'A', enabled: false },
+          { note: 'AS', enabled: false },
+          { note: 'B', enabled: false },
+          { note: 'C', enabled: false },
+          { note: 'CS', enabled: false },
+          { note: 'D', enabled: false },
+          { note: 'DS', enabled: false },
+          { note: 'E', enabled: true },
+          { note: 'F', enabled: false },
+          { note: 'FS', enabled: false },
+          { note: 'G', enabled: false },
+          { note: 'GS', enabled: false }
+        ]
+      }
+      return currentUser.data.notes.noteSlectedList
+    },
+    
+    // Per-user note colors (from userStore)
+    colors() {
+      const currentUser = this.userStore.currentUser
+      if (!currentUser?.data?.colors || currentUser.data.colors.length === 0) {
+        // Return default colors if user data not initialized
+        return [
+          { note: "A", color: "black" },
+          { note: "AS", color: "grey" },
+          { note: "B", color: "white" },
+          { note: "C", color: "blue" },
+          { note: "CS", color: "lightblue" },
+          { note: "D", color: "red" },
+          { note: "DS", color: "pink" },
+          { note: "E", color: "green" },
+          { note: "F", color: "brown" },
+          { note: "FS", color: "#b5651d" },
+          { note: "G", color: "yellow" },
+          { note: "GS", color: "lightyellow" },
+        ]
+      }
+      return currentUser.data.colors
+    },
+    
+    // Per-user gamme selection (from userStore)
+    gammeSelected() {
+      const currentUser = this.userStore.currentUser
+      return currentUser?.data?.notes?.gammeSelected || ""
+    },
+    
     // Get note name by index
     getNoteName: (state) => (note) => {
       const names = ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"];
@@ -123,44 +149,66 @@ export const useNotesStore = defineStore('notes', {
     },
     
     // Get enabled notes
-    enabledNotes: (state) => {
-      return state.noteSlectedList.filter(note => note.enabled);
+    enabledNotes() {
+      return this.noteSlectedList.filter(note => note.enabled);
     },
     
     // Get color for a note
-    getNoteColor: (state) => (noteName) => {
-      const colorObj = state.colors.find(c => c.note === noteName);
-      return colorObj ? colorObj.color : 'black';
+    getNoteColor() {
+      return (noteName) => {
+        const colorObj = this.colors.find(c => c.note === noteName);
+        return colorObj ? colorObj.color : 'black';
+      }
     }
   },
 
   actions: {
-    // Note selection
+    // Note selection - updates current user's data
     changeNoteSelection(noteData) {
-      const note = this.noteSlectedList.find(n => n.note === noteData.note);
+      const currentUser = this.userStore.currentUser
+      if (!currentUser?.data?.notes) return
+      
+      const note = currentUser.data.notes.noteSlectedList.find(n => n.note === noteData.note);
       if (note) {
         note.enabled = noteData.enabled;
       }
-      this.gammeSelected = "";
+      currentUser.data.notes.gammeSelected = "";
+      this.userStore.saveUsersToStorage();
     },
 
-    // Update all notes at once (for scale selection)
+    // Update all notes at once (for scale selection) - updates current user's data
     updateAllNotes(notesArray) {
-      this.noteSlectedList = notesArray;
+      const currentUser = this.userStore.currentUser
+      if (!currentUser?.data?.notes) return
+      
+      currentUser.data.notes.noteSlectedList = notesArray;
+      this.userStore.saveUsersToStorage();
     },
     
-    // Color management
+    // Color management - updates current user's data
     changeColor(colors) {
-      this.colors = colors;
+      const currentUser = this.userStore.currentUser
+      if (!currentUser?.data) return
+      
+      currentUser.data.colors = colors;
+      this.userStore.saveUsersToStorage();
     },
     
-    // Scale/Gamme management
+    // Scale/Gamme management - updates current user's data
     setScale(scale) {
-      this.gammeSelected = scale;
+      const currentUser = this.userStore.currentUser
+      if (!currentUser?.data?.notes) return
+      
+      currentUser.data.notes.gammeSelected = scale;
+      this.userStore.saveUsersToStorage();
     },
     
     unselectGamme() {
-      this.gammeSelected = "";
+      const currentUser = this.userStore.currentUser
+      if (!currentUser?.data?.notes) return
+      
+      currentUser.data.notes.gammeSelected = "";
+      this.userStore.saveUsersToStorage();
     },
     
     // Note playing tracking
@@ -190,13 +238,16 @@ export const useNotesStore = defineStore('notes', {
     },
     
     selectGamme() {
+      const currentUser = this.userStore.currentUser
+      if (!currentUser?.data?.notes?.noteSlectedList) return
+      
       const sortedDict = [...this.notesPlayedDict].sort((a, b) => a.nb - b.nb);
       const topNotes = sortedDict.slice(-7);
       const bottomNotes = sortedDict.slice(0, -7);
       
       // Disable bottom notes
       bottomNotes.forEach(dictNote => {
-        const selectedNote = this.noteSlectedList.find(note => note.note === dictNote.note);
+        const selectedNote = currentUser.data.notes.noteSlectedList.find(note => note.note === dictNote.note);
         if (selectedNote) {
           selectedNote.enabled = false;
         }
@@ -204,11 +255,13 @@ export const useNotesStore = defineStore('notes', {
       
       // Enable/disable top notes based on frequency
       topNotes.forEach(dictNote => {
-        const selectedNote = this.noteSlectedList.find(note => note.note === dictNote.note);
+        const selectedNote = currentUser.data.notes.noteSlectedList.find(note => note.note === dictNote.note);
         if (selectedNote) {
           selectedNote.enabled = dictNote.nb > 2;
         }
       });
+      
+      this.userStore.saveUsersToStorage();
     },
     
     // Reset functions
