@@ -69,7 +69,9 @@ async function createWindow() {
       allowRunningInsecureContent: false,
       experimentalFeatures: false,
       backgroundThrottling: false, // Prevent background throttling
-      sandbox: false
+      sandbox: false,
+      // CRITICAL: Use consistent partition for localStorage across dev/prod
+      partition: 'persist:guitarapp'
     }
   })
   

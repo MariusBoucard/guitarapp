@@ -36,8 +36,10 @@ export const useUserStore = defineStore('user', {
           scalesDisplay: true,
           videoDisplay: false,
           videoDisplayNew: true,
+          trainingDisplay: false,
           gameDisplay: false,
-          chordssuggestDisplay: false
+          chordssuggestDisplay: false,
+          tabReaderDisplay: false
         },
         notes: {
           noteSlectedList: [],
@@ -83,23 +85,30 @@ export const useUserStore = defineStore('user', {
           const parsed = JSON.parse(savedData)
           if (parsed.users && Array.isArray(parsed.users)) {
             initialUsers = parsed.users
-            initialCurrentUserId = parsed.currentUserId
+            initialCurrentUserId = parsed.currentUserId || initialUsers[0]?.id
             console.log('🔴 STATE INITIALIZER: Loaded', initialUsers.length, 'users from localStorage')
+            console.log('🔴 STATE INITIALIZER: Current user ID:', initialCurrentUserId)
             initialUsers.forEach((u, idx) => {
               console.log(`   ${idx + 1}. ${u.name} (${u.id})`)
             })
           }
         } else {
           console.log('🔴 STATE INITIALIZER: No saved data, using default user')
+          initialCurrentUserId = initialUsers[0]?.id
         }
+      } else {
+        console.log('🔴 STATE INITIALIZER: localStorage not available yet')
+        initialCurrentUserId = initialUsers[0]?.id
       }
     } catch (error) {
       console.error('🔴 STATE INITIALIZER: Error loading from localStorage:', error)
+      initialCurrentUserId = initialUsers[0]?.id
     }
     
     return {
       // Initialization flag to prevent saves during load
-      isInitializing: false,
+      // Start as TRUE to prevent saves until initialize() completes
+      isInitializing: true,
       
       // Current active user
       currentUserId: initialCurrentUserId,
@@ -159,7 +168,8 @@ export const useUserStore = defineStore('user', {
       this.isInitializing = true
       
       // Check if we already loaded from localStorage during state creation
-      const alreadyLoadedFromStorage = this.users.length > 0 && this.users[0].id !== 'default'
+      // We know it loaded if we have users AND currentUserId is set
+      const alreadyLoadedFromStorage = this.users.length > 0 && this.currentUserId !== null
       
       if (!alreadyLoadedFromStorage) {
         console.log('🔄 INITIALIZE: Loading from localStorage...')
@@ -173,9 +183,9 @@ export const useUserStore = defineStore('user', {
         console.log(`   ${idx + 1}. ${u.name} (${u.id}) - trainings: ${u.data?.trainings?.length || 0}`)
       })
       
-      // currentUserId should already be set by loadUsersFromStorage or state initializer
-      // But if not, fall back to checking separate storage or defaults
+      // Ensure currentUserId is set - this is CRITICAL
       if (!this.currentUserId) {
+        console.log('⚠️ INITIALIZE: currentUserId not set, fixing...')
         const savedUserId = localStorage.getItem('guitarapp_currentUserId')
         if (savedUserId && this.userExists(savedUserId)) {
           this.currentUserId = savedUserId
@@ -185,6 +195,12 @@ export const useUserStore = defineStore('user', {
           this.currentUserName = this.users[0].name
           console.log('🔍 INITIALIZE: Set to first user:', this.users[0].name)
         }
+      } else {
+        // Ensure currentUserName is also set
+        const user = this.getUserById(this.currentUserId)
+        if (user) {
+          this.currentUserName = user.name
+        }
       }
       
       console.log('✅ INITIALIZE: Complete - Current user:', this.currentUser?.name, 'ID:', this.currentUserId)
@@ -193,6 +209,9 @@ export const useUserStore = defineStore('user', {
       
       // NOW it's safe to update and save
       this.updateLastActive()
+      
+      // IMPORTANT: Save to ensure currentUserId is persisted if it was just set
+      this.saveUsersToStorage()
     },
     
     // Create new user
@@ -225,8 +244,10 @@ export const useUserStore = defineStore('user', {
             scalesDisplay: true,
             videoDisplay: false,
             videoDisplayNew: true,
+            trainingDisplay: false,
             gameDisplay: false,
             chordssuggestDisplay: false,
+            tabReaderDisplay: false,
             diapason: 440
           },
           notes: {

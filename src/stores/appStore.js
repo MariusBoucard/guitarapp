@@ -1,104 +1,183 @@
 /**
  * App Store - Global application state
  * This is the Model layer for overall app state in MVC architecture
+ * 
+ * IMPORTANT: Display settings now come from currentUser.data.settings
+ * This ensures settings persist per-user and don't get reset
  */
 import { defineStore } from 'pinia'
+import { useUserStore } from './userStore'
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    // UI Display States
-    mancheDisplay: true,
-    notesSelectedDisplay: true,
-    tunderDisplay: false,
-    pictureDisplay: false,
-    soundDisplay: false,
-    scalesDisplay: true,
-    videoDisplay: false,
-    videoDisplayNew: true,
-    trainingDisplay: false,
-    gameDisplay: false,
-    chordssuggestDisplay: false,
+    // Session-only UI states (not saved per-user)
     settingsView: false,
     keyboard: false,
-    tabReaderDisplay: false,
-    // vst3PluginDisplay removed - feature disabled
     userManagementDisplay: false,
     
-    // Global UI Properties
+    // Global UI Properties (session state)
     lefty: false,
     autoGammeSelect: false,
     isPlayingRoot: false,
     
-    // Video Settings
+    // Video Settings (session state)
     videoFolder: ""
   }),
 
   getters: {
+    // Reference to userStore
+    userStore() {
+      return useUserStore()
+    },
+    
+    // Display states from current user's settings
+    mancheDisplay() {
+      return this.userStore.currentUser?.data?.settings?.mancheDisplay ?? true
+    },
+    notesSelectedDisplay() {
+      return this.userStore.currentUser?.data?.settings?.notesSelectedDisplay ?? true
+    },
+    tunerDisplay() {
+      return this.userStore.currentUser?.data?.settings?.tunerDisplay ?? false
+    },
+    pictureDisplay() {
+      return this.userStore.currentUser?.data?.settings?.pictureDisplay ?? false
+    },
+    soundDisplay() {
+      return this.userStore.currentUser?.data?.settings?.soundDisplay ?? false
+    },
+    scalesDisplay() {
+      return this.userStore.currentUser?.data?.settings?.scalesDisplay ?? true
+    },
+    videoDisplay() {
+      return this.userStore.currentUser?.data?.settings?.videoDisplay ?? false
+    },
+    videoDisplayNew() {
+      return this.userStore.currentUser?.data?.settings?.videoDisplayNew ?? true
+    },
+    trainingDisplay() {
+      return this.userStore.currentUser?.data?.settings?.trainingDisplay ?? false
+    },
+    gameDisplay() {
+      return this.userStore.currentUser?.data?.settings?.gameDisplay ?? false
+    },
+    chordssuggestDisplay() {
+      return this.userStore.currentUser?.data?.settings?.chordssuggestDisplay ?? false
+    },
+    tabReaderDisplay() {
+      return this.userStore.currentUser?.data?.settings?.tabReaderDisplay ?? false
+    },
+    
     // Get all display states for easy iteration
-    displayStates: (state) => ({
-      mancheDisplay: state.mancheDisplay,
-      notesSelectedDisplay: state.notesSelectedDisplay,
-      tunderDisplay: state.tunderDisplay,
-      pictureDisplay: state.pictureDisplay,
-      soundDisplay: state.soundDisplay,
-      scalesDisplay: state.scalesDisplay,
-      videoDisplay: state.videoDisplay,
-      videoDisplayNew: state.videoDisplayNew,
-      trainingDisplay: state.trainingDisplay,
-      gameDisplay: state.gameDisplay,
-      chordssuggestDisplay: state.chordssuggestDisplay,
-      settingsView: state.settingsView,
-      keyboard: state.keyboard,
-      tabReaderDisplay: state.tabReaderDisplay,
-      // vst3PluginDisplay removed - feature disabled
-      userManagementDisplay: state.userManagementDisplay
-    })
+    displayStates() {
+      return {
+        mancheDisplay: this.mancheDisplay,
+        notesSelectedDisplay: this.notesSelectedDisplay,
+        tunerDisplay: this.tunerDisplay,
+        pictureDisplay: this.pictureDisplay,
+        soundDisplay: this.soundDisplay,
+        scalesDisplay: this.scalesDisplay,
+        videoDisplay: this.videoDisplay,
+        videoDisplayNew: this.videoDisplayNew,
+        trainingDisplay: this.trainingDisplay,
+        gameDisplay: this.gameDisplay,
+        chordssuggestDisplay: this.chordssuggestDisplay,
+        settingsView: this.settingsView,
+        keyboard: this.keyboard,
+        tabReaderDisplay: this.tabReaderDisplay,
+        userManagementDisplay: this.userManagementDisplay
+      }
+    }
   },
 
   actions: {
-    // Toggle display states
+    // Toggle display states - now updates current user's settings
     toggleManche() {
-      this.mancheDisplay = !this.mancheDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.mancheDisplay = !settings.mancheDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     toggleNotesSelected() {
-      this.notesSelectedDisplay = !this.notesSelectedDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.notesSelectedDisplay = !settings.notesSelectedDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     toggleTuner() {
-      this.tunderDisplay = !this.tunderDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.tunerDisplay = !settings.tunerDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     togglePicture() {
-      this.pictureDisplay = !this.pictureDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.pictureDisplay = !settings.pictureDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     toggleSound() {
-      this.soundDisplay = !this.soundDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.soundDisplay = !settings.soundDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     toggleScales() {
-      this.scalesDisplay = !this.scalesDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.scalesDisplay = !settings.scalesDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     toggleVideo() {
-      this.videoDisplay = !this.videoDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.videoDisplay = !settings.videoDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     toggleVideoNew() {
-      this.videoDisplayNew = !this.videoDisplayNew
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.videoDisplayNew = !settings.videoDisplayNew
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     toggleTraining() {
-      this.trainingDisplay = !this.trainingDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.trainingDisplay = !settings.trainingDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     toggleGame() {
-      this.gameDisplay = !this.gameDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.gameDisplay = !settings.gameDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     toggleChordssuggestion() {
-      this.chordssuggestDisplay = !this.chordssuggestDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.chordssuggestDisplay = !settings.chordssuggestDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     toggleSettings() {
@@ -110,7 +189,11 @@ export const useAppStore = defineStore('app', {
     },
     
     toggleTabReader() {
-      this.tabReaderDisplay = !this.tabReaderDisplay
+      const settings = this.userStore.currentUser?.data?.settings
+      if (settings && !this.userStore.isInitializing) {
+        settings.tabReaderDisplay = !settings.tabReaderDisplay
+        this.userStore.saveUsersToStorage()
+      }
     },
     
     // toggleVST3Plugin removed - feature disabled

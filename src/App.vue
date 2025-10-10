@@ -99,9 +99,40 @@ export default {
     // Initialize application on mount
     onMounted(async () => {
       try {
+        // Check localStorage availability FIRST
+        console.log('🔍 APP MOUNT: Checking localStorage...')
+        console.log('🔍 localStorage available?', typeof localStorage !== 'undefined')
+        if (typeof localStorage !== 'undefined') {
+          const testKey = 'guitarapp_test_' + Date.now()
+          try {
+            localStorage.setItem(testKey, 'test')
+            const readBack = localStorage.getItem(testKey)
+            localStorage.removeItem(testKey)
+            console.log('✅ localStorage read/write test:', readBack === 'test' ? 'PASSED' : 'FAILED')
+          } catch (e) {
+            console.error('❌ localStorage test failed:', e)
+          }
+          
+          // Check if we have existing data
+          const existingData = localStorage.getItem('guitarapp_users')
+          console.log('🔍 Existing guitarapp_users:', existingData ? `YES (${existingData.length} chars)` : 'NO')
+          
+          // List ALL guitarapp keys in localStorage
+          console.log('📋 All guitarapp localStorage keys:')
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i)
+            if (key && key.startsWith('guitarapp')) {
+              const value = localStorage.getItem(key)
+              console.log(`   - ${key}: ${value ? value.length + ' chars' : 'null'}`)
+            }
+          }
+        }
+        
         // Initialize user store first (loads user data) - no longer async
         userStore.initialize()
         console.log('User store initialized, current user:', userStore.currentUser?.name)
+        console.log('📊 Total users loaded:', userStore.users.length)
+        console.log('📊 User names:', userStore.users.map(u => u.name).join(', '))
         
         // Then initialize app controller
         await appController.initialize()
