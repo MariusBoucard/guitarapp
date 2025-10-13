@@ -64,6 +64,23 @@
       <button class="button" @click="stop">Stop</button>
     </div>
 
+
+    <!-- Speed Control -->
+    <div class="speed-control">
+      <h3 class="slider-label">Playing Rate</h3>
+      <div class="slider">
+        <input 
+          type="range" 
+          min="10" 
+          max="300" 
+          v-model="songPlayerStore.speed"
+          @input="onSpeedChange"
+        />
+        <p>{{ songPlayerStore.speed }}%</p>
+      </div>
+    </div>
+
+    
     <!-- Time Controls -->
     <div class="time-controls">
       <div class="slider-container">
@@ -95,24 +112,6 @@
         </label>
       </div>
     </div>
-
-    <!-- Speed Control -->
-    <div class="speed-control">
-      <h3 class="slider-label">Playing Rate</h3>
-      <div class="slider">
-        <input 
-          type="range" 
-          min="10" 
-          max="300" 
-          v-model="songPlayerStore.speed"
-          @input="onSpeedChange"
-        />
-        <p>{{ songPlayerStore.speed }}%</p>
-      </div>
-    </div>
-
-    <!-- Waveform Container -->
-    <div id="waveform" class="waveform-container"></div>
   </div>
 </template>
 

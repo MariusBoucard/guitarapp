@@ -622,7 +622,6 @@ export default {
 
 .row {
   display: flex;
-  gap: var(--spacing-lg);
   margin-bottom: 0; /* Remove bottom margin to prevent overflow */
   flex-wrap: nowrap; /* Prevent wrapping on larger screens */
   flex: 1;

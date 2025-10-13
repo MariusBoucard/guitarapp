@@ -255,6 +255,8 @@
   gap: 25px;
   max-width: 1600px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .column-left {
@@ -292,7 +294,8 @@
   backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 /* ===== SECTION COMPONENTS ===== */

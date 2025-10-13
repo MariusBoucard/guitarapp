@@ -130,8 +130,7 @@ export default {
 
 <style scoped>
 .notes-selector-container {
-  width: 900px;
-  min-width: 900px;
+  width: 100%;
   max-width: 900px;
   margin: 20px auto;
   padding: 25px;

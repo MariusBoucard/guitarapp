@@ -75,86 +75,77 @@
 
       <!-- Right Panel - Video Player -->
       <div class="column-right">
-        <h2 class="section-title">Training Video Player</h2>
-        
+        <h1 class="section-title">{{ currentVideoName || 'Training Video Player' }}</h1>
+
         <!-- Video Player -->
-        <div class="video-player">
-          <video 
-            ref="trainingVideoPlayer"
-            class="video-player-full-height"
-            @timeupdate="handleTimeUpdate" 
-            @loadedmetadata="handleVideoLoaded"
-            controls>
-            Your browser does not support the video tag.
-          </video>
-        </div>
+        <video 
+          class="video-player" 
+          @timeupdate="handleTimeUpdate" 
+          @loadedmetadata="handleVideoLoaded"
+          ref="trainingVideoPlayer" 
+          controls>
+        </video>
         
         <!-- Video Controls -->
-        <div class="section-card">
-          <!-- Playback Controls -->
-          <div class="btn-group btn-group-center mb-medium">
-            <button class="btn btn-success" @click="playVideo">▶ Play</button>
-            <button class="btn btn-warning" @click="pauseVideo">⏸ Pause</button>
-            <button class="btn btn-danger" @click="stopVideo">⏹ Stop</button>
+        <div class="btn-group btn-group-center">
+          <button class="btn btn-success" @click="playVideo">Play</button>
+          <button class="btn btn-warning" @click="pauseVideo">Pause</button>
+          <button class="btn btn-danger" @click="stopVideo">Stop</button>
+        </div>
+
+        <!-- Speed Control -->
+        <div class="text-center">
+          <h3 class="mb-medium slider-label">Playing rate</h3>
+          <div class="slider-container">
+            <input 
+              type="range" 
+              min="10" 
+              max="300" 
+              v-model="speed"
+              class="range-input range-input-thick">
+            <p class="slider-value">{{ speed }}%</p>
           </div>
+        </div>
 
-          <!-- Time Controls -->
-          <div class="slider-section">
-            <div class="slider-grid">
-              <div class="slider-container">
-                <label for="startSlider" class="slider-label">Start Time</label>
-                <input 
-                  id="startSlider" 
-                  type="range" 
-                  v-model="startTime" 
-                  :max="endTime" 
-                  min="0" 
-                  step="1"
-                  class="range-input">
-                <p class="slider-value">{{ formatTime(startTime) }}</p>
-              </div>
-
-              <div class="slider-container">
-                <label for="endSlider" class="slider-label">End Time</label>
-                <input 
-                  id="endSlider" 
-                  type="range" 
-                  v-model="endTime" 
-                  :min="startTime" 
-                  :max="videoDuration" 
-                  step="1"
-                  class="range-input">
-                <p class="slider-value">{{ formatTime(endTime) }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Speed and Loop Controls -->
-          <div class="slider-section">
-            <div class="slider-container">
-              <label for="speedSlider" class="slider-label">Speed: {{ speed }}%</label>
+        <!-- Time Controls -->
+        <div class="slider-section">
+          <div class="slider-grid">
+            <div class="slider-container slider-container-vertical">
+              <label for="startSlider" class="slider-label">Video Start</label>
               <input 
-                id="speedSlider"
+                id="startSlider" 
                 type="range" 
-                min="25" 
-                max="200" 
-                step="5"
-                v-model="speed"
-                class="range-input-thick">
+                v-model="startTime" 
+                :max="endTime" 
+                min="0" 
+                step="1"
+                class="range-input">
+              <p class="slider-value">{{ formatTime(startTime) }}</p>
             </div>
 
-            <div class="checkbox-container">
-              <label class="checkbox-label">Loop</label>
-              <input type="checkbox" v-model="loop" class="checkbox-input">
+            <div class="slider-container slider-container-vertical">
+              <label for="endSlider" class="slider-label">Video End</label>
+              <input 
+                id="endSlider" 
+                type="range" 
+                v-model="endTime" 
+                :min="startTime" 
+                :max="videoDuration" 
+                step="1"
+                class="range-input">
+              <p class="slider-value">{{ formatTime(endTime) }}</p>
             </div>
           </div>
+        </div>
 
-          <!-- Current Video Info -->
-          <div v-if="currentVideoName" class="section-card" style="background: var(--bg-primary-light); border: 2px solid var(--bg-primary-border);">
-            <h4 style="margin: 0; color: var(--primary-color); font-size: 1.1rem; font-weight: 600; text-align: center;">
-              {{ currentVideoName }}
-            </h4>
-          </div>
+        <!-- Loop Control -->
+        <div class="checkbox-container">
+          <label for="loopCheckbox" class="checkbox-label">Loop:</label>
+          <input 
+            id="loopCheckbox" 
+            type="checkbox" 
+            v-model="loop"
+            class="checkbox-input">
         </div>
       </div>
     </div>
