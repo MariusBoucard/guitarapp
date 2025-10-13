@@ -74,7 +74,7 @@ async function createWindow() {
       partition: 'persist:guitarapp'
     }
   })
-  
+  win.maximize()
   win.setMenu(null)
   
   // Configure session to reduce cache errors and enable fullscreen
