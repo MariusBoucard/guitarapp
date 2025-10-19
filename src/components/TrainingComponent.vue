@@ -184,6 +184,7 @@
                 >
                   📁 {{ training.trainingType }} ({{ getTrainingVideoCount(training) }} videos)
                 </h3>
+     
                 
                 <div v-show="training.show" class="training-items">
                   <div v-for="(item, itemIndex) in training.trainings" 
@@ -197,6 +198,9 @@
                       📂 {{ item.name }} 
                       <span v-if="item.videos">({{ item.videos.length }} videos)</span>
                     </h4>
+                    <button class="btn btn-success btn-small" @click.stop="addVideoPlaylistToTraining(item)">
+                            Add to Playlist
+                          </button>
                     
                     <div v-show="item.show">
                       <ul class="video-list">
@@ -805,6 +809,13 @@ export default {
       this.playVideoInTrainingPlayer(video)
     },
 
+    addVideoPlaylistToTraining(item) {
+      if (item.videos && item.videos.length > 0) {
+        item.videos.forEach(video => {
+          this.addVideoFromModal(video)
+        })
+      }
+    },
     addVideoFromModal(video) {
       const videoIdentifier = this.getVideoIdentifier(video)
       if (videoIdentifier) {
