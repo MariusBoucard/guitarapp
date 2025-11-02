@@ -68,8 +68,11 @@ export default {
       canvasWidth: 800,
       canvasHeight: 200,
       isDragging: false,
+      isDraggingReps: false,
       activeSectionIndex: null,
       dragStartY: 0,
+      dragStartX: 0,
+      initialReps: 0,
       sectionWidth: 0, // Will be calculated based on canvas width and number of sections
       defaultPlaybackRate: 100,
       
@@ -183,15 +186,27 @@ export default {
         
         this.activeSectionIndex = sectionIndex
         this.drawAutomationLine() // Redraw to show active color
+
+        // Check if we're clicking near the repetition number (bottom of canvas)
+        if (y > this.canvasHeight - 25) { // 25px from bottom
+          this.isDraggingReps = true
+          this.dragStartX = event.clientX
+          this.initialReps = this.sections[sectionIndex].NBReps
+          
+          // Add window event listeners for reps dragging
+          window.addEventListener('mousemove', this.handleRepsDrag)
+          window.addEventListener('mouseup', this.stopDragging)
+          return
+        }
         
-        // Only start dragging if not clicking delete button
+        // Only start dragging if not clicking delete button or reps
         this.isDragging = true
         this.dragStartY = event.clientY
         
         // Store initial playback rate
         this.initialPlaybackRate = this.sections[sectionIndex].PlaybackRate
         
-        // Add window event listeners
+        // Add window event listeners for playback rate dragging
         window.addEventListener('mousemove', this.handleDrag)
         window.addEventListener('mouseup', this.stopDragging)
       }
@@ -214,11 +229,33 @@ export default {
       this.$emit('automation-updated', this.sections)
     },
 
+    handleRepsDrag(event) {
+      if (!this.isDraggingReps || this.activeSectionIndex === null) return
+      
+      const deltaX = event.clientX - this.dragStartX
+      // Each 10 pixels of movement changes reps by 1
+      const repsChange = Math.round(deltaX / 5)
+      
+      // Update reps with constraints
+      let newReps = this.initialReps + repsChange
+      newReps = Math.max(1, Math.min(100, newReps)) // Limit between 1 and 100
+      
+      this.sections[this.activeSectionIndex].NBReps = newReps
+      this.drawAutomationLine()
+      
+      // Emit change event
+      this.$emit('automation-updated', this.sections)
+    },
+
     stopDragging() {
       if (this.isDragging) {
         this.isDragging = false
-        // Remove window event listeners
         window.removeEventListener('mousemove', this.handleDrag)
+        window.removeEventListener('mouseup', this.stopDragging)
+      }
+      if (this.isDraggingReps) {
+        this.isDraggingReps = false
+        window.removeEventListener('mousemove', this.handleRepsDrag)
         window.removeEventListener('mouseup', this.stopDragging)
       }
       // Keep the active section selected for the info panel
@@ -319,11 +356,39 @@ export default {
           ctx.stroke()
         }
         
+        // Draw repetition count with draggable indicator
+        const isActive = index === this.activeSectionIndex
+        
+        // Draw background pill for reps
+        ctx.fillStyle = isActive ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.1)'
+        const textWidth = 40
+        const textHeight = 20
+        const textX = x + sectionWidth/2 - textWidth/2
+        const textY = this.canvasHeight - textHeight - 5
+        
+        // Rounded rectangle for background
+        ctx.beginPath()
+        ctx.roundRect(textX, textY, textWidth, textHeight, 5)
+        ctx.fill()
+        
+        // Draw grip lines to indicate draggable
+        if (isActive) {
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
+          ctx.lineWidth = 1
+          const gripX = textX + 5
+          for (let i = 0; i < 3; i++) {
+            ctx.beginPath()
+            ctx.moveTo(gripX + i * 4, textY + 5)
+            ctx.lineTo(gripX + i * 4, textY + textHeight - 5)
+            ctx.stroke()
+          }
+        }
+        
         // Draw repetition count
-        ctx.fillStyle = '#fff'
-        ctx.font = '12px Arial'
+        ctx.fillStyle = isActive ? '#fff' : 'rgba(255, 255, 255, 0.8)'
+        ctx.font = isActive ? 'bold 12px Arial' : '12px Arial'
         ctx.textAlign = 'center'
-        ctx.fillText(`${section.NBReps}×`, x + sectionWidth/2, this.canvasHeight - 5)
+        ctx.fillText(`${section.NBReps}×`, x + sectionWidth/2, this.canvasHeight - 8)
         
         accumulatedWidth += sectionWidth
       })
