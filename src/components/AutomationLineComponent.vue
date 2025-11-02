@@ -13,42 +13,48 @@
         @dblclick="handleDoubleClick">
       </canvas>
       
-      <!-- Section info overlay -->
-      <div v-if="activeSectionIndex !== null" class="section-info">
-        <div class="section-controls">
-          <label>Section {{ activeSectionIndex + 1 }}</label>
-          <div class="control-group">
-            <label>Repetitions:</label>
+
+    </div>
+
+    <!-- Section Controls Bar -->
+    <div class="section-controls-bar" v-if="activeSectionIndex !== null">
+      <div class="active-section-info">
+        <span class="section-label">Section {{ activeSectionIndex + 1 }}</span>
+        <div class="controls-group">
+          <div class="control-item">
+            <label>Reps:</label>
             <input 
               type="number" 
               v-model.number="sections[activeSectionIndex].NBReps" 
               min="1" 
               max="100"
+              class="compact-input"
               @change="updateSection">
           </div>
-          <div class="control-group">
-            <label>Playback Rate:</label>
+          <div class="control-item">
+            <label>Speed:</label>
             <input 
               type="number" 
               v-model.number="sections[activeSectionIndex].PlaybackRate" 
               min="10" 
               max="300"
               step="5"
+              class="compact-input"
               @change="updateSection">
-            <span>%</span>
+            <span class="unit">%</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Section list -->
-    <div class="sections-list">
+    <!-- Sections Overview -->
+    <div class="sections-overview">
       <div v-for="(section, index) in sections" 
            :key="section.SectionId"
-           class="section-item"
+           class="section-pill"
            :class="{ 'active': index === activeSectionIndex }">
-        <span>Section {{ index + 1 }}</span>
-        <span>{{ section.NBReps }}x @ {{ section.PlaybackRate }}%</span>
+        <span class="section-number">{{ index + 1 }}</span>
+        <span class="section-stats">{{ section.NBReps }}×&nbsp;•&nbsp;{{ section.PlaybackRate }}%</span>
       </div>
     </div>
   </div>
@@ -339,17 +345,21 @@ export default {
   background: var(--bg-primary);
   border-radius: var(--border-radius);
   margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .automation-title {
   color: var(--text-primary);
-  margin-bottom: 15px;
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 .canvas-container {
   position: relative;
   width: 100%;
-  height: 200px;
+  height: 200px; /* Increased height */
   background: var(--bg-secondary);
   border-radius: var(--border-radius);
   overflow: hidden;
@@ -361,57 +371,93 @@ canvas {
   cursor: pointer;
 }
 
-.section-info {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 10px;
+/* Section Controls Bar */
+.section-controls-bar {
+  background: var(--bg-secondary);
   border-radius: var(--border-radius);
-  color: var(--text-primary);
+  padding: 8px 12px;
+  margin-top: -10px; /* Overlap with canvas */
 }
 
-.section-controls {
+.active-section-info {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-.control-group {
+.section-label {
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 100px;
+}
+
+.controls-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.control-item {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.control-group input {
+.control-item label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.compact-input {
   width: 60px;
-  padding: 4px;
+  padding: 4px 8px;
   border: 1px solid var(--border-primary);
   border-radius: var(--border-radius);
   background: var(--bg-input);
   color: var(--text-primary);
+  font-size: 0.9rem;
+  text-align: right;
 }
 
-.sections-list {
-  margin-top: 15px;
+.unit {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  min-width: 20px;
+}
+
+/* Sections Overview */
+.sections-overview {
   display: flex;
+  gap: 8px;
   flex-wrap: wrap;
-  gap: 10px;
-}
-
-.section-item {
-  padding: 8px 12px;
+  padding: 8px;
   background: var(--bg-secondary);
   border-radius: var(--border-radius);
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.9rem;
 }
 
-.section-item.active {
+.section-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.section-pill.active {
   background: var(--bg-accent);
   color: var(--text-accent);
+}
+
+.section-number {
+  font-weight: 500;
+}
+
+.section-stats {
+  opacity: 0.8;
 }
 </style>
