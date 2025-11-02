@@ -9,7 +9,8 @@
         @mousedown="startDragging"
         @mousemove="handleDrag"
         @mouseup="stopDragging"
-        @mouseleave="stopDragging">
+        @mouseleave="stopDragging"
+        @dblclick="handleDoubleClick">
       </canvas>
       
       <!-- Section info overlay -->
@@ -79,7 +80,7 @@ export default {
   mounted() {
     this.initializeCanvas()
     window.addEventListener('resize', this.resizeCanvas)
-    this.createInitialSections(8) // Start with 8 sections
+    this.createInitialSections() // Start with 1 section
   },
 
   beforeDestroy() {
@@ -107,7 +108,7 @@ export default {
       this.initializeCanvas()
     },
 
-    createInitialSections(count) {
+    createInitialSections(count = 1) {
       this.sections = Array(count).fill(null).map((_, index) => ({
         SectionId: `section-${index}`,
         SectionNb: index,
@@ -117,13 +118,46 @@ export default {
       this.drawAutomationLine()
     },
 
+    addNewSection(x) {
+      // Find which section was double-clicked to know where to insert
+      const totalReps = this.sections.reduce((sum, s) => sum + s.NBReps, 0)
+      const sectionWidths = this.sections.map(s => (s.NBReps / totalReps) * this.canvasWidth)
+      
+      let accumulatedWidth = 0
+      let insertIndex = this.sections.length // default to end
+      
+      for (let i = 0; i < this.sections.length; i++) {
+        if (x >= accumulatedWidth && x < accumulatedWidth + sectionWidths[i]) {
+          insertIndex = i + 1
+          break
+        }
+        accumulatedWidth += sectionWidths[i]
+      }
+      
+      // Insert new section
+      this.sections.splice(insertIndex, 0, {
+        SectionId: `section-${Date.now()}`,
+        SectionNb: insertIndex,
+        NBReps: 1,
+        PlaybackRate: this.defaultPlaybackRate
+      })
+      
+      // Update section numbers
+      this.sections.forEach((section, idx) => {
+        section.SectionNb = idx
+      })
+      
+      this.drawAutomationLine()
+      this.$emit('automation-updated', this.sections)
+    },
+
     startDragging(event) {
       const canvas = this.$refs.automationCanvas
       const rect = canvas.getBoundingClientRect()
       const x = event.clientX - rect.left
       
-      // Calculate which section was clicked
-      const sectionIndex = Math.floor(x / this.sectionWidth)
+      // Find which section was clicked using proportional widths
+      const sectionIndex = this.getSectionAtPosition(x)
       if (sectionIndex >= 0 && sectionIndex < this.sections.length) {
         this.isDragging = true
         this.activeSectionIndex = sectionIndex
@@ -161,6 +195,41 @@ export default {
       this.$emit('automation-updated', this.sections)
     },
 
+    handleDoubleClick(event) {
+      const canvas = this.$refs.automationCanvas
+      const rect = canvas.getBoundingClientRect()
+      const x = event.clientX - rect.left
+      this.addNewSection(x)
+    },
+
+    getXPositionForSection(sectionIndex) {
+      // Calculate x position based on proportional widths
+      const totalReps = this.sections.reduce((sum, s) => sum + s.NBReps, 0)
+      let accumulatedWidth = 0
+      
+      for (let i = 0; i < sectionIndex; i++) {
+        accumulatedWidth += (this.sections[i].NBReps / totalReps) * this.canvasWidth
+      }
+      
+      // Return center point of the section
+      return accumulatedWidth + ((this.sections[sectionIndex].NBReps / totalReps) * this.canvasWidth) / 2
+    },
+
+    getSectionAtPosition(x) {
+      const totalReps = this.sections.reduce((sum, s) => sum + s.NBReps, 0)
+      let accumulatedWidth = 0
+      
+      for (let i = 0; i < this.sections.length; i++) {
+        const sectionWidth = (this.sections[i].NBReps / totalReps) * this.canvasWidth
+        if (x >= accumulatedWidth && x < accumulatedWidth + sectionWidth) {
+          return i
+        }
+        accumulatedWidth += sectionWidth
+      }
+      
+      return this.sections.length - 1
+    },
+
     drawAutomationLine() {
       const canvas = this.$refs.automationCanvas
       const ctx = canvas.getContext('2d')
@@ -178,7 +247,7 @@ export default {
       ctx.lineWidth = 2
       
       this.sections.forEach((section, index) => {
-        const x = (index + 0.5) * this.sectionWidth
+        const x = this.getXPositionForSection(index)
         const y = this.getYPosition(section.PlaybackRate)
         
         if (index === 0) {
@@ -192,9 +261,40 @@ export default {
         ctx.beginPath()
         ctx.arc(x, y, 5, 0, Math.PI * 2)
         ctx.fill()
+        
+        // Draw repetition count
+        ctx.fillStyle = '#fff'
+        ctx.font = '12px Arial'
+        ctx.textAlign = 'center'
+        ctx.fillText(`${section.NBReps}×`, x, this.canvasHeight - 5)
       })
       
       ctx.stroke()
+      
+      // Draw section separators
+      this.drawSectionSeparators(ctx)
+    },
+
+    drawSectionSeparators(ctx) {
+      const totalReps = this.sections.reduce((sum, s) => sum + s.NBReps, 0)
+      let accumulatedWidth = 0
+      
+      ctx.strokeStyle = this.gridColor
+      ctx.lineWidth = 0.5
+      ctx.setLineDash([5, 5])
+      
+      this.sections.forEach((section, index) => {
+        if (index < this.sections.length - 1) {
+          const x = accumulatedWidth + (section.NBReps / totalReps) * this.canvasWidth
+          ctx.beginPath()
+          ctx.moveTo(x, 0)
+          ctx.lineTo(x, this.canvasHeight)
+          ctx.stroke()
+        }
+        accumulatedWidth += (section.NBReps / totalReps) * this.canvasWidth
+      })
+      
+      ctx.setLineDash([]) // Reset line style
     },
 
     drawGrid(ctx) {
