@@ -247,38 +247,60 @@ export default {
       // Draw grid
       this.drawGrid(ctx)
       
-      // Draw automation line
-      ctx.beginPath()
-      ctx.strokeStyle = this.lineColor
-      ctx.lineWidth = 2
+      const totalReps = this.sections.reduce((sum, s) => sum + s.NBReps, 0)
+      let accumulatedWidth = 0
       
+      // Draw sections
       this.sections.forEach((section, index) => {
-        const x = this.getXPositionForSection(index)
+        const sectionWidth = (section.NBReps / totalReps) * this.canvasWidth
+        const x = accumulatedWidth
         const y = this.getYPosition(section.PlaybackRate)
         
-        if (index === 0) {
-          ctx.moveTo(x, y)
-        } else {
-          ctx.lineTo(x, y)
-        }
-        
-        // Draw point
+        // Draw horizontal bar
+        const barHeight = 4
         ctx.fillStyle = index === this.activeSectionIndex ? this.activeColor : this.lineColor
-        ctx.beginPath()
-        ctx.arc(x, y, 5, 0, Math.PI * 2)
-        ctx.fill()
+        ctx.fillRect(x, y - barHeight/2, sectionWidth, barHeight)
+        
+        // Add highlight effect on top of the bar
+        const gradient = ctx.createLinearGradient(x, y - barHeight/2, x, y + barHeight/2)
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)')
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
+        ctx.fillStyle = gradient
+        ctx.fillRect(x, y - barHeight/2, sectionWidth, barHeight)
         
         // Draw repetition count
         ctx.fillStyle = '#fff'
         ctx.font = '12px Arial'
         ctx.textAlign = 'center'
-        ctx.fillText(`${section.NBReps}×`, x, this.canvasHeight - 5)
+        ctx.fillText(`${section.NBReps}×`, x + sectionWidth/2, this.canvasHeight - 5)
+        
+        accumulatedWidth += sectionWidth
       })
-      
-      ctx.stroke()
       
       // Draw section separators
       this.drawSectionSeparators(ctx)
+      
+      // Draw connecting lines between bars
+      accumulatedWidth = 0
+      ctx.beginPath()
+      ctx.strokeStyle = this.lineColor
+      ctx.lineWidth = 1
+      
+      this.sections.forEach((section, index) => {
+        const sectionWidth = (section.NBReps / totalReps) * this.canvasWidth
+        const x = accumulatedWidth + sectionWidth
+        const y = this.getYPosition(section.PlaybackRate)
+        
+        if (index < this.sections.length - 1) {
+          const nextY = this.getYPosition(this.sections[index + 1].PlaybackRate)
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x, nextY)
+          ctx.stroke()
+        }
+        
+        accumulatedWidth += sectionWidth
+      })
     },
 
     drawSectionSeparators(ctx) {
