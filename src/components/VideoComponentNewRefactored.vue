@@ -72,6 +72,7 @@
           class="video-player" 
           @timeupdate="handleTimeUpdate" 
           @loadedmetadata="handleVideoLoaded"
+          @ended="handleVideoEnded"
           ref="videoPlayer" 
           controls>
         </video>
@@ -289,6 +290,11 @@ export default {
 
     isAutoLoopActive() {
       return this.enableAutoLoop && this.lastVideoLength > 0 && this.lastVideoLength <= this.autoLoopThreshold
+    },
+
+    // Effective end time is either the user-set end time or the full video duration
+    effectiveEndTime() {
+      return this.endTime || this.videoDuration
     }
   },
 
@@ -500,30 +506,61 @@ export default {
 
     handleTimeUpdate() {
       const video = this.$refs.videoPlayer
-      if (video) {
-        const currentTime = video.currentTime
-        const shouldLoop = this.loop && (!this.loopCount || this.loopsCompleted < this.loopCount)
-        
-        if (currentTime >= this.endTime) {
-          // Check if we're about to loop
-          if (shouldLoop) {
-            this.loopsCompleted++
-            if (this.loopsCompleted >= this.loopCount) {
-              // Stop at the end if we've reached loop count
-              video.pause()
-              video.currentTime = this.endTime
-              return
-            }
+      if (!video) return
+
+      const currentTime = video.currentTime
+      const shouldLoop = this.loop && (!this.loopCount || this.loopsCompleted < this.loopCount)
+      const effectiveEnd = this.effectiveEndTime
+      
+      // Add a larger buffer (0.3 seconds) to catch the loop well before the video ends
+      if (currentTime >= effectiveEnd - 0.3) {
+        // Check if we're about to loop
+        if (shouldLoop) {
+          this.loopsCompleted++
+          if (this.loopsCompleted >= this.loopCount) {
+            // Stop at the end if we've reached loop count
+            video.pause()
+            video.currentTime = effectiveEnd
+            return
           }
+          
+          // Prevent the native ended event by jumping back before it
+          video.currentTime = this.startTime || 0
+          // Ensure video keeps playing
+          if (video.paused) {
+            video.play().catch(e => console.error('Failed to resume playback:', e))
+          }
+          return
         }
+      }
+      
+      // Handle normal time updates
+      this.videoService.handleTimeUpdate(
+        video, 
+        currentTime, 
+        this.startTime, 
+        effectiveEnd,
+        shouldLoop
+      )
+    },
+
+    handleVideoEnded(event) {
+      const video = this.$refs.videoPlayer
+      if (!video) return
+
+      // Prevent default ended behavior
+      event.preventDefault()
+      
+      const shouldLoop = this.loop && (!this.loopCount || this.loopsCompleted < this.loopCount)
+      if (shouldLoop) {
+        // Reset to start and continue playing
+        video.currentTime = this.startTime || 0
+        this.loopsCompleted++
         
-        this.videoService.handleTimeUpdate(
-          video, 
-          currentTime, 
-          this.startTime, 
-          this.endTime, 
-          shouldLoop
-        )
+        // Only continue if we haven't reached the loop count
+        if (this.loopsCompleted < this.loopCount) {
+          video.play().catch(e => console.error('Failed to resume playback:', e))
+        }
       }
     },
 
