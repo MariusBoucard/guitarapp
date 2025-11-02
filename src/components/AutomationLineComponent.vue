@@ -7,9 +7,6 @@
       <canvas 
         ref="automationCanvas"
         @mousedown="startDragging"
-        @mousemove="handleDrag"
-        @mouseup="stopDragging"
-        @mouseleave="stopDragging"
         @dblclick="handleDoubleClick">
       </canvas>
       
@@ -47,6 +44,7 @@
       </div>
     </div>
 
+
     <!-- Sections Overview -->
     <div class="sections-overview">
       <div v-for="(section, index) in sections" 
@@ -83,10 +81,19 @@ export default {
     }
   },
 
+      beforeDestroy() {
+        // Clean up any window event listeners that might still be active
+        window.removeEventListener('mousemove', this.handleDrag)
+        window.removeEventListener('mouseup', this.stopDragging)
+      },
+
   mounted() {
     this.initializeCanvas()
     window.addEventListener('resize', this.resizeCanvas)
     this.createInitialSections() // Start with 1 section
+       this.$nextTick(() => {
+          this.drawAutomationLine()
+        })
   },
 
   beforeDestroy() {
@@ -161,16 +168,32 @@ export default {
       const canvas = this.$refs.automationCanvas
       const rect = canvas.getBoundingClientRect()
       const x = event.clientX - rect.left
+      const y = event.clientY - rect.top
       
       // Find which section was clicked using proportional widths
       const sectionIndex = this.getSectionAtPosition(x)
       if (sectionIndex >= 0 && sectionIndex < this.sections.length) {
-        this.isDragging = true
+        // Check if delete button was clicked
+        const deleteButtonInfo = this.getDeleteButtonPosition(sectionIndex)
+        if (x >= deleteButtonInfo.x && x <= deleteButtonInfo.x + 20 &&
+            y >= deleteButtonInfo.y && y <= deleteButtonInfo.y + 20) {
+          this.deleteSection(sectionIndex)
+          return
+        }
+        
         this.activeSectionIndex = sectionIndex
+        this.drawAutomationLine() // Redraw to show active color
+        
+        // Only start dragging if not clicking delete button
+        this.isDragging = true
         this.dragStartY = event.clientY
         
         // Store initial playback rate
         this.initialPlaybackRate = this.sections[sectionIndex].PlaybackRate
+        
+        // Add window event listeners
+        window.addEventListener('mousemove', this.handleDrag)
+        window.addEventListener('mouseup', this.stopDragging)
       }
     },
 
@@ -192,7 +215,12 @@ export default {
     },
 
     stopDragging() {
-      this.isDragging = false
+      if (this.isDragging) {
+        this.isDragging = false
+        // Remove window event listeners
+        window.removeEventListener('mousemove', this.handleDrag)
+        window.removeEventListener('mouseup', this.stopDragging)
+      }
       // Keep the active section selected for the info panel
     },
 
@@ -267,6 +295,29 @@ export default {
         gradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
         ctx.fillStyle = gradient
         ctx.fillRect(x, y - barHeight/2, sectionWidth, barHeight)
+        
+        // Draw delete button (cross)
+        if (this.sections.length > 1) { // Only show delete button if there's more than one section
+          const deletePos = this.getDeleteButtonPosition(index)
+          ctx.fillStyle = index === this.activeSectionIndex ? this.activeColor : 'rgba(255, 255, 255, 0.5)'
+          
+          // Draw circle background
+          ctx.beginPath()
+          ctx.arc(deletePos.x + 10, deletePos.y + 10, 8, 0, Math.PI * 2)
+          ctx.fill()
+          
+          // Draw cross
+          ctx.strokeStyle = this.backgroundColor
+          ctx.lineWidth = 2
+          ctx.beginPath()
+          // First line of cross
+          ctx.moveTo(deletePos.x + 7, deletePos.y + 7)
+          ctx.lineTo(deletePos.x + 13, deletePos.y + 13)
+          // Second line of cross
+          ctx.moveTo(deletePos.x + 13, deletePos.y + 7)
+          ctx.lineTo(deletePos.x + 7, deletePos.y + 13)
+          ctx.stroke()
+        }
         
         // Draw repetition count
         ctx.fillStyle = '#fff'
@@ -356,6 +407,34 @@ export default {
     getYPosition(rate) {
       // Convert playback rate to Y position (inverted, since canvas Y goes down)
       return this.canvasHeight - (rate / 300 * this.canvasHeight)
+    },
+
+    getDeleteButtonPosition(sectionIndex) {
+      const totalReps = this.sections.reduce((sum, s) => sum + s.NBReps, 0)
+      let accumulatedWidth = 0
+      
+      for (let i = 0; i < sectionIndex; i++) {
+        accumulatedWidth += (this.sections[i].NBReps / totalReps) * this.canvasWidth
+      }
+      
+      const sectionWidth = (this.sections[sectionIndex].NBReps / totalReps) * this.canvasWidth
+      return {
+        x: accumulatedWidth + sectionWidth - 25, // 25px from right edge
+        y: 5 // 5px from top
+      }
+    },
+
+    deleteSection(index) {
+      if (this.sections.length > 1) { // Don't delete if it's the last section
+        this.sections.splice(index, 1)
+        if (this.activeSectionIndex === index) {
+          this.activeSectionIndex = null
+        } else if (this.activeSectionIndex > index) {
+          this.activeSectionIndex--
+        }
+        this.drawAutomationLine()
+        this.$emit('automation-updated', this.sections)
+      }
     }
   }
 }
