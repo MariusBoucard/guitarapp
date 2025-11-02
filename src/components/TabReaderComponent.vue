@@ -28,6 +28,17 @@
         <button @click="showAudioSettings = !showAudioSettings" class="mixer-toggle-btn">
           {{ showAudioSettings ? '🔊 Hide Audio' : '🔊 Audio Quality' }}
         </button>
+        <div v-if="canPlay" class="speed-control">
+          <span class="speed-label">Speed: {{ playbackSpeed }}%</span>
+          <input 
+            type="range" 
+            min="30" 
+            max="300" 
+            v-model="playbackSpeed"
+            @input="updatePlaybackSpeed"
+            class="speed-slider"
+          />
+        </div>
       </div>
     </div>
     
@@ -341,6 +352,7 @@ export default {
       showMixer: false,
       showPlaylists: false,
       showAudioSettings: false,
+      playbackSpeed: 100,
       expandedPlaylists: [],
       selectedSoundFont: './soundfont/sonivox.sf2',
       performanceMode: false,
@@ -430,6 +442,14 @@ export default {
     }
   },
   methods: {
+    updatePlaybackSpeed() {
+      if (this.alphaTabApi) {
+        // Convert percentage to decimal (e.g., 150% -> 1.5)
+        const speedFactor = this.playbackSpeed / 100
+        this.alphaTabApi.playbackSpeed = speedFactor
+      }
+    },
+
     initializeAlphaTab() {
       try {
         if (!this.$refs.alphaTab) {
@@ -1939,8 +1959,50 @@ Solutions:
 
 .delete-btn {
   background: var(--danger-color, #f44336);
-  color: white;
 }
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 15px;
+}
+
+.speed-label {
+  min-width: 85px;
+  color: var(--text-color, #fff);
+}
+
+.speed-slider {
+  width: 150px;
+  height: 5px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--primary-color, #4CAF50);
+  outline: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.speed-slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
 
 .delete-btn:hover {
   background: var(--danger-hover, #d32f2f);
