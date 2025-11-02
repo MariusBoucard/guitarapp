@@ -543,42 +543,44 @@ export default {
       let maxLoops = this.loopCount
 
       if (this.useAutomationSections && this.automationSections.length > 0) {
-        // Calculate total reps and find current section
         const totalReps = this.automationSections.reduce((sum, s) => sum + s.NBReps, 0)
-        let completedReps = 0
-        let currentSectionIndex = -1
-
-        // Find which section we should be on
-        for (let i = 0; i < this.automationSections.length; i++) {
-          const nextCompletedReps = completedReps + this.automationSections[i].NBReps
-          if (this.loopsCompleted < nextCompletedReps) {
-            currentSectionIndex = i
-            break
-          }
-          completedReps = nextCompletedReps
-        }
-
-        // Check if we still have sections to play
-        if (currentSectionIndex >= 0 && currentSectionIndex < this.automationSections.length) {
-          const section = this.automationSections[currentSectionIndex]
+        
+        // If we have any reps left to do
+        if (this.loopsCompleted < totalReps) {
+          // Find the current section based on completed loops
+          let completedReps = 0
+          let currentSectionIndex = -1
           
-          // Apply current section's speed if it changed
-          if (this.speed !== section.PlaybackRate) {
+          // Find which section we're currently on
+          for (let i = 0; i < this.automationSections.length; i++) {
+            const nextRepCount = completedReps + this.automationSections[i].NBReps
+            if (this.loopsCompleted < nextRepCount) {
+              currentSectionIndex = i
+              break
+            }
+            completedReps = nextRepCount
+          }
+          
+          // We found a valid section
+          if (currentSectionIndex >= 0) {
+            const section = this.automationSections[currentSectionIndex]
+            shouldLoop = this.loop
+            maxLoops = totalReps
+            
+            // ALWAYS update speed to match current section
             this.speed = section.PlaybackRate
-            this.updateSpeed()
+            video.playbackRate = section.PlaybackRate / 100
           }
-          
-          shouldLoop = this.loop && this.loopsCompleted < totalReps
-          maxLoops = totalReps
         } else {
           // We've completed all sections
           shouldLoop = false
-          maxLoops = this.loopsCompleted
+          maxLoops = totalReps
           if (video.paused) {
             video.currentTime = effectiveEnd
           }
         }
       } else {
+        // Normal non-automated playback
         shouldLoop = this.loop && this.loopsCompleted < this.loopCount
         maxLoops = this.loopCount
       }
@@ -596,7 +598,29 @@ export default {
             return
           }
           
-          // Otherwise, loop back to start
+          // Update speed for the next section if using automation
+          if (this.useAutomationSections && this.automationSections.length > 0) {
+            let completedReps = 0
+            let nextSectionIndex = 0
+            
+            // Find the next section we should be on
+            for (let i = 0; i < this.automationSections.length; i++) {
+              if (completedReps + this.automationSections[i].NBReps > this.loopsCompleted) {
+                nextSectionIndex = i
+                break
+              }
+              completedReps += this.automationSections[i].NBReps
+            }
+            
+            // Apply the next section's speed immediately
+            if (nextSectionIndex < this.automationSections.length) {
+              const nextSection = this.automationSections[nextSectionIndex]
+              this.speed = nextSection.PlaybackRate
+              this.updateSpeed()
+            }
+          }
+          
+          // Loop back to start
           video.currentTime = this.startTime || 0
           if (video.paused) {
             video.play().catch(e => console.error('Failed to resume playback:', e))
@@ -688,6 +712,7 @@ export default {
     },
 
     handleAutomationModeChange() {
+      const video = this.$refs.videoPlayer
       this.loopsCompleted = 0 // Reset loop counter
       
       if (this.useAutomationSections) {
@@ -700,21 +725,21 @@ export default {
           this.applyAutomationSection(this.automationSections[0])
         }
       } else {
+        // When disabling automation sections, preserve current position
+        const currentTime = video ? video.currentTime : 0
+        
         // Restore manual settings
         this.speed = this.manualSpeed
         this.loopCount = this.manualLoopCount
-        this.updateSpeed() // Update video playback speed
-          const firstSection = this.automationSections[0]
-          this.applyAutomationSection(firstSection)
-        }
-      } else {
-        // When disabling automation sections, preserve current position but reset loop settings
-        const currentTime = video.currentTime
-        this.loopCount = 3
         this.loop = false
         this.startTime = 0
-        this.endTime = video.duration
-        video.currentTime = currentTime // Keep current position
+        this.endTime = this.videoDuration
+        
+        // Update speed and restore position
+        this.updateSpeed()
+        if (video) {
+          video.currentTime = currentTime
+        }
       }
       
       // Redraw automation line to reflect changes
