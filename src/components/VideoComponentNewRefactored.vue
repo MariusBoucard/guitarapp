@@ -132,14 +132,34 @@
         </div>
 
         <!-- Loop Control -->
-        <div class="checkbox-container">
-          <label for="loopCheckbox" class="checkbox-label">Loop:</label>
-          <input 
-            id="loopCheckbox" 
-            type="checkbox" 
-            v-model="loop"
-            @change="updatePlaybackSettings"
-            class="checkbox-input">
+        <div class="loop-settings-container">
+          <div class="checkbox-container">
+            <label for="loopCheckbox" class="checkbox-label">Loop:</label>
+            <input 
+              id="loopCheckbox" 
+              type="checkbox" 
+              v-model="loop"
+              @change="updatePlaybackSettings"
+              class="checkbox-input">
+          </div>
+          
+          <!-- Loop Count Control -->
+          <div v-if="loop" class="loop-count-container">
+            <label for="loopCount" class="loop-count-label">Number of loops:</label>
+            <div class="loop-count-controls">
+              <input 
+                id="loopCount" 
+                type="number" 
+                v-model="loopCount" 
+                min="1" 
+                max="100"
+                class="loop-count-input"
+                @change="updatePlaybackSettings">
+              <span class="loop-count-info" >
+                {{ loopsCompleted }}/{{ loopCount }} loops
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -167,7 +187,9 @@ export default {
   data() {
     return {
       errorMessage: '',
-      showAutoReloadMessage: false
+      showAutoReloadMessage: false,
+      loopsCompleted: 0,
+      loopCount: 3 // Default to 3 loops
     }
   },
 
@@ -436,12 +458,27 @@ export default {
       const video = this.$refs.videoPlayer
       if (video) {
         const currentTime = video.currentTime
+        const shouldLoop = this.loop && (!this.loopCount || this.loopsCompleted < this.loopCount)
+        
+        if (currentTime >= this.endTime) {
+          // Check if we're about to loop
+          if (shouldLoop) {
+            this.loopsCompleted++
+            if (this.loopsCompleted >= this.loopCount) {
+              // Stop at the end if we've reached loop count
+              video.pause()
+              video.currentTime = this.endTime
+              return
+            }
+          }
+        }
+        
         this.videoService.handleTimeUpdate(
           video, 
           currentTime, 
           this.startTime, 
           this.endTime, 
-          this.loop
+          shouldLoop
         )
       }
     },
@@ -461,6 +498,7 @@ export default {
     pauseVideo() {
       const video = this.$refs.videoPlayer
       if (video) {
+        this.loopsCompleted = 0 
         this.videoService.pauseVideo(video)
       }
     },
@@ -469,6 +507,7 @@ export default {
       const video = this.$refs.videoPlayer
       if (video) {
         this.videoService.stopVideo(video, this.startTime)
+        this.loopsCompleted = 0 // Reset loop counter when stopping
       }
     },
 
@@ -486,6 +525,8 @@ export default {
         speed: this.speed,
         loop: this.loop
       })
+      
+
     },
 
     formatTime(seconds) {
@@ -611,5 +652,50 @@ export default {
 .error-message p {
   margin: 0;
   font-weight: 500;
+}
+
+/* Loop count styles */
+.loop-settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 15px 0;
+  padding: 15px;
+  background: var(--bg-primary-light);
+  border-radius: var(--border-radius);
+}
+
+.loop-count-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.loop-count-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.loop-count-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.loop-count-input {
+  width: 60px;
+  padding: 5px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--border-radius);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.loop-count-info {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  min-width: 80px;
 }
 </style>
