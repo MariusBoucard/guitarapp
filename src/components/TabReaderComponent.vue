@@ -478,8 +478,15 @@ export default {
         settings.player.enableCursor = true  // Enable beat cursor
         settings.player.enableUserInteraction = true
         settings.player.enableElementHighlighting = true  // Highlight current element
-        settings.player.scrollMode = 'off'  // Disable AlphaTab's auto-scroll, we handle it manually
+        settings.player.scrollMode = 'continuous'  // Enable continuous scrolling
         settings.player.scrollElement = this.$refs.alphaTab  // Set scroll container for reference
+        settings.display.layoutMode = 'horizontal-screen'  // Use screen-based layout
+        settings.display.autoSize = true
+        settings.player.scrollOffsetY = -30  // Add some padding above the current position
+
+        // Setup better visual organization
+        settings.notation.notationMode = "SongBook"  // More compact notation
+        settings.staveProfile = "ScoreTab"  // Show both score and tab
         
         // Apply performance mode settings
         if (this.performanceMode) {
@@ -514,7 +521,7 @@ export default {
       this.alphaTabApi.playerReady.on(() => {
         this.isPlayerReady = true
       })
-      
+
       // Player state changes
       this.alphaTabApi.playerStateChanged.on((e) => {
         this.isPlaying = e.state === 1
@@ -527,46 +534,53 @@ export default {
       
       // Player position changed - handle auto-scrolling with AlphaTab's cursor
       this.alphaTabApi.playerPositionChanged.on((e) => {
-        // AlphaTab generates a tall container (.at-surface) with all rendered content
-        // The .at-cursor-bar moves within this container as playback progresses
-        // We need to scroll the alphatab-container to keep the cursor visible
-        
-        if (!this.$refs.alphaTab) return
+        if (!this.$refs.alphaTab || !this.isPlaying) return
         
         const container = this.$refs.alphaTab
         
-        // Find the cursor bar (AlphaTab's playback indicator with .at-cursor-bar class)
+        // Find both cursor elements
         const cursorBar = container.querySelector('.at-cursor-bar')
+        const cursorBeat = container.querySelector('.at-cursor-beat')
+        const cursor = cursorBeat || cursorBar // Prefer beat cursor, fall back to bar cursor
         
-        if (!cursorBar) return
+        if (!cursor) return
         
-        // Get cursor's position from the top of its offset parent (the tall AlphaTab surface)
-        const cursorOffsetTop = cursorBar.offsetTop
+        // Get the surface element (the container that holds all the rendered content)
+        const surface = container.querySelector('.at-surface')
+        if (!surface) return
         
-        // Get viewport info
-        const containerHeight = container.clientHeight
-        const currentScrollTop = container.scrollTop
+        // Get cursor's absolute position relative to the viewport
+        const cursorRect = cursor.getBoundingClientRect()
+        const containerRect = container.getBoundingClientRect()
         
-        // Calculate the visible range
-        const visibleTop = currentScrollTop
-        const visibleBottom = currentScrollTop + containerHeight
+        // Calculate cursor's position relative to the container
+        const cursorRelativeTop = cursorRect.top - containerRect.top
+        const cursorRelativeBottom = cursorRect.bottom - containerRect.top
         
-        // Define comfort zone (keep cursor between 30% and 70% of viewport)
-        const comfortZoneTop = visibleTop + (containerHeight * 0.3)
-        const comfortZoneBottom = visibleTop + (containerHeight * 0.7)
+        // Define the visible area with padding
+        const visibleAreaPadding = 100 // pixels of padding above and below
+        const isAboveVisible = cursorRelativeTop < visibleAreaPadding
+        const isBelowVisible = cursorRelativeBottom > (containerRect.height - visibleAreaPadding)
         
-        // Only scroll if cursor is outside comfort zone
-        if (cursorOffsetTop < comfortZoneTop || cursorOffsetTop > comfortZoneBottom) {
-          // Calculate target position to keep cursor at 40% from top
-          const targetScrollTop = cursorOffsetTop - (containerHeight * 0.4)
+        if (isAboveVisible || isBelowVisible) {
+          // Calculate the ideal scroll position
+          let targetScrollTop
           
-          // Clamp to valid scroll range
-          const maxScroll = container.scrollHeight - containerHeight
-          const clampedScroll = Math.max(0, Math.min(targetScrollTop, maxScroll))
+          if (isAboveVisible) {
+            // Scroll up to show content above the cursor
+            targetScrollTop = container.scrollTop - (visibleAreaPadding - cursorRelativeTop)
+          } else {
+            // Scroll down to show content below the cursor
+            targetScrollTop = container.scrollTop + (cursorRelativeBottom - (containerRect.height - visibleAreaPadding))
+          }
           
-          // Smooth scroll to the target position
+          // Ensure we don't scroll beyond the content
+          const maxScroll = surface.offsetHeight - containerRect.height
+          targetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScroll))
+          
+          // Apply the scroll with smooth animation
           container.scrollTo({
-            top: clampedScroll,
+            top: targetScrollTop,
             behavior: 'smooth'
           })
         }
@@ -1228,9 +1242,12 @@ Solutions:
   flex: 1;
   background: white;
   border-radius: 4px;
-  padding: 10px;
-  padding-bottom: 40px;  /* Reduced padding for better viewport rendering */
-  overflow-y: auto;
+  padding: 10px 20px;
+  overflow: auto;
+  position: relative;
+  scroll-behavior: smooth;
+  height: calc(100vh - 200px);
+  contain: paint;  /* Optimize rendering performance */
   overflow-x: hidden;
   position: relative;
   scroll-behavior: smooth;  /* Smooth scrolling for better UX */
