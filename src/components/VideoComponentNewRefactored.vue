@@ -136,15 +136,27 @@
         <div class="loop-settings-container">
           <!-- Auto-loop Settings -->
           <div class="auto-loop-container">
-            <label for="enableAutoLoop" class="checkbox-label">Auto-loop short videos:</label>
-            <input 
-              id="enableAutoLoop" 
-              type="checkbox" 
-              v-model="enableAutoLoop"
-              @change="updatePlaybackSettings"
-              class="checkbox-input">
+            <div class="checkbox-group">
+              <label for="enableAutoLoop" class="checkbox-label">Auto-loop short videos:</label>
+              <input 
+                id="enableAutoLoop" 
+                type="checkbox" 
+                v-model="enableAutoLoop"
+                @change="updatePlaybackSettings"
+                class="checkbox-input">
+            </div>
             
-            <div v-if="enableAutoLoop" class="auto-loop-threshold">
+            <div class="checkbox-group">
+              <label for="useAutomationSections" class="checkbox-label">Use automation sections:</label>
+              <input 
+                id="useAutomationSections" 
+                type="checkbox" 
+                v-model="useAutomationSections"
+                @change="handleAutomationModeChange"
+                class="checkbox-input">
+            </div>
+            
+            <div v-if="enableAutoLoop && !useAutomationSections" class="auto-loop-threshold">
               <label for="autoLoopThreshold" class="threshold-label">Auto-loop if shorter than:</label>
               <div class="threshold-controls">
                 <input 
@@ -231,9 +243,14 @@ export default {
       loopsCompleted: 0,
       loopCount: 3, // Default to 3 loops
       enableAutoLoop: true, // Enable auto-loop by default
+      useAutomationSections: false, // Whether to use automation line settings
       autoLoopThreshold: 15, // Default to 15 seconds
       lastVideoLength: 0, // Track last video length for auto-loop
-      automationSections: [], // Store automation sections data
+      automationSections: [], // Store automation line data
+      
+      // Store the automation settings separately from manual settings
+      manualSpeed: 100, // Store manual speed when not using automation
+      manualLoopCount: 3, // Store manual loop count when not using automation
     }
   },
 
@@ -521,35 +538,77 @@ export default {
       if (!video) return
 
       const currentTime = video.currentTime
-      const shouldLoop = this.loop && (!this.loopCount || this.loopsCompleted < this.loopCount)
       const effectiveEnd = this.effectiveEndTime
-      
-      // Add a larger buffer (0.3 seconds) to catch the loop well before the video ends
+      let shouldLoop = false
+      let maxLoops = this.loopCount
+
+      if (this.useAutomationSections && this.automationSections.length > 0) {
+        // Calculate total reps and find current section
+        const totalReps = this.automationSections.reduce((sum, s) => sum + s.NBReps, 0)
+        let completedReps = 0
+        let currentSectionIndex = -1
+
+        // Find which section we should be on
+        for (let i = 0; i < this.automationSections.length; i++) {
+          const nextCompletedReps = completedReps + this.automationSections[i].NBReps
+          if (this.loopsCompleted < nextCompletedReps) {
+            currentSectionIndex = i
+            break
+          }
+          completedReps = nextCompletedReps
+        }
+
+        // Check if we still have sections to play
+        if (currentSectionIndex >= 0 && currentSectionIndex < this.automationSections.length) {
+          const section = this.automationSections[currentSectionIndex]
+          
+          // Apply current section's speed if it changed
+          if (this.speed !== section.PlaybackRate) {
+            this.speed = section.PlaybackRate
+            this.updateSpeed()
+          }
+          
+          shouldLoop = this.loop && this.loopsCompleted < totalReps
+          maxLoops = totalReps
+        } else {
+          // We've completed all sections
+          shouldLoop = false
+          maxLoops = this.loopsCompleted
+          if (video.paused) {
+            video.currentTime = effectiveEnd
+          }
+        }
+      } else {
+        shouldLoop = this.loop && this.loopsCompleted < this.loopCount
+        maxLoops = this.loopCount
+      }
+
+      // Check for loop condition near the end
       if (currentTime >= effectiveEnd - 0.3) {
-        // Check if we're about to loop
         if (shouldLoop) {
           this.loopsCompleted++
-          if (this.loopsCompleted >= this.loopCount) {
+          
+          // If we've completed all loops, stop
+          if (this.loopsCompleted >= maxLoops) {
             video.pause()
             video.currentTime = effectiveEnd
+            this.loop = false // Disable looping when done
             return
           }
           
-          // Prevent the native ended event by jumping back before it
+          // Otherwise, loop back to start
           video.currentTime = this.startTime || 0
-          // Ensure video keeps playing
           if (video.paused) {
             video.play().catch(e => console.error('Failed to resume playback:', e))
           }
-          return
         }
       }
       
       // Handle normal time updates
       this.videoService.handleTimeUpdate(
-        video, 
-        currentTime, 
-        this.startTime, 
+        video,
+        currentTime,
+        this.startTime || 0,
         effectiveEnd,
         shouldLoop
       )
@@ -604,41 +663,63 @@ export default {
     },
     
     handleAutomationUpdate(sections) {
-      console.log('Automation updated:', sections)
-      // Store the automation data
       this.automationSections = sections
       
-      // If we're at the end of a section, apply its settings
-      const currentSection = this.getCurrentAutomationSection()
-      if (currentSection) {
-        this.applyAutomationSection(currentSection)
+      // If using automation, apply the settings immediately
+      if (this.useAutomationSections && sections.length > 0) {
+        this.applyAutomationSection(sections[0])
       }
     },
 
     getCurrentAutomationSection() {
-      if (!this.automationSections?.length) return null
-      
-      const video = this.$refs.videoPlayer
-      if (!video) return null
-      
-      const currentTime = video.currentTime
-      const duration = video.duration
-      const sectionDuration = duration / this.automationSections.length
-      
-      const sectionIndex = Math.floor(currentTime / sectionDuration)
-      return this.automationSections[sectionIndex]
+      // Always return the first section as it applies to the whole video section
+      return this.automationSections?.[0] || null
     },
 
     applyAutomationSection(section) {
-      // Apply the section's settings
-      if (section.NBReps > 0) {
-        this.loopCount = section.NBReps
-        this.loop = true
+      if (!section) return
+      
+      // Apply both settings at once
+      this.loop = true // Always enable looping when using automation
+      this.loopCount = section.NBReps
+      this.loopsCompleted = 0
+      this.speed = section.PlaybackRate
+      this.updateSpeed()
+    },
+
+    handleAutomationModeChange() {
+      this.loopsCompleted = 0 // Reset loop counter
+      
+      if (this.useAutomationSections) {
+        // Store current manual settings
+        this.manualSpeed = this.speed
+        this.manualLoopCount = this.loopCount
+        
+        // Apply automation settings if available
+        if (this.automationSections.length > 0) {
+          this.applyAutomationSection(this.automationSections[0])
+        }
+      } else {
+        // Restore manual settings
+        this.speed = this.manualSpeed
+        this.loopCount = this.manualLoopCount
+        this.updateSpeed() // Update video playback speed
+          const firstSection = this.automationSections[0]
+          this.applyAutomationSection(firstSection)
+        }
+      } else {
+        // When disabling automation sections, preserve current position but reset loop settings
+        const currentTime = video.currentTime
+        this.loopCount = 3
+        this.loop = false
+        this.startTime = 0
+        this.endTime = video.duration
+        video.currentTime = currentTime // Keep current position
       }
       
-      if (section.PlaybackRate > 0) {
-        this.speed = section.PlaybackRate
-        this.updateSpeed()
+      // Redraw automation line to reflect changes
+      if (this.$refs.automationLine) {
+        this.$refs.automationLine.drawAutomationLine()
       }
     },
 
@@ -838,6 +919,17 @@ export default {
   margin-bottom: 15px;
   padding-bottom: 15px;
   border-bottom: 1px solid var(--border-primary);
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.checkbox-group:last-child {
+  margin-bottom: 0;
 }
 
 .auto-loop-threshold {
