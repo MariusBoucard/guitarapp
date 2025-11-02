@@ -133,18 +133,45 @@
 
         <!-- Loop Control -->
         <div class="loop-settings-container">
+          <!-- Auto-loop Settings -->
+          <div class="auto-loop-container">
+            <label for="enableAutoLoop" class="checkbox-label">Auto-loop short videos:</label>
+            <input 
+              id="enableAutoLoop" 
+              type="checkbox" 
+              v-model="enableAutoLoop"
+              @change="updatePlaybackSettings"
+              class="checkbox-input">
+            
+            <div v-if="enableAutoLoop" class="auto-loop-threshold">
+              <label for="autoLoopThreshold" class="threshold-label">Auto-loop if shorter than:</label>
+              <div class="threshold-controls">
+                <input 
+                  id="autoLoopThreshold" 
+                  type="number" 
+                  v-model="autoLoopThreshold" 
+                  min="1" 
+                  max="300"
+                  class="threshold-input"
+                  @change="updatePlaybackSettings">
+                <span class="threshold-unit">seconds</span>
+              </div>
+            </div>
+          </div>
+
           <div class="checkbox-container">
-            <label for="loopCheckbox" class="checkbox-label">Loop:</label>
+            <label for="loopCheckbox" class="checkbox-label">Manual Loop:</label>
             <input 
               id="loopCheckbox" 
               type="checkbox" 
               v-model="loop"
               @change="updatePlaybackSettings"
-              class="checkbox-input">
+              class="checkbox-input"
+              :disabled="isAutoLoopActive">
           </div>
           
           <!-- Loop Count Control -->
-          <div v-if="loop" class="loop-count-container">
+          <div v-if="loop || isAutoLoopActive" class="loop-count-container">
             <label for="loopCount" class="loop-count-label">Number of loops:</label>
             <div class="loop-count-controls">
               <input 
@@ -155,8 +182,9 @@
                 max="100"
                 class="loop-count-input"
                 @change="updatePlaybackSettings">
-              <span class="loop-count-info" >
+              <span class="loop-count-info">
                 {{ loopsCompleted }}/{{ loopCount }} loops
+                <span v-if="isAutoLoopActive" class="auto-loop-badge">Auto</span>
               </span>
             </div>
           </div>
@@ -189,7 +217,10 @@ export default {
       errorMessage: '',
       showAutoReloadMessage: false,
       loopsCompleted: 0,
-      loopCount: 3 // Default to 3 loops
+      loopCount: 3, // Default to 3 loops
+      enableAutoLoop: true, // Enable auto-loop by default
+      autoLoopThreshold: 15, // Default to 15 seconds
+      lastVideoLength: 0 // Track last video length for auto-loop
     }
   },
 
@@ -254,6 +285,10 @@ export default {
 
     directoryInfo() {
       return this.videoStore.directoryInfo
+    },
+
+    isAutoLoopActive() {
+      return this.enableAutoLoop && this.lastVideoLength > 0 && this.lastVideoLength <= this.autoLoopThreshold
     }
   },
 
@@ -451,6 +486,15 @@ export default {
       if (video) {
         const duration = video.duration
         this.videoStore.setVideoLength(duration)
+        this.lastVideoLength = duration
+        
+        // Reset loop counter
+        this.loopsCompleted = 0
+        
+        // Set initial loop state based on video length
+        if (this.enableAutoLoop && duration <= this.autoLoopThreshold) {
+          this.loop = true // Enable looping for short videos
+        }
       }
     },
 
@@ -697,5 +741,58 @@ export default {
   font-size: 0.9rem;
   color: var(--text-secondary);
   min-width: 80px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Auto-loop styles */
+.auto-loop-container {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.auto-loop-threshold {
+  margin-top: 10px;
+  margin-left: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.threshold-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.threshold-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.threshold-input {
+  width: 60px;
+  padding: 5px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--border-radius);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.threshold-unit {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.auto-loop-badge {
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  background: var(--bg-accent);
+  color: var(--text-accent);
+  border-radius: var(--border-radius);
+  font-weight: 500;
 }
 </style>
