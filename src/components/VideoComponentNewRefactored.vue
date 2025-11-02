@@ -190,6 +190,12 @@
             </div>
           </div>
         </div>
+
+        <!-- Automation Line -->
+        <AutomationLineComponent
+          @automation-updated="handleAutomationUpdate"
+          ref="automationLine"
+          class="automation-section" />
       </div>
     </div>
   </div>
@@ -199,9 +205,14 @@
 import '../assets/css/global.css'
 import { useVideoStore } from '@/stores/videoStore'
 import { serviceManager } from '@/services'
+import AutomationLineComponent from './AutomationLineComponent.vue'
 
 export default {
   name: 'VideoComponentNewRefactored',
+  
+  components: {
+    AutomationLineComponent
+  },
   
   setup() {
     const videoStore = useVideoStore()
@@ -221,7 +232,8 @@ export default {
       loopCount: 3, // Default to 3 loops
       enableAutoLoop: true, // Enable auto-loop by default
       autoLoopThreshold: 15, // Default to 15 seconds
-      lastVideoLength: 0 // Track last video length for auto-loop
+      lastVideoLength: 0, // Track last video length for auto-loop
+      automationSections: [], // Store automation sections data
     }
   },
 
@@ -518,7 +530,6 @@ export default {
         if (shouldLoop) {
           this.loopsCompleted++
           if (this.loopsCompleted >= this.loopCount) {
-            // Stop at the end if we've reached loop count
             video.pause()
             video.currentTime = effectiveEnd
             return
@@ -589,6 +600,45 @@ export default {
       if (video) {
         this.videoService.stopVideo(video, this.startTime)
         this.loopsCompleted = 0 // Reset loop counter when stopping
+      }
+    },
+    
+    handleAutomationUpdate(sections) {
+      console.log('Automation updated:', sections)
+      // Store the automation data
+      this.automationSections = sections
+      
+      // If we're at the end of a section, apply its settings
+      const currentSection = this.getCurrentAutomationSection()
+      if (currentSection) {
+        this.applyAutomationSection(currentSection)
+      }
+    },
+
+    getCurrentAutomationSection() {
+      if (!this.automationSections?.length) return null
+      
+      const video = this.$refs.videoPlayer
+      if (!video) return null
+      
+      const currentTime = video.currentTime
+      const duration = video.duration
+      const sectionDuration = duration / this.automationSections.length
+      
+      const sectionIndex = Math.floor(currentTime / sectionDuration)
+      return this.automationSections[sectionIndex]
+    },
+
+    applyAutomationSection(section) {
+      // Apply the section's settings
+      if (section.NBReps > 0) {
+        this.loopCount = section.NBReps
+        this.loop = true
+      }
+      
+      if (section.PlaybackRate > 0) {
+        this.speed = section.PlaybackRate
+        this.updateSpeed()
       }
     },
 
