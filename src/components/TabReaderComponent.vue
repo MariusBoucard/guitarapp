@@ -495,9 +495,8 @@ export default {
     
     if (isElectron) {
       // In Electron, use paths relative to the loaded HTML file
-      // Use the .min.mjs files for production
       const baseUrl = window.location.href.replace(/[^/]*$/, '')
-      settings.core.scriptFile = `${baseUrl}alphatab/alphaTab.worker.min.mjs`
+      settings.core.scriptFile = `${baseUrl}alphatab/alphaTab.min.js`
       settings.core.fontDirectory = `${baseUrl}alphatab/font/`
       
       // Set the worklet for audio synthesis
