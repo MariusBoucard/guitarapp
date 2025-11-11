@@ -206,10 +206,23 @@
             {{ track.name }} ({{ track.channel?.instrument?.name || 'Unknown Instrument' }})
           </option>
         </select>
+
         <button @click="showMixer = !showMixer" class="mixer-toggle-btn">
           {{ showMixer ? '🎚️ Hide Mixer' : '🎚️ Show Mixer' }}
         </button>
       </div>
+
+      <div class="loop-controls">
+      <label for="loop-start">Start:</label>
+      <input id="loop-start" type="number" v-model.number="loopStartBar" min="1" @change="updateLoopRange">
+      
+      <label for="loop-end">End:</label>
+      <input id="loop-end" type="number" v-model.number="loopEndBar" min="1" @change="updateLoopRange">
+      
+      <button @click="toggleLoop" :class="{ 'active': isLooping }" class="loop-btn">
+        {{ isLooping ? '🔁 Loop On' : '🔁 Loop Off' }}
+      </button>
+    </div>
       
       <div v-if="showMixer" class="mixer-panel">
         <h4>Track Mixer</h4>
@@ -334,7 +347,7 @@
 </template>
 
 <script>
-import { AlphaTabApi, Settings } from '@coderline/alphatab'
+import { Settings, AlphaTabApi } from '@coderline/alphatab';
 import { useTabStore } from '../stores/tabStore.js'
 import { fileHandleService } from '../services/fileHandleService.js'
 
@@ -375,7 +388,10 @@ export default {
       newPlaylistName: '',
       playlistToRename: null,
       playlistToDelete: null,
-      showDeleteConfirm: false
+      showDeleteConfirm: false,
+      isLooping: false,
+    loopStartBar: 1, // The bar to start at (1-based)
+    loopEndBar: 4,
     }
   },
   computed: {
@@ -514,6 +530,55 @@ export default {
         console.error('AlphaTab initialization error:', err)
       }
     },
+    toggleLoop() {
+    if (!this.alphaTabApi) return;
+    
+    // Toggle our component's state
+    this.isLooping = !this.isLooping;
+    
+    // Update the alphaTab player's state
+    this.alphaTabApi.player.isLooping = this.isLooping;
+    
+    // Apply or clear the playback range
+    this.updateLoopRange();
+  },
+  
+  updateLoopRange() {
+    if (!this.alphaTabApi) {console.log('No AlphaTab API available'); return;}
+        const startBarIndex = Math.max(0, this.loopStartBar - 1);
+       const endBarIndex = Math.max(startBarIndex, this.loopEndBar - 1);
+    if(!this.score){ console.log('No score available'); return; }
+        console.log(this.score);
+    if (endBarIndex >= this.score.masterBars.length) return;
+
+    if (this.isLooping) {
+        const startTick = this.score.masterBars[startBarIndex].start;
+
+        const endBarForTick = endBarIndex + 1;
+        
+        let endTick;
+        if (endBarForTick < this.score.masterBars.length) {
+            endTick = this.score.masterBars[endBarForTick].start;
+        } else {
+            endTick = this.score.duration;
+        }
+        
+        this.alphaTabApi.player.playbackRange = {
+            startTick: startTick,
+            endTick: endTick
+        };
+        
+
+      // {
+       // startTick: startBarIndex,
+       // endTick: endBarIndex
+      //};
+
+    } else {
+      // Clear the playback range to play the whole song
+      this.alphaTabApi.playbackRange = null;
+    }
+  },
     
     setupEventListeners() {
       if (!this.alphaTabApi) return
@@ -523,6 +588,7 @@ export default {
         this.isLoaded = true
         this.tracks = score.tracks || []
         this.selectedTrack = 0
+        this.score = score
         this.error = null
       })
       
