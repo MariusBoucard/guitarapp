@@ -473,7 +473,6 @@ export default {
     },
 async openTexTab() {
   try {
-    // --- Pick a JSON file ---
     const [fileHandle] = await window.showOpenFilePicker({
       types: [
         {
@@ -486,7 +485,6 @@ async openTexTab() {
 
     if (!fileHandle) return;
 
-    // --- Read file contents ---
     const file = await fileHandle.getFile();
     const text = await file.text();
 
@@ -502,21 +500,40 @@ async openTexTab() {
 
     // --- Convert JSON → AlphaTex ---
     const tex = jsonToAlphaTex(songJson);
-
-    // --- Render in AlphaTab ---
     this.alphaTabApi.tex(tex);
-
     console.log("✅ Generated AlphaTex:", tex);
 
+    // --- Save runtime info ---
+    this.currentLoadedFile = file;
+    this.currentLoadedFileName = file.name;
+    this.isLoaded = true;
+
+    // --- Save handle and wait for ID before adding to playlist ---
+    let fileHandleId = null;
+      fileHandleId = await fileHandleService.storeFileHandle(fileHandle);
+      this.currentFileHandleId = fileHandleId;
+    
+
+    // --- Build playlist entry ---
+    const tabData = {
+      name: songJson.name || file.name || "Untitled JSON Tab",
+      path: file.name,
+      artist: songJson.artist || "",
+      album: songJson.album || "",
+      fileHandleId,               // ✅ now always defined
+      fileType: "json"
+    };
+
+    // --- Add to playlist ---
+    this.tabStore.addTabToPlaylist("recent", tabData);
+
   } catch (err) {
-    // Handle user cancel or file picker errors
     if (err.name !== "AbortError") {
       console.error("File picker error:", err);
       alert(`❌ Failed to open file: ${err.message}`);
     }
   }
 },
-
     initializeAlphaTab() {
       try {
         if (!this.$refs.alphaTab) {
@@ -1171,59 +1188,74 @@ Solutions:
       this.playlistToDelete = null
     },
     
-    addCurrentTabToPlaylist(playlistId) {
-      if (!this.isLoaded || !this.currentLoadedFile) {
-        this.error = 'No tab is currently loaded'
-        setTimeout(() => { this.error = null }, 3000)
-        return
-      }
-      
-      // Extract metadata from current tab
-      const tabData = {
-        name: this.currentLoadedFileName || 'Untitled Tab',
-        path: this.currentLoadedFile.name || '',
-        artist: '',
-        album: '',
-        fileHandleId: this.currentFileHandleId // Store the file handle ID from IndexedDB
-      }
-      
-      // Try to get more info from AlphaTab if available
-      if (this.alphaTabApi?.score) {
-        tabData.name = this.alphaTabApi.score.title || tabData.name
-        tabData.artist = this.alphaTabApi.score.artist || ''
-        tabData.album = this.alphaTabApi.score.album || ''
-      }
-      
-      this.tabStore.addTabToPlaylist(playlistId, tabData)
-    },
+addCurrentTabToPlaylist(playlistId) {
+  if (!this.isLoaded || !this.currentLoadedFile) {
+    this.error = 'No tab is currently loaded';
+    setTimeout(() => { this.error = null }, 3000);
+    return;
+  }
+
+  const isJsonTab = this.currentLoadedFile.name?.endsWith('.json');
+
+  const tabData = {
+    name: this.currentLoadedFileName || 'Untitled Tab',
+    path: this.currentLoadedFile.name || '',
+    artist: '',
+    album: '',
+    fileHandleId: this.currentFileHandleId,
+    fileType: isJsonTab ? 'json' : 'gp' // 👈 distinguish formats
+  };
+
+  if (this.alphaTabApi?.score) {
+    tabData.name = this.alphaTabApi.score.title || tabData.name;
+    tabData.artist = this.alphaTabApi.score.artist || '';
+    tabData.album = this.alphaTabApi.score.album || '';
+  }
+
+  this.tabStore.addTabToPlaylist(playlistId, tabData);
+}
+,
     
     removeTabFromPlaylist(playlistId, tabId) {
       this.tabStore.removeTabFromPlaylist(playlistId, tabId)
     },
     
-    async loadTabFromPlaylist(tab) {
-      // If we have a file handle ID, retrieve it from IndexedDB
-      if (tab.fileHandleId) {
-        try {
-          const fileHandle = await fileHandleService.getFileHandle(tab.fileHandleId)
-          
-          if (!fileHandle) {
-            throw new Error('File handle not found. It may have been cleared.')
-          }
-          
-          // Try to load the file
-          await this.loadFileFromHandle(fileHandle, tab.fileHandleId)
-        } catch (error) {
-          this.error = `Failed to load tab: ${error.message}`
-          setTimeout(() => { this.error = null }, 5000)
-          console.error('Error loading tab from playlist:', error)
-        }
-      } else {
-        // No file handle - need to ask user to select file
-        this.error = `This tab doesn't have file access saved. Please use "Browse File" button and re-add it to the playlist: ${tab.name}`
-        setTimeout(() => { this.error = null }, 5000)
-      }
+   async loadTabFromPlaylist(tab) {
+  if (!tab.fileHandleId) {
+    this.error = `This tab doesn't have file access saved. Please use "Browse File" button and re-add it to the playlist: ${tab.name}`;
+    setTimeout(() => { this.error = null }, 5000);
+    return;
+  }
+
+  try {
+    const fileHandle = await fileHandleService.getFileHandle(tab.fileHandleId);
+    if (!fileHandle) throw new Error('File handle not found. It may have been cleared.');
+
+    const file = await fileHandle.getFile();
+
+    if (tab.fileType === 'json' || file.name.endsWith('.json')) {
+      // --- JSON Tab ---
+      const text = await file.text();
+      const songJson = JSON.parse(text);
+      const tex = jsonToAlphaTex(songJson);
+      this.alphaTabApi.tex(tex);
+
+      this.currentLoadedFile = file;
+      this.currentLoadedFileName = file.name;
+      this.isLoaded = true;
+
+      console.log("✅ Loaded JSON tab from playlist:", file.name);
+    } else {
+      // --- GP/Other Tabs ---
+      await this.loadFileFromHandle(fileHandle, tab.fileHandleId);
     }
+
+  } catch (error) {
+    this.error = `Failed to load tab: ${error.message}`;
+    setTimeout(() => { this.error = null }, 5000);
+    console.error('Error loading tab from playlist:', error);
+  }
+}
   }
 }
 </script>
