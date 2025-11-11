@@ -461,21 +461,19 @@ export default {
 
         const settings = new Settings()
         
-        // Optimized settings for fast rendering
-        settings.core.engine = 'html5'  // HTML5 Canvas is much faster than SVG
-        settings.core.useWorkers = true  // Enable workers for better performance
-        settings.display.scale = 1.0  // Native scale for better performance
+        settings.core.engine = 'html5' 
+        settings.core.useWorkers = true 
+        settings.display.scale = 1.0
         settings.display.stretchForce = 0.8
         
-        // VIEWPORT RENDERING - Only render what's visible!
-        settings.display.layoutMode = 'page'  // Use page layout for proper viewport rendering
-        settings.core.enableLazyLoading = true  // Critical: only load visible content
+        settings.display.layoutMode = 'page'  
+        settings.core.enableLazyLoading = true  
         
         // Player settings
         settings.player.enablePlayer = true
         settings.player.enableAudioSynthesis = true
         settings.player.soundFont = this.selectedSoundFont
-        settings.player.enableCursor = true  // Enable beat cursor
+        settings.player.enableCursor = true  
         settings.player.enableUserInteraction = true
         settings.player.enableElementHighlighting = true  // Highlight current element
         settings.player.scrollMode = 'continuous'  // Enable continuous scrolling
@@ -493,7 +491,19 @@ export default {
           settings.player.vibrato = false  // Disable vibrato for better performance
           settings.display.resources.effectFont = null  // Reduce font rendering
         }
-        
+     const isElectron = window.process?.versions?.electron
+    
+    if (isElectron) {
+      // In Electron, use paths relative to the loaded HTML file
+      // Use the .min.mjs files for production
+      const baseUrl = window.location.href.replace(/[^/]*$/, '')
+      settings.core.scriptFile = `${baseUrl}alphatab/alphaTab.worker.min.mjs`
+      settings.core.fontDirectory = `${baseUrl}alphatab/font/`
+      
+      // Set the worklet for audio synthesis
+      settings.player.enableAudioWorklet = true
+      settings.player.scriptFile = `${baseUrl}alphatab/alphaTab.worklet.min.mjs`
+    }
         // Core settings
         settings.core.fontDirectory = './font/'
         

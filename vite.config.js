@@ -45,13 +45,14 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['guitar-chords', 'guitar-js'],
+    include: ['guitar-chords', 'guitar-js', '@coderline/alphatab'],
     exclude: ['electron', '@coderline/alphaskia']
   },
   define: {
     global: 'globalThis',
   },
   base: './',
+  publicDir: 'public',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

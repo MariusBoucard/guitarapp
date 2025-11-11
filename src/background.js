@@ -65,7 +65,7 @@ async function createWindow() {
       preload: isDevelopment 
         ? join(__dirname, '../public/preload.js')
         : join(__dirname, './preload.js'),
-      webSecurity: isDevelopment ? false : true, // Enable webSecurity in production
+      webSecurity:  false , // Enable webSecurity in production
       allowRunningInsecureContent: false,
       experimentalFeatures: false,
       backgroundThrottling: false, // Prevent background throttling
@@ -79,12 +79,12 @@ async function createWindow() {
   
   // Configure session to reduce cache errors and enable fullscreen
   const session = win.webContents.session
-  if (isDevelopment) {
+
     session.setPermissionRequestHandler(() => true)
     // REMOVED: session.clearCache() - This was clearing localStorage on every restart!
     // Only clear cache if explicitly needed for debugging
     console.log('📁 localStorage will persist in:', app.getPath('userData'))
-  }
+  
   
   // Enable fullscreen permission for all origins
   session.setPermissionRequestHandler((webContents, permission, callback) => {
@@ -105,7 +105,35 @@ async function createWindow() {
       const indexPath = join(__dirname, '../dist/index.html')
       await win.loadFile(indexPath)
     }
-    if (isDevelopment && !process.env.IS_TEST) {
+ 
+  } else {
+    // Load the built files
+    const indexPath = join(__dirname, '../dist/index.html')
+    await win.loadFile(indexPath)
+    // Remove DevTools opening in production for security
+    // win.webContents.openDevTools()
+  }
+/*  
+  session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self'; " +
+          "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
+          "worker-src 'self' blob:; " +
+          "child-src 'self' blob:; " +
+          "style-src 'self' 'unsafe-inline'; " +
+          "img-src 'self' data: blob:; " +
+          "font-src 'self' data:; " +
+          "connect-src 'self' blob:; " +
+          "media-src 'self' blob:;"
+        ]
+      }
+    })
+  })*/
+  
+     if (true) {
       try {
         win.webContents.openDevTools()
 
@@ -130,13 +158,6 @@ async function createWindow() {
         // If DevTools cannot be opened (e.g., in packaged app), ignore silently
       }
     }
-  } else {
-    // Load the built files
-    const indexPath = join(__dirname, '../dist/index.html')
-    await win.loadFile(indexPath)
-    // Remove DevTools opening in production for security
-    // win.webContents.openDevTools()
-  }
   
   // Intercept window close to save data before quit
   win.on('close', async (event) => {
