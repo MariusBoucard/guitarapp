@@ -12,12 +12,32 @@ export function jsonToAlphaTex(songJson) {
 
   // --- METADATA ---
   lines.push(`\\title "${escapeQuotes(songJson.name || "Untitled")}"`);
-  if (songJson.instrument) lines.push(`\\instrument "${escapeQuotes(songJson.instrument)}"`);
-  
-  const firstTempo = (songJson.automations?.tempo?.[0]) ||
-                     (songJson.measures?.[0]?.voices?.[0]?.beats?.[0]?.tempo);
-  if (firstTempo?.bpm) lines.push(`\\tempo ${Number(firstTempo.bpm)}`);
-  
+
+if (songJson.subtitle) lines.push(`\\subtitle "${escapeQuotes(songJson.subtitle)}"`);
+if (songJson.instrument) lines.push(`\\instrument "${escapeQuotes(songJson.instrument)}"`);
+//if (Number.isFinite(songJson.frets)) lines.push(`\\frets ${songJson.frets}`);
+//if (Number.isFinite(songJson.strings)) lines.push(`\\strings ${songJson.strings}`);
+if (Array.isArray(songJson.tuning) && songJson.tuning.length) {
+  const tuningNames = songJson.tuning.map(midiToNoteName);
+  var tune =  tuningNames.join(" ").trim();
+  lines.push(`\\tuning ${tune}`);
+}
+
+if (Number.isFinite(songJson.capo) && songJson.capo > 0) lines.push(`\\capo ${songJson.capo}`);
+
+const firstTempo = (songJson.automations?.tempo?.[0]) ||
+                   (songJson.measures?.[0]?.voices?.[0]?.beats?.[0]?.tempo);
+if (firstTempo?.bpm) lines.push(`\\tempo ${Number(firstTempo.bpm)}`);
+
+// Optional lyrics
+if (Array.isArray(songJson.newLyrics)) {
+  songJson.newLyrics.forEach(lyric => {
+    if (lyric.text && lyric.text.trim()) {
+      lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`);
+    }
+  });
+}
+
   lines.push("."); // mandatory separator
 
   // --- CONTENT ---
@@ -76,4 +96,11 @@ export function jsonToAlphaTex(songJson) {
 
 function escapeQuotes(s) {
   return String(s).replace(/"/g, '\\"');
+}
+
+function midiToNoteName(midi) {
+  const notes = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"];
+  const note = notes[midi % 12];
+  const octave = Math.floor(midi / 12) - 1;
+  return note + octave;
 }
