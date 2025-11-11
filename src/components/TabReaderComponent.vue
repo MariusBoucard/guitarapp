@@ -13,8 +13,11 @@
         <button @click="openFileWithPicker" class="load-btn" v-if="supportsFileSystemAccess">
           📂 Browse File
         </button>
-        <button @click="openFileDialog" class="load-btn" v-else>
+                <button @click="openFileDialog" class="load-btn" v-else>
           📂 Load Guitar Pro File
+        </button>
+        <button @click="openTexTab()" class="load-btn">
+          📂 Open Tab tex
         </button>
         <button v-if="canPlay" @click="playPause" class="play-btn" :class="{ 'playing': isPlaying }">
           {{ isPlaying ? '⏸️ Pause' : '▶️ Play' }}
@@ -349,6 +352,8 @@
 <script>
 import { Settings, AlphaTabApi } from '@coderline/alphatab';
 import { useTabStore } from '../stores/tabStore.js'
+import { jsonToAlphaTex } from '../services/jsonToAlphaTexService.js'
+import jsondata from '../services/jsontoparseTab.json' with { type: 'json' };
 import { fileHandleService } from '../services/fileHandleService.js'
 
 export default {
@@ -358,10 +363,11 @@ export default {
       alphaTabApi: null,
       isLoaded: false,
       isPlaying: false,
+      json: jsondata,
       isPlayerReady: false,
       error: null,
       tracks: [],
-      selectedTrack: 0,
+      selectedTrack: 0, 
       showMixer: false,
       showPlaylists: false,
       showAudioSettings: false,
@@ -465,6 +471,13 @@ export default {
         this.alphaTabApi.playbackSpeed = speedFactor
       }
     },
+    openTexTab() {
+        var tex = jsonToAlphaTex(this.json);
+        //tex = '0.6{d}.4 0.5.8 3.4.4 0.5.4 |'
+      this.alphaTabApi.tex(tex);
+      console.log("Generated AlphaTex:", tex);
+
+},
 
     initializeAlphaTab() {
       try {
