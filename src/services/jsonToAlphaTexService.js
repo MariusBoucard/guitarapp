@@ -30,32 +30,32 @@ export function jsonToAlphaTex(songJson) {
   const lines = [];
 
   // --- METADATA (strict: no blank lines before metadata) ---
-//  lines.push(`\\title "${escapeQuotes(songJson.name || "Untitled")}"`);
+  lines.push(`\\title "${escapeQuotes(songJson.name || "Untitled")}"`);
 
   if (songJson.instrument) {
- //   lines.push(`\\instrument "${escapeQuotes(songJson.instrument)}"`);
+ //  lines.push(`\\instrument "${escapeQuotes(songJson.instrument)}"`);
   }
 
   // tempo: prefer automations[0] then first beat tempo
   const firstTempo = (songJson.automations?.tempo && songJson.automations.tempo[0]) ||
                      (songJson.measures?.[0]?.voices?.[0]?.beats?.[0]?.tempo);
   if (firstTempo?.bpm) {
-   // lines.push(`\\tempo ${Number(firstTempo.bpm)}`);
+    lines.push(`\\tempo ${Number(firstTempo.bpm)}`);
   }
 
   // time signature if present (first measure)
   const sig = songJson.measures?.[0]?.signature;
   if (Array.isArray(sig) && sig.length === 2) {
- //   lines.push(`\\ts ${Number(sig[0])} ${Number(sig[1])}`);
+ // lines.push(`\\ts ${Number(sig[0])} ${Number(sig[1])}`);
   }
 
   // capo
   if (Number.isFinite(songJson.capo) && songJson.capo > 0) {
-   // lines.push(`\\capo ${Number(songJson.capo)}`);
+    lines.push(`\\capo ${Number(songJson.capo)}`);
   }
 
   // The mandatory single-dot line separating metadata from contents
- // lines.push(".");
+  lines.push(".");
 
   // --- CONTENTS: each measure -> line ending with '|' ---
   for (const measure of songJson.measures) {

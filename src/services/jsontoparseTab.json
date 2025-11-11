@@ -1,540 +1,965 @@
 {
-
-    "strings":6,
-    "frets":30,
-    "tuning":[
-        64,
-        59,
-        55,
-        50,
-        45,
-        38
-    ],
-    "name":"Greg Burgess",
-    "instrument":"Acoustic Guitar (nylon)",
-    "instrumentId":24,
-    "volume":0.49606299212598426,
-    "balance":0,
-    "measures":[
+  "name": "Lead",
+  "balance": 0,
+  "volume": 1,
+  "measures": [
+    {
+      "voices": [
         {
-            "index":1,
-            "signature":[
-                4,
-                4
-            ],
-            "voices":[
-                {
-                    "beats":[
-                        {
-                            "type":4,
-                            "dotted":true,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":0
-                                }
-                            ],
-                            "tempo":{
-                                "type":4,
-                                "bpm":145
-                            },
-                            "duration":[
-                                3,
-                                8
-                            ],
-                            "beamStart":true
-                        },
-                        {
-                            "type":8,
-                            "notes":[
-                                {
-                                    "string":4,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                8
-                            ],
-                            "beamStop":true
-                        },
-                        {
-                            "type":4,
-                            "notes":[
-                                {
-                                    "string":3,
-                                    "fret":3
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                4
-                            ]
-                        },
-                        {
-                            "type":4,
-                            "notes":[
-                                {
-                                    "string":4,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                4
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "index":2,
-            "voices":[
-                {
-                    "beats":[
-                        {
-                            "type":4,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                4
-                            ]
-                        },
-                        {
-                            "type":16,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":0,
-                                    "tie":true
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                16
-                            ],
-                            "beamStart":true
-                        },
-                        {
-                            "type":16,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":0,
-                                    "hp":true
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                16
-                            ]
-                        },
-                        {
-                            "type":16,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":3,
-                                    "hp":true
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                16
-                            ]
-                        },
-                        {
-                            "type":16,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":5
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                16
-                            ],
-                            "beamStop":true
-                        },
-                        {
-                            "type":4,
-                            "notes":[
-                                {
-                                    "string":3,
-                                    "fret":3
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                4
-                            ]
-                        },
-                        {
-                            "type":4,
-                            "notes":[
-                                {
-                                    "string":4,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                4
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "index":3,
-            "voices":[
-                {
-                    "beats":[
-                        {
-                            "type":4,
-                            "dotted":true,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                3,
-                                8
-                            ],
-                            "beamStart":true
-                        },
-                        {
-                            "type":8,
-                            "notes":[
-                                {
-                                    "string":4,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                8
-                            ],
-                            "beamStop":true
-                        },
-                        {
-                            "type":4,
-                            "notes":[
-                                {
-                                    "string":3,
-                                    "fret":3
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                4
-                            ]
-                        },
-                        {
-                            "type":4,
-                            "notes":[
-                                {
-                                    "string":4,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                4
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "index":4,
-            "voices":[
-                {
-                    "beats":[
-                        {
-                            "type":4,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                4
-                            ]
-                        },
-                        {
-                            "type":16,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":0,
-                                    "tie":true
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                16
-                            ],
-                            "beamStart":true
-                        },
-                        {
-                            "type":16,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":0,
-                                    "hp":true
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                16
-                            ]
-                        },
-                        {
-                            "type":16,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":3,
-                                    "hp":true
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                16
-                            ]
-                        },
-                        {
-                            "type":16,
-                            "notes":[
-                                {
-                                    "string":5,
-                                    "fret":5
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                16
-                            ],
-                            "beamStop":true
-                        },
-                        {
-                            "type":8,
-                            "notes":[
-                                {
-                                    "string":3,
-                                    "fret":3
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                8
-                            ],
-                            "beamStart":true
-                        },
-                        {
-                            "type":8,
-                            "notes":[
-                                {
-                                    "string":1,
-                                    "fret":5
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                8
-                            ]
-                        },
-                        {
-                            "type":8,
-                            "notes":[
-                                {
-                                    "string":1,
-                                    "fret":6
-                                },
-                                {
-                                    "string":4,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                8
-                            ]
-                        },
-                        {
-                            "type":8,
-                            "notes":[
-                                {
-                                    "string":0,
-                                    "fret":3
-                                },
-                                {
-                                    "string":4,
-                                    "fret":0,
-                                    "tie":true
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                8
-                            ],
-                            "beamStop":true
-                        }
-                    ]
-                }
-            ]
-        },
-      
-        {
-            "index":9,
-            "voices":[
-                {
-                    "beats":[
-                        {
-                            "type":4,
-                            "dotted":true,
-                            "notes":[
-                                {
-                                    "string":1,
-                                    "fret":6
-                                },
-                                {
-                                    "string":5,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                3,
-                                8
-                            ],
-                            "beamStart":true
-                        },
-                        {
-                            "type":8,
-                            "notes":[
-                                {
-                                    "string":1,
-                                    "fret":8
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                8
-                            ],
-                            "beamStop":true
-                        },
-                        {
-                            "type":4,
-                            "notes":[
-                                {
-                                    "string":1,
-                                    "fret":6
-                                },
-                                {
-                                    "string":4,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                4
-                            ]
-                        },
-                        {
-                            "type":4,
-                            "notes":[
-                                {
-                                    "string":1,
-                                    "fret":6,
-                                    "tie":true
-                                },
-                                {
-                                    "string":4,
-                                    "fret":0
-                                }
-                            ],
-                            "duration":[
-                                1,
-                                4
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-    ],
-    "capo":0,
-    "voices":1,
-    "automations":{
-        "tempo":[
+          "beats": [
             {
-                "measure":1,
-                "linear":false,
-                "visible":false,
-                "position":0,
-                "type":4,
-                "bpm":145
+              "notes": [
+                {
+                  "fret": 19,
+                  "string": 1,
+                  "vibrato": true
+                }
+              ],
+              "velocity": "f",
+              "type": 2,
+              "vibrato": true,
+              "duration": [
+                1,
+                2
+              ]
             },
             {
-                "measure":82,
-                "linear":false,
-                "visible":false,
-                "position":0,
-                "type":4,
-                "bpm":120
-            },
-            {
-                "measure":84,
-                "linear":false,
-                "visible":false,
-                "position":0,
-                "type":4,
-                "bpm":100
-            },
-            {
-                "measure":85,
-                "linear":false,
-                "visible":false,
-                "position":0,
-                "type":4,
-                "bpm":180
-            },
-            {
-                "measure":113,
-                "linear":false,
-                "visible":false,
-                "position":0,
-                "type":4,
-                "bpm":140
-            },
-            {
-                "measure":114,
-                "linear":false,
-                "visible":false,
-                "position":0,
-                "type":4,
-                "bpm":130
+              "notes": [
+                {
+                  "fret": 17,
+                  "string": 1,
+                  "vibrato": true
+                }
+              ],
+              "type": 2,
+              "vibrato": true,
+              "duration": [
+                1,
+                2
+              ]
             }
-        ]
+          ]
+        }
+      ]
     },
-    "version":5,
-    "songId":449582,
-    "partId":0,
-    "revisionId":373348
-
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1,
+                  "vibrato": true
+                }
+              ],
+              "type": 2,
+              "vibrato": true,
+              "duration": [
+                1,
+                2
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1,
+                  "vibrato": true
+                }
+              ],
+              "type": 2,
+              "vibrato": true,
+              "duration": [
+                1,
+                2
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 1,
+                  "vibrato": true
+                }
+              ],
+              "type": 2,
+              "vibrato": true,
+              "duration": [
+                1,
+                2
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1,
+                  "vibrato": true
+                }
+              ],
+              "type": 2,
+              "vibrato": true,
+              "duration": [
+                1,
+                2
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 1,
+                  "vibrato": true
+                }
+              ],
+              "type": 2,
+              "vibrato": true,
+              "duration": [
+                1,
+                2
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1,
+                  "vibrato": true
+                }
+              ],
+              "type": 4,
+              "vibrato": true,
+              "duration": [
+                1,
+                4
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 17,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 0,
+                  "vibrato": true
+                }
+              ],
+              "type": 2,
+              "vibrato": true,
+              "duration": [
+                1,
+                2
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 17,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStop": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 0,
+                  "hp": true
+                }
+              ],
+              "type": 16,
+              "tuplet": 3,
+              "duration": [
+                1,
+                24
+              ],
+              "beamStart": true,
+              "tupletStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 0,
+                  "hp": true
+                }
+              ],
+              "type": 16,
+              "tuplet": 3,
+              "duration": [
+                1,
+                24
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 0
+                }
+              ],
+              "type": 16,
+              "tuplet": 3,
+              "duration": [
+                1,
+                24
+              ],
+              "tupletStop": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 17,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1,
+                  "vibrato": true
+                }
+              ],
+              "type": 4,
+              "dots": 1,
+              "vibrato": true,
+              "duration": [
+                3,
+                8
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 17,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 16,
+              "duration": [
+                1,
+                16
+              ],
+              "beamStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1
+                }
+              ],
+              "type": 16,
+              "duration": [
+                1,
+                16
+              ],
+              "beamStop": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 17,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 19,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 0,
+                  "hp": true
+                }
+              ],
+              "type": 16,
+              "tuplet": 3,
+              "duration": [
+                1,
+                24
+              ],
+              "tupletStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 0,
+                  "hp": true
+                }
+              ],
+              "type": 16,
+              "tuplet": 3,
+              "duration": [
+                1,
+                24
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 0
+                }
+              ],
+              "type": 16,
+              "tuplet": 3,
+              "duration": [
+                1,
+                24
+              ],
+              "beamStop": true,
+              "tupletStop": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 17,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStop": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 17,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStop": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 16,
+              "tuplet": 3,
+              "duration": [
+                1,
+                24
+              ],
+              "beamStart": true,
+              "tupletStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 17,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 16,
+              "tuplet": 3,
+              "duration": [
+                1,
+                24
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1
+                }
+              ],
+              "type": 16,
+              "tuplet": 3,
+              "duration": [
+                1,
+                24
+              ],
+              "tupletStop": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "notes": [
+                {
+                  "fret": 16,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "duration": [
+                1,
+                8
+              ],
+              "beamStop": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ],
+              "beamStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ],
+              "beamStop": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ],
+              "beamStart": true
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 14,
+                  "string": 1,
+                  "hp": true
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ]
+            },
+            {
+              "notes": [
+                {
+                  "fret": 15,
+                  "string": 1
+                }
+              ],
+              "type": 32,
+              "duration": [
+                1,
+                32
+              ],
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "frets": 24,
+  "tuning": [
+    64,
+    59,
+    55,
+    50,
+    45,
+    40
+  ],
+  "strings": 6,
+  "instrumentId": 30,
+  "instrument": "Distortion Guitar",
+  "newLyrics": [
+    {
+      "line": 1,
+      "offset": 1,
+      "text": ""
+    },
+    {
+      "line": 2,
+      "offset": 1,
+      "text": ""
+    },
+    {
+      "line": 3,
+      "offset": 1,
+      "text": ""
+    },
+    {
+      "line": 4,
+      "offset": 1,
+      "text": ""
+    },
+    {
+      "line": 5,
+      "offset": 1,
+      "text": ""
+    }
+  ],
+  "partId": 0,
+  "automations": {
+    "tempo": [
+      {
+        "measure": 0,
+        "position": 0,
+        "bpm": 90,
+        "type": 4
+      },
+      {
+        "measure": 16,
+        "position": 0,
+        "bpm": 198,
+        "type": 4
+      },
+      {
+        "measure": 138,
+        "position": 0,
+        "bpm": 100,
+        "type": 4
+      },
+      {
+        "measure": 147,
+        "position": 0,
+        "bpm": 200,
+        "type": 4
+      },
+      {
+        "measure": 211,
+        "position": 0,
+        "bpm": 90,
+        "type": 4
+      },
+      {
+        "measure": 218,
+        "position": 0.5,
+        "bpm": 80,
+        "type": 4
+      }
+    ]
+  },
+  "version": 8,
+  "songId": 10770,
+  "revisionId": 3310833
 }
