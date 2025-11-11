@@ -2,6 +2,7 @@ export function jsonToAlphaTex(songJson) {
   if (!songJson || !Array.isArray(songJson.measures)) {
     throw new Error("Invalid song JSON");
   }
+  console.log("Converting song JSON:", songJson);
 
   const durationMap = {
     1: "1", 2: "2", 4: "4", 8: "8", 16: "16", 32: "32", 64: "64"
@@ -43,7 +44,6 @@ export function jsonToAlphaTex(songJson) {
         const fret = n.fret;
         const string = n.string + 1; // 1-based
         const effects = [];
-
         if (n.vibrato || beat.vibrato) effects.push("v");
         if (n.hp) effects.push("h");
         if (n.pu) effects.push("p");
@@ -51,7 +51,8 @@ export function jsonToAlphaTex(songJson) {
         if (n.bend) effects.push("b");
         if (n.slide) effects.push("sl");
         if (beatIsDotted) effects.push("d");
-
+        if (beat.tuplet !== undefined ) effects.push(`tu ${beat.tuplet}`);  // <-- new line to handle triplets
+        if(beat.tuplet !== undefined) console.log("Tuplet detected:", beat.tuplet);
         const effectStr = effects.length ? `{${effects.join(" ")}}` : "";
         return `${fret}.${string}${effectStr}`;
       }).filter(Boolean);
