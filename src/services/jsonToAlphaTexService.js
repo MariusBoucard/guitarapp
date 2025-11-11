@@ -14,7 +14,7 @@ export function jsonToAlphaTex(songJson) {
   lines.push(`\\title "${escapeQuotes(songJson.name || "Untitled")}"`);
 
 if (songJson.subtitle) lines.push(`\\subtitle "${escapeQuotes(songJson.subtitle)}"`);
-if (songJson.instrument) lines.push(`\\instrument "${escapeQuotes(songJson.instrument)}"`);
+if (songJson.instrument) lines.push(`\\instrument "Distortion Guitar"`);
 //if (Number.isFinite(songJson.frets)) lines.push(`\\frets ${songJson.frets}`);
 //if (Number.isFinite(songJson.strings)) lines.push(`\\strings ${songJson.strings}`);
 if (Array.isArray(songJson.tuning) && songJson.tuning.length) {
@@ -48,43 +48,49 @@ if (Array.isArray(songJson.newLyrics)) {
 
     const tokens = [];
 
-    for (const beat of voice.beats) {
-      const dur = durationMap[beat.type] || "4";
+for (const beat of voice.beats) {
+  const dur = durationMap[beat.type] || "4";
+  const notes = Array.isArray(beat.notes) ? beat.notes : [];
 
-      const notes = Array.isArray(beat.notes) ? beat.notes : [];
-      if (!notes.length) {
-        tokens.push(`r.${dur}`);
-        continue;
-      }
+  // --- Handle explicit rests ---
+  if (beat.rest || (notes.length && notes.every(n => n.rest))) {
+    tokens.push(`r.${dur}`);
+    continue;
+  }
 
-      const beatIsDotted = !!beat.dots || !!beat.dotted;
+  if (!notes.length) {
+    tokens.push(`r.${dur}`);
+    continue;
+  }
 
-      const noteTokens = notes.map(n => {
-        if (n.fret == null || n.string == null) return null;
-        const fret = n.fret;
-        const string = n.string + 1; // 1-based
-        const effects = [];
-        if (n.vibrato || beat.vibrato) effects.push("v");
-        if (n.hp) effects.push("h");
-        if (n.pu) effects.push("p");
-        if (n.tie) effects.push("tie");
-        if (n.bend) effects.push("b");
-        if (n.slide) effects.push("sl");
-        if (beatIsDotted) effects.push("d");
-        if (beat.tuplet !== undefined ) effects.push(`tu ${beat.tuplet}`);  // <-- new line to handle triplets
-        if(beat.tuplet !== undefined) console.log("Tuplet detected:", beat.tuplet);
-        const effectStr = effects.length ? `{${effects.join(" ")}}` : "";
-        return `${fret}.${string}${effectStr}`;
-      }).filter(Boolean);
+  const beatIsDotted = !!beat.dots || !!beat.dotted;
 
-      if (!noteTokens.length) continue;
+  const noteTokens = notes.map(n => {
+    if (n.rest) return null; // skip rests safely
+    if (n.fret == null || n.string == null) return null;
+    const fret = n.fret;
+    const string = n.string + 1; // 1-based
 
-      if (noteTokens.length > 1) {
-        // chord: duration outside parentheses
-        tokens.push(`(${noteTokens.join(" ")})${"."}${dur}`);
-      } else {
-        tokens.push(`${noteTokens[0]}.${dur}`);
-      }
+    const effects = [];
+    if (n.vibrato || beat.vibrato) effects.push("v");
+    if (n.hp) effects.push("h");
+    if (n.pu) effects.push("p");
+    if (n.bend) effects.push("b");
+    if (n.slide) effects.push("sl");
+    if (beatIsDotted) effects.push("d");
+    if (beat.tuplet !== undefined) effects.push(`tu ${beat.tuplet}`);
+
+    const effectStr = effects.length ? `{${effects.join(" ")}}` : "";
+    return `${fret}.${string}${effectStr}`;
+  }).filter(Boolean);
+
+  if (!noteTokens.length) continue;
+
+  if (noteTokens.length > 1) {
+    tokens.push(`(${noteTokens.join(" ")})${"."}${dur}`);
+  } else {
+    tokens.push(`${noteTokens[0]}.${dur}`);
+  }
     }
 
     if (tokens.length) lines.push(tokens.join(" ") + " |");

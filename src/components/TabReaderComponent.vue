@@ -471,12 +471,50 @@ export default {
         this.alphaTabApi.playbackSpeed = speedFactor
       }
     },
-    openTexTab() {
-        var tex = jsonToAlphaTex(this.json);
-        //tex = '0.6{d}.4 0.5.8 3.4.4 0.5.4 |'
-      this.alphaTabApi.tex(tex);
-      console.log("Generated AlphaTex:", tex);
+async openTexTab() {
+  try {
+    // --- Pick a JSON file ---
+    const [fileHandle] = await window.showOpenFilePicker({
+      types: [
+        {
+          description: 'Song JSON File',
+          accept: { 'application/json': ['.json'] },
+        },
+      ],
+      multiple: false,
+    });
 
+    if (!fileHandle) return;
+
+    // --- Read file contents ---
+    const file = await fileHandle.getFile();
+    const text = await file.text();
+
+    // --- Parse JSON ---
+    let songJson;
+    try {
+      songJson = JSON.parse(text);
+    } catch (parseErr) {
+      console.error("Invalid JSON file:", parseErr);
+      alert("❌ Invalid JSON file format.");
+      return;
+    }
+
+    // --- Convert JSON → AlphaTex ---
+    const tex = jsonToAlphaTex(songJson);
+
+    // --- Render in AlphaTab ---
+    this.alphaTabApi.tex(tex);
+
+    console.log("✅ Generated AlphaTex:", tex);
+
+  } catch (err) {
+    // Handle user cancel or file picker errors
+    if (err.name !== "AbortError") {
+      console.error("File picker error:", err);
+      alert(`❌ Failed to open file: ${err.message}`);
+    }
+  }
 },
 
     initializeAlphaTab() {
