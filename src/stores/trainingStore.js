@@ -3,18 +3,15 @@ import { useUserStore } from './userStore'
 
 export const useTrainingStore = defineStore('training', {
   state: () => ({
-    // UI State only (not user-specific data)
     selectedTraining: 0,
     currentTrainingName: '',
     currentVideo: '',
   }),
 
   getters: {
-    // Reference userStore data directly
     trainingList() {
       const userStore = useUserStore()
       if (!userStore.currentUser?.data?.trainings) {
-        // Initialize if needed
         if (userStore.currentUser) {
           userStore.currentUser.data.trainings = []
         }
@@ -55,7 +52,6 @@ export const useTrainingStore = defineStore('training', {
   },
 
   actions: {
-    // Training management - modify userStore data directly
     addTraining(name) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
@@ -64,8 +60,8 @@ export const useTrainingStore = defineStore('training', {
       trainings.push({
         id: trainings.length,
         name: name || this.currentTrainingName,
-        list: [], // videos for this training
-        audioFiles: [], // audio files for this training
+        list: [],
+        audioFiles: [],
       })
       this.reindexTrainings()
       userStore.saveUsersToStorage()
@@ -88,14 +84,12 @@ export const useTrainingStore = defineStore('training', {
       this.selectedTraining = training.id
     },
 
-    // Video management for trainings - modify userStore data directly
     addVideoToTraining(trainingId, videoData) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
       const training = userStore.currentUser.data.trainings.find((t) => t.id === trainingId)
       if (training) {
-        // Check if video already exists (by identifier)
         const identifier =
           typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData)
         const exists = training.list.some((item) => {
@@ -130,12 +124,10 @@ export const useTrainingStore = defineStore('training', {
       }
     },
 
-    // Helper method to get video identifier
     getVideoIdentifier(videoData) {
       if (typeof videoData === 'string') return videoData
-      // For videos with absolutePath, use the relative path as identifier
       if (videoData.absolutePath && videoData.path) {
-        return videoData.path // Use relative path as identifier
+        return videoData.path;
       }
       return videoData.fileHandleId || videoData.identifier || videoData.url || videoData.path
     },
@@ -149,7 +141,6 @@ export const useTrainingStore = defineStore('training', {
       })
     },
 
-    // File management - modify userStore data directly
     addVideoFile(filePath) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
@@ -173,7 +164,6 @@ export const useTrainingStore = defineStore('training', {
       }
     },
 
-    // Storage methods - now delegates to userStore
     saveTrainingsToStorage() {
       const userStore = useUserStore()
       userStore.saveUsersToStorage()
@@ -189,12 +179,10 @@ export const useTrainingStore = defineStore('training', {
       userStore.saveUsersToStorage()
     },
 
-    // Load from storage - migrate old data to userStore if needed
     loadFromStorage() {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
-      // Migration: Load old data into current user if user data is empty
       if (
         (!userStore.currentUser.data.trainings ||
           userStore.currentUser.data.trainings.length === 0) &&
@@ -209,7 +197,6 @@ export const useTrainingStore = defineStore('training', {
         userStore.currentUser.data.trainings = trainings
       }
 
-      // Migration: Load old niou trainings
       if (
         (!userStore.currentUser.data.niouTrainingList ||
           userStore.currentUser.data.niouTrainingList.length === 0) &&
@@ -225,7 +212,6 @@ export const useTrainingStore = defineStore('training', {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
-      // Migration: Load old video trainings if current user has none
       if (
         (!userStore.currentUser.data.trainings ||
           userStore.currentUser.data.trainings.length === 0) &&
