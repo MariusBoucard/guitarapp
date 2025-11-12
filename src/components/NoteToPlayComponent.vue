@@ -287,8 +287,8 @@ export default{
             else{
                 this.oldNote = this.newNote
                 this.Interval = Math.floor(Math.random() * 12);
-                date = new Date()
-                timeInterval = 60/this.tempo  
+                const  date = new Date()
+                let timeInterval = 60/this.tempo  
                 timeInterval = 4*timeInterval/this.metronomeDenominateur
                 this.newNote = {
                     "note" : this.calcNote(),

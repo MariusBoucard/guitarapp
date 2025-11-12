@@ -405,9 +405,8 @@ export default {
 
             }
 
-            for ( i = 0; i < orderNbNotes.length; i++) {
+            for (let i = 0; i < orderNbNotes.length; i++) {
                 let chordName3 = this.nbnotes.find(note => note.id === orderNbNotes.at(i))
-                //essay avec une gamme
                 let listeNotes3 = this.Diatonics.find(thirds => thirds.quality === quality)
                 let quall3 = listeNotes3.liste.at(i)
                 this.DiatonicChords.push({ quality: quality, chord: chordName3.note + quall3.quality })

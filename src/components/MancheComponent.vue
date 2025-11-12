@@ -275,23 +275,26 @@ export default {
             return this.currentNote
         },
         cordeListe() {
-            let cordeListe = []
-            for (let corde = 0; corde < this.tuningintra.length; corde++) {
-                let notesCorde = []
-                let note = this.tuningintra[corde].tuning
-                let idnotedepart = this.allnotes.find((notes) => notes.note === note)
-                for (let i = 0; i < 24; i++) {
-                    if (idnotedepart)
-                        notesCorde.push((i + idnotedepart.id) % 12)
-                    else {
-                        notesCorde.push((2) % 12)
+        const cordeListe = [];
 
-                    }
+        for (const corde of this.tuningintra) {
+            const notesCorde = [];
+            const note = corde.tuning;
+            const idnotedepart = this.allnotes.find((notes) => notes.note === note);
+
+            for (let i = 0; i < 24; i++) {
+                if (idnotedepart) {
+                    notesCorde.push((i + idnotedepart.id) % 12);
+                } else {
+                    notesCorde.push(2 % 12);
                 }
-                cordeListe.push(notesCorde)
             }
-            return cordeListe
-        },
+
+            cordeListe.push(notesCorde);
+        }
+
+        return cordeListe;
+    },
 
 
     },
