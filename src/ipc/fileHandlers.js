@@ -14,10 +14,10 @@ export function registerFileHandlers() {
       properties: ['openFile'],
       filters: [
         { name: 'Audio Files', extensions: ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'] },
-        { name: 'All Files', extensions: ['*'] }
-      ]
+        { name: 'All Files', extensions: ['*'] },
+      ],
     })
-    
+
     if (!result.canceled && result.filePaths.length > 0) {
       return result.filePaths[0]
     }
@@ -30,10 +30,10 @@ export function registerFileHandlers() {
       properties: ['openFile'],
       filters: [
         { name: 'Video Files', extensions: ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'] },
-        { name: 'All Files', extensions: ['*'] }
-      ]
+        { name: 'All Files', extensions: ['*'] },
+      ],
     })
-    
+
     if (!result.canceled && result.filePaths.length > 0) {
       return result.filePaths[0]
     }
@@ -43,9 +43,9 @@ export function registerFileHandlers() {
   // Directory selection
   ipcMain.handle('select-directory', async () => {
     const result = await dialog.showOpenDialog({
-      properties: ['openDirectory']
+      properties: ['openDirectory'],
     })
-    
+
     if (!result.canceled && result.filePaths.length > 0) {
       return result.filePaths[0]
     }
@@ -58,11 +58,11 @@ export function registerFileHandlers() {
       properties: ['openFile', 'multiSelections'],
       filters: [
         { name: 'VST3 Plugins', extensions: ['vst3'] },
-        { name: 'All Files', extensions: ['*'] }
+        { name: 'All Files', extensions: ['*'] },
       ],
-      title: 'Select VST3 Plugin Files'
+      title: 'Select VST3 Plugin Files',
     })
-    
+
     if (!result.canceled && result.filePaths.length > 0) {
       return result.filePaths
     }
@@ -75,16 +75,16 @@ export function registerFileHandlers() {
       // Save to app data directory
       const appDataPath = join(homedir(), '.guitarapp')
       await fs.ensureDir(appDataPath)
-      
+
       const treeFilePath = join(appDataPath, 'directory-tree.json')
       const dataToSave = {
         directoryPath,
         lastScanned: new Date().toISOString(),
-        tree: treeData
+        tree: treeData,
       }
-      
+
       await fs.writeJson(treeFilePath, dataToSave, { spaces: 2 })
-      
+
       return { success: true, filePath: treeFilePath }
     } catch (error) {
       return { success: false, error: error.message }
@@ -96,10 +96,10 @@ export function registerFileHandlers() {
     try {
       const appDataPath = join(homedir(), '.guitarapp')
       const treeFilePath = join(appDataPath, 'directory-tree.json')
-      
+
       if (await fs.pathExists(treeFilePath)) {
         const data = await fs.readJson(treeFilePath)
-        
+
         // Verify the directory still exists
         if (await fs.pathExists(data.directoryPath)) {
           return { success: true, data }
@@ -109,7 +109,7 @@ export function registerFileHandlers() {
           return { success: false, error: 'Saved directory no longer exists' }
         }
       }
-      
+
       return { success: false, error: 'No saved directory tree found' }
     } catch (error) {
       return { success: false, error: error.message }

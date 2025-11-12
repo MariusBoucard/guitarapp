@@ -9,14 +9,14 @@
 
 alphaTab is a cross platform music notation and guitar tablature rendering library. You can use alphaTab within your own website or application to load and display music sheets from data sources like Guitar Pro or the built in markup language named alphaTex.
 
-![alphaTab](img/banner.png?raw=true "alphaTab")
+![alphaTab](img/banner.png?raw=true 'alphaTab')
 
 ## Getting Started
 
 To get started follow our guides and tutorials at:
 
-* <https://www.alphatab.net/docs/introduction>
-* <https://www.alphatab.net/docs/tutorials>
+- <https://www.alphatab.net/docs/introduction>
+- <https://www.alphatab.net/docs/tutorials>
 
 ## Features
 
@@ -24,26 +24,26 @@ alphaTab mostly focuses on web based platforms allowing music notation to be emb
 
 alphaTab can load music notation from various sources like Guitar Pro 3-7, AlphaTex and MusicXML (experimental) and render them into beautiful music sheets right within your browser (or application). Using a built in midi synthesizer named alphaSynth the music sheets can also be played in your browser.
 
-* Load GuitarPro 3-5, GuitarPro 6, Guitar Pro 7, AlphaTex or MusicXML (experimental)
-* Render as SVG or Raster Graphics (raster graphics depends on platform: HTML5 canvas, GDI+, SkiaSharp, Android Canvas)...
-* Display single or multiple instruments as standard music notation and guitar tablatures consisting of song information, repeats, alternate endings, guitar tunints, clefs, key signatures, time signatures, notes, rests, accidentals, drum tabs, piano grand staff, tied notes, grace notes, dead notes, ghost notes, markers, tempos, lyrics, chords, vibratos, dynamics, tap/slap/pop, fade-in, let-ring, palm-mute, string bends, whammy bar, tremolo picking, strokes, slides, trills, pick strokes, tuplets, fingering, triplet feels,...
-* Adapt to your responsive design by dynamic resizing
-* Play the music sheet via built-in Midi+SoundFont2 Synthesizer (output depends on platform: HTML5 Web Audio, NAudio, Android AudioTrack)
+- Load GuitarPro 3-5, GuitarPro 6, Guitar Pro 7, AlphaTex or MusicXML (experimental)
+- Render as SVG or Raster Graphics (raster graphics depends on platform: HTML5 canvas, GDI+, SkiaSharp, Android Canvas)...
+- Display single or multiple instruments as standard music notation and guitar tablatures consisting of song information, repeats, alternate endings, guitar tunints, clefs, key signatures, time signatures, notes, rests, accidentals, drum tabs, piano grand staff, tied notes, grace notes, dead notes, ghost notes, markers, tempos, lyrics, chords, vibratos, dynamics, tap/slap/pop, fade-in, let-ring, palm-mute, string bends, whammy bar, tremolo picking, strokes, slides, trills, pick strokes, tuplets, fingering, triplet feels,...
+- Adapt to your responsive design by dynamic resizing
+- Play the music sheet via built-in Midi+SoundFont2 Synthesizer (output depends on platform: HTML5 Web Audio, NAudio, Android AudioTrack)
 
 ## Officially Supported Platforms
 
- Platform | Support | Availability
-----------|---------|--------------
-Browsers using `script` includes (UMD) | Full experience including low level APIs, Background Workers, Audio Playback, SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing. | 1.0-latest
-Node.js using `require` (UMD) | Access to all low level APIs and SVG rendering | 1.0-latest
-.net standard 2.0 | Access to all low level APIs and multiple render engines (SVG, GDI+, SkiaSharp) | 1.0-latest
-.netcoreapp3.1 (WPF) | Full experience including low level APIs, Background Workers, Audio Playback (through NAudio), SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing. | 1.0-1.2.2
-.netcoreapp3.1 (WinForms) | Full experience including low level APIs, Background Workers, Audio Playback (through NAudio), SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing. Reduced UI level integration related to transparency and animations. | 1.0-1.2.2
-Browsers using ES6 Modules (ESM) | Full experience including low level APIs, Background Workers, Audio Playback, SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing. | 1.3
-Node.js using `import` (ESM) | Access to all low level APIs and SVG rendering | 1.3
-.net8.0-windows (WPF) | Full experience including low level APIs, Background Workers, Audio Playback (through NAudio), SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing. | 1.3
-.net8.0-windows (WinForms) | Full experience including low level APIs, Background Workers, Audio Playback (through NAudio), SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing. Reduced UI level integration related to transparency and animations. | 1.3
-Android (Kotlin) | Full experience including low level APIs, Background Workers, Audio Playback, Android Canvas and SVG rendering. UI level integration for user interaction and automatic resizing. Reduced UI level integration related to transparency and animations. | 1.3
+| Platform                               | Support                                                                                                                                                                                                                                                        | Availability |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Browsers using `script` includes (UMD) | Full experience including low level APIs, Background Workers, Audio Playback, SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing.                                                                                       | 1.0-latest   |
+| Node.js using `require` (UMD)          | Access to all low level APIs and SVG rendering                                                                                                                                                                                                                 | 1.0-latest   |
+| .net standard 2.0                      | Access to all low level APIs and multiple render engines (SVG, GDI+, SkiaSharp)                                                                                                                                                                                | 1.0-latest   |
+| .netcoreapp3.1 (WPF)                   | Full experience including low level APIs, Background Workers, Audio Playback (through NAudio), SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing.                                                                      | 1.0-1.2.2    |
+| .netcoreapp3.1 (WinForms)              | Full experience including low level APIs, Background Workers, Audio Playback (through NAudio), SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing. Reduced UI level integration related to transparency and animations. | 1.0-1.2.2    |
+| Browsers using ES6 Modules (ESM)       | Full experience including low level APIs, Background Workers, Audio Playback, SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing.                                                                                       | 1.3          |
+| Node.js using `import` (ESM)           | Access to all low level APIs and SVG rendering                                                                                                                                                                                                                 | 1.3          |
+| .net8.0-windows (WPF)                  | Full experience including low level APIs, Background Workers, Audio Playback (through NAudio), SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing.                                                                      | 1.3          |
+| .net8.0-windows (WinForms)             | Full experience including low level APIs, Background Workers, Audio Playback (through NAudio), SVG and HTML5 rendering. UI level integration for user interaction and automatic resizing. Reduced UI level integration related to transparency and animations. | 1.3          |
+| Android (Kotlin)                       | Full experience including low level APIs, Background Workers, Audio Playback, Android Canvas and SVG rendering. UI level integration for user interaction and automatic resizing. Reduced UI level integration related to transparency and animations.         | 1.3          |
 
 ## Thanks to...
 

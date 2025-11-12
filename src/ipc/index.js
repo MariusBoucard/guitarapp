@@ -1,6 +1,6 @@
 /**
  * Main IPC Handlers Module
- * 
+ *
  * This module imports and registers all IPC handlers from separate modules
  * to organize the background.js file better.
  */
@@ -17,18 +17,18 @@ import { registerVideoHandlers } from './videoHandlers.js'
  */
 export function registerAllIPCHandlers() {
   console.log('🔧 Registering all IPC handlers...')
-  
+
   // Register file and directory handlers
   registerFileHandlers()
-  
+
   // Register video handlers
   registerVideoHandlers()
-  
+
   // VST3 handlers removed - feature disabled
   // registerVST3Handlers(vst3HostInstance)
   // registerAudioHandlers(vst3HostInstance)
   // registerEditorHostHandlers(editorHostBridgeInstance)
-  
+
   console.log('✅ All IPC handlers registered successfully')
 }
 
@@ -37,7 +37,7 @@ export function registerAllIPCHandlers() {
  */
 export {
   registerFileHandlers,
-  registerVideoHandlers
+  registerVideoHandlers,
   // VST3 handlers removed
   // registerVST3Handlers,
   // registerAudioHandlers,

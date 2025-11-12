@@ -11,8 +11,8 @@ export default defineConfig({
     alphaTab(), // Add AlphaTab plugin first to handle fonts and assets
     vue({
       compilerOptions: {
-        isCustomElement: tag => tag.startsWith('guitar')
-      }
+        isCustomElement: (tag) => tag.startsWith('guitar'),
+      },
     }),
     electron([
       {
@@ -21,22 +21,22 @@ export default defineConfig({
         vite: {
           build: {
             rollupOptions: {
-              external: ['fs-extra', 'path', 'fs']
-            }
-          }
-        }
+              external: ['fs-extra', 'path', 'fs'],
+            },
+          },
+        },
       },
       {
         entry: 'public/preload.js',
         onstart(options) {
-          // Notify the Renderer-Process to reload the page when the Preload-Scripts build is complete, 
+          // Notify the Renderer-Process to reload the page when the Preload-Scripts build is complete,
           // instead of restarting the entire Electron App.
           options.reload()
         },
       },
     ]),
     renderer({
-      nodeIntegration: true
+      nodeIntegration: true,
     }),
   ],
   resolve: {
@@ -46,7 +46,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['guitar-chords', 'guitar-js', '@coderline/alphatab'],
-    exclude: ['electron', '@coderline/alphaskia']
+    exclude: ['electron', '@coderline/alphaskia'],
   },
   define: {
     global: 'globalThis',
@@ -57,10 +57,10 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     rollupOptions: {
-      external: ['electron', 'fs-extra', 'path', 'fs']
-    }
+      external: ['electron', 'fs-extra', 'path', 'fs'],
+    },
   },
   server: {
-    port: 8080
-  }
+    port: 8080,
+  },
 })

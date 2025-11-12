@@ -10,7 +10,7 @@ export const usePictureStore = defineStore('picture', {
     // UI state (not persisted)
     imageCache: new Map(),
     selectedPictureIndex: null,
-    currentImageUrl: ''
+    currentImageUrl: '',
   }),
 
   getters: {
@@ -22,11 +22,14 @@ export const usePictureStore = defineStore('picture', {
 
     // Get selected picture
     selectedPicture() {
-      if (this.selectedPictureIndex === null || this.selectedPictureIndex >= this.pictureList.length) {
+      if (
+        this.selectedPictureIndex === null ||
+        this.selectedPictureIndex >= this.pictureList.length
+      ) {
         return null
       }
       return this.pictureList[this.selectedPictureIndex]
-    }
+    },
   },
 
   actions: {
@@ -35,17 +38,17 @@ export const usePictureStore = defineStore('picture', {
       const userStore = useUserStore()
       if (userStore.currentUser) {
         // Check if picture already exists
-        const exists = userStore.currentUser.data.pictures.some(pic => 
-          pic.name === pictureData.name && pic.size === pictureData.size
+        const exists = userStore.currentUser.data.pictures.some(
+          (pic) => pic.name === pictureData.name && pic.size === pictureData.size
         )
-        
+
         if (!exists) {
           userStore.currentUser.data.pictures.push({
             name: pictureData.name,
             size: pictureData.size,
             type: pictureData.type,
             lastModified: pictureData.lastModified,
-            dataUrl: pictureData.dataUrl // Store the base64 data URL
+            dataUrl: pictureData.dataUrl, // Store the base64 data URL
           })
           userStore.saveUsersToStorage()
           return true
@@ -57,17 +60,24 @@ export const usePictureStore = defineStore('picture', {
     // Remove a picture by index
     removePicture(index) {
       const userStore = useUserStore()
-      if (userStore.currentUser && index >= 0 && index < userStore.currentUser.data.pictures.length) {
+      if (
+        userStore.currentUser &&
+        index >= 0 &&
+        index < userStore.currentUser.data.pictures.length
+      ) {
         const removedPicture = userStore.currentUser.data.pictures[index]
         userStore.currentUser.data.pictures.splice(index, 1)
-        
+
         // Clear cache for removed picture
         this.imageCache.delete(removedPicture.name)
-        
+
         // Adjust selected index if needed
         if (this.selectedPictureIndex === index) {
           if (userStore.currentUser.data.pictures.length > 0) {
-            this.selectedPictureIndex = Math.min(index, userStore.currentUser.data.pictures.length - 1)
+            this.selectedPictureIndex = Math.min(
+              index,
+              userStore.currentUser.data.pictures.length - 1
+            )
             this.loadPictureUrl(this.selectedPictureIndex)
           } else {
             this.clearSelection()
@@ -75,7 +85,7 @@ export const usePictureStore = defineStore('picture', {
         } else if (this.selectedPictureIndex > index) {
           this.selectedPictureIndex--
         }
-        
+
         userStore.saveUsersToStorage()
       }
     },
@@ -126,7 +136,7 @@ export const usePictureStore = defineStore('picture', {
         return this.imageCache.get(pictureName)
       }
 
-      const picture = this.pictureList.find(p => p.name === pictureName)
+      const picture = this.pictureList.find((p) => p.name === pictureName)
       if (picture && picture.dataUrl) {
         this.imageCache.set(pictureName, picture.dataUrl)
         return picture.dataUrl
@@ -145,6 +155,6 @@ export const usePictureStore = defineStore('picture', {
     // Cache an image
     cacheImage(name, dataUrl) {
       this.imageCache.set(name, dataUrl)
-    }
-  }
+    },
+  },
 })

@@ -1,181 +1,179 @@
 <template>
-    <div class="keyboard-container">
-      <div class="keyboard-header">
-        <h3>Piano Keyboard</h3>
-        <div class="selected-notes-display" v-if="selectedKey.size > 0">
-          <span class="label">Selected Notes:</span>
-          <div class="note-chips">
-            <span 
-              v-for="note in Array.from(selectedKey)" 
-              :key="note" 
-              class="note-chip"
-              @click="removeNote(note)"
-            >
-              {{ formatNote(note) }}
-              <span class="remove-icon">×</span>
-            </span>
-          </div>
-        </div>
-        <div class="no-selection" v-else>
-          <span class="label">Click keys to select notes</span>
+  <div class="keyboard-container">
+    <div class="keyboard-header">
+      <h3>Piano Keyboard</h3>
+      <div class="selected-notes-display" v-if="selectedKey.size > 0">
+        <span class="label">Selected Notes:</span>
+        <div class="note-chips">
+          <span
+            v-for="note in Array.from(selectedKey)"
+            :key="note"
+            class="note-chip"
+            @click="removeNote(note)"
+          >
+            {{ formatNote(note) }}
+            <span class="remove-icon">×</span>
+          </span>
         </div>
       </div>
-      
-      <div class="piano-keyboard">
-        <div class="white-keys">
-          <div
-            v-for="(note, index) in whiteKeys"
-            :key="`white-${note}-${index}`"
-            class="white-key"
-            @click="selectKey(note)"
-            :class="{ 'selected': selectedKey.has(note) }"
-            :style="{ background: getKeyColor(note) }"
-          >
-            <span 
-              class="note-label" 
-              :style="{ color: getTextColor(note, false) }"
-            >{{ formatNote(note) }}</span>
-          </div>
-        </div>
-        
-        <div class="black-keys">
-          <div
-            v-for="(note, index) in blackKeys"
-            :key="`black-${note}-${index}`"
-            class="black-key"
-            @click="selectKey(note)"
-            :class="{ 'selected': selectedKey.has(note) }"
-            :style="{ 
-              left: getBlackKeyPosition(index) + '%',
-              background: getKeyColor(note, true)
-            }"
-          >
-            <span 
-              class="note-label" 
-              :style="{ color: getTextColor(note, true) }"
-            >{{ formatNote(note) }}</span>
-          </div>
+      <div class="no-selection" v-else>
+        <span class="label">Click keys to select notes</span>
+      </div>
+    </div>
+
+    <div class="piano-keyboard">
+      <div class="white-keys">
+        <div
+          v-for="(note, index) in whiteKeys"
+          :key="`white-${note}-${index}`"
+          class="white-key"
+          @click="selectKey(note)"
+          :class="{ selected: selectedKey.has(note) }"
+          :style="{ background: getKeyColor(note) }"
+        >
+          <span class="note-label" :style="{ color: getTextColor(note, false) }">{{
+            formatNote(note)
+          }}</span>
         </div>
       </div>
-      
-      <div class="keyboard-footer">
-        <button class="clear-btn" @click="clearSelection" v-if="selectedKey.size > 0">
-          Clear All
-        </button>
-        <div class="note-count">
-          {{ selectedKey.size }} note{{ selectedKey.size !== 1 ? 's' : '' }} selected
+
+      <div class="black-keys">
+        <div
+          v-for="(note, index) in blackKeys"
+          :key="`black-${note}-${index}`"
+          class="black-key"
+          @click="selectKey(note)"
+          :class="{ selected: selectedKey.has(note) }"
+          :style="{
+            left: getBlackKeyPosition(index) + '%',
+            background: getKeyColor(note, true),
+          }"
+        >
+          <span class="note-label" :style="{ color: getTextColor(note, true) }">{{
+            formatNote(note)
+          }}</span>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script>
+
+    <div class="keyboard-footer">
+      <button class="clear-btn" @click="clearSelection" v-if="selectedKey.size > 0">
+        Clear All
+      </button>
+      <div class="note-count">
+        {{ selectedKey.size }} note{{ selectedKey.size !== 1 ? 's' : '' }} selected
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
   export default {
     props: {
       selectedNotes: {
         type: Array,
-        default: () => []
+        default: () => [],
       },
       colorNotes: {
         type: Array,
-        default: () => []
-      }
+        default: () => [],
+      },
     },
     data() {
       return {
         whiteKeys: ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'],
-        blackKeys: ['C#', 'D#', 'F#', 'G#', 'A#', 'C#', 'D#', 'F#', 'G#', 'A#']
-      };
+        blackKeys: ['C#', 'D#', 'F#', 'G#', 'A#', 'C#', 'D#', 'F#', 'G#', 'A#'],
+      }
     },
     computed: {
       selectedKey() {
         // Create a reactive Set based on selectedNotes prop
         // Convert from store notation (S) to keyboard notation (#)
-        const selectedSet = new Set();
-        this.selectedNotes.forEach(noteObj => {
+        const selectedSet = new Set()
+        this.selectedNotes.forEach((noteObj) => {
           if (noteObj.enabled) {
             // Convert 'S' notation to '#' notation for keyboard display
-            const keyboardNote = noteObj.note.replace('S', '#');
-            selectedSet.add(keyboardNote);
+            const keyboardNote = noteObj.note.replace('S', '#')
+            selectedSet.add(keyboardNote)
           }
-        });
-        return selectedSet;
-      }
+        })
+        return selectedSet
+      },
     },
     methods: {
       formatNote(note) {
-        return note.replace('#', '♯');
+        return note.replace('#', '♯')
       },
       selectKey(note) {
         // Toggle the note selection
         if (this.selectedKey.has(note)) {
           // If note is already selected, remove it
-          this.$emit('note-removed', note);
+          this.$emit('note-removed', note)
         } else {
           // If note is not selected, add it
-          this.$emit('note-selected', note);
+          this.$emit('note-selected', note)
         }
       },
       removeNote(note) {
         // Emit the note removal to parent
-        this.$emit('note-removed', note);
+        this.$emit('note-removed', note)
       },
       clearSelection() {
         // Emit clear all selection to parent
-        this.$emit('clear-all');
+        this.$emit('clear-all')
       },
       getKeyColor(note, isBlackKey = false) {
         // Return beautiful gradient colors when selected
         if (this.selectedKey.has(note)) {
           if (isBlackKey) {
             // Beautiful soft orange gradient for sharp notes
-            return 'linear-gradient(to bottom, #FF8A65 0%, #FF7043 50%, #FF5722 100%)';
+            return 'linear-gradient(to bottom, #FF8A65 0%, #FF7043 50%, #FF5722 100%)'
           } else {
             // Beautiful green gradient for natural notes
-            return 'linear-gradient(to bottom, #4CAF50 0%, #43A047 50%, #388E3C 100%)';
+            return 'linear-gradient(to bottom, #4CAF50 0%, #43A047 50%, #388E3C 100%)'
           }
         }
-        
+
         // Return beautiful default gradients for unselected keys
         if (isBlackKey) {
-          return 'linear-gradient(to bottom, #2c2c2c 0%, #1a1a1a 100%)';
+          return 'linear-gradient(to bottom, #2c2c2c 0%, #1a1a1a 100%)'
         } else {
-          return 'linear-gradient(to bottom, #ffffff 0%, #f8f8f8 100%)';
+          return 'linear-gradient(to bottom, #ffffff 0%, #f8f8f8 100%)'
         }
       },
       getTextColor(note, isBlackKey = false) {
         if (this.selectedKey.has(note)) {
-          return 'white'; 
+          return 'white'
         }
-        
-        return isBlackKey ? 'white' : '#2c3e50';
+
+        return isBlackKey ? 'white' : '#2c3e50'
       },
       getBlackKeyPosition(index) {
         // With 14 white keys, each white key takes up 100/14
-        const whiteKeyWidth = 100 / 14;
-        
+        const whiteKeyWidth = 100 / 14
+
         const positions = [
-          whiteKeyWidth * 0.5 + whiteKeyWidth * 0.5,  
-          whiteKeyWidth * 1.5 + whiteKeyWidth * 0.5,  
-          whiteKeyWidth * 3.5 + whiteKeyWidth * 0.5,   
-          whiteKeyWidth * 4.5 + whiteKeyWidth * 0.5,   
-          whiteKeyWidth * 5.5 + whiteKeyWidth * 0.5,    
-          
+          whiteKeyWidth * 0.5 + whiteKeyWidth * 0.5,
+          whiteKeyWidth * 1.5 + whiteKeyWidth * 0.5,
+          whiteKeyWidth * 3.5 + whiteKeyWidth * 0.5,
+          whiteKeyWidth * 4.5 + whiteKeyWidth * 0.5,
+          whiteKeyWidth * 5.5 + whiteKeyWidth * 0.5,
+
           // Second octave (C, D, E, F, G, A, B)
-          whiteKeyWidth * 7.5 + whiteKeyWidth * 0.5,   
-          whiteKeyWidth * 8.5 + whiteKeyWidth * 0.5,    
-          whiteKeyWidth * 10.5 + whiteKeyWidth * 0.5,   
-          whiteKeyWidth * 11.5 + whiteKeyWidth * 0.5, 
-          whiteKeyWidth * 12.5 + whiteKeyWidth * 0.5  
-        ];
-        
-        return positions[index];
-      }
-    }
-  };
-  </script>
-  
-  <style scoped>
+          whiteKeyWidth * 7.5 + whiteKeyWidth * 0.5,
+          whiteKeyWidth * 8.5 + whiteKeyWidth * 0.5,
+          whiteKeyWidth * 10.5 + whiteKeyWidth * 0.5,
+          whiteKeyWidth * 11.5 + whiteKeyWidth * 0.5,
+          whiteKeyWidth * 12.5 + whiteKeyWidth * 0.5,
+        ]
+
+        return positions[index]
+      },
+    },
+  }
+</script>
+
+<style scoped>
   .keyboard-container {
     width: 900px;
     min-width: 900px;
@@ -266,7 +264,7 @@
     background: #1a1a1a;
     border-radius: 8px;
     padding: 10px;
-    box-shadow: 
+    box-shadow:
       inset 0 5px 15px rgba(0, 0, 0, 0.3),
       0 5px 20px rgba(0, 0, 0, 0.2);
   }
@@ -292,10 +290,10 @@
 
   .white-key.selected {
     transform: translateY(2px);
-    box-shadow: 
+    box-shadow:
       0 1px 4px rgba(0, 0, 0, 0.2),
       0 0 15px rgba(76, 175, 80, 0.4);
-    border-color: #4CAF50;
+    border-color: #4caf50;
   }
 
   .white-key:hover {
@@ -338,14 +336,14 @@
     transition: all 0.2s ease;
     pointer-events: auto;
     transform: translateX(-50%);
-    box-shadow: 
+    box-shadow:
       0 4px 12px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
 
   .black-key.selected {
     transform: translateX(-50%) translateY(2px);
-    box-shadow: 
+    box-shadow:
       0 2px 8px rgba(0, 0, 0, 0.6),
       0 0 15px rgba(255, 138, 101, 0.5),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -359,7 +357,7 @@
   .black-key:active {
     filter: brightness(0.8);
     transform: translateX(-50%) translateY(3px);
-    box-shadow: 
+    box-shadow:
       0 2px 6px rgba(0, 0, 0, 0.6),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
@@ -448,4 +446,4 @@
       text-align: center;
     }
   }
-  </style>
+</style>

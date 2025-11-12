@@ -4,20 +4,20 @@ import { useUserStore } from './userStore'
 export const useSongPlayerStore = defineStore('songPlayer', {
   state: () => ({
     // UI State only (not user-specific data)
-    currentSong: "",
+    currentSong: '',
     songLength: 0,
-    
+
     // Playback settings
     startTime: 0,
     endTime: 0,
     speed: 100,
     pitch: 0,
     loop: false,
-    
+
     // Directory settings (session-specific)
-    defaultPath: "/media/marius/DISK GROS/"
+    defaultPath: '/media/marius/DISK GROS/',
   }),
-  
+
   getters: {
     // Get audio files for the currently selected training
     // This should be called with trainingStore as a parameter from components
@@ -26,14 +26,14 @@ export const useSongPlayerStore = defineStore('songPlayer', {
         // No training selected - return empty array
         return []
       }
-      
+
       const training = trainingStore.currentTrainingData
       if (!training.audioFiles) {
         training.audioFiles = []
       }
       return training.audioFiles
     },
-    
+
     // Legacy getter for global audio files (kept for backward compatibility)
     audioPath() {
       const userStore = useUserStore()
@@ -45,30 +45,32 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       }
       return userStore.currentUser.data.audioFiles
     },
-    
+
     songPath() {
       return this.audioPath
     },
-    
+
     formattedSongLength: (state) => {
       const dateObj = new Date(state.songLength * 1000)
       const minutes = dateObj.getUTCMinutes()
       const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0')
-      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0')
+      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10)
+        .toString()
+        .padStart(2, '0')
       return `${minutes}:${seconds}.${milliseconds}`
-    }
+    },
   },
-  
+
   actions: {
     // Audio file management for trainings - modify userStore data directly
     addAudioToTraining(trainingStore, trainingId, audioPath) {
-      const training = trainingStore.trainingList.find(t => t.id === trainingId)
+      const training = trainingStore.trainingList.find((t) => t.id === trainingId)
       if (training) {
         // Initialize audioFiles array if it doesn't exist (for backward compatibility)
         if (!training.audioFiles) {
           training.audioFiles = []
         }
-        
+
         // Check if audio file already exists
         if (!training.audioFiles.includes(audioPath)) {
           training.audioFiles.push(audioPath)
@@ -78,7 +80,7 @@ export const useSongPlayerStore = defineStore('songPlayer', {
     },
 
     removeAudioFromTraining(trainingStore, trainingId, audioPath) {
-      const training = trainingStore.trainingList.find(t => t.id === trainingId)
+      const training = trainingStore.trainingList.find((t) => t.id === trainingId)
       if (training && training.audioFiles) {
         const index = training.audioFiles.indexOf(audioPath)
         if (index > -1) {
@@ -92,7 +94,7 @@ export const useSongPlayerStore = defineStore('songPlayer', {
     addAudioFile(trainingStore, filePath, fileName) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
-      
+
       // Add to current training if one is selected
       if (trainingStore.currentTrainingData) {
         this.addAudioToTraining(trainingStore, trainingStore.selectedTraining, filePath)
@@ -103,7 +105,7 @@ export const useSongPlayerStore = defineStore('songPlayer', {
         }
         userStore.currentUser.data.audioFiles.push(filePath)
       }
-      
+
       this.currentSong = fileName
       userStore.saveUsersToStorage()
     },
@@ -111,7 +113,7 @@ export const useSongPlayerStore = defineStore('songPlayer', {
     removeAudioFile(trainingStore, filePath) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
-      
+
       // Remove from current training if one is selected
       if (trainingStore.currentTrainingData) {
         this.removeAudioFromTraining(trainingStore, trainingStore.selectedTraining, filePath)
@@ -123,7 +125,7 @@ export const useSongPlayerStore = defineStore('songPlayer', {
           audioFiles.splice(index, 1)
         }
       }
-      
+
       userStore.saveUsersToStorage()
     },
 
@@ -131,7 +133,7 @@ export const useSongPlayerStore = defineStore('songPlayer', {
     updateAudioPathForTraining(trainingStore) {
       // No-op: audioPath is now a getter that automatically reflects current data
     },
-    
+
     // Playback control
     setPlaybackSettings({ startTime, endTime, speed, pitch, loop }) {
       if (startTime !== undefined) this.startTime = startTime
@@ -140,34 +142,34 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       if (pitch !== undefined) this.pitch = pitch
       if (loop !== undefined) this.loop = loop
     },
-    
+
     setSongLength(duration) {
       this.songLength = duration
       this.endTime = duration
     },
-    
+
     // Storage methods - now delegates to userStore
     saveAudioToStorage() {
       const userStore = useUserStore()
       userStore.saveUsersToStorage()
     },
-    
+
     // Load from storage - migrate old data if needed
     loadFromStorage() {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
-      
+
       // Migration: Load individual songs (legacy support)
-      const songLength = localStorage.getItem("songLength")
+      const songLength = localStorage.getItem('songLength')
       if (songLength) {
         for (let i = 0; i < parseInt(songLength); i++) {
-          const song = localStorage.getItem(`song${i}`);
+          const song = localStorage.getItem(`song${i}`)
           if (song && !this.songPath.includes(song)) {
-            this.songPath.push(song);
-            this.audioPath.push(song);
+            this.songPath.push(song)
+            this.audioPath.push(song)
           }
         }
       }
-    }
-  }
+    },
+  },
 })

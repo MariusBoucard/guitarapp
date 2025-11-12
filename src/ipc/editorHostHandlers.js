@@ -11,10 +11,10 @@ export function registerEditorHostHandlers(editorHostBridgeInstance) {
       if (!editorHostBridgeInstance) {
         return { success: false, error: 'EditorHostBridge not available' }
       }
-      
+
       console.log('🔧 Setting EditorHost path:', hostPath)
       const result = editorHostBridgeInstance.setEditorHostPath(hostPath)
-      
+
       return result
     } catch (error) {
       console.error('EditorHost set path error:', error)
@@ -28,10 +28,10 @@ export function registerEditorHostHandlers(editorHostBridgeInstance) {
       if (!editorHostBridgeInstance) {
         return { success: false, error: 'EditorHostBridge not available' }
       }
-      
+
       console.log('🚀 Launching EditorHost...')
       const result = await editorHostBridgeInstance.launchEditorHost()
-      
+
       return result
     } catch (error) {
       console.error('EditorHost launch error:', error)
@@ -45,10 +45,10 @@ export function registerEditorHostHandlers(editorHostBridgeInstance) {
       if (!editorHostBridgeInstance) {
         return { success: false, error: 'EditorHostBridge not available' }
       }
-      
+
       console.log('🔌 Loading plugin in EditorHost:', pluginPath)
       const result = await editorHostBridgeInstance.loadPlugin(pluginPath)
-      
+
       return result
     } catch (error) {
       console.error('EditorHost load plugin error:', error)
@@ -62,10 +62,10 @@ export function registerEditorHostHandlers(editorHostBridgeInstance) {
       if (!editorHostBridgeInstance) {
         return { success: false, error: 'EditorHostBridge not available' }
       }
-      
+
       console.log('🔗 Embedding EditorHost window with parent handle:', parentWindowHandle)
       const result = await editorHostBridgeInstance.embedWindow(parentWindowHandle)
-      
+
       return result
     } catch (error) {
       console.error('EditorHost embed window error:', error)
@@ -79,10 +79,10 @@ export function registerEditorHostHandlers(editorHostBridgeInstance) {
       if (!editorHostBridgeInstance) {
         return { success: false, error: 'EditorHostBridge not available' }
       }
-      
+
       console.log('🔓 Detaching EditorHost window...')
       const result = await editorHostBridgeInstance.detachWindow()
-      
+
       return result
     } catch (error) {
       console.error('EditorHost detach window error:', error)
@@ -96,10 +96,10 @@ export function registerEditorHostHandlers(editorHostBridgeInstance) {
       if (!editorHostBridgeInstance) {
         return { success: false, error: 'EditorHostBridge not available' }
       }
-      
+
       console.log('🛑 Closing EditorHost...')
       const result = await editorHostBridgeInstance.closeEditorHost()
-      
+
       return result
     } catch (error) {
       console.error('EditorHost close error:', error)
@@ -113,7 +113,7 @@ export function registerEditorHostHandlers(editorHostBridgeInstance) {
       if (!editorHostBridgeInstance) {
         return false
       }
-      
+
       return editorHostBridgeInstance.isRunning()
     } catch (error) {
       console.error('EditorHost is running check error:', error)
@@ -127,7 +127,7 @@ export function registerEditorHostHandlers(editorHostBridgeInstance) {
       if (!editorHostBridgeInstance) {
         return { isRunning: false, isEmbedded: false }
       }
-      
+
       return editorHostBridgeInstance.getWindowInfo()
     } catch (error) {
       console.error('EditorHost get window info error:', error)
@@ -140,7 +140,7 @@ export function registerEditorHostHandlers(editorHostBridgeInstance) {
     try {
       return {
         available: editorHostBridgeInstance !== null,
-        isRunning: editorHostBridgeInstance ? editorHostBridgeInstance.isRunning() : false
+        isRunning: editorHostBridgeInstance ? editorHostBridgeInstance.isRunning() : false,
       }
     } catch (error) {
       console.error('EditorHost availability check error:', error)

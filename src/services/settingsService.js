@@ -4,8 +4,8 @@
  */
 export class SettingsService {
   constructor(serviceManager = null) {
-    this.serviceManager = serviceManager;
-    this.prefix = 'guitarapp_';
+    this.serviceManager = serviceManager
+    this.prefix = 'guitarapp_'
   }
 
   /**
@@ -13,159 +13,164 @@ export class SettingsService {
    */
   saveDisplayStates(displayStates) {
     if (!displayStates || typeof displayStates !== 'object') {
-      console.warn('Invalid displayStates provided to saveDisplayStates:', displayStates);
-      return;
+      console.warn('Invalid displayStates provided to saveDisplayStates:', displayStates)
+      return
     }
-    
+
     Object.entries(displayStates).forEach(([key, value]) => {
-      localStorage.setItem(key, value.toString());
-    });
+      localStorage.setItem(key, value.toString())
+    })
   }
 
   /**
    * Load display states from localStorage
    */
   loadDisplayStates() {
-    const states = {};
+    const states = {}
     const stateKeys = [
-      'mancheDisplay', 'notesSelectedDisplay', 'tunerDisplay', 'pictureDisplay',
-      'soundDisplay', 'scaleDisplay', 'videoDisplay', 'videoDisplayNew',
-      'gameDisplay', 'chordssuggestDisplay'
-    ];
+      'mancheDisplay',
+      'notesSelectedDisplay',
+      'tunerDisplay',
+      'pictureDisplay',
+      'soundDisplay',
+      'scaleDisplay',
+      'videoDisplay',
+      'videoDisplayNew',
+      'gameDisplay',
+      'chordssuggestDisplay',
+    ]
 
-    stateKeys.forEach(key => {
-      const value = localStorage.getItem(key);
+    stateKeys.forEach((key) => {
+      const value = localStorage.getItem(key)
       if (value !== null) {
         // Handle the tunerDisplay vs tunderDisplay naming inconsistency
-        const stateKey = key === 'tunerDisplay' ? 'tunderDisplay' : key;
-        const actualKey = key === 'scaleDisplay' ? 'scalesDisplay' : stateKey;
-        states[actualKey] = value === 'true';
+        const stateKey = key === 'tunerDisplay' ? 'tunderDisplay' : key
+        const actualKey = key === 'scaleDisplay' ? 'scalesDisplay' : stateKey
+        states[actualKey] = value === 'true'
       }
-    });
+    })
 
-    return states;
+    return states
   }
 
   /**
    * Save notes selection to localStorage
    */
   saveNotesSelection(notesList) {
-    notesList.forEach(note => {
-      localStorage.setItem(note.note + "Selected", note.enabled.toString());
-    });
+    notesList.forEach((note) => {
+      localStorage.setItem(note.note + 'Selected', note.enabled.toString())
+    })
   }
 
   /**
    * Load notes selection from localStorage
    */
   loadNotesSelection() {
-    const notes = [
-      'A', 'AS', 'B', 'C', 'CS', 'D', 'DS', 'E', 'F', 'FS', 'G', 'GS'
-    ];
-    
-    const notesSelection = {};
-    notes.forEach(note => {
-      const value = localStorage.getItem(note + "Selected");
-      if (value !== null && value !== "null") {
-        notesSelection[note] = value === 'true';
-      }
-    });
+    const notes = ['A', 'AS', 'B', 'C', 'CS', 'D', 'DS', 'E', 'F', 'FS', 'G', 'GS']
 
-    return notesSelection;
+    const notesSelection = {}
+    notes.forEach((note) => {
+      const value = localStorage.getItem(note + 'Selected')
+      if (value !== null && value !== 'null') {
+        notesSelection[note] = value === 'true'
+      }
+    })
+
+    return notesSelection
   }
 
   /**
    * Save colors to localStorage
    */
   saveColors(colors) {
-    localStorage.setItem("colordict", JSON.stringify(colors));
+    localStorage.setItem('colordict', JSON.stringify(colors))
   }
 
   /**
    * Load colors from localStorage
    */
   loadColors() {
-    const colorDict = localStorage.getItem("colordict");
-    return colorDict && colorDict !== 'null' ? JSON.parse(colorDict) : null;
+    const colorDict = localStorage.getItem('colordict')
+    return colorDict && colorDict !== 'null' ? JSON.parse(colorDict) : null
   }
 
   /**
    * Save color backup
    */
   saveColorBackup(colorSave) {
-    localStorage.setItem("oldnotescolor", JSON.stringify(colorSave));
+    localStorage.setItem('oldnotescolor', JSON.stringify(colorSave))
   }
 
   /**
    * Load color backup
    */
   loadColorBackup() {
-    const colorBackup = localStorage.getItem("oldnotescolor");
-    return colorBackup && colorBackup !== 'null' ? JSON.parse(colorBackup) : null;
+    const colorBackup = localStorage.getItem('oldnotescolor')
+    return colorBackup && colorBackup !== 'null' ? JSON.parse(colorBackup) : null
   }
 
   /**
    * Save tuning configuration
    */
   saveTuningConfig(tuningData) {
-    localStorage.setItem('diap', tuningData.diapason.toString());
-    localStorage.setItem('nbCordes', tuningData.nbStrings.toString());
-    
+    localStorage.setItem('diap', tuningData.diapason.toString())
+    localStorage.setItem('nbCordes', tuningData.nbStrings.toString())
+
     tuningData.tuningList.forEach((tuning, index) => {
-      localStorage.setItem(index + 'tuning', tuning.tuning);
-    });
+      localStorage.setItem(index + 'tuning', tuning.tuning)
+    })
   }
 
   /**
    * Load tuning configuration
    */
   loadTuningConfig() {
-    const config = {};
-    
-    const diap = localStorage.getItem('diap');
+    const config = {}
+
+    const diap = localStorage.getItem('diap')
     if (diap !== null) {
-      config.diapason = parseInt(diap);
+      config.diapason = parseInt(diap)
     }
-    
-    const nbCordes = localStorage.getItem('nbCordes');
+
+    const nbCordes = localStorage.getItem('nbCordes')
     if (nbCordes !== null) {
-      config.nbStrings = parseInt(nbCordes);
-      config.tuningList = [];
-      
+      config.nbStrings = parseInt(nbCordes)
+      config.tuningList = []
+
       for (let i = 0; i < config.nbStrings; i++) {
-        const tuning = localStorage.getItem(i + 'tuning');
+        const tuning = localStorage.getItem(i + 'tuning')
         if (tuning !== null) {
           config.tuningList.push({
             cordeId: i,
-            tuning: tuning
-          });
+            tuning: tuning,
+          })
         }
       }
     }
-    
-    return config;
+
+    return config
   }
 
   /**
    * Save individual diapason value
    */
   saveDiapason(diapason) {
-    localStorage.setItem('diap', diapason.toString());
+    localStorage.setItem('diap', diapason.toString())
   }
 
   /**
    * Clear all settings
    */
   clearAllSettings() {
-    const keys = [];
+    const keys = []
     for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
+      const key = localStorage.key(i)
       if (key && (key.startsWith(this.prefix) || this.isGuitarAppKey(key))) {
-        keys.push(key);
+        keys.push(key)
       }
     }
-    
-    keys.forEach(key => localStorage.removeItem(key));
+
+    keys.forEach((key) => localStorage.removeItem(key))
   }
 
   /**
@@ -173,32 +178,44 @@ export class SettingsService {
    */
   isGuitarAppKey(key) {
     const guitarAppKeys = [
-      'mancheDisplay', 'notesSelectedDisplay', 'tunerDisplay', 'pictureDisplay',
-      'soundDisplay', 'scaleDisplay', 'videoDisplay', 'videoDisplayNew',
-      'gameDisplay', 'chordssuggestDisplay', 'colordict', 'oldnotescolor',
-      'diap', 'nbCordes'
-    ];
-    
-    return guitarAppKeys.includes(key) || 
-           key.endsWith('Selected') || 
-           key.endsWith('tuning') ||
-           /^\d+tuning$/.test(key);
+      'mancheDisplay',
+      'notesSelectedDisplay',
+      'tunerDisplay',
+      'pictureDisplay',
+      'soundDisplay',
+      'scaleDisplay',
+      'videoDisplay',
+      'videoDisplayNew',
+      'gameDisplay',
+      'chordssuggestDisplay',
+      'colordict',
+      'oldnotescolor',
+      'diap',
+      'nbCordes',
+    ]
+
+    return (
+      guitarAppKeys.includes(key) ||
+      key.endsWith('Selected') ||
+      key.endsWith('tuning') ||
+      /^\d+tuning$/.test(key)
+    )
   }
 
   /**
    * Export all settings
    */
   exportSettings() {
-    const settings = {};
-    
+    const settings = {}
+
     for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
+      const key = localStorage.key(i)
       if (key && this.isGuitarAppKey(key)) {
-        settings[key] = localStorage.getItem(key);
+        settings[key] = localStorage.getItem(key)
       }
     }
-    
-    return settings;
+
+    return settings
   }
 
   /**
@@ -207,8 +224,8 @@ export class SettingsService {
   importSettings(settings) {
     Object.entries(settings).forEach(([key, value]) => {
       if (this.isGuitarAppKey(key)) {
-        localStorage.setItem(key, value);
+        localStorage.setItem(key, value)
       }
-    });
+    })
   }
 }

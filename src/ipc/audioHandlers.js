@@ -12,19 +12,19 @@ export function registerAudioHandlers(vst3HostInstance) {
     if (!vst3HostInstance) {
       return { success: false, error: 'Native VST3 host not available' }
     }
-    
+
     try {
       console.log('🔊 Initializing VST3 audio with config:', audioConfig)
-      
+
       // Initialize audio using our SimpleVST3Host
       const initResult = vst3HostInstance.initializeAudio()
-      
+
       if (initResult) {
         audioInitialized = true
         console.log('✅ VST3 audio initialized successfully')
-        
-        return { 
-          success: true, 
+
+        return {
+          success: true,
           message: 'Audio initialized successfully',
           sampleRate: audioConfig.sampleRate || 44100,
           blockSize: audioConfig.bufferSize || 256,
@@ -34,8 +34,8 @@ export function registerAudioHandlers(vst3HostInstance) {
             inputChannels: audioConfig.inputChannels || 2,
             outputChannels: audioConfig.outputChannels || 2,
             inputDevice: audioConfig.inputDevice || 'default',
-            outputDevice: audioConfig.outputDevice || 'default'
-          }
+            outputDevice: audioConfig.outputDevice || 'default',
+          },
         }
       } else {
         return { success: false, error: 'Failed to initialize VST3 audio' }
@@ -52,16 +52,16 @@ export function registerAudioHandlers(vst3HostInstance) {
       if (!vst3HostInstance) {
         return { success: false, error: 'VST3 host not initialized' }
       }
-      
+
       console.log('🎛️ Loading VST3 audio plugin with configuration:', {
         pluginPath,
-        audioConfig
+        audioConfig,
       })
-      
+
       // Initialize audio context if provided
       if (audioConfig && Object.keys(audioConfig).length > 0) {
         console.log('🔧 Initializing VST3 host with audio config:', audioConfig)
-        
+
         // Try to initialize the audio context in the VST3 host
         if (vst3HostInstance.initializeAudio) {
           try {
@@ -75,7 +75,7 @@ export function registerAudioHandlers(vst3HostInstance) {
           console.log('ℹ️ VST3 host does not support audio initialization (using basic mode)')
         }
       }
-      
+
       const result = vst3HostInstance.loadPlugin(pluginPath)
       console.log('🎵 Audio plugin load result:', result)
       return result

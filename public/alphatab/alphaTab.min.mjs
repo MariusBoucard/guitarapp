@@ -48,4 +48,96 @@
  * @preserve
  * @license
  */
-import*as r from"./alphaTab.core.min.mjs";export*from"./alphaTab.core.min.mjs";r.Environment.isRunningInWorker?r.Environment.initializeWorker():r.Environment.isRunningInAudioWorklet?r.Environment.initializeAudioWorklet():r.Environment.initializeMain((e=>{if(r.Environment.webPlatform===r.WebPlatform.NodeJs)throw new r.AlphaTabError(r.AlphaTabErrorType.General,"Workers not yet supported in Node.js");if(r.Environment.webPlatform===r.WebPlatform.BrowserModule||r.Environment.isWebPackBundled||r.Environment.isViteBundled){r.Logger.debug("AlphaTab","Creating webworker");try{return new r.Environment.alphaTabWorker(new r.Environment.alphaTabUrl("./alphaTab.worker.min.mjs",import.meta.url),{type:"module"})}catch(e){r.Logger.debug("AlphaTab","ESM webworker construction with direct URL failed",e)}let o="";try{o=new r.Environment.alphaTabUrl("./alphaTab.worker.min.mjs",import.meta.url);const e=`import ${JSON.stringify(o)}`,t=new Blob([e],{type:"application/javascript"});return new Worker(URL.createObjectURL(t),{type:"module"})}catch(e){r.Logger.debug("AlphaTab","ESM webworker construction with blob import failed",o,e)}try{if(!e.core.scriptFile)throw new Error("Could not detect alphaTab script file");o=e.core.scriptFile;const r=`import ${JSON.stringify(e.core.scriptFile)}`,t=new Blob([r],{type:"application/javascript"});return new Worker(URL.createObjectURL(t),{type:"module"})}catch(o){r.Logger.debug("AlphaTab","ESM webworker construction with blob import failed",e.core.scriptFile,o)}}if(!e.core.scriptFile)throw new r.AlphaTabError(r.AlphaTabErrorType.General,"Could not detect alphaTab script file, cannot initialize renderer");try{r.Logger.debug("AlphaTab","Creating Blob worker");const o=`importScripts('${e.core.scriptFile}')`,t=new Blob([o],{type:"application/javascript"});return new Worker(URL.createObjectURL(t))}catch(o){return r.Logger.warning("Rendering","Could not create inline worker, fallback to normal worker"),new Worker(e.core.scriptFile)}}),((e,o)=>{if(r.Environment.webPlatform===r.WebPlatform.NodeJs)throw new r.AlphaTabError(r.AlphaTabErrorType.General,"Audio Worklets not yet supported in Node.js");if(r.Environment.webPlatform===r.WebPlatform.BrowserModule||r.Environment.isWebPackBundled||r.Environment.isViteBundled){r.Logger.debug("AlphaTab","Creating Module worklet");return e.audioWorklet.addModule(new r.Environment.alphaTabUrl("./alphaTab.worklet.min.mjs",import.meta.url))}return r.Logger.debug("AlphaTab","Creating Script worklet"),e.audioWorklet.addModule(o.core.scriptFile)}));
+import * as r from './alphaTab.core.min.mjs'
+export * from './alphaTab.core.min.mjs'
+r.Environment.isRunningInWorker
+  ? r.Environment.initializeWorker()
+  : r.Environment.isRunningInAudioWorklet
+    ? r.Environment.initializeAudioWorklet()
+    : r.Environment.initializeMain(
+        (e) => {
+          if (r.Environment.webPlatform === r.WebPlatform.NodeJs)
+            throw new r.AlphaTabError(
+              r.AlphaTabErrorType.General,
+              'Workers not yet supported in Node.js'
+            )
+          if (
+            r.Environment.webPlatform === r.WebPlatform.BrowserModule ||
+            r.Environment.isWebPackBundled ||
+            r.Environment.isViteBundled
+          ) {
+            r.Logger.debug('AlphaTab', 'Creating webworker')
+            try {
+              return new r.Environment.alphaTabWorker(
+                new r.Environment.alphaTabUrl('./alphaTab.worker.min.mjs', import.meta.url),
+                { type: 'module' }
+              )
+            } catch (e) {
+              r.Logger.debug('AlphaTab', 'ESM webworker construction with direct URL failed', e)
+            }
+            let o = ''
+            try {
+              o = new r.Environment.alphaTabUrl('./alphaTab.worker.min.mjs', import.meta.url)
+              const e = `import ${JSON.stringify(o)}`,
+                t = new Blob([e], { type: 'application/javascript' })
+              return new Worker(URL.createObjectURL(t), { type: 'module' })
+            } catch (e) {
+              r.Logger.debug('AlphaTab', 'ESM webworker construction with blob import failed', o, e)
+            }
+            try {
+              if (!e.core.scriptFile) throw new Error('Could not detect alphaTab script file')
+              o = e.core.scriptFile
+              const r = `import ${JSON.stringify(e.core.scriptFile)}`,
+                t = new Blob([r], { type: 'application/javascript' })
+              return new Worker(URL.createObjectURL(t), { type: 'module' })
+            } catch (o) {
+              r.Logger.debug(
+                'AlphaTab',
+                'ESM webworker construction with blob import failed',
+                e.core.scriptFile,
+                o
+              )
+            }
+          }
+          if (!e.core.scriptFile)
+            throw new r.AlphaTabError(
+              r.AlphaTabErrorType.General,
+              'Could not detect alphaTab script file, cannot initialize renderer'
+            )
+          try {
+            r.Logger.debug('AlphaTab', 'Creating Blob worker')
+            const o = `importScripts('${e.core.scriptFile}')`,
+              t = new Blob([o], { type: 'application/javascript' })
+            return new Worker(URL.createObjectURL(t))
+          } catch (o) {
+            return (
+              r.Logger.warning(
+                'Rendering',
+                'Could not create inline worker, fallback to normal worker'
+              ),
+              new Worker(e.core.scriptFile)
+            )
+          }
+        },
+        (e, o) => {
+          if (r.Environment.webPlatform === r.WebPlatform.NodeJs)
+            throw new r.AlphaTabError(
+              r.AlphaTabErrorType.General,
+              'Audio Worklets not yet supported in Node.js'
+            )
+          if (
+            r.Environment.webPlatform === r.WebPlatform.BrowserModule ||
+            r.Environment.isWebPackBundled ||
+            r.Environment.isViteBundled
+          ) {
+            r.Logger.debug('AlphaTab', 'Creating Module worklet')
+            return e.audioWorklet.addModule(
+              new r.Environment.alphaTabUrl('./alphaTab.worklet.min.mjs', import.meta.url)
+            )
+          }
+          return (
+            r.Logger.debug('AlphaTab', 'Creating Script worklet'),
+            e.audioWorklet.addModule(o.core.scriptFile)
+          )
+        }
+      )

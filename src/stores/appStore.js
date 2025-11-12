@@ -1,7 +1,7 @@
 /**
  * App Store - Global application state
  * This is the Model layer for overall app state in MVC architecture
- * 
+ *
  * IMPORTANT: Display settings now come from currentUser.data.settings
  * This ensures settings persist per-user and don't get reset
  */
@@ -14,14 +14,14 @@ export const useAppStore = defineStore('app', {
     settingsView: false,
     keyboard: false,
     userManagementDisplay: false,
-    
+
     // Global UI Properties (session state)
     lefty: false,
     autoGammeSelect: false,
     isPlayingRoot: false,
-    
+
     // Video Settings (session state)
-    videoFolder: ""
+    videoFolder: '',
   }),
 
   getters: {
@@ -29,7 +29,7 @@ export const useAppStore = defineStore('app', {
     userStore() {
       return useUserStore()
     },
-    
+
     // Display states from current user's settings
     mancheDisplay() {
       return this.userStore.currentUser?.data?.settings?.mancheDisplay ?? true
@@ -67,7 +67,7 @@ export const useAppStore = defineStore('app', {
     tabReaderDisplay() {
       return this.userStore.currentUser?.data?.settings?.tabReaderDisplay ?? false
     },
-    
+
     // Get all display states for easy iteration
     displayStates() {
       return {
@@ -85,9 +85,9 @@ export const useAppStore = defineStore('app', {
         settingsView: this.settingsView,
         keyboard: this.keyboard,
         tabReaderDisplay: this.tabReaderDisplay,
-        userManagementDisplay: this.userManagementDisplay
+        userManagementDisplay: this.userManagementDisplay,
       }
-    }
+    },
   },
 
   actions: {
@@ -99,7 +99,7 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     toggleNotesSelected() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -107,7 +107,7 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     toggleTuner() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -115,7 +115,7 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     togglePicture() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -123,7 +123,7 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     toggleSound() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -131,7 +131,7 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     toggleScales() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -139,7 +139,7 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     toggleVideo() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -147,7 +147,7 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     toggleVideoNew() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -155,7 +155,7 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     toggleTraining() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -163,7 +163,7 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     toggleGame() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -171,7 +171,7 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     toggleChordssuggestion() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -179,15 +179,15 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     toggleSettings() {
       this.settingsView = !this.settingsView
     },
-    
+
     toggleKeyboard() {
       this.keyboard = !this.keyboard
     },
-    
+
     toggleTabReader() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -195,35 +195,35 @@ export const useAppStore = defineStore('app', {
         this.userStore.saveUsersToStorage()
       }
     },
-    
+
     // toggleVST3Plugin removed - feature disabled
-    
+
     toggleUserManagement() {
       this.userManagementDisplay = !this.userManagementDisplay
     },
-    
+
     toggleAutoGammeSelect() {
       this.autoGammeSelect = !this.autoGammeSelect
     },
-    
+
     togglePlayingRoot() {
       this.isPlayingRoot = !this.isPlayingRoot
     },
-    
+
     // Set states
     setLefty(value) {
       this.lefty = value
     },
-    
+
     setVideoFolder(folder) {
       this.videoFolder = folder
     },
-    
+
     // Set display state by name
     setDisplayState(stateName, value) {
       if (stateName in this) {
         this[stateName] = value
       }
-    }
-  }
+    },
+  },
 })

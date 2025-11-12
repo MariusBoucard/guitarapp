@@ -11,76 +11,76 @@ export const useGameStore = defineStore('game', {
     cheat: false,
     noteGreat: undefined,
     isPlayingRoot: false,
-    noteexpected: ""
+    noteexpected: '',
   }),
 
   getters: {
     // Check if game is active
     isGameActive: (state) => {
-      return state.isPlayingRoot;
+      return state.isPlayingRoot
     },
-    
+
     // Get current game stats
     gameStats: (state) => ({
       score: state.score,
       cheat: state.cheat,
-      noteGreat: state.noteGreat
-    })
+      noteGreat: state.noteGreat,
+    }),
   },
 
   actions: {
     // Score management
     setScore(score) {
-      this.score = score;
+      this.score = score
     },
-    
+
     incrementScore(points = 1) {
-      this.score += points;
+      this.score += points
     },
-    
+
     decrementScore(points = 1) {
-      this.score = Math.max(0, this.score - points);
+      this.score = Math.max(0, this.score - points)
     },
-    
+
     resetScore() {
-      this.score = 0;
+      this.score = 0
     },
-    
+
     // Cheat mode
     setCheat(cheat) {
-      this.cheat = cheat;
+      this.cheat = cheat
     },
-    
+
     toggleCheat() {
-      this.cheat = !this.cheat;
+      this.cheat = !this.cheat
     },
-    
+
     // Game playing state
     setPlayingRoot(playing) {
-      this.isPlayingRoot = playing;
+      this.isPlayingRoot = playing
     },
-    
+
     togglePlayingRoot() {
-      this.isPlayingRoot = !this.isPlayingRoot;
+      this.isPlayingRoot = !this.isPlayingRoot
     },
-    
+
     // Note result tracking
     setNoteResult(result) {
-      this.noteGreat = result;
+      this.noteGreat = result
     },
-    
+
     // Expected note for game
     setNoteExpected(note) {
-      this.noteexpected = note;
+      this.noteexpected = note
     },
-    
+
     // Reset game state
     resetGame() {
-      this.score = 0;
-      this.cheat = false;
-      this.noteGreat = undefined;
-      this.isPlayingRoot = false;
-      this.noteexpected = "";
-    }
-  }
+      this.score = 0
+      this.cheat = false
+      this.noteGreat = undefined
+      this.isPlayingRoot = false
+      this.noteexpected = ''
+    },
+  },
 })

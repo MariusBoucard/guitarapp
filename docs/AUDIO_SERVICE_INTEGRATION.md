@@ -3,14 +3,18 @@
 ## What Was Done
 
 ### Problem
+
 The `PlaySoundComponent.vue` was not properly integrated with the new user-centric store architecture. Audio files needed to:
+
 1. Be saved per-training in user data
 2. Display the correct audio files when switching trainings
 3. Persist across user switches
 4. Be exportable/importable with user data
 
 ### Solution
+
 Integrated the audio service with the refactored store architecture so that:
+
 - Audio files are stored in `user.data.trainings[].audioFiles` (per training)
 - The component displays audio files for the **currently selected training**
 - All changes are saved to `userStore` and persist correctly
@@ -21,6 +25,7 @@ Integrated the audio service with the refactored store architecture so that:
 ### 1. src/stores/songPlayerStore.js
 
 **Added:**
+
 ```javascript
 getters: {
   // Get audio files for the currently selected training
@@ -28,14 +33,14 @@ getters: {
     if (!trainingStore || !trainingStore.currentTrainingData) {
       return []
     }
-    
+
     const training = trainingStore.currentTrainingData
     if (!training.audioFiles) {
       training.audioFiles = []
     }
     return training.audioFiles
   },
-  
+
   // Legacy getter for global audio files
   audioPath() {
     const userStore = useUserStore()
@@ -45,6 +50,7 @@ getters: {
 ```
 
 **Why:**
+
 - `audioPathForTraining()` returns audio files for a specific training
 - `audioPath()` kept for backward compatibility but returns global files
 - Audio files are now properly scoped to trainings
@@ -52,15 +58,18 @@ getters: {
 ### 2. src/components/PlaySoundComponent.vue
 
 **Changed Template:**
+
 ```html
 <!-- OLD: Used global audioPath -->
 <li v-for="item in songPlayerStore.audioPath">
+  <!-- NEW: Uses computed property for current training -->
+</li>
 
-<!-- NEW: Uses computed property for current training -->
-<li v-for="item in currentAudioFiles">
+<li v-for="item in currentAudioFiles"></li>
 ```
 
 **Added Computed Property:**
+
 ```javascript
 computed: {
   // Get audio files for the currently selected training
@@ -74,6 +83,7 @@ computed: {
 ```
 
 **Updated Methods:**
+
 ```javascript
 // Removed unnecessary updateAudioPathForTraining call
 selectTraining(training) {
@@ -83,6 +93,7 @@ selectTraining(training) {
 ```
 
 **Why:**
+
 - Component now displays audio files for the **current training only**
 - Computed property ensures reactivity - updates automatically when training changes
 - Cleaner code - no manual sync needed
@@ -90,6 +101,7 @@ selectTraining(training) {
 ## Data Structure
 
 ### Training with Audio Files
+
 ```javascript
 {
   id: 0,
@@ -103,6 +115,7 @@ selectTraining(training) {
 ```
 
 ### User Data Structure
+
 ```javascript
 {
   id: 'user_123',
@@ -128,6 +141,7 @@ selectTraining(training) {
 ## How It Works Now
 
 ### 1. Display Audio Files
+
 ```javascript
 // Component displays current training's audio files
 computed: {
@@ -137,7 +151,7 @@ computed: {
 }
 
 // In trainingStore.js getter:
-currentTrainingAudioFiles: (state) => 
+currentTrainingAudioFiles: (state) =>
   state.currentTrainingData?.audioFiles || []
 
 // currentTrainingData references user data:
@@ -149,6 +163,7 @@ currentTrainingData: (state) => {
 ```
 
 **Flow:**
+
 1. Component accesses `currentAudioFiles` computed property
 2. Computed property calls `trainingStore.currentTrainingAudioFiles`
 3. Getter finds current training in `userStore.currentUser.data.trainings`
@@ -156,16 +171,17 @@ currentTrainingData: (state) => {
 5. Vue reactivity ensures updates when training changes
 
 ### 2. Add Audio File
+
 ```javascript
 // In PlaySoundComponent.vue
 async loadAudioFile(fileData) {
   // Add to song player store
   this.songPlayerStore.addAudioFile(
-    this.trainingStore, 
-    fileData.path, 
+    this.trainingStore,
+    fileData.path,
     fileData.name
   )
-  
+
   // Load audio metadata
   const audioData = await this.audioService.loadAudioFile(fileData.path)
   this.$refs.audioPlayer.src = audioData.src
@@ -175,25 +191,26 @@ async loadAudioFile(fileData) {
 addAudioFile(trainingStore, filePath, fileName) {
   const userStore = useUserStore()
   if (!userStore.currentUser) return
-  
+
   // Add to current training if one is selected
   if (trainingStore.currentTrainingData) {
     this.addAudioToTraining(
-      trainingStore, 
-      trainingStore.selectedTraining, 
+      trainingStore,
+      trainingStore.selectedTraining,
       filePath
     )
   } else {
     // Fallback to global
     userStore.currentUser.data.audioFiles.push(filePath)
   }
-  
+
   this.currentSong = fileName
   userStore.saveUsersToStorage()  // ← Saves to localStorage
 }
 ```
 
 **Flow:**
+
 1. User selects audio file
 2. Component calls `songPlayerStore.addAudioFile()`
 3. Store finds current training in user data
@@ -202,6 +219,7 @@ addAudioFile(trainingStore, filePath, fileName) {
 6. Computed property automatically updates UI
 
 ### 3. Remove Audio File
+
 ```javascript
 removeAudioFile(filePath) {
   this.songPlayerStore.removeAudioFile(this.trainingStore, filePath)
@@ -210,11 +228,11 @@ removeAudioFile(filePath) {
 // In songPlayerStore.js
 removeAudioFile(trainingStore, filePath) {
   const userStore = useUserStore()
-  
+
   if (trainingStore.currentTrainingData) {
     this.removeAudioFromTraining(
-      trainingStore, 
-      trainingStore.selectedTraining, 
+      trainingStore,
+      trainingStore.selectedTraining,
       filePath
     )
   } else {
@@ -225,12 +243,13 @@ removeAudioFile(trainingStore, filePath) {
       audioFiles.splice(index, 1)
     }
   }
-  
+
   userStore.saveUsersToStorage()
 }
 ```
 
 **Flow:**
+
 1. User clicks remove button
 2. Component calls `songPlayerStore.removeAudioFile()`
 3. Store finds audio file in current training's array
@@ -239,6 +258,7 @@ removeAudioFile(trainingStore, filePath) {
 6. Computed property automatically updates UI
 
 ### 4. Switch Training
+
 ```javascript
 selectTraining(training) {
   this.trainingStore.selectTraining(training)
@@ -252,6 +272,7 @@ selectTraining(training) {
 ```
 
 **Flow:**
+
 1. User clicks different training
 2. Component calls `trainingStore.selectTraining()`
 3. Store updates `selectedTraining` ID
@@ -261,6 +282,7 @@ selectTraining(training) {
 7. Vue re-renders audio file list
 
 ### 5. Switch User
+
 ```javascript
 // In UserManagementComponent.vue
 switchToUser(userId) {
@@ -277,6 +299,7 @@ switchUser(userId) {
 ```
 
 **Flow:**
+
 1. User switches to different user
 2. `userStore.currentUserId` changes
 3. All store getters that reference `userStore.currentUser.data` automatically update
@@ -288,24 +311,28 @@ switchUser(userId) {
 ## Benefits
 
 ### 1. Proper Data Isolation ✅
+
 - Each training has its own audio files
 - Each user has their own trainings with audio files
 - Switching trainings shows correct audio files
 - Switching users shows correct trainings and audio files
 
 ### 2. Full Persistence ✅
+
 - Audio files saved in `userStore.users[].data.trainings[].audioFiles`
 - Single call to `userStore.saveUsersToStorage()` persists everything
 - Data survives page reload
 - Data included in user export/import
 
 ### 3. True Reactivity ✅
+
 - Computed properties automatically update
 - No manual synchronization needed
 - UI updates instantly when data changes
 - Works seamlessly with user switching
 
 ### 4. Service Integration ✅
+
 - Component uses `audioService` for file operations
 - Service handles path normalization (Windows/Unix)
 - Service provides audio metadata and playback
@@ -405,20 +432,21 @@ songPlayerStore.addAudioFile(
 userStore.switchUser('user_alice_id')
 
 // 9. All of User A's data is immediately visible
-trainingStore.trainingList  
+trainingStore.trainingList
 // → [{ id: 0, name: 'Jazz Training', audioFiles: [...] }]
 
 // 10. Select Jazz Training
 trainingStore.selectTraining({ id: 0, name: 'Jazz Training' })
 
 // 11. Audio files automatically display
-currentAudioFiles  
+currentAudioFiles
 // → ['C:/Music/jazz-backing.mp3', 'C:/Music/jazz-solo.wav']
 ```
 
 ## Testing Checklist
 
 ### Test 1: Basic Audio File Management
+
 - [ ] Create a training
 - [ ] Select the training
 - [ ] Add an audio file
@@ -429,6 +457,7 @@ currentAudioFiles
 - [ ] Verify file is removed
 
 ### Test 2: Multiple Trainings
+
 - [ ] Create Training A
 - [ ] Add audio files to Training A
 - [ ] Create Training B
@@ -439,6 +468,7 @@ currentAudioFiles
 - [ ] Verify Training B's audio files show
 
 ### Test 3: User Switching
+
 - [ ] Create User A with trainings and audio files
 - [ ] Create User B with different trainings and audio files
 - [ ] Switch to User A
@@ -447,6 +477,7 @@ currentAudioFiles
 - [ ] Verify User B's trainings and audio files show
 
 ### Test 4: Persistence
+
 - [ ] Add audio files to a training
 - [ ] Reload the page
 - [ ] Verify audio files are still there
@@ -454,6 +485,7 @@ currentAudioFiles
 - [ ] Verify correct user's audio files show
 
 ### Test 5: Export/Import
+
 - [ ] Create user with trainings and audio files
 - [ ] Export the user
 - [ ] Import the user (as new user)
@@ -463,6 +495,7 @@ currentAudioFiles
 ## Audio Service Features
 
 ### Path Normalization
+
 The `audioService.loadAudioFile()` handles various path formats:
 
 ```javascript
@@ -486,6 +519,7 @@ The `audioService.loadAudioFile()` handles various path formats:
 ```
 
 ### Audio Metadata
+
 ```javascript
 const audioData = await audioService.loadAudioFile(filePath)
 // Returns:
@@ -497,9 +531,10 @@ const audioData = await audioService.loadAudioFile(filePath)
 ```
 
 ### Playback Control
+
 ```javascript
 // Play with speed
-await audioService.playAudio(audioElement, 1.5)  // 150% speed
+await audioService.playAudio(audioElement, 1.5) // 150% speed
 
 // Pause
 audioService.pauseAudio(audioElement)
@@ -508,37 +543,39 @@ audioService.pauseAudio(audioElement)
 audioService.stopAudio(audioElement, startTime)
 
 // Handle looping
-audioService.handleTimeUpdate(
-  audioElement,
-  currentTime,
-  startTime,
-  endTime,
-  loop
-)
+audioService.handleTimeUpdate(audioElement, currentTime, startTime, endTime, loop)
 ```
 
 ## Troubleshooting
 
 ### Audio Files Not Showing
+
 **Check:**
+
 1. Is a training selected? `trainingStore.currentTrainingData`
 2. Does the training have audioFiles array? `training.audioFiles`
 3. Is the computed property returning correct data? `currentAudioFiles`
 
 ### Audio Files Disappear After Reload
+
 **Check:**
+
 1. Is `userStore.saveUsersToStorage()` being called?
 2. Check browser console for localStorage errors
 3. Check localStorage quota (may be full)
 
 ### Wrong Audio Files Show
+
 **Check:**
+
 1. Is the correct training selected? `trainingStore.selectedTraining`
 2. Is the correct user active? `userStore.currentUserId`
 3. Are audio files in the right training's array?
 
 ### Audio Won't Play
+
 **Check:**
+
 1. File path is correct and accessible
 2. Path normalization worked (check audioElement.src)
 3. Audio codec is supported by browser
@@ -547,6 +584,7 @@ audioService.handleTimeUpdate(
 ## Summary
 
 ✅ **Audio files are now fully integrated with the user-centric store architecture:**
+
 - Stored per-training in user data
 - Display correctly for current training
 - Persist across reloads and user switches
@@ -554,12 +592,14 @@ audioService.handleTimeUpdate(
 - Fully reactive with Vue
 
 ✅ **Services are properly used:**
+
 - `audioService` handles file loading and playback
 - `trainingStore` manages training data
 - `songPlayerStore` manages audio file lists
 - `userStore` persists everything
 
 ✅ **Component is clean and maintainable:**
+
 - Computed properties for reactivity
 - Service calls for business logic
 - Proper error handling

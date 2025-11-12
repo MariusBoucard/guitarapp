@@ -1,7 +1,7 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron')
 
 // Receive `process` from the main process
-contextBridge.exposeInMainWorld('process', process);
+contextBridge.exposeInMainWorld('process', process)
 
 // Expose electron APIs safely
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -10,13 +10,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectDirectory: () => ipcRenderer.invoke('select-directory'),
   scanVideoDirectory: (directoryPath) => ipcRenderer.invoke('scan-video-directory', directoryPath),
   loadVideoFile: (filePath) => ipcRenderer.invoke('load-video-file', filePath),
-  saveDirectoryTree: (directoryPath, treeData) => ipcRenderer.invoke('save-directory-tree', directoryPath, treeData),
+  saveDirectoryTree: (directoryPath, treeData) =>
+    ipcRenderer.invoke('save-directory-tree', directoryPath, treeData),
   loadDirectoryTree: () => ipcRenderer.invoke('load-directory-tree'),
-  
+
   // App lifecycle methods
   onBeforeQuit: (callback) => ipcRenderer.on('app-before-quit', callback),
   removeBeforeQuitListener: (callback) => ipcRenderer.removeListener('app-before-quit', callback),
-  saveComplete: () => ipcRenderer.invoke('app-save-complete')
-  
+  saveComplete: () => ipcRenderer.invoke('app-save-complete'),
+
   // VST3 and EditorHost APIs removed - feature disabled
-});
+})

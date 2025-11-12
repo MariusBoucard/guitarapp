@@ -3,7 +3,9 @@
 ## What Was Changed
 
 ### Problem
+
 The original user management system used a **copy-based architecture**:
+
 - User data was captured via `JSON.parse(JSON.stringify())` deep copies
 - Switching users required manual capture/restore operations
 - Data wasn't properly synchronized between stores and user profiles
@@ -11,7 +13,9 @@ The original user management system used a **copy-based architecture**:
 - Reactivity was broken due to deep copying
 
 ### Solution
+
 Refactored to a **reference-based architecture**:
+
 - `userStore` is now the single source of truth
 - Other stores use **computed getters** that reference `userStore.currentUser.data` directly
 - Actions modify user data directly (no copying)
@@ -21,13 +25,16 @@ Refactored to a **reference-based architecture**:
 ## Files Modified
 
 ### 1. src/stores/userStore.js
+
 **Changes:**
+
 - Removed async from `initialize()`, `switchUser()`, `exportUser()`, `exportAllUsers()`
 - Simplified `captureCurrentStoreStates()` and `restoreUserStoreStates()` to no-ops
 - `switchUser()` now just changes `currentUserId` - stores auto-update
 - Updated default user structure to include all data fields
 
 **Key Code:**
+
 ```javascript
 // NEW: Simple synchronous switching
 switchUser(userId) {
@@ -39,7 +46,9 @@ switchUser(userId) {
 ```
 
 ### 2. src/stores/trainingStore.js
+
 **Changes:**
+
 - Removed local state: `trainingList`, `videoPath`, `niouTrainingList`
 - Added computed getters that reference `userStore.currentUser.data`
 - Updated all actions to modify user data directly
@@ -47,6 +56,7 @@ switchUser(userId) {
 - All save operations now call `userStore.saveUsersToStorage()`
 
 **Key Code:**
+
 ```javascript
 // NEW: Getter references user data
 getters: {
@@ -67,7 +77,9 @@ actions: {
 ```
 
 ### 3. src/stores/videoStore.js
+
 **Changes:**
+
 - Removed local state: `videoList`, `videoPath`, `niouTrainingList`, `trainingMetadata`
 - Added computed getters that reference user data
 - Updated all actions to modify user data directly
@@ -75,6 +87,7 @@ actions: {
 - Migration support for old localStorage data
 
 **Key Code:**
+
 ```javascript
 // NEW: Getters reference user data
 getters: {
@@ -82,7 +95,7 @@ getters: {
     const userStore = useUserStore()
     return userStore.currentUser?.data?.niouTrainingList || []
   },
-  
+
   videoPath() {
     const userStore = useUserStore()
     return userStore.currentUser?.data?.videoFiles || []
@@ -91,13 +104,16 @@ getters: {
 ```
 
 ### 4. src/stores/songPlayerStore.js
+
 **Changes:**
+
 - Removed local state: `audioPath`, `songPath`
 - Added computed getters that reference user data
 - Updated all actions to modify user data directly
 - Audio files now stored in `user.data.audioFiles`
 
 **Key Code:**
+
 ```javascript
 // NEW: Getter references user data
 getters: {
@@ -109,13 +125,16 @@ getters: {
 ```
 
 ### 5. src/components/UserManagementComponent.vue
+
 **Changes:**
+
 - Removed `await` from `switchToUser()`
 - Removed page reload after user switch
 - Removed `await` from `exportUserData()`
 - Updated success message to indicate automatic store updates
 
 **Key Code:**
+
 ```javascript
 // NEW: Synchronous switch, no reload needed
 switchToUser(userId) {
@@ -126,11 +145,14 @@ switchToUser(userId) {
 ```
 
 ### 6. src/App.vue
+
 **Changes:**
+
 - Removed `await` from `userStore.initialize()` call
 - Initialization is now synchronous
 
 **Key Code:**
+
 ```javascript
 // NEW: Synchronous initialization
 onMounted(async () => {
@@ -143,6 +165,7 @@ onMounted(async () => {
 ## Data Structure
 
 ### User Data Object (Complete Structure)
+
 ```javascript
 {
   id: 'user_123',
@@ -161,7 +184,7 @@ onMounted(async () => {
         audioFiles: [...paths]
       }
     ],
-    
+
     // Video data
     videos: [...],
     videoFiles: [...],
@@ -172,26 +195,26 @@ onMounted(async () => {
       totalTrainings: 0,
       averageDuration: 0
     },
-    
+
     // Audio data
     audioFiles: [...],
-    
+
     // Settings data
     settings: {
       mancheDisplay: true,
       notesSelectedDisplay: true,
       // ... other settings
     },
-    
+
     // Notes data
     notes: {
       noteSlectedList: [...],
       gammeSelected: ''
     },
-    
+
     // Color data
     colors: [...],
-    
+
     // Tuning data
     tuning: {
       nbfrettes: 24,
@@ -206,26 +229,31 @@ onMounted(async () => {
 ## Benefits Achieved
 
 ### 1. Instant User Switching ✅
+
 - No page reload required
 - No manual data synchronization
 - Components update automatically
 
 ### 2. True Reactivity ✅
+
 - Vue reactivity system works naturally
 - Changes propagate automatically
 - Shared object references work as expected
 
 ### 3. Simplified Code ✅
+
 - Removed ~100 lines of capture/restore logic
 - Single save operation for all changes
 - Clearer data ownership
 
 ### 4. Better Performance ✅
+
 - No deep copying overhead
 - Reduced memory usage
 - Fewer localStorage operations
 
 ### 5. Easier Maintenance ✅
+
 - Single source of truth
 - Clear data flow
 - Easier to debug
@@ -233,16 +261,17 @@ onMounted(async () => {
 ## Migration Path
 
 ### Old Data Support
+
 All stores include migration logic to load old localStorage data:
 
 ```javascript
 loadFromStorage() {
   const userStore = useUserStore()
-  
+
   // Migration: Load old data if user has none
-  if (!userStore.currentUser.data.trainings.length 
+  if (!userStore.currentUser.data.trainings.length
       && localStorage.getItem("songSave")) {
-    userStore.currentUser.data.trainings = 
+    userStore.currentUser.data.trainings =
       JSON.parse(localStorage.getItem("songSave"))
     userStore.saveUsersToStorage()
   }
@@ -250,6 +279,7 @@ loadFromStorage() {
 ```
 
 This ensures:
+
 - Existing users don't lose data
 - Smooth transition to new architecture
 - Old localStorage keys can be deprecated gradually
@@ -257,12 +287,14 @@ This ensures:
 ## Testing Performed
 
 ### Build Test ✅
+
 ```bash
 npm run build:vite
 # Result: ✓ built in 7.23s (SUCCESS)
 ```
 
 ### Compilation Test ✅
+
 - No TypeScript/ESLint errors
 - All imports resolve correctly
 - Getters and actions properly typed
@@ -270,6 +302,7 @@ npm run build:vite
 ## Usage Examples
 
 ### Example 1: Create User and Add Data
+
 ```javascript
 // Create a new user
 const userId = userStore.createUser('Bob', 'bob@example.com')
@@ -285,6 +318,7 @@ videoStore.setNiouTrainingList([...videos])
 ```
 
 ### Example 2: Switch Between Users
+
 ```javascript
 // User A's data
 userStore.switchUser('user_a')
@@ -302,6 +336,7 @@ userStore.switchUser('user_a')
 ```
 
 ### Example 3: Export and Import
+
 ```javascript
 // Export user data (no capture needed - always current)
 const exportData = userStore.exportUser('user_a')
@@ -332,6 +367,7 @@ userStore.importUser(exportData)
 ## Next Steps
 
 ### Immediate (Already Done)
+
 - ✅ Refactored all stores to reference userStore
 - ✅ Updated user management component
 - ✅ Removed async/await where not needed
@@ -339,6 +375,7 @@ userStore.importUser(exportData)
 - ✅ Verified build succeeds
 
 ### For User to Test
+
 1. Start the application
 2. Create multiple users
 3. Add trainings/videos to each user
@@ -348,6 +385,7 @@ userStore.importUser(exportData)
 7. Test import/export functionality
 
 ### Future Enhancements
+
 1. Add settings store refactoring (if needed)
 2. Add notes store refactoring (if needed)
 3. Add tuning store refactoring (if needed)

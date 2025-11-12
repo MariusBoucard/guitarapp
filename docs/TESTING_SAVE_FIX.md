@@ -5,6 +5,7 @@
 ### Test 1: Basic Save (2 minutes)
 
 1. **Start the app:**
+
    ```powershell
    npm run dev
    ```
@@ -20,6 +21,7 @@
    - **Watch the console output**
 
 4. **What to look for in console:**
+
    ```
    📦 App is quitting - requesting data save...
    📦 App is closing - saving data...
@@ -29,6 +31,7 @@
    ```
 
 5. **Restart the app:**
+
    ```powershell
    npm run dev
    ```
@@ -66,6 +69,7 @@ This tests that the save happens fast enough.
 ## What Success Looks Like
 
 ### Console Output (Good ✅)
+
 ```
 📦 App is quitting - requesting data save...
 📦 App is closing - saving data...
@@ -75,40 +79,48 @@ This tests that the save happens fast enough.
 ```
 
 ### Console Output (Also OK ✅)
+
 ```
 📦 App is quitting - requesting data save...
 ⏱️  Save timeout - proceeding with quit
 ✅ Cleanup complete - quitting now
 ```
-*This means save took > 2 seconds, but app still quit gracefully*
+
+_This means save took > 2 seconds, but app still quit gracefully_
 
 ### Console Output (Problem ❌)
+
 ```
 [no save messages at all]
 Erreur: le processus "17796" est introuvable.
 ```
-*If you see this, the quit handler didn't register*
+
+_If you see this, the quit handler didn't register_
 
 ## Troubleshooting
 
 ### Problem: No save messages in console
 
 **Check 1:** Is the console open?
+
 - Press F12 to open DevTools
 - Look in the main console tab
 
 **Check 2:** Is electronAPI available?
+
 - In DevTools console, type: `window.electronAPI`
 - Should show object with methods
 - If `undefined`, preload script isn't loading
 
 **Check 3:** Is the handler registered?
+
 - Look for: `✅ Registered app quit handler`
 - Should appear right after app starts
 
 ### Problem: Data not saved
 
 **Check localStorage:**
+
 1. Open DevTools (F12)
 2. Go to "Application" tab (or "Storage" in some browsers)
 3. Click "Local Storage" → file://
@@ -116,6 +128,7 @@ Erreur: le processus "17796" est introuvable.
 5. Should contain JSON with your data
 
 **Manual check in console:**
+
 ```javascript
 JSON.parse(localStorage.getItem('guitarapp_users'))
 ```
@@ -125,11 +138,13 @@ Should show your users array.
 ### Problem: App hangs on close
 
 **If app doesn't close after 5 seconds:**
+
 - This shouldn't happen (2 second timeout)
 - Check console for error messages
 - Force close: Ctrl+C in terminal or Task Manager
 
 **Then report:**
+
 - What console messages you saw
 - What you were doing when you tried to close
 - Any error messages
@@ -139,6 +154,7 @@ Should show your users array.
 ### Test localStorage directly
 
 **Save some data, then in DevTools console:**
+
 ```javascript
 // Check if data exists
 const users = JSON.parse(localStorage.getItem('guitarapp_users'))
@@ -146,7 +162,7 @@ console.log('Users:', users)
 
 // Check current user
 const currentUserId = users.currentUserId
-const currentUser = users.users.find(u => u.id === currentUserId)
+const currentUser = users.users.find((u) => u.id === currentUserId)
 console.log('Current user:', currentUser.name)
 
 // Check trainings
@@ -162,13 +178,14 @@ console.log('Audio files in first training:', training.audioFiles)
 **Force a slow save (developer testing only):**
 
 In `App.vue`, modify `handleBeforeQuit`:
+
 ```javascript
 const handleBeforeQuit = async () => {
   console.log('📦 App is closing - saving data...')
-  
+
   // TESTING: Add artificial delay
-  await new Promise(resolve => setTimeout(resolve, 3000)) // 3 second delay
-  
+  await new Promise((resolve) => setTimeout(resolve, 3000)) // 3 second delay
+
   userStore.saveUsersToStorage()
   await window.electronAPI.saveComplete()
 }
@@ -185,11 +202,12 @@ Expected: App should quit after 2 seconds with timeout message.
 ✅ **Data persists after restart**  
 ✅ **Multiple users save correctly**  
 ✅ **Rapid close still saves data**  
-✅ **No "process not found" errors**  
+✅ **No "process not found" errors**
 
 ## If All Tests Pass
 
 You're good to go! The app now:
+
 - Saves all user data before quitting
 - Handles errors gracefully
 - Has timeout protection
@@ -198,6 +216,7 @@ You're good to go! The app now:
 ## If Tests Fail
 
 Create an issue with:
+
 1. Which test failed
 2. Console output (copy/paste)
 3. Steps to reproduce
@@ -208,21 +227,25 @@ Create an issue with:
 ## Quick Reference
 
 **Start app:**
+
 ```powershell
 npm run dev
 ```
 
 **Build app:**
+
 ```powershell
 npm run build
 ```
 
 **Check localStorage:**
+
 ```javascript
 JSON.parse(localStorage.getItem('guitarapp_users'))
 ```
 
 **Console messages to look for:**
+
 - 📦 App is closing
 - ✅ User data saved
 - 📥 Received save-complete

@@ -48,4 +48,5 @@
  * @preserve
  * @license
  */
-import*as r from"./alphaTab.core.min.mjs";r.Environment.initializeWorker();
+import * as r from './alphaTab.core.min.mjs'
+r.Environment.initializeWorker()

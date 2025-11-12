@@ -3,9 +3,11 @@
 ## What Was Created
 
 ### 1. Core Store: `userStore.js`
+
 A comprehensive Pinia store that manages user profiles and their associated data.
 
 **Key Features:**
+
 - Create, read, update, delete user profiles
 - Switch between users with state preservation
 - Automatic state capture from all other stores
@@ -14,14 +16,17 @@ A comprehensive Pinia store that manages user profiles and their associated data
 - User profile metadata (name, email, avatar, timestamps)
 
 **State Structure:**
+
 - Current user tracking
 - Array of user profiles
 - Each user contains complete snapshots of: trainings, videos, settings, notes, colors, tuning, audio/video files
 
 ### 2. Service Layer: `userService.js`
+
 Business logic for user operations and file management.
 
 **Key Features:**
+
 - Export users to downloadable JSON files
 - Import users from JSON files with file picker
 - Clone/duplicate user profiles
@@ -30,9 +35,11 @@ Business logic for user operations and file management.
 - File name sanitization and validation
 
 ### 3. UI Component: `UserManagementComponent.vue`
+
 Full-featured user interface for managing users.
 
 **Features:**
+
 - Display current active user
 - Grid view of all users with avatars
 - Create user dialog with form validation
@@ -49,6 +56,7 @@ Full-featured user interface for managing users.
 ### 4. Integration Points
 
 #### Updated Files:
+
 1. **`src/services/index.js`**
    - Added `UserService` to service manager
    - Exposed `user` getter for easy access
@@ -76,7 +84,9 @@ Full-featured user interface for managing users.
 ### 5. Documentation
 
 #### `docs/USER_MANAGEMENT.md`
+
 Complete documentation including:
+
 - Architecture overview
 - User profile structure
 - API reference for all methods
@@ -88,6 +98,7 @@ Complete documentation including:
 ## How It Works
 
 ### User Profile Structure
+
 ```javascript
 {
   id: 'user_timestamp_random',
@@ -112,11 +123,13 @@ Complete documentation including:
 ### Data Flow
 
 **On App Start:**
+
 1. `userStore.initialize()` loads users from localStorage
 2. Sets current user from saved preference or default
 3. Restores current user's data into all other stores
 
 **On User Switch:**
+
 1. Captures current state from all stores into current user's data
 2. Saves to localStorage
 3. Sets new user as current
@@ -124,10 +137,12 @@ Complete documentation including:
 5. Reloads page to ensure clean state
 
 **Auto-Save:**
+
 - User data is automatically captured and saved when switching users
 - Manual capture available via `captureCurrentStoreStates()`
 
 ### Import/Export Format
+
 ```json
 {
   "version": "1.0.0",
@@ -154,18 +169,21 @@ Complete documentation including:
 ## Usage Examples
 
 ### Create a New User
+
 ```javascript
 const userStore = useUserStore()
 const userId = userStore.createUser('Practice Mode', 'practice@example.com')
 ```
 
 ### Switch Users
+
 ```javascript
 userStore.switchUser(userId)
 // Page reloads with new user's configuration
 ```
 
 ### Export User Config
+
 ```javascript
 const userService = serviceManager.user
 await userService.exportUserToFile(userStore, userId)
@@ -173,18 +191,21 @@ await userService.exportUserToFile(userStore, userId)
 ```
 
 ### Import User Config
+
 ```javascript
 await userService.importUserFromFile(userStore, false)
 // Opens file picker, imports user
 ```
 
 ### Clone User
+
 ```javascript
 const result = userService.cloneUser(userStore, userId, 'Backup Copy')
 // Creates duplicate with all data
 ```
 
 ### Backup & Restore
+
 ```javascript
 // Create backup
 userService.createBackup(userStore)
@@ -225,9 +246,11 @@ userService.restoreFromBackup(userStore)
 ## Next Steps
 
 1. **Test in Development Mode**
+
    ```bash
    npm run electron:dev
    ```
+
    - Open sidebar
    - Click "👤 User Management"
    - Test all operations
@@ -247,6 +270,7 @@ userService.restoreFromBackup(userStore)
    ```bash
    npm run electron:build:win
    ```
+
    - Run the installer
    - Test user management in packaged app
 

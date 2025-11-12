@@ -11,101 +11,101 @@ import { UserService } from './userService.js'
  */
 export class ServiceManager {
   constructor() {
-    this.services = new Map();
-    this.initializeServices();
+    this.services = new Map()
+    this.initializeServices()
   }
 
   /**
    * Initialize all services
    */
   initializeServices() {
-    this.services.set('audio', new AudioService(this));
-    this.services.set('video', new VideoService(this));
-    this.services.set('file', new FileService(this));
-    this.services.set('storage', new StorageService(this));
-    this.services.set('settings', new SettingsService(this));
-    this.services.set('user', new UserService(this));
+    this.services.set('audio', new AudioService(this))
+    this.services.set('video', new VideoService(this))
+    this.services.set('file', new FileService(this))
+    this.services.set('storage', new StorageService(this))
+    this.services.set('settings', new SettingsService(this))
+    this.services.set('user', new UserService(this))
   }
 
   /**
    * Get a service by name
    */
   getService(serviceName) {
-    const service = this.services.get(serviceName);
+    const service = this.services.get(serviceName)
     if (!service) {
-      throw new Error(`Service '${serviceName}' not found`);
+      throw new Error(`Service '${serviceName}' not found`)
     }
-    return service;
+    return service
   }
 
   /**
    * Get audio service
    */
   get audio() {
-    return this.getService('audio');
+    return this.getService('audio')
   }
 
   /**
    * Get video service
    */
   get video() {
-    return this.getService('video');
+    return this.getService('video')
   }
 
   /**
    * Get file service
    */
   get file() {
-    return this.getService('file');
+    return this.getService('file')
   }
 
   /**
    * Get settings service
    */
   get settings() {
-    return this.getService('settings');
+    return this.getService('settings')
   }
 
   /**
    * Get storage service
    */
   get storage() {
-    return this.getService('storage');
+    return this.getService('storage')
   }
 
   /**
    * Get user service
    */
   get user() {
-    return this.getService('user');
+    return this.getService('user')
   }
 
   /**
    * Register a new service
    */
   registerService(name, service) {
-    this.services.set(name, service);
+    this.services.set(name, service)
   }
 
   /**
    * Check if service exists
    */
   hasService(serviceName) {
-    return this.services.has(serviceName);
+    return this.services.has(serviceName)
   }
 
   /**
    * Cleanup all services
    */
   cleanup() {
-    this.services.forEach(service => {
+    this.services.forEach((service) => {
       if (typeof service.cleanup === 'function') {
-        service.cleanup();
+        service.cleanup()
       }
-    });
-    this.services.clear();
+    })
+    this.services.clear()
   }
 }
 
 // Create singleton instance
-export const serviceManager = new ServiceManager();
+export const serviceManager = new ServiceManager()

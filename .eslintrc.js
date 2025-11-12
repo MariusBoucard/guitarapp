@@ -3,18 +3,16 @@ module.exports = {
   env: {
     node: true,
     browser: true,
-    es2021: true
+    es2021: true,
   },
-  extends: [
-    'eslint:recommended'
-  ],
+  extends: ['eslint:recommended'],
   parserOptions: {
     ecmaVersion: 2020,
-    sourceType: 'module'
+    sourceType: 'module',
   },
   rules: {
     'no-console': 'off',
     'no-debugger': 'off',
-    'no-unused-vars': 'off'
-  }
+    'no-unused-vars': 'off',
+  },
 }

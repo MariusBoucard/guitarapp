@@ -1,22 +1,20 @@
 <template>
-    <div>
-    </div>
+  <div></div>
 </template>
 <script>
-export default{
-    props :{
-        videoFolderAll : {required : true, type : String}
+  export default {
+    props: {
+      videoFolderAll: { required: true, type: String },
     },
     data() {
-        return {
-            videoFolder : this.videoFolderAll
-        }
+      return {
+        videoFolder: this.videoFolderAll,
+      }
     },
-    methods : {
-        save(){
-            localStorage.setItem("videoFolder",this.videoFolder)
-        }
-    }
-}
-
+    methods: {
+      save() {
+        localStorage.setItem('videoFolder', this.videoFolder)
+      },
+    },
+  }
 </script>

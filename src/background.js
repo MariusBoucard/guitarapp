@@ -12,7 +12,7 @@ import { registerAllIPCHandlers } from './ipc/index.js'
 // Electron app is not packaged. This prevents dev-only behavior (like
 // opening DevTools or installing dev extensions) in production builds
 // where NODE_ENV might not be set to 'production'.
-const isDevelopment = (process.env.NODE_ENV !== 'production') && !app.isPackaged
+const isDevelopment = process.env.NODE_ENV !== 'production' && !app.isPackaged
 
 // Disable Crashpad crash reporter to prevent connection errors
 app.commandLine.appendSwitch('disable-crash-reporter')
@@ -27,7 +27,7 @@ try {
     uploadToServer: false, // Explicitly disable upload
     collectParameters: false,
     crashesDirectory: '', // Empty directory
-    extra: {}
+    extra: {},
   })
 } catch (error) {
   // If crash reporter fails to start, continue without it
@@ -42,7 +42,7 @@ const __dirname = dirname(__filename)
 
 // Register schemes before app ready
 protocol.registerSchemesAsPrivileged([
-  { scheme: 'app', privileges: { secure: true, standard: true } }
+  { scheme: 'app', privileges: { secure: true, standard: true } },
 ])
 
 // Track app quit state
@@ -62,34 +62,33 @@ async function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      preload: isDevelopment 
+      preload: isDevelopment
         ? join(__dirname, '../public/preload.js')
         : join(__dirname, './preload.js'),
-      webSecurity:  true , 
+      webSecurity: true,
       allowRunningInsecureContent: false,
       experimentalFeatures: false,
-      backgroundThrottling: false, 
+      backgroundThrottling: false,
       sandbox: false,
-      partition: 'persist:guitarapp'
-    }
+      partition: 'persist:guitarapp',
+    },
   })
   win.maximize()
   win.setMenu(null)
-  
+
   const session = win.webContents.session
 
-    session.setPermissionRequestHandler(() => true)
-    console.log('📁 localStorage will persist in:', app.getPath('userData'))
-  
-  
+  session.setPermissionRequestHandler(() => true)
+  console.log('📁 localStorage will persist in:', app.getPath('userData'))
+
   session.setPermissionRequestHandler((webContents, permission, callback) => {
     if (permission === 'fullscreen') {
-      callback(true) 
+      callback(true)
       return
     }
     callback(true)
   })
-  
+
   if (isDevelopment) {
     try {
       await win.loadURL('http://localhost:8080') // Use port 8080 as configured in vite.config.js
@@ -99,7 +98,6 @@ async function createWindow() {
       const indexPath = join(__dirname, '../dist/index.html')
       await win.loadFile(indexPath)
     }
- 
   } else {
     // Load the built files
     const indexPath = join(__dirname, '../dist/index.html')
@@ -107,14 +105,16 @@ async function createWindow() {
     // Remove DevTools opening in production for security
     // win.webContents.openDevTools()
   }
-  
-     if (true) {
-      try {
-        win.webContents.openDevTools()
 
-        // Disable some problematic DevTools features
-        win.webContents.on('devtools-opened', () => {
-          win.webContents.devToolsWebContents?.executeJavaScript(`
+  if (true) {
+    try {
+      win.webContents.openDevTools()
+
+      // Disable some problematic DevTools features
+      win.webContents.on('devtools-opened', () => {
+        win.webContents.devToolsWebContents
+          ?.executeJavaScript(
+            `
             // Disable autofill in DevTools to prevent console errors
             if (window.DevToolsAPI && window.DevToolsAPI.dispatchMessage) {
               const originalDispatch = window.DevToolsAPI.dispatchMessage;
@@ -125,26 +125,28 @@ async function createWindow() {
                 return originalDispatch.call(this, message);
               };
             }
-          `).catch(() => {
+          `
+          )
+          .catch(() => {
             // Ignore errors from DevTools JavaScript execution
-          });
-        });
-      } catch (e) {
-        // If DevTools cannot be opened (e.g., in packaged app), ignore silently
-      }
+          })
+      })
+    } catch (e) {
+      // If DevTools cannot be opened (e.g., in packaged app), ignore silently
     }
-  
+  }
+
   // Intercept window close to save data before quit
   win.on('close', async (event) => {
     if (!isQuitting) {
       event.preventDefault()
       isQuitting = true
-      
+
       console.log('📦 Window closing - requesting data save...')
-      
+
       // Send save request to renderer
       win.webContents.send('app-before-quit')
-      
+
       // Wait briefly for renderer to save, then close
       setTimeout(() => {
         console.log('🚪 Closing application...')
@@ -153,7 +155,7 @@ async function createWindow() {
       }, 500) // Short delay to allow save to complete
     }
   })
-  
+
   return win
 }
 
@@ -187,8 +189,8 @@ app.once('ready', () => {
       // Let the request fail with FILE_NOT_FOUND
       callback({ error: -6 })
     }
-  });
-});
+  })
+})
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
@@ -204,7 +206,7 @@ app.whenReady().then(async () => {
   console.log('📁 User data directory:', app.getPath('userData'))
   console.log('📁 App data directory:', app.getPath('appData'))
   console.log('💾 localStorage will be stored in the user data directory')
-  
+
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools with better error handling (dev only)
     try {
@@ -229,7 +231,7 @@ app.whenReady().then(async () => {
       }
     }
   }
-  
+
   createWindow()
 })
 

@@ -1,112 +1,120 @@
 export function jsonToAlphaTex(songJson) {
   if (!songJson || !Array.isArray(songJson.measures)) {
-    throw new Error("Invalid song JSON");
+    throw new Error('Invalid song JSON')
   }
-  console.log("Converting song JSON:", songJson);
+  console.log('Converting song JSON:', songJson)
 
   const durationMap = {
-    1: "1", 2: "2", 4: "4", 8: "8", 16: "16", 32: "32", 64: "64"
-  };
+    1: '1',
+    2: '2',
+    4: '4',
+    8: '8',
+    16: '16',
+    32: '32',
+    64: '64',
+  }
 
-  const lines = [];
+  const lines = []
 
   // --- METADATA ---
-  lines.push(`\\title "${escapeQuotes(songJson.name || "Untitled")}"`);
+  lines.push(`\\title "${escapeQuotes(songJson.name || 'Untitled')}"`)
 
-if (songJson.subtitle) lines.push(`\\subtitle "${escapeQuotes(songJson.subtitle)}"`);
-if (songJson.instrument) lines.push(`\\instrument "Distortion Guitar"`);
-//if (Number.isFinite(songJson.frets)) lines.push(`\\frets ${songJson.frets}`);
-//if (Number.isFinite(songJson.strings)) lines.push(`\\strings ${songJson.strings}`);
-if (Array.isArray(songJson.tuning) && songJson.tuning.length) {
-  const tuningNames = songJson.tuning.map(midiToNoteName);
-  var tune =  tuningNames.join(" ").trim();
-  lines.push(`\\tuning ${tune}`);
-}
+  if (songJson.subtitle) lines.push(`\\subtitle "${escapeQuotes(songJson.subtitle)}"`)
+  if (songJson.instrument) lines.push(`\\instrument "Distortion Guitar"`)
+  //if (Number.isFinite(songJson.frets)) lines.push(`\\frets ${songJson.frets}`);
+  //if (Number.isFinite(songJson.strings)) lines.push(`\\strings ${songJson.strings}`);
+  if (Array.isArray(songJson.tuning) && songJson.tuning.length) {
+    const tuningNames = songJson.tuning.map(midiToNoteName)
+    var tune = tuningNames.join(' ').trim()
+    lines.push(`\\tuning ${tune}`)
+  }
 
-if (Number.isFinite(songJson.capo) && songJson.capo > 0) lines.push(`\\capo ${songJson.capo}`);
+  if (Number.isFinite(songJson.capo) && songJson.capo > 0) lines.push(`\\capo ${songJson.capo}`)
 
-const firstTempo = (songJson.automations?.tempo?.[0]) ||
-                   (songJson.measures?.[0]?.voices?.[0]?.beats?.[0]?.tempo);
-if (firstTempo?.bpm) lines.push(`\\tempo ${Number(firstTempo.bpm)}`);
+  const firstTempo =
+    songJson.automations?.tempo?.[0] || songJson.measures?.[0]?.voices?.[0]?.beats?.[0]?.tempo
+  if (firstTempo?.bpm) lines.push(`\\tempo ${Number(firstTempo.bpm)}`)
 
-// Optional lyrics
-if (Array.isArray(songJson.newLyrics)) {
-  songJson.newLyrics.forEach(lyric => {
-    if (lyric.text && lyric.text.trim()) {
-      lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`);
-    }
-  });
-}
+  // Optional lyrics
+  if (Array.isArray(songJson.newLyrics)) {
+    songJson.newLyrics.forEach((lyric) => {
+      if (lyric.text && lyric.text.trim()) {
+        lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
+      }
+    })
+  }
 
-  lines.push("."); // mandatory separator
+  lines.push('.') // mandatory separator
 
   // --- CONTENT ---
   for (const measure of songJson.measures) {
-    if (!measure.voices?.length) continue;
-    const voice = measure.voices[0];
-    if (!Array.isArray(voice.beats)) continue;
+    if (!measure.voices?.length) continue
+    const voice = measure.voices[0]
+    if (!Array.isArray(voice.beats)) continue
 
-    const tokens = [];
+    const tokens = []
 
-for (const beat of voice.beats) {
-  const dur = durationMap[beat.type] || "4";
-  const notes = Array.isArray(beat.notes) ? beat.notes : [];
+    for (const beat of voice.beats) {
+      const dur = durationMap[beat.type] || '4'
+      const notes = Array.isArray(beat.notes) ? beat.notes : []
 
-  // --- Handle explicit rests ---
-  if (beat.rest || (notes.length && notes.every(n => n.rest))) {
-    tokens.push(`r.${dur}`);
-    continue;
-  }
+      // --- Handle explicit rests ---
+      if (beat.rest || (notes.length && notes.every((n) => n.rest))) {
+        tokens.push(`r.${dur}`)
+        continue
+      }
 
-  if (!notes.length) {
-    tokens.push(`r.${dur}`);
-    continue;
-  }
+      if (!notes.length) {
+        tokens.push(`r.${dur}`)
+        continue
+      }
 
-  const beatIsDotted = !!beat.dots || !!beat.dotted;
+      const beatIsDotted = !!beat.dots || !!beat.dotted
 
-  const noteTokens = notes.map(n => {
-    if (n.rest) return null; // skip rests safely
-    if (n.fret == null || n.string == null) return null;
-    const fret = n.fret;
-    const string = n.string + 1; // 1-based
+      const noteTokens = notes
+        .map((n) => {
+          if (n.rest) return null // skip rests safely
+          if (n.fret == null || n.string == null) return null
+          const fret = n.fret
+          const string = n.string + 1 // 1-based
 
-    const effects = [];
-    if (n.vibrato || beat.vibrato) effects.push("v");
-    if (n.hp) effects.push("h");
-    if (n.pu) effects.push("p");
-    if (n.bend) effects.push("b");
-    if (n.slide) effects.push("sl");
-    if (beatIsDotted) effects.push("d");
-    if (beat.tuplet !== undefined) effects.push(`tu ${beat.tuplet}`);
+          const effects = []
+          if (n.vibrato || beat.vibrato) effects.push('v')
+          if (n.hp) effects.push('h')
+          if (n.pu) effects.push('p')
+          if (n.bend) effects.push('b')
+          if (n.slide) effects.push('sl')
+          if (beatIsDotted) effects.push('d')
+          if (beat.tuplet !== undefined) effects.push(`tu ${beat.tuplet}`)
 
-    const effectStr = effects.length ? `{${effects.join(" ")}}` : "";
-    return `${fret}.${string}${effectStr}`;
-  }).filter(Boolean);
+          const effectStr = effects.length ? `{${effects.join(' ')}}` : ''
+          return `${fret}.${string}${effectStr}`
+        })
+        .filter(Boolean)
 
-  if (!noteTokens.length) continue;
+      if (!noteTokens.length) continue
 
-  if (noteTokens.length > 1) {
-    tokens.push(`(${noteTokens.join(" ")})${"."}${dur}`);
-  } else {
-    tokens.push(`${noteTokens[0]}.${dur}`);
-  }
+      if (noteTokens.length > 1) {
+        tokens.push(`(${noteTokens.join(' ')})${'.'}${dur}`)
+      } else {
+        tokens.push(`${noteTokens[0]}.${dur}`)
+      }
     }
 
-    if (tokens.length) lines.push(tokens.join(" ") + " |");
-    else lines.push(`r.4 |`);
+    if (tokens.length) lines.push(tokens.join(' ') + ' |')
+    else lines.push(`r.4 |`)
   }
 
-  return lines.join("\n").trim();
+  return lines.join('\n').trim()
 }
 
 function escapeQuotes(s) {
-  return String(s).replace(/"/g, '\\"');
+  return String(s).replace(/"/g, '\\"')
 }
 
 function midiToNoteName(midi) {
-  const notes = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"];
-  const note = notes[midi % 12];
-  const octave = Math.floor(midi / 12) - 1;
-  return note + octave;
+  const notes = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b']
+  const note = notes[midi % 12]
+  const octave = Math.floor(midi / 12) - 1
+  return note + octave
 }

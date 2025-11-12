@@ -4,10 +4,10 @@
  */
 export class AudioService {
   constructor(serviceManager = null) {
-    this.serviceManager = serviceManager;
-    this.audioContext = null;
-    this.sourceNode = null;
-    this.currentAudio = null;
+    this.serviceManager = serviceManager
+    this.audioContext = null
+    this.sourceNode = null
+    this.currentAudio = null
   }
 
   /**
@@ -15,9 +15,9 @@ export class AudioService {
    */
   initializeAudioContext() {
     if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
     }
-    return this.audioContext;
+    return this.audioContext
   }
 
   /**
@@ -25,21 +25,21 @@ export class AudioService {
    */
   async loadAudioFile(filePath) {
     try {
-      const audio = new Audio();
-      
+      const audio = new Audio()
+
       return new Promise((resolve, reject) => {
         audio.addEventListener('loadedmetadata', () => {
           resolve({
             duration: audio.duration,
             src: audio.src,
-            audio: audio
-          });
-        });
-        
+            audio: audio,
+          })
+        })
+
         audio.addEventListener('error', (error) => {
-          reject(new Error(`Failed to load audio: ${error.message}`));
-        });
-        
+          reject(new Error(`Failed to load audio: ${error.message}`))
+        })
+
         // Handle different file path types and normalize to valid URLs:
         // - blob: URLs are used as-is
         // - existing file:// URLs are used as-is
@@ -80,9 +80,9 @@ export class AudioService {
             audio.src = filePath
           }
         }
-      });
+      })
     } catch (error) {
-      throw new Error(`Audio loading failed: ${error.message}`);
+      throw new Error(`Audio loading failed: ${error.message}`)
     }
   }
 
@@ -91,9 +91,9 @@ export class AudioService {
    */
   createBlobUrl(file) {
     if (!(file instanceof File)) {
-      throw new Error('Invalid file object');
+      throw new Error('Invalid file object')
     }
-    return URL.createObjectURL(file);
+    return URL.createObjectURL(file)
   }
 
   /**
@@ -101,7 +101,7 @@ export class AudioService {
    */
   revokeBlobUrl(url) {
     if (url && url.startsWith('blob:')) {
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(url)
     }
   }
 
@@ -110,7 +110,7 @@ export class AudioService {
    */
   setPlaybackRate(audio, rate) {
     if (audio && typeof rate === 'number' && rate > 0) {
-      audio.playbackRate = rate / 100;
+      audio.playbackRate = rate / 100
     }
   }
 
@@ -118,27 +118,27 @@ export class AudioService {
    * Set current time with bounds checking
    */
   setCurrentTime(audio, time, startTime = 0, endTime = Infinity) {
-    if (!audio) return;
-    
-    const clampedTime = Math.max(startTime, Math.min(time, endTime));
-    audio.currentTime = clampedTime;
+    if (!audio) return
+
+    const clampedTime = Math.max(startTime, Math.min(time, endTime))
+    audio.currentTime = clampedTime
   }
 
   /**
    * Handle time update with loop logic
    */
   handleTimeUpdate(audio, currentTime, startTime, endTime, loop = false) {
-    if (!audio) return;
+    if (!audio) return
 
     if (currentTime >= endTime) {
       if (loop) {
-        audio.currentTime = startTime;
+        audio.currentTime = startTime
       } else {
-        audio.currentTime = startTime;
-        audio.pause();
+        audio.currentTime = startTime
+        audio.pause()
       }
     } else if (currentTime < startTime) {
-      audio.currentTime = startTime;
+      audio.currentTime = startTime
     }
   }
 
@@ -146,40 +146,42 @@ export class AudioService {
    * Format seconds to readable time string
    */
   formatTime(seconds) {
-    if (!seconds || isNaN(seconds)) return '0:00.00';
-    
-    const dateObj = new Date(seconds * 1000);
-    const minutes = dateObj.getUTCMinutes();
-    const secondsFormatted = dateObj.getUTCSeconds().toString().padStart(2, '0');
-    const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0');
-    return `${minutes}:${secondsFormatted}.${milliseconds}`;
+    if (!seconds || isNaN(seconds)) return '0:00.00'
+
+    const dateObj = new Date(seconds * 1000)
+    const minutes = dateObj.getUTCMinutes()
+    const secondsFormatted = dateObj.getUTCSeconds().toString().padStart(2, '0')
+    const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10)
+      .toString()
+      .padStart(2, '0')
+    return `${minutes}:${secondsFormatted}.${milliseconds}`
   }
 
   /**
    * Extract filename from path
    */
   extractFilename(filePath) {
-    if (!filePath) return '';
-    
+    if (!filePath) return ''
+
     // Handle both Windows and Unix path separators
-    const segments = filePath.split(/[\\/]/);
-    return segments[segments.length - 1];
+    const segments = filePath.split(/[\\/]/)
+    return segments[segments.length - 1]
   }
 
   /**
    * Validate audio file type
    */
   isValidAudioFile(filename) {
-    const audioExtensions = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac'];
-    const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'));
-    return audioExtensions.includes(extension);
+    const audioExtensions = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac']
+    const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'))
+    return audioExtensions.includes(extension)
   }
 
   /**
    * Initialize WaveSurfer (placeholder for future implementation)
    */
   initWaveSurfer(containerId, audioUrl, options = {}) {
-    console.log('Initializing WaveSurfer for:', audioUrl);
+    console.log('Initializing WaveSurfer for:', audioUrl)
     // TODO: Implement WaveSurfer integration when needed
     // This would handle waveform visualization
   }
@@ -188,15 +190,15 @@ export class AudioService {
    * Play audio with optional rate
    */
   async playAudio(audio, playbackRate = 1) {
-    if (!audio) return;
-    
+    if (!audio) return
+
     try {
       if (playbackRate !== 1) {
-        audio.playbackRate = playbackRate;
+        audio.playbackRate = playbackRate
       }
-      await audio.play();
+      await audio.play()
     } catch (error) {
-      throw new Error(`Playback failed: ${error.message}`);
+      throw new Error(`Playback failed: ${error.message}`)
     }
   }
 
@@ -205,7 +207,7 @@ export class AudioService {
    */
   pauseAudio(audio) {
     if (audio && !audio.paused) {
-      audio.pause();
+      audio.pause()
     }
   }
 
@@ -214,8 +216,8 @@ export class AudioService {
    */
   stopAudio(audio, startTime = 0) {
     if (audio) {
-      audio.pause();
-      audio.currentTime = startTime;
+      audio.pause()
+      audio.currentTime = startTime
     }
   }
 
@@ -229,8 +231,8 @@ export class AudioService {
         duration: 0,
         paused: true,
         ended: true,
-        playbackRate: 1
-      };
+        playbackRate: 1,
+      }
     }
 
     return {
@@ -238,8 +240,8 @@ export class AudioService {
       duration: audio.duration,
       paused: audio.paused,
       ended: audio.ended,
-      playbackRate: audio.playbackRate
-    };
+      playbackRate: audio.playbackRate,
+    }
   }
 
   /**
@@ -247,14 +249,14 @@ export class AudioService {
    */
   cleanup() {
     if (this.currentAudio) {
-      this.currentAudio.pause();
-      this.currentAudio.src = '';
-      this.currentAudio = null;
+      this.currentAudio.pause()
+      this.currentAudio.src = ''
+      this.currentAudio = null
     }
-    
+
     if (this.audioContext) {
-      this.audioContext.close();
-      this.audioContext = null;
+      this.audioContext.close()
+      this.audioContext = null
     }
   }
 }

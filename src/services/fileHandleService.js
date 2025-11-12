@@ -31,7 +31,7 @@ export class FileHandleService {
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result
-        
+
         // Create object store if it doesn't exist
         if (!db.objectStoreNames.contains(this.storeName)) {
           db.createObjectStore(this.storeName, { keyPath: 'id' })
@@ -49,24 +49,24 @@ export class FileHandleService {
     await this.initDB()
 
     const id = `handle_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
+
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([this.storeName], 'readwrite')
       const store = transaction.objectStore(this.storeName)
-      
+
       const data = {
         id,
         handle: fileHandle,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
-      
+
       const request = store.put(data)
-      
+
       request.onsuccess = () => {
         console.log('Stored file handle:', id)
         resolve(id)
       }
-      
+
       request.onerror = () => {
         console.error('Error storing file handle:', request.error)
         reject(request.error)
@@ -86,7 +86,7 @@ export class FileHandleService {
       const transaction = this.db.transaction([this.storeName], 'readonly')
       const store = transaction.objectStore(this.storeName)
       const request = store.get(id)
-      
+
       request.onsuccess = () => {
         if (request.result) {
           console.log('Retrieved file handle:', id)
@@ -96,7 +96,7 @@ export class FileHandleService {
           resolve(null)
         }
       }
-      
+
       request.onerror = () => {
         console.error('Error retrieving file handle:', request.error)
         reject(request.error)
@@ -116,12 +116,12 @@ export class FileHandleService {
       const transaction = this.db.transaction([this.storeName], 'readwrite')
       const store = transaction.objectStore(this.storeName)
       const request = store.delete(id)
-      
+
       request.onsuccess = () => {
         console.log('Deleted file handle:', id)
         resolve()
       }
-      
+
       request.onerror = () => {
         console.error('Error deleting file handle:', request.error)
         reject(request.error)
@@ -139,11 +139,11 @@ export class FileHandleService {
       const transaction = this.db.transaction([this.storeName], 'readonly')
       const store = transaction.objectStore(this.storeName)
       const request = store.getAllKeys()
-      
+
       request.onsuccess = () => {
         resolve(request.result)
       }
-      
+
       request.onerror = () => {
         console.error('Error getting all handle IDs:', request.error)
         reject(request.error)
@@ -161,12 +161,12 @@ export class FileHandleService {
       const transaction = this.db.transaction([this.storeName], 'readwrite')
       const store = transaction.objectStore(this.storeName)
       const request = store.clear()
-      
+
       request.onsuccess = () => {
         console.log('Cleared all file handles')
         resolve()
       }
-      
+
       request.onerror = () => {
         console.error('Error clearing file handles:', request.error)
         reject(request.error)

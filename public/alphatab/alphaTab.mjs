@@ -49,96 +49,124 @@
  * @license
  */
 
-import * as alphaTab from './alphaTab.core.mjs';
-export * from './alphaTab.core.mjs';
+import * as alphaTab from './alphaTab.core.mjs'
+export * from './alphaTab.core.mjs'
 
 /**@target web */
 if (alphaTab.Environment.isRunningInWorker) {
-    alphaTab.Environment.initializeWorker();
-}
-else if (alphaTab.Environment.isRunningInAudioWorklet) {
-    alphaTab.Environment.initializeAudioWorklet();
-}
-else {
-    alphaTab.Environment.initializeMain(settings => {
-        if (alphaTab.Environment.webPlatform === alphaTab.WebPlatform.NodeJs) {
-            throw new alphaTab.AlphaTabError(alphaTab.AlphaTabErrorType.General, 'Workers not yet supported in Node.js');
-        }
-        if (alphaTab.Environment.webPlatform === alphaTab.WebPlatform.BrowserModule ||
-            alphaTab.Environment.isWebPackBundled ||
-            alphaTab.Environment.isViteBundled) {
-            alphaTab.Logger.debug('AlphaTab', 'Creating webworker');
-            try {
-                return new alphaTab.Environment.alphaTabWorker(new alphaTab.Environment.alphaTabUrl('./alphaTab.worker.mjs', import.meta.url), {
-                    type: 'module'
-                });
-            }
-            catch (e) {
-                alphaTab.Logger.debug('AlphaTab', 'ESM webworker construction with direct URL failed', e);
-            }
-            // fallback to blob worker with ESM URL
-            let workerUrl = '';
-            try {
-                // Note: prevent bundlers to copy worker as asset via alphaTabUrl
-                workerUrl = new alphaTab.Environment.alphaTabUrl('./alphaTab.worker.mjs', import.meta.url);
-                const script = `import ${JSON.stringify(workerUrl)}`;
-                const blob = new Blob([script], {
-                    type: 'application/javascript'
-                });
-                return new Worker(URL.createObjectURL(blob), {
-                    type: 'module'
-                });
-            }
-            catch (e) {
-                alphaTab.Logger.debug('AlphaTab', 'ESM webworker construction with blob import failed', workerUrl, e);
-            }
-            // fallback to worker with configurable fallback URL
-            try {
-                // Note: prevent bundlers to copy worker as asset
-                if (!settings.core.scriptFile) {
-                    throw new Error('Could not detect alphaTab script file');
-                }
-                workerUrl = settings.core.scriptFile;
-                const script = `import ${JSON.stringify(settings.core.scriptFile)}`;
-                const blob = new Blob([script], {
-                    type: 'application/javascript'
-                });
-                return new Worker(URL.createObjectURL(blob), {
-                    type: 'module'
-                });
-            }
-            catch (e) {
-                alphaTab.Logger.debug('AlphaTab', 'ESM webworker construction with blob import failed', settings.core.scriptFile, e);
-            }
-        }
-        // classical browser entry point
-        if (!settings.core.scriptFile) {
-            throw new alphaTab.AlphaTabError(alphaTab.AlphaTabErrorType.General, 'Could not detect alphaTab script file, cannot initialize renderer');
-        }
+  alphaTab.Environment.initializeWorker()
+} else if (alphaTab.Environment.isRunningInAudioWorklet) {
+  alphaTab.Environment.initializeAudioWorklet()
+} else {
+  alphaTab.Environment.initializeMain(
+    (settings) => {
+      if (alphaTab.Environment.webPlatform === alphaTab.WebPlatform.NodeJs) {
+        throw new alphaTab.AlphaTabError(
+          alphaTab.AlphaTabErrorType.General,
+          'Workers not yet supported in Node.js'
+        )
+      }
+      if (
+        alphaTab.Environment.webPlatform === alphaTab.WebPlatform.BrowserModule ||
+        alphaTab.Environment.isWebPackBundled ||
+        alphaTab.Environment.isViteBundled
+      ) {
+        alphaTab.Logger.debug('AlphaTab', 'Creating webworker')
         try {
-            alphaTab.Logger.debug('AlphaTab', 'Creating Blob worker');
-            const script = `importScripts('${settings.core.scriptFile}')`;
-            const blob = new Blob([script], {
-                type: 'application/javascript'
-            });
-            return new Worker(URL.createObjectURL(blob));
+          return new alphaTab.Environment.alphaTabWorker(
+            new alphaTab.Environment.alphaTabUrl('./alphaTab.worker.mjs', import.meta.url),
+            {
+              type: 'module',
+            }
+          )
+        } catch (e) {
+          alphaTab.Logger.debug('AlphaTab', 'ESM webworker construction with direct URL failed', e)
         }
-        catch (e) {
-            alphaTab.Logger.warning('Rendering', 'Could not create inline worker, fallback to normal worker');
-            return new Worker(settings.core.scriptFile);
+        // fallback to blob worker with ESM URL
+        let workerUrl = ''
+        try {
+          // Note: prevent bundlers to copy worker as asset via alphaTabUrl
+          workerUrl = new alphaTab.Environment.alphaTabUrl('./alphaTab.worker.mjs', import.meta.url)
+          const script = `import ${JSON.stringify(workerUrl)}`
+          const blob = new Blob([script], {
+            type: 'application/javascript',
+          })
+          return new Worker(URL.createObjectURL(blob), {
+            type: 'module',
+          })
+        } catch (e) {
+          alphaTab.Logger.debug(
+            'AlphaTab',
+            'ESM webworker construction with blob import failed',
+            workerUrl,
+            e
+          )
         }
-    }, (context, settings) => {
-        if (alphaTab.Environment.webPlatform === alphaTab.WebPlatform.NodeJs) {
-            throw new alphaTab.AlphaTabError(alphaTab.AlphaTabErrorType.General, 'Audio Worklets not yet supported in Node.js');
+        // fallback to worker with configurable fallback URL
+        try {
+          // Note: prevent bundlers to copy worker as asset
+          if (!settings.core.scriptFile) {
+            throw new Error('Could not detect alphaTab script file')
+          }
+          workerUrl = settings.core.scriptFile
+          const script = `import ${JSON.stringify(settings.core.scriptFile)}`
+          const blob = new Blob([script], {
+            type: 'application/javascript',
+          })
+          return new Worker(URL.createObjectURL(blob), {
+            type: 'module',
+          })
+        } catch (e) {
+          alphaTab.Logger.debug(
+            'AlphaTab',
+            'ESM webworker construction with blob import failed',
+            settings.core.scriptFile,
+            e
+          )
         }
-        if (alphaTab.Environment.webPlatform === alphaTab.WebPlatform.BrowserModule ||
-            alphaTab.Environment.isWebPackBundled ||
-            alphaTab.Environment.isViteBundled) {
-            alphaTab.Logger.debug('AlphaTab', 'Creating Module worklet');
-            const alphaTabWorklet = context.audioWorklet; // this name triggers the WebPack Plugin
-            return alphaTabWorklet.addModule(new alphaTab.Environment.alphaTabUrl('./alphaTab.worklet.mjs', import.meta.url));
-        }
-        alphaTab.Logger.debug('AlphaTab', 'Creating Script worklet');
-        return context.audioWorklet.addModule(settings.core.scriptFile);
-    });
+      }
+      // classical browser entry point
+      if (!settings.core.scriptFile) {
+        throw new alphaTab.AlphaTabError(
+          alphaTab.AlphaTabErrorType.General,
+          'Could not detect alphaTab script file, cannot initialize renderer'
+        )
+      }
+      try {
+        alphaTab.Logger.debug('AlphaTab', 'Creating Blob worker')
+        const script = `importScripts('${settings.core.scriptFile}')`
+        const blob = new Blob([script], {
+          type: 'application/javascript',
+        })
+        return new Worker(URL.createObjectURL(blob))
+      } catch (e) {
+        alphaTab.Logger.warning(
+          'Rendering',
+          'Could not create inline worker, fallback to normal worker'
+        )
+        return new Worker(settings.core.scriptFile)
+      }
+    },
+    (context, settings) => {
+      if (alphaTab.Environment.webPlatform === alphaTab.WebPlatform.NodeJs) {
+        throw new alphaTab.AlphaTabError(
+          alphaTab.AlphaTabErrorType.General,
+          'Audio Worklets not yet supported in Node.js'
+        )
+      }
+      if (
+        alphaTab.Environment.webPlatform === alphaTab.WebPlatform.BrowserModule ||
+        alphaTab.Environment.isWebPackBundled ||
+        alphaTab.Environment.isViteBundled
+      ) {
+        alphaTab.Logger.debug('AlphaTab', 'Creating Module worklet')
+        const alphaTabWorklet = context.audioWorklet // this name triggers the WebPack Plugin
+        return alphaTabWorklet.addModule(
+          new alphaTab.Environment.alphaTabUrl('./alphaTab.worklet.mjs', import.meta.url)
+        )
+      }
+      alphaTab.Logger.debug('AlphaTab', 'Creating Script worklet')
+      return context.audioWorklet.addModule(settings.core.scriptFile)
+    }
+  )
 }

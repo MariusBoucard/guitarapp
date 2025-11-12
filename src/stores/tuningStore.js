@@ -36,15 +36,15 @@ export const useTuningStore = defineStore('tuning', {
     // Get tuning for specific string
     getTuningForString() {
       return (stringId) => {
-        const tuning = this.tuningList.find(t => t.cordeId === stringId)
+        const tuning = this.tuningList.find((t) => t.cordeId === stringId)
         return tuning ? tuning.tuning : null
       }
     },
-    
+
     // Get all tunings as array
     tuningsArray() {
-      return this.tuningList.map(t => t.tuning)
-    }
+      return this.tuningList.map((t) => t.tuning)
+    },
   },
 
   actions: {
@@ -56,12 +56,14 @@ export const useTuningStore = defineStore('tuning', {
         userStore.saveUsersToStorage()
       }
     },
-    
+
     // Update tuning for a string
     updateStringTuning(stringId, tuning) {
       const userStore = useUserStore()
       if (userStore.currentUser) {
-        const existingTuning = userStore.currentUser.data.tuning.tuningList.find(t => t.cordeId === stringId)
+        const existingTuning = userStore.currentUser.data.tuning.tuningList.find(
+          (t) => t.cordeId === stringId
+        )
         if (existingTuning) {
           existingTuning.tuning = tuning
         } else {
@@ -70,15 +72,15 @@ export const useTuningStore = defineStore('tuning', {
         userStore.saveUsersToStorage()
       }
     },
-    
+
     // Set number of strings and adjust tuning list
     setNumberOfStrings(nbStrings) {
       const userStore = useUserStore()
       if (userStore.currentUser) {
         userStore.currentUser.data.tuning.nbStrings = nbStrings
-        
+
         const tuningList = userStore.currentUser.data.tuning.tuningList
-        
+
         // Ensure tuning list matches number of strings
         if (tuningList.length > nbStrings) {
           userStore.currentUser.data.tuning.tuningList = tuningList.slice(0, nbStrings)
@@ -88,14 +90,14 @@ export const useTuningStore = defineStore('tuning', {
           for (let i = tuningList.length; i < nbStrings; i++) {
             userStore.currentUser.data.tuning.tuningList.push({
               cordeId: i,
-              tuning: defaultTunings[i] || 'E2'
+              tuning: defaultTunings[i] || 'E2',
             })
           }
         }
         userStore.saveUsersToStorage()
       }
     },
-    
+
     // Set number of frets
     setNumberOfFrets(nbFrets) {
       const userStore = useUserStore()
@@ -104,7 +106,7 @@ export const useTuningStore = defineStore('tuning', {
         userStore.saveUsersToStorage()
       }
     },
-    
+
     // Reset to default tuning
     resetToDefaultTuning() {
       const userStore = useUserStore()
@@ -115,13 +117,13 @@ export const useTuningStore = defineStore('tuning', {
           { cordeId: 2, tuning: 'G3' },
           { cordeId: 3, tuning: 'D3' },
           { cordeId: 4, tuning: 'A2' },
-          { cordeId: 5, tuning: 'E2' }
+          { cordeId: 5, tuning: 'E2' },
         ]
         userStore.currentUser.data.tuning.nbStrings = 6
         userStore.saveUsersToStorage()
       }
     },
-    
+
     // Set complete tuning list
     setTuningList(tuningList) {
       const userStore = useUserStore()
@@ -129,6 +131,6 @@ export const useTuningStore = defineStore('tuning', {
         userStore.currentUser.data.tuning.tuningList = tuningList
         userStore.saveUsersToStorage()
       }
-    }
-  }
+    },
+  },
 })

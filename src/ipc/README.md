@@ -17,12 +17,16 @@ src/ipc/
 ## Modules
 
 ### `index.js`
+
 The main entry point that imports all handler modules and provides:
+
 - `registerAllIPCHandlers(vst3Instance, editorInstance)` - Registers all handlers
 - Individual handler exports for selective importing
 
 ### `fileHandlers.js`
+
 Handles file and directory operations:
+
 - `select-audio-file` - Audio file selection dialog
 - `select-video-file` - Video file selection dialog
 - `select-directory` - Directory selection dialog
@@ -32,12 +36,16 @@ Handles file and directory operations:
 - `parse-directory` - Legacy directory parsing (commented out)
 
 ### `videoHandlers.js`
+
 Handles video file operations:
+
 - `load-video-file` - Load and encode video file to base64
 - `scan-video-directory` - Recursively scan directory for video files
 
 ### `vst3Handlers.js`
+
 Handles VST3 plugin management:
+
 - `vst3-native-load-plugin` - Load VST3 plugin
 - `vst3-native-unload-plugin` - Unload VST3 plugin
 - `vst3-native-get-plugins` - Get loaded plugins list
@@ -51,7 +59,9 @@ Handles VST3 plugin management:
 - `close-vst3-plugin-ui` - Close plugin UI window
 
 ### `audioHandlers.js`
+
 Handles audio processing operations:
+
 - `vst3-initialize-audio` - Initialize audio subsystem
 - `vst3-load-audio-plugin` - Load plugin with audio configuration
 - `vst3-process-audio` - Process audio through plugin
@@ -60,7 +70,9 @@ Handles audio processing operations:
 - `vst3-unload-audio-plugin` - Unload audio plugin
 
 ### `editorHostHandlers.js`
+
 Handles EditorHost bridge operations:
+
 - `editor-host-set-path` - Set EditorHost executable path
 - `editor-host-launch` - Launch EditorHost application
 - `editor-host-load-plugin` - Load plugin in EditorHost
@@ -75,6 +87,7 @@ Handles EditorHost bridge operations:
 ## Usage
 
 ### In background.js
+
 ```javascript
 import { registerAllIPCHandlers } from './ipc/index.js'
 
@@ -83,6 +96,7 @@ registerAllIPCHandlers(vst3HostInstance, editorHostBridgeInstance)
 ```
 
 ### Selective Import
+
 ```javascript
 import { registerFileHandlers, registerVideoHandlers } from './ipc/index.js'
 
@@ -103,6 +117,7 @@ registerVideoHandlers()
 ## Dependencies
 
 Each handler module has minimal dependencies:
+
 - `electron` - For IPC and dialog functionality
 - `path` - For file path operations
 - `fs-extra` - For file system operations (where needed)

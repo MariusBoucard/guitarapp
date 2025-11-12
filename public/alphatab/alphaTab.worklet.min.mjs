@@ -48,4 +48,5 @@
  * @preserve
  * @license
  */
-import*as i from"./alphaTab.core.min.mjs";i.Environment.initializeAudioWorklet();
+import * as i from './alphaTab.core.min.mjs'
+i.Environment.initializeAudioWorklet()

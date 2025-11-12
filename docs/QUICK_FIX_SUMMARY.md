@@ -1,6 +1,7 @@
 # Quick Fix Summary - App Exit Save Issue
 
 ## What Was Wrong
+
 - App wasn't saving data when closing
 - Process was killed before save could complete
 - Error: `Erreur: le processus "17796" est introuvable`
@@ -8,24 +9,28 @@
 ## What Was Fixed
 
 ### 1. Main Process (background.js)
+
 ✅ Added `before-quit` event handler  
 ✅ Pauses quit to wait for save  
 ✅ Sends `app-before-quit` message to renderer  
 ✅ Waits up to 2 seconds for confirmation  
-✅ Proceeds with quit after save completes  
+✅ Proceeds with quit after save completes
 
 ### 2. Preload Script (preload.js)
+
 ✅ Exposed `onBeforeQuit()` listener  
 ✅ Exposed `saveComplete()` method  
-✅ Secure IPC bridge via contextBridge  
+✅ Secure IPC bridge via contextBridge
 
 ### 3. App Component (App.vue)
+
 ✅ Registers quit event listener on mount  
 ✅ Calls `userStore.saveUsersToStorage()` before quit  
 ✅ Notifies main process when save complete  
-✅ Handles errors gracefully  
+✅ Handles errors gracefully
 
 ## Files Modified
+
 - `src/background.js` - Added lifecycle management
 - `public/preload.js` - Exposed quit event APIs
 - `src/App.vue` - Added save handler
@@ -62,6 +67,7 @@ App Closes (Data Saved ✅)
 ## Console Output
 
 **Success:**
+
 ```
 📦 App is quitting - requesting data save...
 📦 App is closing - saving data...
@@ -71,6 +77,7 @@ App Closes (Data Saved ✅)
 ```
 
 **Timeout (still saves):**
+
 ```
 📦 App is quitting - requesting data save...
 ⏱️  Save timeout - proceeding with quit
@@ -78,11 +85,13 @@ App Closes (Data Saved ✅)
 ```
 
 ## Build Status
+
 ✅ Build succeeded (7.53s)  
 ✅ No compilation errors  
-✅ Ready to test  
+✅ Ready to test
 
 ## Next Steps
+
 1. Start the app: `npm run dev`
 2. Add some data
 3. Close the app

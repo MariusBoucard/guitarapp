@@ -1,309 +1,328 @@
 <template>
-    <div>
-        <div class="container">
-    <div class="row">
-        <div class="column" style="text-align: center;">
-            <div v-show="showgame">
-                <h1>Ready to play?</h1>
-            </div>
-            <div v-show="!showgame">
-                -
-            </div>
+  <div>
+    <div class="container">
+      <div class="row">
+        <div class="column" style="text-align: center">
+          <div v-show="showgame">
+            <h1>Ready to play?</h1>
+          </div>
+          <div v-show="!showgame">-</div>
         </div>
         <div class="column">
-            <h1>{{ notePlayed }}</h1>
-            <div class="circle" :style="{ backgroundColor: notePlayed ? calcBack(notePlayed.slice(0, notePlayed.length - 1)) : 'white' }">
-                <p class="note">{{ notePlayed ? notePlayed.slice(0, notePlayed.length - 1) : '' }}</p>
-            </div>
-            <p>Activer le sapin de noel:</p>
-            <button class="button" @click="allumerSapin" :style="{ backgroundColor: getStateButton() }">Sapinnnnn</button>
+          <h1>{{ notePlayed }}</h1>
+          <div
+            class="circle"
+            :style="{
+              backgroundColor: notePlayed
+                ? calcBack(notePlayed.slice(0, notePlayed.length - 1))
+                : 'white',
+            }"
+          >
+            <p class="note">{{ notePlayed ? notePlayed.slice(0, notePlayed.length - 1) : '' }}</p>
+          </div>
+          <p>Activer le sapin de noel:</p>
+          <button
+            class="button"
+            @click="allumerSapin"
+            :style="{ backgroundColor: getStateButton() }"
+          >
+            Sapinnnnn
+          </button>
         </div>
         <div class="column">
-            <div v-show="showgame">
-                <p>Easy version enabled: {{ cheat }}</p>
-                <p v-show="cheat">Note to play then:</p>
-                <h1>{{ noteToPlay }}</h1>
-                <h2 class="score">Score: {{ score }}</h2>
-            </div>
-            <div v-show="!showgame">
-                -
-            </div>
+          <div v-show="showgame">
+            <p>Easy version enabled: {{ cheat }}</p>
+            <p v-show="cheat">Note to play then:</p>
+            <h1>{{ noteToPlay }}</h1>
+            <h2 class="score">Score: {{ score }}</h2>
+          </div>
+          <div v-show="!showgame">-</div>
         </div>
+      </div>
     </div>
-</div>
 
+    <div class="manche-container">
+      <ul :class="this.lefty ? 'ulmanche' : ''">
+        <li class="horizontalli">
+          <ul>
+            <li
+              :style="{ height: calcHeight() }"
+              v-for="note in this.tuningintra"
+              :key="note.cordeId"
+            >
+              <div
+                class="circle"
+                :style="{ backgroundColor: calcBack2(note.tuning) }"
+                v-if="isChoosedTune(note)"
+              >
+                <p class="pp">{{ note.tuning.slice(0, note.tuning.length) }}</p>
+              </div>
+              <div v-else class="tuning-note">
+                {{ note.tuning.slice(0, note.tuning.length) }}
+              </div>
+            </li>
+          </ul>
+        </li>
 
-        <div class="manche-container">
-            <ul :class="this.lefty ? 'ulmanche' : ''">
-                <li class="horizontalli">
-                    <ul>
-                        <li :style="{ height: calcHeight() }" v-for="note in this.tuningintra"
-                            :key="note.cordeId">
-                            <div class="circle"
-                                :style="{ backgroundColor: calcBack2(note.tuning) }" v-if="isChoosedTune(note)">
-                                <p class="pp"> {{ note.tuning.slice(0, note.tuning.length) }}
-                                </p>
-                            </div>
-                            <div v-else class="tuning-note">
-                                {{ note.tuning.slice(0, note.tuning.length) }}
-                            </div>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="horizontalli2 frette" :style="{ width: calcWidth(index) }"
-                    v-for="index in (this.nbfrettes - 1)" :key="index">
-                    <div class="image-container">
-                        <div class="content">
-                            <ul>
-                                <li class="lettre" :style="{ height: calcHeight() }"
-                                    v-for="note in this.tuningintra" :key="note.cordeId"
-                                    @click="chooseNote(note, index)">
-                                    <div class="cord" v-if="isChoosed(note, index)">
-                                        <hr class="line" :style="{ width: calcWidth(index) }">
-                                        <div class="circle"
-                                            :style="{ height: heightCircle(index), width: heightCircle(index), backgroundColor: calcBackNote(note, index) }">
-                                            <p class="pp">{{ renderChoosen(note, index) }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="cord" v-else>
-                                        <hr class="line" :style="{ width: calcWidth(index) }">
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
+        <li
+          class="horizontalli2 frette"
+          :style="{ width: calcWidth(index) }"
+          v-for="index in this.nbfrettes - 1"
+          :key="index"
+        >
+          <div class="image-container">
+            <div class="content">
+              <ul>
+                <li
+                  class="lettre"
+                  :style="{ height: calcHeight() }"
+                  v-for="note in this.tuningintra"
+                  :key="note.cordeId"
+                  @click="chooseNote(note, index)"
+                >
+                  <div class="cord" v-if="isChoosed(note, index)">
+                    <hr class="line" :style="{ width: calcWidth(index) }" />
+                    <div
+                      class="circle"
+                      :style="{
+                        height: heightCircle(index),
+                        width: heightCircle(index),
+                        backgroundColor: calcBackNote(note, index),
+                      }"
+                    >
+                      <p class="pp">{{ renderChoosen(note, index) }}</p>
                     </div>
-                    <p class="fret-number">{{ index }}</p>
+                  </div>
+                  <div class="cord" v-else>
+                    <hr class="line" :style="{ width: calcWidth(index) }" />
+                  </div>
                 </li>
-            </ul>
-        </div>
-
+              </ul>
+            </div>
+          </div>
+          <p class="fret-number">{{ index }}</p>
+        </li>
+      </ul>
     </div>
+  </div>
 </template>
 <script>
-
-export default {
+  export default {
     props: {
-        //Peut etre qu'on peut definir un array de note ici
-        lefty: { required: true, type: Boolean },
-        tuning: { required: true, type: [Object] },
-        notesSelected: { required: true, type: [Object] },
-        colorNotes: { required: true, type: [Object] },
-        nbFrettes: { required: true, type: Number },
-        diap: { required: true, type: Number },
-        notePlayed: { required: true, type: String },
-        allnotes: { required: true, type: [Object] },
-        allnotesc: { required: true, type: [Object] },
-        gamePlay: { required: true, type: Boolean },
-        score: { required: true, type: Number },
-        noteToPlay: { required: true, type: String },
-        cheat: { required: true, type: Boolean },
-        showgame: { required: true, type: Boolean }
-
+      //Peut etre qu'on peut definir un array de note ici
+      lefty: { required: true, type: Boolean },
+      tuning: { required: true, type: [Object] },
+      notesSelected: { required: true, type: [Object] },
+      colorNotes: { required: true, type: [Object] },
+      nbFrettes: { required: true, type: Number },
+      diap: { required: true, type: Number },
+      notePlayed: { required: true, type: String },
+      allnotes: { required: true, type: [Object] },
+      allnotesc: { required: true, type: [Object] },
+      gamePlay: { required: true, type: Boolean },
+      score: { required: true, type: Number },
+      noteToPlay: { required: true, type: String },
+      cheat: { required: true, type: Boolean },
+      showgame: { required: true, type: Boolean },
     },
     data() {
-        return {
-            nbfrettes: this.nbFrettes || 12,
-            tuningintra: this.tuning || [],
-            listeNotes: [
-                { id: 0, note: "A" },
-                { id: 1, note: "AS" },
-                { id: 2, note: "B" },
-                { id: 3, note: "C" },
-                { id: 4, note: "CS" },
-                { id: 5, note: "D" },
-                { id: 6, note: "DS" },
-                { id: 7, note: "E" },
-                { id: 8, note: "F" },
-                { id: 9, note: "FS" },
-                { id: 10, note: "G" },
-                { id: 11, note: "GS" },
-            ],
-            nbCordes: 6,
-            diapason: (this.diap || 25.5) * 2.3,
-            currentNote: this.notePlayed || '',
-            sapinNoel: false,
-            cheatEnabled: this.cheat || false,
-            gameOn: this.gamePlay || false,
-
-
-        }
-
+      return {
+        nbfrettes: this.nbFrettes || 12,
+        tuningintra: this.tuning || [],
+        listeNotes: [
+          { id: 0, note: 'A' },
+          { id: 1, note: 'AS' },
+          { id: 2, note: 'B' },
+          { id: 3, note: 'C' },
+          { id: 4, note: 'CS' },
+          { id: 5, note: 'D' },
+          { id: 6, note: 'DS' },
+          { id: 7, note: 'E' },
+          { id: 8, note: 'F' },
+          { id: 9, note: 'FS' },
+          { id: 10, note: 'G' },
+          { id: 11, note: 'GS' },
+        ],
+        nbCordes: 6,
+        diapason: (this.diap || 25.5) * 2.3,
+        currentNote: this.notePlayed || '',
+        sapinNoel: false,
+        cheatEnabled: this.cheat || false,
+        gameOn: this.gamePlay || false,
+      }
     },
     methods: {
-        isChoosedTune(note) {
-            if (!note || !note.tuning) return false
-            let find = this.notesSelectedIntra.find(notes => notes.note === note.tuning.slice(0, note.tuning.length - 1))
-            return find ? find.enabled : false
-        },
-        isChoosed(corde, index) {
+      isChoosedTune(note) {
+        if (!note || !note.tuning) return false
+        let find = this.notesSelectedIntra.find(
+          (notes) => notes.note === note.tuning.slice(0, note.tuning.length - 1)
+        )
+        return find ? find.enabled : false
+      },
+      isChoosed(corde, index) {
+        let note = this.listeNotes.find(
+          (notes) => notes.id === this.cordeListe[corde.cordeId][index]
+        )
+        if (!note) return false
+        let enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note)
+        return enabledornot ? enabledornot.enabled : false
+      },
+      chooseNote(corde, index) {
+        if (!corde || !this.cordeListe[corde.cordeId]) return
+        let note = this.listeNotes.find(
+          (notes) => notes.id === this.cordeListe[corde.cordeId][index]
+        )
+        if (!note) return
+        let enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note)
+        if (!enabledornot) return
 
-            let note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
-            if (!note) return false
-            let enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
-            return enabledornot ? enabledornot.enabled : false
-        },
-        chooseNote(corde, index) {
-            if (!corde || !this.cordeListe[corde.cordeId]) return
-            let note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
-            if (!note) return
-            let enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
-            if (!enabledornot) return
-            
-            // Emit event to parent instead of modifying directly
-            this.$emit('note-toggled', {
-                note: note.note,
-                enabled: !enabledornot.enabled
-            })
-            this.$emit('unselectgamme')
-        },
-        renderChoosen(corde, index) {
-            if (!corde || !this.cordeListe[corde.cordeId]) return ''
-            let note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
-            if (!note) return ''
-            let enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
-            return enabledornot ? enabledornot.note : ''
-        },
-        test() {
-
-        },
-        getStateButton() {
-            if (this.sapinNoel) {
-                return "rgb(51, 101, 138)"
-            }
-            return "#86BBD8"
+        // Emit event to parent instead of modifying directly
+        this.$emit('note-toggled', {
+          note: note.note,
+          enabled: !enabledornot.enabled,
+        })
+        this.$emit('unselectgamme')
+      },
+      renderChoosen(corde, index) {
+        if (!corde || !this.cordeListe[corde.cordeId]) return ''
+        let note = this.listeNotes.find(
+          (notes) => notes.id === this.cordeListe[corde.cordeId][index]
+        )
+        if (!note) return ''
+        let enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note)
+        return enabledornot ? enabledornot.note : ''
+      },
+      test() {},
+      getStateButton() {
+        if (this.sapinNoel) {
+          return 'rgb(51, 101, 138)'
         }
-        ,
-        allumerSapin() {
-            this.sapinNoel = !this.sapinNoel
+        return '#86BBD8'
+      },
+      allumerSapin() {
+        this.sapinNoel = !this.sapinNoel
+      },
+      calcBack(lettre) {
+        let couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
+        return couleur ? couleur.color : 'white'
+      },
+      calcBack2(lettre) {
+        if (lettre === this.notePlayed.slice(0, this.notePlayed.length)) {
+          return 'white'
         }
-        ,
-        calcBack(lettre) {
+        let couleur = this.colorNotes.find(
+          (couleurs) => couleurs.note === lettre.slice(0, lettre.length - 1)
+        )
+        return couleur ? couleur.color : 'white'
+      },
+      calcBackNote(corde, index) {
+        let lettre = this.renderChoosen(corde, index)
 
-            let couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
-            return couleur ? couleur.color : 'white' 
-        },
-        calcBack2(lettre) {
-            if (lettre === this.notePlayed.slice(0, this.notePlayed.length)) {
-                return "white"
-            }
-            let couleur = this.colorNotes.find((couleurs) => couleurs.note === lettre.slice(0, lettre.length - 1))
-            return couleur ? couleur.color : 'white' 
-        },
-        calcBackNote(corde, index) {
-            let lettre = this.renderChoosen(corde, index)
+        let find = this.allnotesc.find((note) => note.note === corde.tuning)
 
-            let find = this.allnotesc.find(note => note.note === corde.tuning)
-            
-            // Check if find is undefined to prevent error
-            if (!find) {
-                console.warn('Note not found for tuning:', corde.tuning)
-                console.warn('AllNotesC length:', this.allnotesc.length)
-                // Try to find similar notes for debugging
-                const similarNotes = this.allnotesc.filter(note => note.note.startsWith(corde.tuning.charAt(0)))
-                console.warn('Similar notes found:', similarNotes.slice(0, 10).map(n => n.note))
-                return 'white' // Return default color
-            }
-            
-    
+        // Check if find is undefined to prevent error
+        if (!find) {
+          console.warn('Note not found for tuning:', corde.tuning)
+          console.warn('AllNotesC length:', this.allnotesc.length)
+          // Try to find similar notes for debugging
+          const similarNotes = this.allnotesc.filter((note) =>
+            note.note.startsWith(corde.tuning.charAt(0))
+          )
+          console.warn(
+            'Similar notes found:',
+            similarNotes.slice(0, 10).map((n) => n.note)
+          )
+          return 'white' // Return default color
+        }
 
-            let newindex = find.id + index
+        let newindex = find.id + index
 
-        
-            if (this.sapinNoel) {
-                let noteoncase = this.allnotesc.find(note => note.id === newindex)
-                if (noteoncase && noteoncase.note === this.notePlayed) {
-                    console.log("caca")
-                    return 'red '
-                }
-            
-            }
+        if (this.sapinNoel) {
+          let noteoncase = this.allnotesc.find((note) => note.id === newindex)
+          if (noteoncase && noteoncase.note === this.notePlayed) {
+            console.log('caca')
+            return 'red '
+          }
+        }
 
-            let couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
-            return couleur ? couleur.color : 'white' 
-        },
-        calcWidth(index) {
+        let couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
+        return couleur ? couleur.color : 'white'
+      },
+      calcWidth(index) {
+        let diaprestant = this.diapason
+        let taillecase = 0
+        for (let i = 0; i < index; i++) {
+          taillecase = diaprestant / 17.817
+          diaprestant = diaprestant - taillecase
+        }
+        return Math.round(taillecase) + 'px'
+      },
+      calcHeight() {
+        return Math.round(300 / this.nbCordes) + 'px'
+      },
 
-            let diaprestant = this.diapason
-            let taillecase = 0
-            for (let i = 0; i < index; i++) {
-
-                taillecase = diaprestant / 17.817
-                diaprestant = diaprestant - taillecase
-            }
-            return Math.round(taillecase) + 'px'
-        },
-        calcHeight() {
-            return Math.round(300 / this.nbCordes) + "px"
-        },
-
-        heightCircle(index) {
-            let height = this.calcHeight()
-            let width = this.calcWidth(index)
-            let intWidth = width.substring(0, width.length - 2)
-            let intHeight = height.substring(0, height.length - 2)
-            // console.log("height"+Math.min(intWidth, intHeight))
-            return Math.min(intWidth, intHeight) + "px"
-        },
-
+      heightCircle(index) {
+        let height = this.calcHeight()
+        let width = this.calcWidth(index)
+        let intWidth = width.substring(0, width.length - 2)
+        let intHeight = height.substring(0, height.length - 2)
+        // console.log("height"+Math.min(intWidth, intHeight))
+        return Math.min(intWidth, intHeight) + 'px'
+      },
     },
     watch: {
-        tuning: {
-            handler() {
-                this.tuningintra = this.tuning
-                this.$forceUpdate()
-            }
+      tuning: {
+        handler() {
+          this.tuningintra = this.tuning
+          this.$forceUpdate()
         },
-        diap: {
-            handler() {
-                this.diapason = this.diap * 2.3
-                this.$forceUpdate()
-            }
-        }
+      },
+      diap: {
+        handler() {
+          this.diapason = this.diap * 2.3
+          this.$forceUpdate()
+        },
+      },
     },
-
 
     computed: {
-        couleursnotesComp() {
-            return this.colorNotes
-        },
-        notesSelectedIntra() {
-            // Use the prop directly for reactivity
-            return this.notesSelected || []
-        },
-        caca() {
-            return this.currentNote
-        },
-        cordeListe() {
-        const cordeListe = [];
+      couleursnotesComp() {
+        return this.colorNotes
+      },
+      notesSelectedIntra() {
+        // Use the prop directly for reactivity
+        return this.notesSelected || []
+      },
+      caca() {
+        return this.currentNote
+      },
+      cordeListe() {
+        const cordeListe = []
 
         for (const corde of this.tuningintra) {
-            const notesCorde = [];
-            const note = corde.tuning;
-            const idnotedepart = this.allnotes.find((notes) => notes.note === note);
+          const notesCorde = []
+          const note = corde.tuning
+          const idnotedepart = this.allnotes.find((notes) => notes.note === note)
 
-            for (let i = 0; i < 24; i++) {
-                if (idnotedepart) {
-                    notesCorde.push((i + idnotedepart.id) % 12);
-                } else {
-                    notesCorde.push(2 % 12);
-                }
+          for (let i = 0; i < 24; i++) {
+            if (idnotedepart) {
+              notesCorde.push((i + idnotedepart.id) % 12)
+            } else {
+              notesCorde.push(2 % 12)
             }
+          }
 
-            cordeListe.push(notesCorde);
+          cordeListe.push(notesCorde)
         }
 
-        return cordeListe;
+        return cordeListe
+      },
     },
-
-
-    },
-}
-
+  }
 </script>
 <style scoped>
-/* Manche Container */
-.manche-container {
+  /* Manche Container */
+  .manche-container {
     width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
@@ -313,10 +332,10 @@ export default {
     border-radius: var(--radius-lg);
     margin: var(--spacing-md) 0;
     box-shadow: 0 4px 12px var(--shadow-light);
-}
+  }
 
-/* Tuning notes styling */
-.tuning-note {
+  /* Tuning notes styling */
+  .tuning-note {
     color: var(--text-secondary);
     font-weight: var(--font-medium);
     font-size: 0.9rem;
@@ -324,10 +343,10 @@ export default {
     align-items: center;
     justify-content: center;
     height: 100%;
-}
+  }
 
-/* Fret numbers */
-.fret-number {
+  /* Fret numbers */
+  .fret-number {
     position: absolute;
     bottom: -25px;
     left: 50%;
@@ -341,11 +360,11 @@ export default {
     border-radius: var(--radius-sm);
     min-width: 20px;
     text-align: center;
-}
+  }
 
-/* Manche Component - Beautiful Guitar Fretboard */
+  /* Manche Component - Beautiful Guitar Fretboard */
 
-.container {
+  .container {
     width: 100%;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -354,17 +373,17 @@ export default {
     margin: var(--spacing-md) 0;
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 32px var(--shadow-medium);
-}
+  }
 
-.row {
+  .row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-lg);
     gap: var(--spacing-md);
-}
+  }
 
-.column {
+  .column {
     flex: 1;
     padding: var(--spacing-lg);
     text-align: center;
@@ -372,28 +391,28 @@ export default {
     background: rgba(52, 73, 94, 0.3);
     border: 1px solid var(--border-primary);
     color: var(--text-primary);
-}
+  }
 
-.column h1 {
+  .column h1 {
     color: var(--text-primary);
     font-size: 1.5rem;
     font-weight: var(--font-semibold);
     margin: 0 0 var(--spacing-md) 0;
-}
+  }
 
-.column p {
+  .column p {
     color: var(--text-secondary);
     margin: var(--spacing-sm) 0;
-}
+  }
 
-.score {
+  .score {
     color: var(--accent-green);
     font-weight: var(--font-bold);
     font-size: 1.2rem;
-}
+  }
 
-/* Manche (Fretboard) Layout - Always Single Line */
-.ulmanche {
+  /* Manche (Fretboard) Layout - Always Single Line */
+  .ulmanche {
     display: flex;
     flex-direction: row-reverse;
     justify-content: flex-start;
@@ -410,10 +429,10 @@ export default {
     background-position: center;
     border-radius: var(--radius-lg);
     box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
-}
+  }
 
-/* Default manche direction (left-handed reverses this) */
-ul:not(.ulmanche) {
+  /* Default manche direction (left-handed reverses this) */
+  ul:not(.ulmanche) {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -430,10 +449,10 @@ ul:not(.ulmanche) {
     background-position: center;
     border-radius: var(--radius-lg);
     box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
-}
+  }
 
-/* Tuning pegs column */
-.horizontalli {
+  /* Tuning pegs column */
+  .horizontalli {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -444,9 +463,9 @@ ul:not(.ulmanche) {
     padding: var(--spacing-sm);
     border-right: 3px solid #fff;
     box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
-}
+  }
 
-.horizontalli ul {
+  .horizontalli ul {
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -454,9 +473,9 @@ ul:not(.ulmanche) {
     padding: 0;
     margin: 0;
     list-style: none;
-}
+  }
 
-.horizontalli li {
+  .horizontalli li {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -464,41 +483,41 @@ ul:not(.ulmanche) {
     color: var(--text-primary);
     font-weight: var(--font-semibold);
     font-size: 0.9rem;
-}
+  }
 
-/* Fret columns */
-.horizontalli2 {
+  /* Fret columns */
+  .horizontalli2 {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     height: 100%;
     position: relative;
-}
+  }
 
-.frette {
+  .frette {
     background: rgba(139, 69, 19, 0.8);
     border-right: 2px solid #fff;
     border-left: 1px solid rgba(255, 255, 255, 0.3);
     position: relative;
     overflow: hidden;
-}
+  }
 
-.image-container {
+  .image-container {
     position: relative;
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
-}
+  }
 
-.content {
+  .content {
     position: relative;
     z-index: 2;
     width: 100%;
     height: 100%;
-}
+  }
 
-.content ul {
+  .content ul {
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -506,10 +525,10 @@ ul:not(.ulmanche) {
     padding: 0;
     margin: 0;
     list-style: none;
-}
+  }
 
-/* String/Note positions */
-.lettre {
+  /* String/Note positions */
+  .lettre {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -518,45 +537,57 @@ ul:not(.ulmanche) {
     cursor: pointer;
     transition: all var(--transition-normal);
     position: relative;
-}
+  }
 
-.lettre:hover {
+  .lettre:hover {
     background: rgba(52, 152, 219, 0.2);
-}
+  }
 
-/* String lines */
-.cord {
+  /* String lines */
+  .cord {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 100%;
-}
+  }
 
-.line {
+  .line {
     position: absolute;
     top: 50%;
     left: 50%;
     height: 2px;
-    background: linear-gradient(90deg, #C0C0C0 0%, #E5E5E5 50%, #C0C0C0 100%);
+    background: linear-gradient(90deg, #c0c0c0 0%, #e5e5e5 50%, #c0c0c0 100%);
     margin: 0;
     border: none;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     z-index: 1;
     transform: translate(-50%, -50%);
-}
+  }
 
-/* Different string thicknesses for realism */
-.lettre:nth-child(1) .line { height: 1px; } /* High E string - thinnest */
-.lettre:nth-child(2) .line { height: 1.5px; } /* B string */
-.lettre:nth-child(3) .line { height: 2px; } /* G string */
-.lettre:nth-child(4) .line { height: 2.5px; } /* D string */
-.lettre:nth-child(5) .line { height: 3px; } /* A string */
-.lettre:nth-child(6) .line { height: 5.25px; } /* Low E string - 1.5x thicker (3.5 * 1.5) */
+  /* Different string thicknesses for realism */
+  .lettre:nth-child(1) .line {
+    height: 1px;
+  } /* High E string - thinnest */
+  .lettre:nth-child(2) .line {
+    height: 1.5px;
+  } /* B string */
+  .lettre:nth-child(3) .line {
+    height: 2px;
+  } /* G string */
+  .lettre:nth-child(4) .line {
+    height: 2.5px;
+  } /* D string */
+  .lettre:nth-child(5) .line {
+    height: 3px;
+  } /* A string */
+  .lettre:nth-child(6) .line {
+    height: 5.25px;
+  } /* Low E string - 1.5x thicker (3.5 * 1.5) */
 
-/* Note circles */
-.circle {
+  /* Note circles */
+  .circle {
     width: 35px;
     height: 35px;
     border-radius: 50%;
@@ -569,26 +600,26 @@ ul:not(.ulmanche) {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     transition: all var(--transition-normal);
     cursor: pointer;
-}
+  }
 
-.circle:hover {
+  .circle:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-}
+  }
 
-.circle .pp,
-.circle .note,
-.circle p {
+  .circle .pp,
+  .circle .note,
+  .circle p {
     color: var(--text-primary);
     font-size: 0.8rem;
     font-weight: var(--font-bold);
     margin: 0;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
     mix-blend-mode: difference;
-}
+  }
 
-/* Buttons */
-.button {
+  /* Buttons */
+  .button {
     background: var(--btn-primary);
     border: none;
     color: var(--text-primary);
@@ -599,78 +630,84 @@ ul:not(.ulmanche) {
     font-weight: var(--font-medium);
     transition: all var(--transition-normal);
     margin: var(--spacing-sm);
-}
+  }
 
-.button:hover {
+  .button:hover {
     background: var(--btn-primary-hover);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px var(--shadow-medium);
-}
+  }
 
-/* Responsive design */
-@media (max-width: 768px) {
+  /* Responsive design */
+  @media (max-width: 768px) {
     .ulmanche,
     ul:not(.ulmanche) {
-        min-height: 250px;
-        overflow-x: scroll;
+      min-height: 250px;
+      overflow-x: scroll;
     }
-    
+
     .circle {
-        width: 28px;
-        height: 28px;
+      width: 28px;
+      height: 28px;
     }
-    
+
     .circle .pp,
     .circle .note,
     .circle p {
-        font-size: 0.7rem;
+      font-size: 0.7rem;
     }
-}
+  }
 
-/* Scrollbar styling */
-.ulmanche::-webkit-scrollbar,
-ul:not(.ulmanche)::-webkit-scrollbar {
+  /* Scrollbar styling */
+  .ulmanche::-webkit-scrollbar,
+  ul:not(.ulmanche)::-webkit-scrollbar {
     height: 8px;
-}
+  }
 
-.ulmanche::-webkit-scrollbar-track,
-ul:not(.ulmanche)::-webkit-scrollbar-track {
+  .ulmanche::-webkit-scrollbar-track,
+  ul:not(.ulmanche)::-webkit-scrollbar-track {
     background: var(--primary-dark);
     border-radius: var(--radius-sm);
-}
+  }
 
-.ulmanche::-webkit-scrollbar-thumb,
-ul:not(.ulmanche)::-webkit-scrollbar-thumb {
+  .ulmanche::-webkit-scrollbar-thumb,
+  ul:not(.ulmanche)::-webkit-scrollbar-thumb {
     background: var(--primary-medium);
     border-radius: var(--radius-sm);
-}
+  }
 
-.ulmanche::-webkit-scrollbar-thumb:hover,
-ul:not(.ulmanche)::-webkit-scrollbar-thumb:hover {
+  .ulmanche::-webkit-scrollbar-thumb:hover,
+  ul:not(.ulmanche)::-webkit-scrollbar-thumb:hover {
     background: var(--primary-accent);
-}
+  }
 
-/* Ensure no wrapping and proper spacing */
-.ulmanche > *,
-ul:not(.ulmanche) > * {
+  /* Ensure no wrapping and proper spacing */
+  .ulmanche > *,
+  ul:not(.ulmanche) > * {
     flex-shrink: 0;
-}
+  }
 
-/* Animation for note selection */
-@keyframes noteSelect {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-}
+  /* Animation for note selection */
+  @keyframes noteSelect {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
 
-.circle.selected {
+  .circle.selected {
     animation: noteSelect 0.3s ease-in-out;
-}
+  }
 
-/* CSS Custom Properties */
-:root {
+  /* CSS Custom Properties */
+  :root {
     --mondiap: 45px;
     --light: 80;
     --threshold: 60;
-}
+  }
 </style>

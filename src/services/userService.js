@@ -14,11 +14,11 @@ export class UserService {
     try {
       const exportData = userStore.exportUser(userId)
       const user = userStore.getUserById(userId)
-      
+
       const jsonStr = JSON.stringify(exportData, null, 2)
       const blob = new Blob([jsonStr], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
-      
+
       // Create download link
       const link = document.createElement('a')
       link.href = url
@@ -26,10 +26,10 @@ export class UserService {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
       // Clean up
       URL.revokeObjectURL(url)
-      
+
       return { success: true, filename: link.download }
     } catch (error) {
       console.error('Error exporting user:', error)
@@ -43,11 +43,11 @@ export class UserService {
   async exportAllUsersToFile(userStore) {
     try {
       const exportData = userStore.exportAllUsers()
-      
+
       const jsonStr = JSON.stringify(exportData, null, 2)
       const blob = new Blob([jsonStr], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
-      
+
       // Create download link
       const link = document.createElement('a')
       link.href = url
@@ -55,10 +55,10 @@ export class UserService {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
       // Clean up
       URL.revokeObjectURL(url)
-      
+
       return { success: true, filename: link.download }
     } catch (error) {
       console.error('Error exporting all users:', error)
@@ -76,41 +76,41 @@ export class UserService {
         const input = document.createElement('input')
         input.type = 'file'
         input.accept = '.json'
-        
+
         input.onchange = async (event) => {
           const file = event.target.files[0]
           if (!file) {
             reject(new Error('No file selected'))
             return
           }
-          
+
           try {
             const text = await file.text()
             const importData = JSON.parse(text)
-            
+
             // Validate import data
             if (!this.validateImportData(importData)) {
               reject(new Error('Invalid import file format'))
               return
             }
-            
+
             // Import the user
             userStore.importUser(importData, overwriteExisting)
-            
-            resolve({ 
-              success: true, 
+
+            resolve({
+              success: true,
               userName: importData.user.name,
-              importDate: importData.exportDate
+              importDate: importData.exportDate,
             })
           } catch (error) {
             reject(new Error(`Failed to parse import file: ${error.message}`))
           }
         }
-        
+
         input.onerror = () => {
           reject(new Error('Failed to read file'))
         }
-        
+
         // Trigger file selection
         input.click()
       } catch (error) {
@@ -129,24 +129,24 @@ export class UserService {
         const input = document.createElement('input')
         input.type = 'file'
         input.accept = '.json'
-        
+
         input.onchange = async (event) => {
           const file = event.target.files[0]
           if (!file) {
             reject(new Error('No file selected'))
             return
           }
-          
+
           try {
             const text = await file.text()
             const importData = JSON.parse(text)
-            
+
             // Validate import data
             if (!this.validateBulkImportData(importData)) {
               reject(new Error('Invalid import file format'))
               return
             }
-            
+
             // Import each user
             const imported = []
             for (const userData of importData.users) {
@@ -157,22 +157,22 @@ export class UserService {
                 console.warn(`Failed to import user ${userData.name}:`, error)
               }
             }
-            
-            resolve({ 
-              success: true, 
+
+            resolve({
+              success: true,
               importedUsers: imported,
               totalUsers: importData.users.length,
-              importDate: importData.exportDate
+              importDate: importData.exportDate,
             })
           } catch (error) {
             reject(new Error(`Failed to parse import file: ${error.message}`))
           }
         }
-        
+
         input.onerror = () => {
           reject(new Error('Failed to read file'))
         }
-        
+
         // Trigger file selection
         input.click()
       } catch (error) {
@@ -198,11 +198,9 @@ export class UserService {
     if (!data || typeof data !== 'object') return false
     if (!data.version || !Array.isArray(data.users)) return false
     if (data.users.length === 0) return false
-    
+
     // Check each user has required fields
-    return data.users.every(user => 
-      user.name && user.data
-    )
+    return data.users.every((user) => user.name && user.data)
   }
 
   /**
@@ -222,15 +220,15 @@ export class UserService {
     try {
       const usersData = localStorage.getItem('guitarapp_users')
       const metaData = localStorage.getItem('guitarapp_userMeta')
-      
+
       const usersSize = usersData ? new Blob([usersData]).size : 0
       const metaSize = metaData ? new Blob([metaData]).size : 0
-      
+
       return {
         totalSize: usersSize + metaSize,
         usersSize,
         metaSize,
-        formattedSize: this.formatBytes(usersSize + metaSize)
+        formattedSize: this.formatBytes(usersSize + metaSize),
       }
     } catch (error) {
       console.error('Error calculating storage stats:', error)
@@ -238,7 +236,7 @@ export class UserService {
         totalSize: 0,
         usersSize: 0,
         metaSize: 0,
-        formattedSize: '0 B'
+        formattedSize: '0 B',
       }
     }
   }
@@ -248,11 +246,11 @@ export class UserService {
    */
   formatBytes(bytes) {
     if (bytes === 0) return '0 B'
-    
+
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    
+
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
   }
 
@@ -264,9 +262,9 @@ export class UserService {
       const backup = {
         timestamp: new Date().toISOString(),
         currentUserId: userStore.currentUserId,
-        users: JSON.parse(JSON.stringify(userStore.users))
+        users: JSON.parse(JSON.stringify(userStore.users)),
       }
-      
+
       localStorage.setItem('guitarapp_backup', JSON.stringify(backup))
       return { success: true, timestamp: backup.timestamp }
     } catch (error) {
@@ -284,20 +282,20 @@ export class UserService {
       if (!backupData) {
         throw new Error('No backup found')
       }
-      
+
       const backup = JSON.parse(backupData)
-      
+
       userStore.users = JSON.parse(JSON.stringify(backup.users))
       userStore.currentUserId = backup.currentUserId
       userStore.saveUsersToStorage()
-      
+
       // Restore store states
       userStore.restoreUserStoreStates()
-      
-      return { 
-        success: true, 
+
+      return {
+        success: true,
         timestamp: backup.timestamp,
-        usersRestored: backup.users.length
+        usersRestored: backup.users.length,
       }
     } catch (error) {
       console.error('Error restoring backup:', error)
@@ -314,20 +312,20 @@ export class UserService {
       if (!sourceUser) {
         throw new Error('Source user not found')
       }
-      
+
       // Create new user
       const newUserId = userStore.createUser(
         newName || `${sourceUser.name} (Copy)`,
         sourceUser.email,
         sourceUser.avatar
       )
-      
+
       // Copy data
       const newUser = userStore.getUserById(newUserId)
       newUser.data = JSON.parse(JSON.stringify(sourceUser.data))
-      
+
       userStore.saveUsersToStorage()
-      
+
       return { success: true, newUserId, newUserName: newUser.name }
     } catch (error) {
       console.error('Error cloning user:', error)
@@ -346,27 +344,27 @@ export class UserService {
       }
 
       const tabData = user.data.tabs || { playlists: [], files: [], metadata: {} }
-      
+
       const exportData = {
         version: '1.0.0',
         exportDate: new Date().toISOString(),
         userName: user.name,
-        tabs: tabData
+        tabs: tabData,
       }
-      
+
       const jsonStr = JSON.stringify(exportData, null, 2)
       const blob = new Blob([jsonStr], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
-      
+
       const link = document.createElement('a')
       link.href = url
       link.download = `tabs_${this.sanitizeFilename(user.name)}_${new Date().toISOString().split('T')[0]}.json`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
       URL.revokeObjectURL(url)
-      
+
       return { success: true, filename: link.download }
     } catch (error) {
       console.error('Error exporting tab playlists:', error)
@@ -383,54 +381,52 @@ export class UserService {
         const input = document.createElement('input')
         input.type = 'file'
         input.accept = '.json'
-        
+
         input.onchange = async (event) => {
           const file = event.target.files[0]
           if (!file) {
             reject(new Error('No file selected'))
             return
           }
-          
+
           try {
             const text = await file.text()
             const importData = JSON.parse(text)
-            
+
             if (!this.validateTabPlaylistImport(importData)) {
               reject(new Error('Invalid tab playlist file format'))
               return
             }
-            
+
             const user = userStore.getUserById(userId)
             if (!user) {
               reject(new Error('User not found'))
               return
             }
-            
+
             // Initialize tabs structure if needed
             if (!user.data.tabs) {
               user.data.tabs = { playlists: [], files: [], metadata: {} }
             }
-            
+
             if (mergeWithExisting) {
               // Merge playlists
-              const existingPlaylistNames = new Set(
-                user.data.tabs.playlists.map(p => p.name)
-              )
-              
-              importData.tabs.playlists.forEach(playlist => {
+              const existingPlaylistNames = new Set(user.data.tabs.playlists.map((p) => p.name))
+
+              importData.tabs.playlists.forEach((playlist) => {
                 if (!existingPlaylistNames.has(playlist.name)) {
                   // Regenerate IDs to avoid conflicts
                   playlist.id = Date.now() + Math.random()
-                  playlist.tabs.forEach(tab => {
+                  playlist.tabs.forEach((tab) => {
                     tab.id = Date.now() + Math.random()
                   })
                   user.data.tabs.playlists.push(playlist)
                 }
               })
-              
+
               // Merge files
               const existingFiles = new Set(user.data.tabs.files)
-              importData.tabs.files.forEach(file => {
+              importData.tabs.files.forEach((file) => {
                 if (!existingFiles.has(file)) {
                   user.data.tabs.files.push(file)
                 }
@@ -439,23 +435,23 @@ export class UserService {
               // Replace existing
               user.data.tabs = importData.tabs
             }
-            
+
             userStore.saveUsersToStorage()
-            
+
             resolve({
               success: true,
               playlistsImported: importData.tabs.playlists.length,
-              importDate: importData.exportDate
+              importDate: importData.exportDate,
             })
           } catch (error) {
             reject(new Error(`Failed to parse import file: ${error.message}`))
           }
         }
-        
+
         input.onerror = () => {
           reject(new Error('Failed to read file'))
         }
-        
+
         input.click()
       } catch (error) {
         reject(error)

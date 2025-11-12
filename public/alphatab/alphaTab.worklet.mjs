@@ -49,7 +49,7 @@
  * @license
  */
 
-import * as alphaTab from './alphaTab.core.mjs';
+import * as alphaTab from './alphaTab.core.mjs'
 
 /**@target web */
-alphaTab.Environment.initializeAudioWorklet();
+alphaTab.Environment.initializeAudioWorklet()

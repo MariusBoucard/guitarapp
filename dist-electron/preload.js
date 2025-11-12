@@ -1,1 +1,17 @@
-"use strict";const{contextBridge:i,ipcRenderer:e}=require("electron");i.exposeInMainWorld("process",process);i.exposeInMainWorld("electronAPI",{selectAudioFile:()=>e.invoke("select-audio-file"),selectVideoFile:()=>e.invoke("select-video-file"),selectDirectory:()=>e.invoke("select-directory"),scanVideoDirectory:o=>e.invoke("scan-video-directory",o),loadVideoFile:o=>e.invoke("load-video-file",o),saveDirectoryTree:(o,r)=>e.invoke("save-directory-tree",o,r),loadDirectoryTree:()=>e.invoke("load-directory-tree"),onBeforeQuit:o=>e.on("app-before-quit",o),removeBeforeQuitListener:o=>e.removeListener("app-before-quit",o),saveComplete:()=>e.invoke("app-save-complete")});
+"use strict";
+const { contextBridge, ipcRenderer } = require("electron");
+contextBridge.exposeInMainWorld("process", process);
+contextBridge.exposeInMainWorld("electronAPI", {
+  selectAudioFile: () => ipcRenderer.invoke("select-audio-file"),
+  selectVideoFile: () => ipcRenderer.invoke("select-video-file"),
+  selectDirectory: () => ipcRenderer.invoke("select-directory"),
+  scanVideoDirectory: (directoryPath) => ipcRenderer.invoke("scan-video-directory", directoryPath),
+  loadVideoFile: (filePath) => ipcRenderer.invoke("load-video-file", filePath),
+  saveDirectoryTree: (directoryPath, treeData) => ipcRenderer.invoke("save-directory-tree", directoryPath, treeData),
+  loadDirectoryTree: () => ipcRenderer.invoke("load-directory-tree"),
+  // App lifecycle methods
+  onBeforeQuit: (callback) => ipcRenderer.on("app-before-quit", callback),
+  removeBeforeQuitListener: (callback) => ipcRenderer.removeListener("app-before-quit", callback),
+  saveComplete: () => ipcRenderer.invoke("app-save-complete")
+  // VST3 and EditorHost APIs removed - feature disabled
+});

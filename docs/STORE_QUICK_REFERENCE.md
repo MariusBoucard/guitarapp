@@ -7,20 +7,22 @@
 ## Adding New User Data
 
 ### 1. Add to User Data Structure (userStore.js)
+
 ```javascript
 state: () => ({
   users: [
     {
       data: {
         // ... existing fields
-        myNewData: []  // ← Add here
-      }
-    }
-  ]
+        myNewData: [], // ← Add here
+      },
+    },
+  ],
 })
 ```
 
 ### 2. Update createUser() Method (userStore.js)
+
 ```javascript
 createUser(userName, email = '', avatar = '') {
   const newUser = {
@@ -33,6 +35,7 @@ createUser(userName, email = '', avatar = '') {
 ```
 
 ### 3. Create Store with Getters (myNewStore.js)
+
 ```javascript
 import { defineStore } from 'pinia'
 import { useUserStore } from './userStore'
@@ -40,9 +43,9 @@ import { useUserStore } from './userStore'
 export const useMyNewStore = defineStore('myNew', {
   state: () => ({
     // Only UI state here, not user data
-    selectedItem: 0
+    selectedItem: 0,
   }),
-  
+
   getters: {
     // Reference user data
     myNewData() {
@@ -54,33 +57,34 @@ export const useMyNewStore = defineStore('myNew', {
         return []
       }
       return userStore.currentUser.data.myNewData
-    }
+    },
   },
-  
+
   actions: {
     // Modify user data directly
     addItem(item) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
-      
+
       userStore.currentUser.data.myNewData.push(item)
       userStore.saveUsersToStorage()
     },
-    
+
     removeItem(index) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
-      
+
       userStore.currentUser.data.myNewData.splice(index, 1)
       userStore.saveUsersToStorage()
-    }
-  }
+    },
+  },
 })
 ```
 
 ## Using Stores in Components
 
 ### Reading Data (Always Current)
+
 ```vue
 <template>
   <div v-for="training in trainingStore.trainingList" :key="training.id">
@@ -89,20 +93,21 @@ export const useMyNewStore = defineStore('myNew', {
 </template>
 
 <script>
-import { useTrainingStore } from '@/stores/trainingStore'
+  import { useTrainingStore } from '@/stores/trainingStore'
 
-export default {
-  setup() {
-    const trainingStore = useTrainingStore()
-    // trainingStore.trainingList is a getter that references user data
-    // It automatically updates when user switches
-    return { trainingStore }
+  export default {
+    setup() {
+      const trainingStore = useTrainingStore()
+      // trainingStore.trainingList is a getter that references user data
+      // It automatically updates when user switches
+      return { trainingStore }
+    },
   }
-}
 </script>
 ```
 
 ### Modifying Data
+
 ```javascript
 // In component
 const trainingStore = useTrainingStore()
@@ -120,6 +125,7 @@ trainingStore.addTraining('New Training')
 ## Common Patterns
 
 ### Pattern 1: List Management
+
 ```javascript
 // Getter returns reference to user's list
 getters: {
@@ -140,6 +146,7 @@ actions: {
 ```
 
 ### Pattern 2: Selected Item (UI State)
+
 ```javascript
 state: () => ({
   selectedItemId: 0  // UI state, not user data
@@ -150,7 +157,7 @@ getters: {
     // User data
     return userStore.currentUser?.data?.items || []
   },
-  
+
   selectedItem(state) {
     // Derived from UI state + user data
     return this.itemList.find(item => item.id === state.selectedItemId)
@@ -159,6 +166,7 @@ getters: {
 ```
 
 ### Pattern 3: Nested Data
+
 ```javascript
 // User data structure
 data: {
@@ -178,7 +186,7 @@ actions: {
     const userStore = useUserStore()
     const training = userStore.currentUser.data.trainings
       .find(t => t.id === trainingId)
-    
+
     if (training) {
       training.videos.push(video)  // Direct mutation
       userStore.saveUsersToStorage()
@@ -190,12 +198,14 @@ actions: {
 ## Data Flow Checklist
 
 ### When Adding Data ✅
+
 1. Action modifies `userStore.currentUser.data`
 2. Call `userStore.saveUsersToStorage()`
 3. Getter automatically returns updated data
 4. Components re-render automatically
 
 ### When Switching Users ✅
+
 1. Call `userStore.switchUser(userId)`
 2. `currentUserId` changes
 3. All getters return new user's data
@@ -203,6 +213,7 @@ actions: {
 5. No manual synchronization needed
 
 ### When Reading Data ✅
+
 1. Use getter (not direct state access)
 2. Getter references `userStore.currentUser.data`
 3. Always get current user's data
@@ -213,6 +224,7 @@ actions: {
 ### Convert Existing Store
 
 **Before (Old Architecture):**
+
 ```javascript
 // Bad: Store owns data
 state: () => ({
@@ -227,6 +239,7 @@ actions: {
 ```
 
 **After (New Architecture):**
+
 ```javascript
 // Good: Store references user data
 import { useUserStore } from './userStore'
@@ -249,6 +262,7 @@ actions: {
 ## Debugging Tips
 
 ### Check Current User
+
 ```javascript
 const userStore = useUserStore()
 console.log('Current user:', userStore.currentUser.name)
@@ -256,6 +270,7 @@ console.log('User data:', userStore.currentUser.data)
 ```
 
 ### Check if Data Updates
+
 ```javascript
 // Add data
 trainingStore.addTraining('Test')
@@ -266,6 +281,7 @@ console.log(userStore.currentUser.data.trainings)
 ```
 
 ### Check if Getter Works
+
 ```javascript
 // Compare getter vs direct access
 console.log('Getter:', trainingStore.trainingList)
@@ -274,6 +290,7 @@ console.log('Direct:', userStore.currentUser.data.trainings)
 ```
 
 ### Check if Switch Works
+
 ```javascript
 // Before switch
 console.log('User A trainings:', trainingStore.trainingList)
@@ -289,14 +306,16 @@ console.log('User B trainings:', trainingStore.trainingList)
 ## Common Mistakes to Avoid
 
 ### ❌ Don't: Store User Data in Store State
+
 ```javascript
 // Bad
 state: () => ({
-  userItems: []  // ← Wrong: This is per-user data
+  userItems: [], // ← Wrong: This is per-user data
 })
 ```
 
 ### ✅ Do: Reference User Data via Getter
+
 ```javascript
 // Good
 getters: {
@@ -307,6 +326,7 @@ getters: {
 ```
 
 ### ❌ Don't: Copy User Data
+
 ```javascript
 // Bad
 actions: {
@@ -317,6 +337,7 @@ actions: {
 ```
 
 ### ✅ Do: Reference Directly
+
 ```javascript
 // Good
 getters: {
@@ -327,6 +348,7 @@ getters: {
 ```
 
 ### ❌ Don't: Forget to Save
+
 ```javascript
 // Bad
 actions: {
@@ -338,6 +360,7 @@ actions: {
 ```
 
 ### ✅ Do: Always Save After Changes
+
 ```javascript
 // Good
 actions: {
@@ -350,13 +373,13 @@ actions: {
 
 ## Summary
 
-| Aspect | Implementation |
-|--------|----------------|
-| **Data Storage** | `userStore.users[].data` |
-| **Data Access** | Computed getters |
-| **Data Modification** | Direct mutation + save |
-| **User Switching** | Change `currentUserId` |
-| **Persistence** | `userStore.saveUsersToStorage()` |
-| **Reactivity** | Automatic via Vue |
+| Aspect                | Implementation                   |
+| --------------------- | -------------------------------- |
+| **Data Storage**      | `userStore.users[].data`         |
+| **Data Access**       | Computed getters                 |
+| **Data Modification** | Direct mutation + save           |
+| **User Switching**    | Change `currentUserId`           |
+| **Persistence**       | `userStore.saveUsersToStorage()` |
+| **Reactivity**        | Automatic via Vue                |
 
 **Key Takeaway**: Think of other stores as **views** into `userStore.currentUser.data`, not as separate data containers.
