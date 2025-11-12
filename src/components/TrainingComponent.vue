@@ -405,105 +405,125 @@ export default {
     },
 
     // Training Component Video Player Methods
-    async playVideoInTrainingPlayer(videoData) {
-      try {
-        console.log('playVideoInTrainingPlayer called with:', videoData)
-        console.log('videoData type:', typeof videoData)
-        console.log('videoData properties:', Object.keys(videoData || {}))
-        
-        // Clean up previous blob URL
-        if (this.cleanupBlobUrl) {
-          this.cleanupBlobUrl()
-          this.cleanupBlobUrl = null
-        }
+   async playVideoInTrainingPlayer(videoData) {
+  try {
+    console.log('playVideoInTrainingPlayer called with:', videoData);
+    console.log('videoData type:', typeof videoData);
+    console.log('videoData properties:', Object.keys(videoData || {}));
 
-        const videoPlayer = this.$refs.trainingVideoPlayer
-        if (!videoPlayer) {
-          console.error('Training video player not found')
-          return
-        }
+    // Cleanup any previous blob URL
+    if (this.cleanupBlobUrl) {
+      this.cleanupBlobUrl();
+      this.cleanupBlobUrl = null;
+    }
 
-        let videoPath = null
-        let videoName = 'Unknown Video'
+    const videoPlayer = this.$refs.trainingVideoPlayer;
+    if (!videoPlayer) {
+      console.error('Training video player not found');
+      return;
+    }
 
-        // Handle different video data formats
-        if (typeof videoData === 'string') {
-          videoPath = videoData
-          videoName = videoData.split(/[\\\/]/).pop() || 'Video'
-        } else if (videoData && typeof videoData === 'object') {
-          // Handle video objects with absolute paths
-          if (videoData.absolutePath) {
-            videoPath = videoData.absolutePath
-            videoName = videoData.name || 'Video'
-          } else if (videoData.fileHandleId) {
-            // For fileHandle videos, use the old method
-            await this.handleFileHandleVideo(videoData)
-            return
-          } else {
-            // Try to construct absolute path if needed
-            if (videoData.url && (videoData.url.startsWith('/') || videoData.url.match(/^[A-Z]:/))) {
-              videoPath = videoData.url
-            } else if (videoData.path && (videoData.path.startsWith('/') || videoData.path.match(/^[A-Z]:/))) {
-              videoPath = videoData.path
-            } else if (videoData.path && this.videoStore.rootDirectoryPath) {
-              // Construct from root + relative path
-              videoPath = `${this.videoStore.rootDirectoryPath}/${videoData.path}`.replace(/[\\\/]+/g, '/')
-            } else {
-              videoPath = videoData.url || videoData.path || videoData.identifier
-            }
-            videoName = videoData.name || 'Video'
-          }
-        }
+    // --- 1. Extract video path and name ---
+    const { videoPath, videoName } = this.resolveVideoPath(videoData);
+    if (!videoPath) {
+      console.error('No valid video path found for training player');
+      return;
+    }
 
-        console.log('Final video path for loading:', videoPath)
+    console.log('Final video path for loading:', videoPath);
 
-        if (videoPath) {
-          // Use the same IPC method as VideoComponentNewRefactored for secure video loading
-          if (window.electronAPI && window.electronAPI.loadVideoFile) {
-            try {
-              console.log('Loading video via IPC in training player:', videoPath)
-              const result = await window.electronAPI.loadVideoFile(videoPath)
-              
-              if (result.success) {
-                // Convert base64 to blob URL
-                const binaryString = atob(result.data)
-                const bytes = new Uint8Array(binaryString.length)
-                for (let i = 0; i < binaryString.length; i++) {
-                  bytes[i] = binaryString.charCodeAt(i)
-                }
-                
-                const blob = new Blob([bytes], { type: result.mimeType })
-                const blobUrl = URL.createObjectURL(blob)
-                
-                // Clean up the blob URL when the video is replaced or component unmounted
-                this.cleanupBlobUrl = () => URL.revokeObjectURL(blobUrl)
-                
-                videoPlayer.src = blobUrl
-                this.currentVideoName = videoName
-                console.log('Video loaded successfully in training player via IPC')
-              } else {
-                throw new Error(result.error || 'Failed to load video file')
-              }
-            } catch (error) {
-              console.error('IPC video loading failed in training player:', error)
-              // Fallback to file URL method
-              const finalUrl = `file://${videoPath.replace(/#/g, '%23')}`
-              videoPlayer.src = finalUrl
-              this.currentVideoName = videoName
-              console.log('Fallback: Loading video in training player:', finalUrl)
-            }
-          } else {
-            // Fallback for web environments or when IPC is not available
-            const finalUrl = `file://${videoPath.replace(/#/g, '%23')}`
-            videoPlayer.src = finalUrl
-            this.currentVideoName = videoName
-            console.log('Loading video in training player (no IPC):', finalUrl)
-          }
-        }
-      } catch (error) {
-        console.error('Error playing video in training player:', error)
-      }
-    },
+    // --- 2. Try loading via Electron IPC (preferred method) ---
+    if (window.electronAPI?.loadVideoFile) {
+      const loaded = await this.tryLoadViaIPC(videoPath, videoPlayer, videoName);
+      if (loaded) return; // success
+    }
+
+    // --- 3. Fallback to file:// URL ---
+    const finalUrl = `file://${videoPath.replace(/#/g, '%23')}`;
+    videoPlayer.src = finalUrl;
+    this.currentVideoName = videoName;
+    console.log('Fallback: Loading video in training player:', finalUrl);
+
+  } catch (error) {
+    console.error('Error playing video in training player:', error);
+  }
+},
+
+// ---------------- Helper methods ----------------
+
+resolveVideoPath(videoData) {
+  let videoPath = null;
+  let videoName = 'Unknown Video';
+
+  if (typeof videoData === 'string') {
+    videoPath = videoData;
+    videoName = videoData.split(/[\\/]/).pop() || 'Video';
+    return { videoPath, videoName };
+  }
+
+  if (typeof videoData !== 'object' || !videoData) {
+    return { videoPath, videoName };
+  }
+
+  // Absolute path provided
+  if (videoData.absolutePath) {
+    return { videoPath: videoData.absolutePath, videoName: videoData.name || 'Video' };
+  }
+
+  // Handle fileHandle (delegated)
+  if (videoData.fileHandleId) {
+    this.handleFileHandleVideo(videoData);
+    return {};
+  }
+
+  // Try constructing a valid absolute or relative path
+  const pathCandidates = [videoData.url, videoData.path, videoData.identifier];
+  for (const path of pathCandidates) {
+    if (!path) continue;
+
+    // Absolute path cases
+    if (path.startsWith('/') || path.match(/^[A-Z]:/)) {
+      return { videoPath: path, videoName: videoData.name || 'Video' };
+    }
+
+    // Relative path + known root directory
+    if (this.videoStore?.rootDirectoryPath) {
+      const combined = `${this.videoStore.rootDirectoryPath}/${path}`.replace(/[\\/]+/g, '/');
+      return { videoPath: combined, videoName: videoData.name || 'Video' };
+    }
+  }
+
+  return { videoPath, videoName };
+},
+
+async tryLoadViaIPC(videoPath, videoPlayer, videoName) {
+  try {
+    console.log('Loading video via IPC in training player:', videoPath);
+    const result = await window.electronAPI.loadVideoFile(videoPath);
+
+    if (!result.success) throw new Error(result.error || 'Failed to load video file');
+
+    // Convert base64 → Blob → object URL
+    const binaryString = atob(result.data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+
+    const blob = new Blob([bytes], { type: result.mimeType });
+    const blobUrl = URL.createObjectURL(blob);
+
+    // Setup cleanup
+    this.cleanupBlobUrl = () => URL.revokeObjectURL(blobUrl);
+
+    videoPlayer.src = blobUrl;
+    this.currentVideoName = videoName;
+
+    console.log('Video loaded successfully in training player via IPC');
+    return true;
+  } catch (error) {
+    console.error('IPC video loading failed in training player:', error);
+    return false;
+  }
+},
 
     async handleFileHandleVideo(videoData) {
       try {
