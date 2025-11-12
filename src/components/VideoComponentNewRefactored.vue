@@ -642,16 +642,13 @@ export default {
       const video = this.$refs.videoPlayer
       if (!video) return
 
-      // Prevent default ended behavior
       event.preventDefault()
       
       const shouldLoop = this.loop && (!this.loopCount || this.loopsCompleted < this.loopCount)
       if (shouldLoop) {
-        // Reset to start and continue playing
         video.currentTime = this.startTime || 0
         this.loopsCompleted++
         
-        // Only continue if we haven't reached the loop count
         if (this.loopsCompleted < this.loopCount) {
           video.play().catch(e => console.error('Failed to resume playback:', e))
         }
@@ -689,22 +686,19 @@ export default {
     handleAutomationUpdate(sections) {
       this.automationSections = sections
       
-      // If using automation, apply the settings immediately
       if (this.useAutomationSections && sections.length > 0) {
         this.applyAutomationSection(sections[0])
       }
     },
 
     getCurrentAutomationSection() {
-      // Always return the first section as it applies to the whole video section
       return this.automationSections?.[0] || null
     },
 
     applyAutomationSection(section) {
       if (!section) return
       
-      // Apply both settings at once
-      this.loop = true // Always enable looping when using automation
+      this.loop = true
       this.loopCount = section.NBReps
       this.loopsCompleted = 0
       this.speed = section.PlaybackRate
@@ -716,33 +710,27 @@ export default {
       this.loopsCompleted = 0 // Reset loop counter
       
       if (this.useAutomationSections) {
-        // Store current manual settings
         this.manualSpeed = this.speed
         this.manualLoopCount = this.loopCount
         
-        // Apply automation settings if available
         if (this.automationSections.length > 0) {
           this.applyAutomationSection(this.automationSections[0])
         }
       } else {
-        // When disabling automation sections, preserve current position
         const currentTime = video ? video.currentTime : 0
         
-        // Restore manual settings
         this.speed = this.manualSpeed
         this.loopCount = this.manualLoopCount
         this.loop = false
         this.startTime = 0
         this.endTime = this.videoDuration
         
-        // Update speed and restore position
         this.updateSpeed()
         if (video) {
           video.currentTime = currentTime
         }
       }
       
-      // Redraw automation line to reflect changes
       if (this.$refs.automationLine) {
         this.$refs.automationLine.drawAutomationLine()
       }

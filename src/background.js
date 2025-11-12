@@ -65,7 +65,7 @@ async function createWindow() {
       preload: isDevelopment 
         ? join(__dirname, '../public/preload.js')
         : join(__dirname, './preload.js'),
-      webSecurity:  false , // Enable webSecurity in production
+      webSecurity:  true , // Enable webSecurity in production
       allowRunningInsecureContent: false,
       experimentalFeatures: false,
       backgroundThrottling: false, // Prevent background throttling
@@ -113,25 +113,6 @@ async function createWindow() {
     // Remove DevTools opening in production for security
     // win.webContents.openDevTools()
   }
-/*  
-  session.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': [
-          "default-src 'self'; " +
-          "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
-          "worker-src 'self' blob:; " +
-          "child-src 'self' blob:; " +
-          "style-src 'self' 'unsafe-inline'; " +
-          "img-src 'self' data: blob:; " +
-          "font-src 'self' data:; " +
-          "connect-src 'self' blob:; " +
-          "media-src 'self' blob:;"
-        ]
-      }
-    })
-  })*/
   
      if (true) {
       try {
