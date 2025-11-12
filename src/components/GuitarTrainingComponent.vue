@@ -37,8 +37,6 @@
             <TrainingComponent v-show="appStore.trainingDisplay"></TrainingComponent>
             <VideoComponentNewRefactored v-show="appStore.videoDisplayNew" ref="videoPlayer"></VideoComponentNewRefactored>
             <TabReaderComponent v-show="appStore.tabReaderDisplay"></TabReaderComponent>
-            <!-- DISABLED: VST3PluginComponent - may interfere with app quit -->
-            <!-- <VST3PluginComponent v-show="appStore.vst3PluginDisplay"></VST3PluginComponent> -->
             <UserManagementComponent v-show="appStore.userManagementDisplay" @close="appStore.toggleUserManagement()"></UserManagementComponent>
             
             <!-- Video Training Tree Section -->
@@ -134,8 +132,6 @@ import SuggestedChordsComponent from './SuggestedChordsComponent.vue'
 import VideoComponentNewRefactored from './VideoComponentNewRefactored.vue'
 import KeyboardComponent from './KeyboardComponent.vue'
 import TabReaderComponent from './TabReaderComponent.vue'
-// DISABLED: VST3PluginComponent - may interfere with app quit
-// import VST3PluginComponent from './VST3PluginComponent.vue'
 import UserManagementComponent from './UserManagementComponent.vue'
 
 export default {

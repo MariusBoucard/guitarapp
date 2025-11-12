@@ -140,8 +140,8 @@ export default{
     watch : {
         noteTuner() {
                 this.noteUser = this.noteTuner
-                var date = new Date()
-                var note = { "note" : this.noteTuner.slice(0,this.noteTuner.length-1) , "time" : date.getMilliseconds()+date.getSeconds()*1000+date.getHours()*3600*1000}
+                let date = new Date()
+                let note = { "note" : this.noteTuner.slice(0,this.noteTuner.length-1) , "time" : date.getMilliseconds()+date.getSeconds()*1000+date.getHours()*3600*1000}
                 // console.log("pushed note",note)
                 // console.log(note)
                 if(this.notesPlayed.length<100){
@@ -160,8 +160,8 @@ export default{
     },
     computed : {
             intervalText(){
-                var find = this.intervalListe.find(inter => inter.id === this.Interval)
-                var find2 = this.intervalListeNom.find(inter => inter.id === this.Interval)
+                let find = this.intervalListe.find(inter => inter.id === this.Interval)
+                let find2 = this.intervalListeNom.find(inter => inter.id === this.Interval)
                 return find.nom+" "+find2.nom
             }
     },
@@ -203,32 +203,32 @@ export default{
             this.index+=1
         },
         play(){
-            var timeInterval = 60/this.tempo  
+            let timeInterval = 60/this.tempo  
             timeInterval = 4*timeInterval/this.metronomeDenominateur
             this.fct = setInterval(() => this.calcNewNote(), timeInterval*1000);
             this.$emit("playchanged")
 
         },
         calcNote(){
-               var find =  this.listeNoteTot.find(note => note.note === this.rootNote)
-               var noteExpected = (find.id + this.Interval)%12
-               var noteExp = this.listeNoteTot.find(note => note.id === noteExpected)
+               let find =  this.listeNoteTot.find(note => note.note === this.rootNote)
+               let noteExpected = (find.id + this.Interval)%12
+               let noteExp = this.listeNoteTot.find(note => note.id === noteExpected)
                return noteExp.note
         },
         generateNewNote(){
-            var ran = Math.floor(Math.random() * 12);
-            var find = this.listeNoteTot.find(note => note.id === ran)
+            let ran = Math.floor(Math.random() * 12);
+            let find = this.listeNoteTot.find(note => note.id === ran)
             return {"note" : find.note}
         },
         generateNewRoot(){
-            var ran = Math.floor(Math.random() * 12);
-            var find = this.listeNoteTot.find(note => note.id === ran)
+            let ran = Math.floor(Math.random() * 12);
+            let find = this.listeNoteTot.find(note => note.id === ran)
             return find.note
         },
         //Possibilité d inclure la gaussienne ici 
         //Warning
         bienJoue(){
-            var plusprochenote = this.notesPlayed.shift()
+            let plusprochenote = this.notesPlayed.shift()
              console.log(this.notesPlayed)
 
             this.notesPlayed.forEach( a => 
@@ -275,8 +275,8 @@ export default{
                 this.oldNote = this.newNote
                 this.rootNote = this.generateNewRoot()
                 this.Interval = Math.floor(Math.random() * 12);
-                var date = new Date()
-                var timeInterval = 60/this.tempo  
+                let date = new Date()
+                let timeInterval = 60/this.tempo  
                   timeInterval = 4*timeInterval/this.metronomeDenominateur
                 this.newNote = {
                     "note" : this.calcNote(),
@@ -335,7 +335,6 @@ export default{
 
 .header h2 {
   margin: 0;
-  color: #2c3e50;
   font-size: 1.4rem;
   font-weight: 700;
   padding: 15px 20px;

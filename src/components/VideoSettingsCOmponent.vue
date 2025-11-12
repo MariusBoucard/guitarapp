@@ -1,6 +1,5 @@
 <template>
     <div>
-        <!-- <input type="text" v-model="this.videoFolder" @change="save()"> -->
     </div>
 </template>
 <script>

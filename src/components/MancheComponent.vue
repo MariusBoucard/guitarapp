@@ -132,29 +132,22 @@ export default {
     },
     methods: {
         isChoosedTune(note) {
-            // console.log(note.tuning)
             if (!note || !note.tuning) return false
-            var find = this.notesSelectedIntra.find(notes => notes.note === note.tuning.slice(0, note.tuning.length - 1))
-            // console.log(find)
+            let find = this.notesSelectedIntra.find(notes => notes.note === note.tuning.slice(0, note.tuning.length - 1))
             return find ? find.enabled : false
         },
         isChoosed(corde, index) {
 
-            var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
+            let note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
             if (!note) return false
-            var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
+            let enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
             return enabledornot ? enabledornot.enabled : false
-            // var find = this.listeNotes.find((note) => note.id === frette )
-            // // console.log(find)
-            // var test = this.notesSelectedIntra.find((notes) => notes.note === find.note)
-            // // console.log(test)
-            // return test.enabled
         },
         chooseNote(corde, index) {
             if (!corde || !this.cordeListe[corde.cordeId]) return
-            var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
+            let note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
             if (!note) return
-            var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
+            let enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
             if (!enabledornot) return
             
             // Emit event to parent instead of modifying directly
@@ -166,9 +159,9 @@ export default {
         },
         renderChoosen(corde, index) {
             if (!corde || !this.cordeListe[corde.cordeId]) return ''
-            var note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
+            let note = this.listeNotes.find((notes) => notes.id === this.cordeListe[corde.cordeId][index])
             if (!note) return ''
-            var enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
+            let enabledornot = this.notesSelectedIntra.find((notes) => notes.note === note.note);
             return enabledornot ? enabledornot.note : ''
         },
         test() {
@@ -187,20 +180,20 @@ export default {
         ,
         calcBack(lettre) {
 
-            var couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
-            return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
+            let couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
+            return couleur ? couleur.color : 'white' 
         },
         calcBack2(lettre) {
             if (lettre === this.notePlayed.slice(0, this.notePlayed.length)) {
                 return "white"
             }
-            var couleur = this.colorNotes.find((couleurs) => couleurs.note === lettre.slice(0, lettre.length - 1))
-            return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
+            let couleur = this.colorNotes.find((couleurs) => couleurs.note === lettre.slice(0, lettre.length - 1))
+            return couleur ? couleur.color : 'white' 
         },
         calcBackNote(corde, index) {
-            var lettre = this.renderChoosen(corde, index)
+            let lettre = this.renderChoosen(corde, index)
 
-            var find = this.allnotesc.find(note => note.note === corde.tuning)
+            let find = this.allnotesc.find(note => note.note === corde.tuning)
             
             // Check if find is undefined to prevent error
             if (!find) {
@@ -214,12 +207,11 @@ export default {
             
     
 
-            var newindex = find.id + index
+            let newindex = find.id + index
 
         
             if (this.sapinNoel) {
-                var noteoncase = this.allnotesc.find(note => note.id === newindex)
-                // console.log(noteoncase)
+                let noteoncase = this.allnotesc.find(note => note.id === newindex)
                 if (noteoncase && noteoncase.note === this.notePlayed) {
                     console.log("caca")
                     return 'red '
@@ -227,14 +219,14 @@ export default {
             
             }
 
-            var couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
-            return couleur ? couleur.color : 'white' // Return default color if couleur is undefined
+            let couleur = this.couleursnotesComp.find((couleurs) => couleurs.note === lettre)
+            return couleur ? couleur.color : 'white' 
         },
         calcWidth(index) {
 
-            var diaprestant = this.diapason
-            var taillecase = 0
-            for (var i = 0; i < index; i++) {
+            let diaprestant = this.diapason
+            let taillecase = 0
+            for (let i = 0; i < index; i++) {
 
                 taillecase = diaprestant / 17.817
                 diaprestant = diaprestant - taillecase
@@ -246,10 +238,10 @@ export default {
         },
 
         heightCircle(index) {
-            var height = this.calcHeight()
-            var width = this.calcWidth(index)
-            var intWidth = width.substring(0, width.length - 2)
-            var intHeight = height.substring(0, height.length - 2)
+            let height = this.calcHeight()
+            let width = this.calcWidth(index)
+            let intWidth = width.substring(0, width.length - 2)
+            let intHeight = height.substring(0, height.length - 2)
             // console.log("height"+Math.min(intWidth, intHeight))
             return Math.min(intWidth, intHeight) + "px"
         },
@@ -283,12 +275,12 @@ export default {
             return this.currentNote
         },
         cordeListe() {
-            var cordeListe = []
-            for (var corde = 0; corde < this.tuningintra.length; corde++) {
-                var notesCorde = []
-                var note = this.tuningintra[corde].tuning
-                var idnotedepart = this.allnotes.find((notes) => notes.note === note)
-                for (var i = 0; i < 24; i++) {
+            let cordeListe = []
+            for (let corde = 0; corde < this.tuningintra.length; corde++) {
+                let notesCorde = []
+                let note = this.tuningintra[corde].tuning
+                let idnotedepart = this.allnotes.find((notes) => notes.note === note)
+                for (let i = 0; i < 24; i++) {
                     if (idnotedepart)
                         notesCorde.push((i + idnotedepart.id) % 12)
                     else {

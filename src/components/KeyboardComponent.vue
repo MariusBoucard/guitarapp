@@ -144,33 +144,29 @@
         }
       },
       getTextColor(note, isBlackKey = false) {
-        // Return text colors for perfect contrast and visibility
         if (this.selectedKey.has(note)) {
-          return isBlackKey ? 'white' : 'white'; // White text on both selected colors
+          return 'white'; 
         }
         
-        // Return default text colors for unselected keys
         return isBlackKey ? 'white' : '#2c3e50';
       },
       getBlackKeyPosition(index) {
-        // With 14 white keys, each white key takes up 100/14 = 7.14% of width
-        // Black keys should be positioned between specific white keys
-        const whiteKeyWidth = 100 / 14; // 7.14%
+        // With 14 white keys, each white key takes up 100/14
+        const whiteKeyWidth = 100 / 14;
         
         const positions = [
-          // First octave (C, D, E, F, G, A, B)
-          whiteKeyWidth * 0.5 + whiteKeyWidth * 0.5,    // C# - between C(0) and D(1)
-          whiteKeyWidth * 1.5 + whiteKeyWidth * 0.5,    // D# - between D(1) and E(2)
-          whiteKeyWidth * 3.5 + whiteKeyWidth * 0.5,    // F# - between F(3) and G(4)
-          whiteKeyWidth * 4.5 + whiteKeyWidth * 0.5,    // G# - between G(4) and A(5)
-          whiteKeyWidth * 5.5 + whiteKeyWidth * 0.5,    // A# - between A(5) and B(6)
+          whiteKeyWidth * 0.5 + whiteKeyWidth * 0.5,  
+          whiteKeyWidth * 1.5 + whiteKeyWidth * 0.5,  
+          whiteKeyWidth * 3.5 + whiteKeyWidth * 0.5,   
+          whiteKeyWidth * 4.5 + whiteKeyWidth * 0.5,   
+          whiteKeyWidth * 5.5 + whiteKeyWidth * 0.5,    
           
           // Second octave (C, D, E, F, G, A, B)
-          whiteKeyWidth * 7.5 + whiteKeyWidth * 0.5,    // C# - between C(7) and D(8)
-          whiteKeyWidth * 8.5 + whiteKeyWidth * 0.5,    // D# - between D(8) and E(9)
-          whiteKeyWidth * 10.5 + whiteKeyWidth * 0.5,   // F# - between F(10) and G(11)
-          whiteKeyWidth * 11.5 + whiteKeyWidth * 0.5,   // G# - between G(11) and A(12)
-          whiteKeyWidth * 12.5 + whiteKeyWidth * 0.5    // A# - between A(12) and B(13)
+          whiteKeyWidth * 7.5 + whiteKeyWidth * 0.5,   
+          whiteKeyWidth * 8.5 + whiteKeyWidth * 0.5,    
+          whiteKeyWidth * 10.5 + whiteKeyWidth * 0.5,   
+          whiteKeyWidth * 11.5 + whiteKeyWidth * 0.5, 
+          whiteKeyWidth * 12.5 + whiteKeyWidth * 0.5  
         ];
         
         return positions[index];

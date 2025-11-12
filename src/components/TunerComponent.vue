@@ -30,8 +30,8 @@ export default {
       name() {
               const names = ["A", "AS", "B", "C", "CS", "D", "DS", "E", "F", "FS", "G", "GS"];
               const note12 = (this.note >= 0) ? this.note % 12 : this.note % 12 + 12;
-              var i = Math.floor((note12 + 0.5) % 12);
-              var ret = names[i]
+              let i = Math.floor((note12 + 0.5) % 12);
+              let ret = names[i]
               if(names[i]!==undefined){
 
                 return names[i];
@@ -50,8 +50,8 @@ export default {
     //this.note = hz;
     this.base = 55;
     this.note = Math.log(hz / this.base) / Math.log(2) * 12;
-    var oct =0
-    var hz2 =hz
+    let oct =0
+    let hz2 =hz
     while(hz2>16.35){
       hz2= hz2/2
       oct= oct+1

@@ -65,38 +65,32 @@ async function createWindow() {
       preload: isDevelopment 
         ? join(__dirname, '../public/preload.js')
         : join(__dirname, './preload.js'),
-      webSecurity:  true , // Enable webSecurity in production
+      webSecurity:  true , 
       allowRunningInsecureContent: false,
       experimentalFeatures: false,
-      backgroundThrottling: false, // Prevent background throttling
+      backgroundThrottling: false, 
       sandbox: false,
-      // CRITICAL: Use consistent partition for localStorage across dev/prod
       partition: 'persist:guitarapp'
     }
   })
   win.maximize()
   win.setMenu(null)
   
-  // Configure session to reduce cache errors and enable fullscreen
   const session = win.webContents.session
 
     session.setPermissionRequestHandler(() => true)
-    // REMOVED: session.clearCache() - This was clearing localStorage on every restart!
-    // Only clear cache if explicitly needed for debugging
     console.log('📁 localStorage will persist in:', app.getPath('userData'))
   
   
-  // Enable fullscreen permission for all origins
   session.setPermissionRequestHandler((webContents, permission, callback) => {
     if (permission === 'fullscreen') {
-      callback(true) // Allow fullscreen
+      callback(true) 
       return
     }
-    callback(true) // Allow other permissions in development
+    callback(true)
   })
   
   if (isDevelopment) {
-    // Load the Vite dev server URL
     try {
       await win.loadURL('http://localhost:8080') // Use port 8080 as configured in vite.config.js
     } catch (error) {

@@ -81,7 +81,7 @@ export default {
     },
     onSubmit(){
  
-        var find = this.couleurdict.find((entree) => entree.note === this.selectedforchange)
+        let find = this.couleurdict.find((entree) => entree.note === this.selectedforchange)
         find.color = this.label
         this.label = ""
         localStorage.setItem("colordict",JSON.stringify(this.couleurdict))
@@ -113,7 +113,6 @@ export default {
 
 .header h1 {
   margin: 0;
-  color: #2c3e50;
   font-size: 1.6rem;
   font-weight: 700;
   padding: 20px 25px;

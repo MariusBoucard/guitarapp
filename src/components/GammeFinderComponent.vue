@@ -97,7 +97,6 @@
 
 import * as myKey from '../../mydata.json';
 import { useNotesStore } from '@/stores/notesStore'
-// import  saveAs from 'file-saver';
 export default {
     setup() {
         const notesStore = useNotesStore()
@@ -151,7 +150,6 @@ export default {
         }
     },
     computed : {
-        // Reference store data directly (per-user)
         notesSelected() {
             return this.notesStore.noteSlectedList
         },
@@ -178,7 +176,7 @@ export default {
         },
         
         listeGammes(){
-            var notes = []
+            let notes = []
             // Use the computed property instead of data
             this.notesSelectionnees.forEach(element => {
                 if (element.enabled) {
@@ -195,13 +193,13 @@ export default {
     methods: {
         generateColors(fonda,type){
             const colorsRender = []
-            var scaleType = this.scaleTypes.find(scaleType => scaleType.name === type)
-            var rootNote = this.nbnotes.find(note => note.note === fonda)
+            let scaleType = this.scaleTypes.find(scaleType => scaleType.name === type)
+            let rootNote = this.nbnotes.find(note => note.note === fonda)
             //put as well the not in the interval number
             const nbinterval = [0,1,2,3,4,5,6,7,8,9,10,11]
             scaleType.intervals.forEach(numero => {
-                var numnew = this.nbnotes.find(note => note.id === (rootNote.id+numero)%12)
-                var colorSc = this.colorScale.find(inter => inter.id === numero)
+                let numnew = this.nbnotes.find(note => note.id === (rootNote.id+numero)%12)
+                let colorSc = this.colorScale.find(inter => inter.id === numero)
                 colorsRender.push({ note : numnew.note , color : colorSc.color })
 
 
@@ -215,16 +213,16 @@ export default {
             console.log(nbinterval)
 
             nbinterval.forEach(numero => {
-                var numnew = this.nbnotes.find(note => note.id === ((rootNote.id+numero)%12))
+                let numnew = this.nbnotes.find(note => note.id === ((rootNote.id+numero)%12))
                 console.log(numero)
-                var colorSc2 = this.colorScale.find(inter => inter.id === numero)
+                let colorSc2 = this.colorScale.find(inter => inter.id === numero)
                 colorsRender.push({ note : numnew.note , color : colorSc2.color })
             })
             return colorsRender
         },
         setGamme(fonda, type) {
             // console.log(fonda,type)
-            var gamme = this.generateGammes(type, fonda)
+            let gamme = this.generateGammes(type, fonda)
 
             // Update notes in store directly
             this.notesStore.noteSlectedList.forEach(note => {
@@ -232,7 +230,7 @@ export default {
             })
             
             gamme.notes.forEach(note => {
-                var find = this.notesStore.noteSlectedList.find(notesel => notesel.note === note)
+                let find = this.notesStore.noteSlectedList.find(notesel => notesel.note === note)
                 if (find) {
                     find.enabled = true
                 }
@@ -243,11 +241,11 @@ export default {
         },
         generatePopulation(nomGamme) {
             // console.log(nomGamme)
-            var genScale = this.scaleTypes.find(gamme => gamme.name === nomGamme)
-            var soluce = []
-            var i =0
+            let genScale = this.scaleTypes.find(gamme => gamme.name === nomGamme)
+            let soluce = []
+            let i =0
             this.listeNotes.forEach(note => {
-                var tabNotes = []
+                let tabNotes = []
                 genScale.intervals.forEach(
                     step => {
                         tabNotes.push(this.listeNotes.find(caca => caca.id === ((step + note.id) % 12)).note)
@@ -285,7 +283,7 @@ export default {
        
         
         listeGammesFunc() {
-            var notes = []
+            let notes = []
             this.notesSelectionnees.forEach(element => {
                 if (element.enabled) {
                     notes.push(element.note)
@@ -297,11 +295,11 @@ export default {
         },
         generateGammes(type, rootnote) {
 
-            var genScale = this.scaleTypes.find(gamme => gamme.name === type)
-            // var soluce = {}
-            var notefonda = this.listeNotes.find(n => n.note === rootnote)
+            let genScale = this.scaleTypes.find(gamme => gamme.name === type)
+            // let soluce = {}
+            let notefonda = this.listeNotes.find(n => n.note === rootnote)
 
-            var tabNotes = []
+            let tabNotes = []
             genScale.intervals.forEach(
                 step => {
                     tabNotes.push(this.listeNotes.find(caca => caca.id === ((step + notefonda.id) % 12)).note)
@@ -321,7 +319,7 @@ export default {
         // Load scales from JSON file
         this.scalestot = []
         try {
-            for(var i=0;i<84;i++){
+            for(let i=0;i<84;i++){
                 if (myKey[i]) {
                     this.scalestot.push(myKey[i])
                 }
@@ -345,8 +343,8 @@ export default {
     colorScaleBool : {
         handler(){
             // console.log(this.gammeSelected)
-            var rootnote = this.gammeSelected.split(" ").at(0);
-            var type = this.gammeSelected.split(" ")
+            let rootnote = this.gammeSelected.split(" ").at(0);
+            let type = this.gammeSelected.split(" ")
             type = type.slice(1,type.length);
             type = type.join(" ")
             console.log("root")

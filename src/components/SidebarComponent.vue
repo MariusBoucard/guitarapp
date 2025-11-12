@@ -159,19 +159,6 @@
             <span>🎼 Tab Reader</span>
             <span class="status-indicator" v-if="appStore.tabReaderDisplay">●</span>
           </div>
-          
-          <!-- DISABLED: VST3 Plugin button - component disabled to prevent app quit issues -->
-          <!-- 
-          <div 
-            class="sidebar-item disabled" 
-            :class="{ active: appStore.vst3PluginDisplay }"
-            @click="appStore.toggleVST3Plugin()"
-            title="VST3 Plugins (temporarily disabled)"
-          >
-            <span>🎛️ VST3 Plugins</span>
-            <span class="status-indicator" v-if="appStore.vst3PluginDisplay">●</span>
-          </div>
-          -->
         </div>
       </div>
 
