@@ -88,6 +88,7 @@ export default {
         // Clean up any window event listeners that might still be active
         window.removeEventListener('mousemove', this.handleDrag)
         window.removeEventListener('mouseup', this.stopDragging)
+        window.removeEventListener('resize', this.resizeCanvas)
       },
 
   mounted() {
@@ -97,10 +98,6 @@ export default {
        this.$nextTick(() => {
           this.drawAutomationLine()
         })
-  },
-
-  beforeDestroy() {
-    window.removeEventListener('resize', this.resizeCanvas)
   },
 
   methods: {

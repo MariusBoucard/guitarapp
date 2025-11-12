@@ -600,16 +600,6 @@ export default {
       const secs = Math.floor(seconds % 60)
       return `${minutes}:${secs.toString().padStart(2, '0')}`
     },
-
-    getVideoDisplayName(videoPath) {
-      if (typeof videoPath === 'string') {
-        const pathParts = videoPath.split(/[\\\/]/)
-        return pathParts[pathParts.length - 1]
-      }
-      return videoPath.name || 'Unknown Video'
-    },
-
-    // File Selection Methods (adapted from VideoComponentNewRefactored)
     async selectSingleVideo() {
       try {
         if (window.electronAPI && window.electronAPI.selectVideoFile) {

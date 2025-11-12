@@ -1407,11 +1407,9 @@ addCurrentTabToPlaylist(playlistId) {
   height: calc(100vh - 200px);
   contain: paint;  /* Optimize rendering performance */
   overflow-x: hidden;
-  position: relative;
-  scroll-behavior: smooth;  /* Smooth scrolling for better UX */
 }
 
-/* AlphaTab's built-in cursor styling */
+/* AlphaTab's built-in cursor styling  */
 .alphatab-container :deep(.at-cursor-bar) {
   background: rgba(255, 0, 0, 0.3) !important;
   width: 3px !important;
@@ -1423,7 +1421,7 @@ addCurrentTabToPlaylist(playlistId) {
 
 .alphatab-container :deep(.at-highlight) {
   background: rgba(255, 200, 0, 0.3) !important;
-}
+} 
 
 .error {
   padding: 1rem;
