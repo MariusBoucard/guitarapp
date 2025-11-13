@@ -1,6 +1,6 @@
 export function jsonToAlphaTex(songJson) {
   const lines = []
-  
+
   // Handle array of objects - each becomes a separate track
   if (Array.isArray(songJson)) {
     // --- GLOBAL METADATA (before any tracks) ---
@@ -8,7 +8,7 @@ export function jsonToAlphaTex(songJson) {
     if (firstSong) {
       lines.push(`\\title "${escapeQuotes(firstSong.name || 'Untitled')}"`)
       if (firstSong.subtitle) lines.push(`\\subtitle "${escapeQuotes(firstSong.subtitle)}"`)
-      
+
       const firstTempo =
         firstSong.automations?.tempo?.[0] || firstSong.measures?.[0]?.voices?.[0]?.beats?.[0]?.tempo
       if (firstTempo?.bpm) lines.push(`\\tempo ${Number(firstTempo.bpm)}`)
@@ -17,26 +17,26 @@ export function jsonToAlphaTex(songJson) {
       if (Array.isArray(firstSong.newLyrics)) {
         firstSong.newLyrics.forEach((lyric) => {
           if (lyric.text && lyric.text.trim()) {
-         //   lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
+            //   lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
           }
         })
       }
     }
-    
+
     lines.push('.') // mandatory separator after global metadata
-    
+
     // Add each track
     songJson.forEach((song, index) => {
       lines.push(convertSingleTrack(song, index))
     })
-    
+
     return lines.join('\n')
   }
-  
+
   // Handle single object - single track with metadata
   lines.push(`\\title "${escapeQuotes(songJson.name || 'Untitled')}"`)
   if (songJson.subtitle) lines.push(`\\subtitle "${escapeQuotes(songJson.subtitle)}"`)
-  
+
   const firstTempo =
     songJson.automations?.tempo?.[0] || songJson.measures?.[0]?.voices?.[0]?.beats?.[0]?.tempo
   if (firstTempo?.bpm) lines.push(`\\tempo ${Number(firstTempo.bpm)}`)
@@ -45,14 +45,14 @@ export function jsonToAlphaTex(songJson) {
   if (Array.isArray(songJson.newLyrics)) {
     songJson.newLyrics.forEach((lyric) => {
       if (lyric.text && lyric.text.trim()) {
-    //    lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
+        //    lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
       }
     })
   }
-  
+
   lines.push('.') // mandatory separator
   lines.push(convertSingleTrack(songJson, 0))
-  
+
   return lines.join('\n')
 }
 
@@ -77,15 +77,15 @@ function convertSingleTrack(songJson, trackIndex) {
   // --- TRACK DECLARATION ---
   const trackName = songJson.name || `Track ${trackIndex + 1}`
   lines.push(`\\track "${escapeQuotes(trackName)}"`)
-  
+
   // --- STAFF DECLARATION ---
   lines.push(`  \\staff {score tabs}`)
-  
+
   // --- TRACK-SPECIFIC SETTINGS (indented) ---
   if (songJson.instrument) {
     lines.push(`\\instrument "Distortion Guitar"`)
   }
-  
+
   if (Array.isArray(songJson.tuning) && songJson.tuning.length) {
     const tuningNames = songJson.tuning.map(midiToNoteName)
     const tune = tuningNames.join(' ').trim()
@@ -130,13 +130,13 @@ function convertSingleTrack(songJson, trackIndex) {
           const string = Math.max(1, Math.round(n.string + 1))
 
           const effects = []
-          
+
           // Handle bend effect with proper syntax
           if (n.bend) {
             // Bend needs specific format: {b (value1 value2)}
             // Extract bend points if available
             if (n.bend.points && Array.isArray(n.bend.points) && n.bend.points.length > 0) {
-              const bendValues = n.bend.points.map(p => p.value || 0).join(' ')
+              const bendValues = n.bend.points.map((p) => p.value || 0).join(' ')
               effects.push(`b (${bendValues})`)
             } else if (n.bend.value !== undefined) {
               // Simple bend with single value
@@ -146,7 +146,7 @@ function convertSingleTrack(songJson, trackIndex) {
               effects.push(`b (0 4)`)
             }
           }
-          
+
           // Other effects (added separately, not combined with bend)
           if (n.vibrato || beat.vibrato) effects.push('v')
           if (n.hp) effects.push('h')

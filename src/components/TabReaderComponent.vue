@@ -14,7 +14,10 @@
           📂 Browse File
         </button>
         <button @click="openFileDialog" class="load-btn" v-else>📂 Load Guitar Pro File</button>
-        <button @click="openTexTab()" class="load-btn">📂 Open Tab tex</button>
+        <button @click="openTexJSON()" class="load-btn">📂 Open Tab JSON</button>
+     <!--   <button @click="openScraperModal" class="load-btn">
+          🎸 Scrape Songsterr Tab // NOT USABLE NOW
+        </button>-->
         <button v-if="canPlay" @click="playPause" class="play-btn" :class="{ playing: isPlaying }">
           {{ isPlaying ? '⏸️ Pause' : '▶️ Play' }}
         </button>
@@ -339,7 +342,76 @@
         </div>
       </div>
     </div>
+<!--
+    <div v-if="showScraperModal" class="modal-overlay" @click.self="closeScraperModal">
+      <div class="scraper-modal">
+        <div class="modal-header">
+          <h2>Scrape Songsterr Tab</h2>
+          <button @click="closeScraperModal" class="close-btn" :disabled="scraperLoading">✕</button>
+        </div>
 
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="scraper-url">Songsterr URL</label>
+            <input
+              id="scraper-url"
+              v-model="scraperUrl"
+              type="url"
+              placeholder="https://www.songsterr.com/a/wsa/..."
+              :disabled="scraperLoading"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="scraper-directory">Directory (optional)</label>
+            <div class="input-with-button">
+              <input
+                id="scraper-directory"
+                v-model="scraperDirectory"
+                type="text"
+                placeholder="Leave empty for current directory"
+                :disabled="scraperLoading"
+              />
+              <button
+                @click="selectScraperDirectory"
+                :disabled="scraperLoading"
+                class="select-dir-btn"
+              >
+                📁
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="scraper-filename">Filename</label>
+            <input
+              id="scraper-filename"
+              v-model="scraperFilename"
+              type="text"
+              placeholder="captured_data.json"
+              :disabled="scraperLoading"
+            />
+          </div>
+
+          <div v-if="scraperError" class="error-message">
+            {{ scraperError }}
+          </div>
+
+          <div v-if="scraperSuccess" class="success-message">
+            {{ scraperSuccess }}
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button @click="closeScraperModal" class="cancel-btn" :disabled="scraperLoading">
+            Cancel
+          </button>
+          <button @click="handleScrape" class="ok-btn" :disabled="scraperLoading">
+            {{ scraperLoading ? 'Scraping...' : 'OK' }}
+          </button>
+        </div>
+      </div>
+    </div> -->
     <!-- Create Playlist Modal -->
     <div
       v-if="showCreatePlaylistModal"
@@ -407,7 +479,8 @@
   import { jsonToAlphaTex } from '../services/jsonToAlphaTexService.js'
   import jsondata from '../services/jsontoparseTab.json' with { type: 'json' }
   import { fileHandleService } from '../services/fileHandleService.js'
-
+  //import { scrapeSongsterrTab } from '../services/onlineTabParsing.js'
+  //import path from 'path'
   export default {
     name: 'TabReaderComponent',
     data() {
@@ -470,6 +543,14 @@
         isLooping: false,
         loopStartBar: 1, // The bar to start at (1-based)
         loopEndBar: 4,
+        /*
+        showScraperModal: false,
+        scraperUrl: '',
+        scraperFilename: 'captured_data.json',
+        scraperDirectory: '',
+        scraperLoading: false,
+        scraperError: '',
+        scraperSuccess: '',*/
       }
     },
     computed: {
@@ -543,7 +624,7 @@
           this.alphaTabApi.playbackSpeed = speedFactor
         }
       },
-      async openTexTab() {
+      async openTexJSON() {
         try {
           const [fileHandle] = await window.showOpenFilePicker({
             types: [
@@ -1183,7 +1264,6 @@ Solutions:
             }
           }
 
-          // Try to read the file header to verify it's a valid soundfont
           const headerResponse = await fetch(path, {
             headers: { Range: 'bytes=0-11' },
           })
@@ -1369,6 +1449,130 @@ Solutions:
           console.error('Error loading tab from playlist:', error)
         }
       },
+      /*
+      openScraperModal() {
+        this.showScraperModal = true
+        this.scraperError = ''
+        this.scraperSuccess = ''
+        // Pre-fill with example URL if empty
+        if (!this.scraperUrl) {
+          this.scraperUrl = 'https://www.songsterr.com/a/wsa/'
+        }
+      },
+
+
+      closeScraperModal() {
+        if (!this.scraperLoading) {
+          this.showScraperModal = false
+          this.scraperUrl = ''
+          this.scraperDirectory = ''
+          this.scraperFilename = 'captured_data.json'
+          this.scraperError = ''
+          this.scraperSuccess = ''
+        }
+      },
+
+
+      async selectScraperDirectory() {
+        try {
+          // For Electron environment
+          if (window.require) {
+            const { dialog } =
+              window.require('@electron/remote') || window.require('electron').remote
+            const result = await dialog.showOpenDialog({
+              properties: ['openDirectory'],
+            })
+
+            if (!result.canceled && result.filePaths.length > 0) {
+              this.scraperDirectory = result.filePaths[0]
+            }
+          }
+          // For browser with File System Access API
+          else if (window.showDirectoryPicker) {
+            const dirHandle = await window.showDirectoryPicker()
+            this.scraperDirectory = dirHandle.name
+            // Store handle for later use if needed
+            window.selectedDirHandle = dirHandle
+          } else {
+            this.scraperError =
+              'Directory picker not supported in this environment. Enter path manually.'
+          }
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            console.error('Directory selection error:', err)
+            this.scraperError = 'Failed to select directory: ' + err.message
+          }
+        }
+      },
+
+      async handleScrape() {
+        this.scraperError = ''
+        this.scraperSuccess = ''
+
+        // Validation
+        if (!this.scraperUrl.trim()) {
+          this.scraperError = 'Please enter a URL'
+          return
+        }
+
+        if (!this.scraperFilename.trim()) {
+          this.scraperError = 'Please enter a filename'
+          return
+        }
+
+        if (!this.scraperUrl.includes('songsterr.com')) {
+          this.scraperError = 'Please enter a valid Songsterr URL'
+          return
+        }
+
+        // Ensure filename has .json extension
+        let filename = this.scraperFilename.trim()
+        if (!filename.endsWith('.json')) {
+          filename += '.json'
+        }
+
+        this.scraperLoading = true
+
+        try {
+          // Build the full file path
+          let filepath
+          if (this.scraperDirectory) {
+            // Use path.join if available (Node.js/Electron)
+            if (typeof path !== 'undefined' && path.join) {
+              filepath = path.join(this.scraperDirectory, filename)
+            } else {
+              // Fallback for browser environment
+              filepath = `${this.scraperDirectory}/${filename}`
+            }
+          } else {
+            // Save in current directory or default location
+            filepath = filename
+          }
+
+          console.log('Starting scrape:', {
+            url: this.scraperUrl.trim(),
+            filepath: filepath,
+          })
+
+          // Call the scraping function
+          const result = await scrapeSongsterrTab(this.scraperUrl.trim(), filepath)
+
+          console.log('Scrape completed:', result)
+
+          this.scraperSuccess = `Successfully saved ${result.count} items to ${filename}`
+
+          // Auto-close modal after 2 seconds on success
+          setTimeout(() => {
+            this.closeScraperModal()
+          }, 2000)
+        } catch (err) {
+          console.error('Scraping error:', err)
+          this.scraperError =
+            err.message || 'An error occurred during scraping. Check console for details.'
+        } finally {
+          this.scraperLoading = false
+        }
+      },*/
     },
   }
 </script>
@@ -2292,4 +2496,186 @@ Solutions:
   .delete-btn:hover {
     background: var(--danger-hover, #d32f2f);
   }
+/*
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .scraper-modal {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .close-btn:hover:not(:disabled) {
+    color: #111827;
+  }
+
+  .close-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .modal-body {
+    padding: 20px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    box-sizing: border-box;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-group input:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+  }
+
+  .input-with-button {
+    display: flex;
+    gap: 8px;
+  }
+
+  .input-with-button input {
+    flex: 1;
+  }
+
+  .select-dir-btn {
+    padding: 10px 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
+  .select-dir-btn:hover:not(:disabled) {
+    background: #e5e7eb;
+  }
+
+  .select-dir-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .error-message {
+    padding: 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    color: #991b1b;
+    font-size: 0.875rem;
+  }
+
+  .success-message {
+    padding: 12px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    color: #166534;
+    font-size: 0.875rem;
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .modal-footer button {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .cancel-btn {
+    background: white;
+    border: 1px solid #d1d5db;
+    color: #374151;
+  }
+
+  .cancel-btn:hover:not(:disabled) {
+    background: #f9fafb;
+  }
+
+  .ok-btn {
+    background: #3b82f6;
+    border: 1px solid #3b82f6;
+    color: white;
+  }
+
+  .ok-btn:hover:not(:disabled) {
+    background: #2563eb;
+  }
+
+  .modal-footer button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }*/
 </style>

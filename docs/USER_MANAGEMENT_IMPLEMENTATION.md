@@ -267,6 +267,7 @@ userService.restoreFromBackup(userStore)
    - Verify all data restored
 
 4. **Test in Production Build**
+
    ```bash
    npm run electron:build:win
    ```

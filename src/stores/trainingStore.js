@@ -127,7 +127,7 @@ export const useTrainingStore = defineStore('training', {
     getVideoIdentifier(videoData) {
       if (typeof videoData === 'string') return videoData
       if (videoData.absolutePath && videoData.path) {
-        return videoData.path;
+        return videoData.path
       }
       return videoData.fileHandleId || videoData.identifier || videoData.url || videoData.path
     },
