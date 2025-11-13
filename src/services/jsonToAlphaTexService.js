@@ -1,8 +1,66 @@
 export function jsonToAlphaTex(songJson) {
+  const lines = []
+  
+  // Handle array of objects - each becomes a separate track
+  if (Array.isArray(songJson)) {
+    // --- GLOBAL METADATA (before any tracks) ---
+    const firstSong = songJson[0]
+    if (firstSong) {
+      lines.push(`\\title "${escapeQuotes(firstSong.name || 'Untitled')}"`)
+      if (firstSong.subtitle) lines.push(`\\subtitle "${escapeQuotes(firstSong.subtitle)}"`)
+      
+      const firstTempo =
+        firstSong.automations?.tempo?.[0] || firstSong.measures?.[0]?.voices?.[0]?.beats?.[0]?.tempo
+      if (firstTempo?.bpm) lines.push(`\\tempo ${Number(firstTempo.bpm)}`)
+
+      // Optional lyrics
+      if (Array.isArray(firstSong.newLyrics)) {
+        firstSong.newLyrics.forEach((lyric) => {
+          if (lyric.text && lyric.text.trim()) {
+            lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
+          }
+        })
+      }
+    }
+    
+    lines.push('.') // mandatory separator after global metadata
+    
+    // Add each track
+    songJson.forEach((song, index) => {
+      lines.push(convertSingleTrack(song, index))
+    })
+    
+    return lines.join('\n')
+  }
+  
+  // Handle single object - single track with metadata
+  lines.push(`\\title "${escapeQuotes(songJson.name || 'Untitled')}"`)
+  if (songJson.subtitle) lines.push(`\\subtitle "${escapeQuotes(songJson.subtitle)}"`)
+  
+  const firstTempo =
+    songJson.automations?.tempo?.[0] || songJson.measures?.[0]?.voices?.[0]?.beats?.[0]?.tempo
+  if (firstTempo?.bpm) lines.push(`\\tempo ${Number(firstTempo.bpm)}`)
+
+  // Optional lyrics
+  if (Array.isArray(songJson.newLyrics)) {
+    songJson.newLyrics.forEach((lyric) => {
+      if (lyric.text && lyric.text.trim()) {
+        lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
+      }
+    })
+  }
+  
+  lines.push('.') // mandatory separator
+  lines.push(convertSingleTrack(songJson, 0))
+  
+  return lines.join('\n')
+}
+
+function convertSingleTrack(songJson, trackIndex) {
   if (!songJson || !Array.isArray(songJson.measures)) {
     throw new Error('Invalid song JSON')
   }
-  console.log('Converting song JSON:', songJson)
+  console.log('Converting track JSON:', songJson)
 
   const durationMap = {
     1: '1',
@@ -16,37 +74,29 @@ export function jsonToAlphaTex(songJson) {
 
   const lines = []
 
-  // --- METADATA ---
-  lines.push(`\\title "${escapeQuotes(songJson.name || 'Untitled')}"`)
-
-  if (songJson.subtitle) lines.push(`\\subtitle "${escapeQuotes(songJson.subtitle)}"`)
-  if (songJson.instrument) lines.push(`\\instrument "Distortion Guitar"`)
-  //if (Number.isFinite(songJson.frets)) lines.push(`\\frets ${songJson.frets}`);
-  //if (Number.isFinite(songJson.strings)) lines.push(`\\strings ${songJson.strings}`);
+  // --- TRACK DECLARATION ---
+  const trackName = songJson.name || `Track ${trackIndex + 1}`
+  lines.push(`\\track "${escapeQuotes(trackName)}"`)
+  
+  // --- STAFF DECLARATION ---
+  lines.push(`  \\staff {score tabs}`)
+  
+  // --- TRACK-SPECIFIC SETTINGS (indented) ---
+  if (songJson.instrument) {
+    lines.push(`\\instrument "Distortion Guitar"`)
+  }
+  
   if (Array.isArray(songJson.tuning) && songJson.tuning.length) {
     const tuningNames = songJson.tuning.map(midiToNoteName)
-    var tune = tuningNames.join(' ').trim()
-    lines.push(`\\tuning ${tune}`)
+    const tune = tuningNames.join(' ').trim()
+    lines.push(`  \\tuning ${tune}`)
   }
 
-  if (Number.isFinite(songJson.capo) && songJson.capo > 0) lines.push(`\\capo ${songJson.capo}`)
-
-  const firstTempo =
-    songJson.automations?.tempo?.[0] || songJson.measures?.[0]?.voices?.[0]?.beats?.[0]?.tempo
-  if (firstTempo?.bpm) lines.push(`\\tempo ${Number(firstTempo.bpm)}`)
-
-  // Optional lyrics
-  if (Array.isArray(songJson.newLyrics)) {
-    songJson.newLyrics.forEach((lyric) => {
-      if (lyric.text && lyric.text.trim()) {
-        lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
-      }
-    })
+  if (Number.isFinite(songJson.capo) && songJson.capo > 0) {
+    lines.push(`  \\capo ${songJson.capo}`)
   }
 
-  lines.push('.') // mandatory separator
-
-  // --- CONTENT ---
+  // --- CONTENT (indented) ---
   for (const measure of songJson.measures) {
     if (!measure.voices?.length) continue
     const voice = measure.voices[0]
@@ -101,11 +151,14 @@ export function jsonToAlphaTex(songJson) {
       }
     }
 
-    if (tokens.length) lines.push(tokens.join(' ') + ' |')
-    else lines.push(`r.4 |`)
+    if (tokens.length) {
+      lines.push(`  ${tokens.join(' ')} |`)
+    } else {
+      lines.push(`  r.4 |`)
+    }
   }
 
-  return lines.join('\n').trim()
+  return lines.join('\n')
 }
 
 function escapeQuotes(s) {
