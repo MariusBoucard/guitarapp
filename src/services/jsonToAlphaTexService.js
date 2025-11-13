@@ -17,7 +17,7 @@ export function jsonToAlphaTex(songJson) {
       if (Array.isArray(firstSong.newLyrics)) {
         firstSong.newLyrics.forEach((lyric) => {
           if (lyric.text && lyric.text.trim()) {
-            lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
+         //   lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
           }
         })
       }
@@ -45,7 +45,7 @@ export function jsonToAlphaTex(songJson) {
   if (Array.isArray(songJson.newLyrics)) {
     songJson.newLyrics.forEach((lyric) => {
       if (lyric.text && lyric.text.trim()) {
-        lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
+    //    lines.push(`\\lyricline ${lyric.line} "${escapeQuotes(lyric.text)}"`)
       }
     })
   }
@@ -126,13 +126,31 @@ function convertSingleTrack(songJson, trackIndex) {
           if (n.rest) return null // skip rests safely
           if (n.fret == null || n.string == null) return null
           const fret = n.fret
-          const string = n.string + 1 // 1-based
+          // Round string to nearest integer and ensure it's valid (1-based)
+          const string = Math.max(1, Math.round(n.string + 1))
 
           const effects = []
+          
+          // Handle bend effect with proper syntax
+          if (n.bend) {
+            // Bend needs specific format: {b (value1 value2)}
+            // Extract bend points if available
+            if (n.bend.points && Array.isArray(n.bend.points) && n.bend.points.length > 0) {
+              const bendValues = n.bend.points.map(p => p.value || 0).join(' ')
+              effects.push(`b (${bendValues})`)
+            } else if (n.bend.value !== undefined) {
+              // Simple bend with single value
+              effects.push(`b (0 ${n.bend.value})`)
+            } else {
+              // Default bend
+              effects.push(`b (0 4)`)
+            }
+          }
+          
+          // Other effects (added separately, not combined with bend)
           if (n.vibrato || beat.vibrato) effects.push('v')
           if (n.hp) effects.push('h')
           if (n.pu) effects.push('p')
-          if (n.bend) effects.push('b')
           if (n.slide) effects.push('sl')
           if (beatIsDotted) effects.push('d')
           if (beat.tuplet !== undefined) effects.push(`tu ${beat.tuplet}`)
