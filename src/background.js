@@ -14,33 +14,25 @@ import { registerAllIPCHandlers } from './ipc/index.js'
 // where NODE_ENV might not be set to 'production'.
 const isDevelopment = process.env.NODE_ENV !== 'production' && !app.isPackaged
 
-// Disable Crashpad crash reporter to prevent connection errors
 app.commandLine.appendSwitch('disable-crash-reporter')
 app.commandLine.appendSwitch('disable-crashpad')
 
-// Disable crash reporter to prevent Crashpad connection errors
 try {
   crashReporter.start({
     productName: 'NeckWanker',
     companyName: 'Guitar App',
-    submitURL: '', // Empty URL disables crash reporting
-    uploadToServer: false, // Explicitly disable upload
+    submitURL: '', 
+    uploadToServer: false, 
     collectParameters: false,
-    crashesDirectory: '', // Empty directory
+    crashesDirectory: '', 
     extra: {},
   })
 } catch (error) {
-  // If crash reporter fails to start, continue without it
-  console.log('Crash reporter disabled:', error.message)
 }
 
-// Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// VST3 Support Removed - was causing startup delays and quit issues
-
-// Register schemes before app ready
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } },
 ])
@@ -91,10 +83,9 @@ async function createWindow() {
 
   if (isDevelopment) {
     try {
-      await win.loadURL('http://localhost:8080') // Use port 8080 as configured in vite.config.js
+      await win.loadURL('http://localhost:8080') 
     } catch (error) {
       console.error('Failed to load development URL:', error)
-      // Fallback to a local file if dev server is not running
       const indexPath = join(__dirname, '../dist/index.html')
       await win.loadFile(indexPath)
     }
@@ -102,15 +93,12 @@ async function createWindow() {
     // Load the built files
     const indexPath = join(__dirname, '../dist/index.html')
     await win.loadFile(indexPath)
-    // Remove DevTools opening in production for security
-    // win.webContents.openDevTools()
   }
 
   if (true) {
     try {
       win.webContents.openDevTools()
 
-      // Disable some problematic DevTools features
       win.webContents.on('devtools-opened', () => {
         win.webContents.devToolsWebContents
           ?.executeJavaScript(
@@ -132,6 +120,7 @@ async function createWindow() {
           })
       })
     } catch (e) {
+      console.log("pas cool")
       // If DevTools cannot be opened (e.g., in packaged app), ignore silently
     }
   }
@@ -168,39 +157,27 @@ ipcMain.handle('app-save-complete', async () => {
   return { success: true }
 })
 
-// Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
 app.once('ready', () => {
-  // Register file protocol handler using fileURLToPath so file:// URLs
-  // are converted to correct OS file paths (handles Windows drive letters
-  // and percent-encoded characters like spaces).
   protocol.interceptFileProtocol('file', (request, callback) => {
     try {
       const filePath = fileURLToPath(request.url)
       callback({ path: filePath })
     } catch (err) {
       console.error('Failed to resolve file URL for protocol handler:', request.url, err)
-      // Let the request fail with FILE_NOT_FOUND
       callback({ error: -6 })
     }
   })
 })
 
 app.on('activate', () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) createWindow()
 })
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
   console.log('🚀 App starting...')
   console.log('📁 User data directory:', app.getPath('userData'))
@@ -208,12 +185,9 @@ app.whenReady().then(async () => {
   console.log('💾 localStorage will be stored in the user data directory')
 
   if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools with better error handling (dev only)
     try {
-      // Check if the extension is already installed
       const session = require('electron').session.defaultSession
 
-      // Try to install the extension
       await installExtension(VUEJS3_DEVTOOLS, {
         loadExtensionOptions: {
           allowFileAccess: true,
@@ -223,7 +197,6 @@ app.whenReady().then(async () => {
 
       console.log(`Vue Devtools installed successfully`)
     } catch (e) {
-      // This is non-critical, the app will work fine without Vue Devtools
       if (e && e.message && e.message.includes('already exists')) {
         console.log('Vue Devtools already installed')
       } else {
@@ -235,7 +208,6 @@ app.whenReady().then(async () => {
   createWindow()
 })
 
-// Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
   if (process.platform === 'win32') {
     process.on('message', (data) => {

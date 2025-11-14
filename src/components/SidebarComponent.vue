@@ -25,7 +25,7 @@
             :class="{ active: appStore.mancheDisplay }"
             @click="appStore.toggleManche()"
           >
-            <span>🎸 Manche</span>
+            <span>🎸 {{ $t('sidebar.manche') }}</span>
             <span class="status-indicator" v-if="appStore.mancheDisplay">●</span>
           </div>
 
@@ -34,7 +34,7 @@
             :class="{ active: appStore.notesSelectedDisplay }"
             @click="appStore.toggleNotesSelected()"
           >
-            <span>🎵 Selection notes</span>
+            <span>🎵 {{ $t('sidebar.selection_notes') }}</span>
             <span class="status-indicator" v-if="appStore.notesSelectedDisplay">●</span>
           </div>
 
@@ -43,7 +43,7 @@
             :class="{ active: appStore.keyboard }"
             @click="appStore.toggleKeyboard()"
           >
-            <span>⌨️ Keyboard</span>
+            <span>⌨️ {{ $t('sidebar.clavier') }}</span>
             <span class="status-indicator" v-if="appStore.keyboard">●</span>
           </div>
         </div>
@@ -58,7 +58,7 @@
             :class="{ active: appStore.tunderDisplay }"
             @click="appStore.toggleTuner()"
           >
-            <span>🎛️ Tuner</span>
+            <span>🎛️ {{ $t('sidebar.accordeur') }}</span>
             <span class="status-indicator" v-if="appStore.tunderDisplay">●</span>
           </div>
 
@@ -67,7 +67,7 @@
             :class="{ active: appStore.scalesDisplay }"
             @click="appStore.toggleScales()"
           >
-            <span>🎼 Scales</span>
+            <span>🎼 {{ $t('sidebar.gammes') }}</span>
             <span class="status-indicator" v-if="appStore.scalesDisplay">●</span>
           </div>
 
@@ -76,7 +76,7 @@
             :class="{ active: appStore.chordssuggestDisplay }"
             @click="appStore.toggleChordssuggestion()"
           >
-            <span>🎹 Chord Suggestions</span>
+            <span>🎹 {{ $t('sidebar.suggestion_accords') }}</span>
             <span class="status-indicator" v-if="appStore.chordssuggestDisplay">●</span>
           </div>
         </div>
@@ -91,7 +91,7 @@
             :class="{ active: appStore.soundDisplay }"
             @click="appStore.toggleSound()"
           >
-            <span>🔊 Play Sound</span>
+            <span>🔊 {{ $t('sidebar.lecteur_audio') }}</span>
             <span class="status-indicator" v-if="appStore.soundDisplay">●</span>
           </div>
 
@@ -100,7 +100,7 @@
             :class="{ active: appStore.videoDisplay }"
             @click="appStore.toggleVideo()"
           >
-            <span>📹 Play Video</span>
+            <span>📹 {{ $t('sidebar.lecteur_video') }}</span>
             <span class="status-indicator" v-if="appStore.videoDisplay">●</span>
           </div>
 
@@ -109,7 +109,7 @@
             :class="{ active: appStore.videoDisplayNew }"
             @click="appStore.toggleVideoNew()"
           >
-            <span>🎬 Play Video New</span>
+            <span>🎬 {{ $t('sidebar.lecteur_video_dossier') }}</span>
             <span class="status-indicator" v-if="appStore.videoDisplayNew">●</span>
           </div>
 
@@ -118,7 +118,7 @@
             :class="{ active: appStore.trainingDisplay }"
             @click="appStore.toggleTraining()"
           >
-            <span>🎯 Training Playlists</span>
+            <span>🎯 {{ $t('sidebar.playlists_entrainement') }}</span>
             <span class="status-indicator" v-if="appStore.trainingDisplay">●</span>
           </div>
 
@@ -127,7 +127,7 @@
             :class="{ active: appStore.pictureDisplay }"
             @click="appStore.togglePicture()"
           >
-            <span>🖼️ Display Picture</span>
+            <span>🖼️ {{ $t('sidebar.affichage_image') }}</span>
             <span class="status-indicator" v-if="appStore.pictureDisplay">●</span>
           </div>
 
@@ -136,7 +136,7 @@
             :class="{ active: appStore.tabReaderDisplay }"
             @click="appStore.toggleTabReader()"
           >
-            <span>🎼 Tab Reader</span>
+            <span>🎼 {{ $t('sidebar.lecteur_tablatures') }}</span>
             <span class="status-indicator" v-if="appStore.tabReaderDisplay">●</span>
           </div>
         </div>
@@ -151,7 +151,7 @@
             :class="{ active: appStore.gameDisplay }"
             @click="appStore.toggleGame()"
           >
-            <span>🎮 Play Game</span>
+            <span>🎮 {{ $t('sidebar.jouer_jeu') }}</span>
             <span class="status-indicator" v-if="appStore.gameDisplay">●</span>
           </div>
 
@@ -160,7 +160,7 @@
             :class="{ active: appStore.autoGammeSelect }"
             @click="appStore.toggleAutoGammeSelect()"
           >
-            <span>🔄 Auto Gamme Select</span>
+            <span>🔄 {{ $t('sidebar.selection_gamme_automatique') }}</span>
             <span class="status-indicator" v-if="appStore.autoGammeSelect">●</span>
           </div>
         </div>
@@ -175,7 +175,7 @@
             :class="{ active: appStore.settingsView }"
             @click="appStore.toggleSettings()"
           >
-            <span>⚙️ Settings</span>
+            <span>⚙️ {{ $t('sidebar.parametres') }}</span>
             <span class="status-indicator" v-if="appStore.settingsView">●</span>
           </div>
           <div
@@ -183,7 +183,7 @@
             :class="{ active: appStore.userManagementDisplay }"
             @click="appStore.toggleUserManagement()"
           >
-            <span>👤 User Management</span>
+            <span>👤 {{ $t('sidebar.management_utilisateurs') }}</span>
             <span class="status-indicator" v-if="appStore.userManagementDisplay">●</span>
           </div>
         </div>

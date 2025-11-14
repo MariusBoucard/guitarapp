@@ -19,7 +19,7 @@ page.on('response', async (response) => {
   }
 });
 
-await page.goto('https://www.songsterr.com/a/wsa/led-zeppelin-stairway-to-heaven-tab-s27', { waitUntil: 'networkidle2' }); 
+await page.goto('https://www.songsterr.com/a/wsa/billie-eilish-happier-than-ever-tab-s498927', { waitUntil: 'networkidle2' }); 
 // networkidle2 waits for no network requests for 500ms
 
 // Optionally wait a few seconds if requests come slightly later
