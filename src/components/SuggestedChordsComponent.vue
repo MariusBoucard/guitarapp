@@ -408,7 +408,7 @@
         }
         this.SeventhChords = []
 
-        for (i = 0; i < orderNbNotes.length; i++) {
+        for (let i = 0; i < orderNbNotes.length; i++) {
           let chordName4 = this.nbnotes.find((note) => note.id === orderNbNotes.at(i))
           //essay avec une gamme
           let listeNotes4 = this.Seventh.find((thirds) => thirds.quality === quality)

@@ -29,5 +29,23 @@
     "sections_overview": "Aperçu des sections",
     "drag_instruction": "Double-cliquez pour ajouter une section",
     "active_section": "Section active"
+  },
+    "color_component": {
+      "title": "Configuration des couleurs des notes",
+      "current_colors": "Couleurs actuelles des notes",
+      "edit_color": "Modifier la couleur d'une note",
+      "selected_note": "Note sélectionnée",
+      "select_note": "Sélectionner une note",
+      "new_color": "Nouvelle couleur (format CSS)",
+      "placeholder_color": "ex. : #ff0000, red, rgb(255,0,0)",
+      "update_button": "Mettre à jour la couleur"
+  },
+    "gamme_finder": {
+    "current_scale": "Gamme actuelle",
+    "no_scale_selected": "Aucune gamme sélectionnée",
+    "color_relative_to_scale": "Colorer selon la position dans la gamme",
+    "available_scales": "Gammes disponibles",
+    "no_scales_available": "Aucune gamme disponible. Veuillez sélectionner des notes d'abord.",
+    "notes_label": "Notes :"
   }
 }

@@ -1,13 +1,13 @@
 <template>
   <div class="color-component-container">
     <div class="header">
-      <h1>🎨 Note Color Configuration</h1>
+      <h1>🎨 {{ $t("color_component.title") }}</h1>
     </div>
 
     <!-- Color Display Section -->
     <div class="color-display-section">
       <div class="section-header">
-        <h3>🌈 Current Note Colors</h3>
+        <h3>🌈 {{ $t("color_component.current_colors") }}</h3>
       </div>
       <div class="colors-grid">
         <div v-for="couleur in dictionnairecouleur" :key="couleur.note" class="color-item">
@@ -24,18 +24,19 @@
     <!-- Color Editor Section -->
     <div class="color-editor-section">
       <div class="section-header">
-        <h3>✏️ Edit Note Color</h3>
+        <h3>✏️ {{ $t("color_component.edit_color") }}</h3>
       </div>
       <form @submit.prevent="onSubmit" class="color-form">
         <div class="selected-note-display">
           <div class="note-indicator">
-            Selected Note: <strong>{{ this.selectedforchange }}</strong>
+            {{ $t("color_component.selected_note") }} :
+            <strong>{{ this.selectedforchange }}</strong>
           </div>
         </div>
 
         <div class="form-controls">
           <div class="form-group">
-            <label class="form-label">🎵 Select Note</label>
+            <label class="form-label">🎵 {{ $t("color_component.select_note") }}</label>
             <select class="note-select" v-model="this.selectedforchange">
               <option
                 v-for="option in this.dictionnairecouleur"
@@ -48,22 +49,23 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">🎨 New Color (CSS format)</label>
+            <label class="form-label">🎨 {{ $t("color_component.new_color") }}</label>
             <input
               type="text"
               class="color-input"
-              placeholder="e.g., #ff0000, red, rgb(255,0,0)"
+              :placeholder="$t('color_component.placeholder_color')"
               autocomplete="off"
               v-model="label"
             />
           </div>
 
-          <button type="submit" class="submit-button">🔄 Update Color</button>
+          <button type="submit" class="submit-button">🔄 {{ $t("color_component.update_button") }}</button>
         </div>
       </form>
     </div>
   </div>
 </template>
+
 <script>
   export default {
     props: {
