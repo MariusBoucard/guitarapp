@@ -93,8 +93,7 @@ async function createWindow() {
     }
     callback(true)
   })
-
-session.protocol.handle('video-stream', (request) => {
+session.protocol.handle('video-stream', async (request) => {
   const schemePrefixLength = 'video-stream://'.length;
   const urlPath = request.url.slice(schemePrefixLength).replace(/\/$/, '');
   
@@ -110,15 +109,50 @@ session.protocol.handle('video-stream', (request) => {
       return new Response('File not found', { status: 404 });
     }
     
-    console.log('✅ File exists, converting to file URL...');
+    const stat = fs.statSync(decodedPath);
+    const fileSize = stat.size;
+    const mimeType = mime.lookup(decodedPath) || 'video/mp4';
     
-    // Use pathToFileURL (imported at the top)
-    const fileUrl = pathToFileURL(decodedPath).href;
+    // Check for range request (critical for video seeking)
+    const range = request.headers.get('range');
     
-    console.log('📝 File URL:', fileUrl);
-    console.log('🚀 Calling net.fetch...');
+    if (range) {
+      console.log('📝 Range request:', range);
+      
+      // Parse range header (e.g., "bytes=0-1023")
+      const parts = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunkSize = (end - start) + 1;
+      
+      console.log(`📝 Serving bytes ${start}-${end} of ${fileSize}`);
+      
+      const fileStream = fs.createReadStream(decodedPath, { start, end });
+      
+      return new Response(Readable.toWeb(fileStream), {
+        status: 206, // Partial Content
+        headers: {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunkSize.toString(),
+          'Content-Type': mimeType,
+        }
+      });
+    }
     
-    return net.fetch(fileUrl);
+    // No range request - serve full file
+    console.log('📝 Serving full file, size:', fileSize);
+    const fileStream = fs.createReadStream(decodedPath);
+    
+    return new Response(Readable.toWeb(fileStream), {
+      status: 200,
+      headers: {
+        'Content-Length': fileSize.toString(),
+        'Content-Type': mimeType,
+        'Accept-Ranges': 'bytes', // Tell browser seeking is supported
+      }
+    });
+    
   } catch (err) {
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.error('❌ SESSION PROTOCOL FAILED');
