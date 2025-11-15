@@ -1,0 +1,20 @@
+{
+  "sidebar": {
+    "manche": "Fretboard",
+    "selection_notes": "Note selection",
+    "clavier": "Keyboard",
+    "accordeur": "Tuner",
+    "gammes": "Scales",
+    "suggestion_accords": "Chord suggestions",
+    "lecteur_audio": "Audio player",
+    "lecteur_video": "Video player",
+    "lecteur_video_dossier": "Folder video player",
+    "playlists_entrainement": "Practice playlists",
+    "affichage_image": "Image viewer",
+    "lecteur_tablatures": "Tab player",
+    "jouer_jeu": "Play the game",
+    "selection_gammes_automatique": "Automatic scale selection",
+    "parametres": "Settings",
+    "management_utilisateurs": "User settings"
+  }
+}

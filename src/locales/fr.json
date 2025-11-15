@@ -1,0 +1,20 @@
+{
+  "sidebar": {
+    "manche" : "Manche",
+    "selection_notes" : "Selection des notes",
+    "clavier" : "Clavier",
+    "accordeur" : "Accordeur",
+    "gammes" : "Gammes",
+    "suggestion_accords": "Suggestion accords",
+    "lecteur_audio": "Lecteur audio",
+    "lecteur_video": "Lecteur vidéo",
+    "lecteur_video_dossier": "Lecteur vidéo dossier",
+    "playlists_entrainement": "Entrainements",
+    "affichage_image": "Affichage image",
+    "lecteur_tablatures": "Lecteur tablatures",
+    "jouer_jeu": "Jouer au jeu",
+    "selection_gammes_automatique":"Selection automatique de gamme",
+    "parametres": "Paramètres",
+    "management_utilisateurs" : "Paramètres utilisateurs"
+  }
+}

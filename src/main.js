@@ -2,9 +2,23 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { pinia } from './stores'
 import './assets/styles/colors.css'
-// const { contextBridge } = require('electron');
+import { createI18n } from 'vue-i18n'
 
-// // Expose `process` to the renderer process
+import en from './locales/en.json'
+import fr from './locales/fr.json'
+
+localStorage.setItem("lang", "en")
+location.reload()
+
+Object.defineProperty(navigator, "language", { value: "en-US" })
+const i18n = createI18n({
+  locale: 'fr',
+  fallbackLocale: 'fr',
+  messages: {
+      en,
+      fr
+  }
+})
 
 const app = createApp(App, {
   compilerOptions: {
@@ -13,20 +27,12 @@ const app = createApp(App, {
   silent: true,
 })
 
-// Add Pinia for state management
+app.use(i18n)
 app.use(pinia)
 
-// Expose Pinia globally so main process can access stores for emergency save
 window.$pinia = pinia
 window.__VUE_APP__ = app
 
-// const { EventEmitter } = require('events');
-// EventEmitter.defaultMaxListeners = 1000000;
-// const image = app.nativeImage.createFromPath(
-// contextBridge.exposeInMainWorld('process', process);
-//     app.getAppPath() + "/public/favicon.ico"
-//   );
-//   app.dock.setIcon(image);
 app.mount('#app')
 
 console.log('🚀 Vue app mounted with Pinia exposed globally')

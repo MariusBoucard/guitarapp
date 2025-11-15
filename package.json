@@ -34,6 +34,7 @@
     "fs-extra": "^11.3.1",
     "guitar-chords": "^1.2.0",
     "guitar-js": "^1.0.2",
+    "i18n": "^0.15.3",
     "jstuner-ui": "^0.1.4",
     "path-browserify": "^1.0.1",
     "pinia": "^3.0.3",
@@ -41,6 +42,7 @@
     "puppeteer": "^24.30.0",
     "soundtouchjs": "^0.2.1",
     "vue": "^3.5.19",
+    "vue-i18n": "^11.1.12",
     "vue-metronome": "^0.0.1",
     "vue-slider-component": "^3.2.24"
   },
