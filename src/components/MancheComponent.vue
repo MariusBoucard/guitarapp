@@ -4,12 +4,14 @@
       <div class="row">
         <div class="column" style="text-align: center">
           <div v-show="showgame">
-            <h1>Ready to play?</h1>
+            <h1>{{ $t("manche.ready_to_play") }}</h1>
           </div>
           <div v-show="!showgame">-</div>
         </div>
+
         <div class="column">
           <h1>{{ notePlayed }}</h1>
+
           <div
             class="circle"
             :style="{
@@ -20,21 +22,24 @@
           >
             <p class="note">{{ notePlayed ? notePlayed.slice(0, notePlayed.length - 1) : '' }}</p>
           </div>
-          <p>Activer le sapin de noel:</p>
+
+          <p>{{ $t("manche.enable_christmas_tree") }}</p>
+
           <button
             class="button"
             @click="allumerSapin"
             :style="{ backgroundColor: getStateButton() }"
           >
-            Sapinnnnn
+            {{ $t("manche.christmas_button") }}
           </button>
         </div>
+
         <div class="column">
           <div v-show="showgame">
-            <p>Easy version enabled: {{ cheat }}</p>
-            <p v-show="cheat">Note to play then:</p>
+            <p>{{ $t("manche.easy_version_enabled") }}: {{ cheat }}</p>
+            <p v-show="cheat">{{ $t("manche.note_to_play") }}:</p>
             <h1>{{ noteToPlay }}</h1>
-            <h2 class="score">Score: {{ score }}</h2>
+            <h2 class="score">{{ $t("manche.score") }}: {{ score }}</h2>
           </div>
           <div v-show="!showgame">-</div>
         </div>
@@ -93,6 +98,7 @@
                       <p class="pp">{{ renderChoosen(note, index) }}</p>
                     </div>
                   </div>
+
                   <div class="cord" v-else>
                     <hr class="line" :style="{ width: calcWidth(index) }" />
                   </div>
@@ -100,12 +106,14 @@
               </ul>
             </div>
           </div>
+
           <p class="fret-number">{{ index }}</p>
         </li>
       </ul>
     </div>
   </div>
 </template>
+
 <script>
   export default {
     props: {

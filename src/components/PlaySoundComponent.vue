@@ -13,11 +13,15 @@
         </li>
       </ul>
 
-      <input v-model="trainingStore.currentTrainingName" type="text" placeholder="Training name" />
+      <input
+        v-model="trainingStore.currentTrainingName"
+        type="text"
+        :placeholder="$t('audioplayer_component.training_name_placeholder')"
+      />
 
       <div class="training-controls">
-        <button @click="addTraining()">Add</button>
-        <button @click="removeTraining()">Remove</button>
+        <button @click="addTraining()">{{ $t('audioplayer_component.add') }}</button>
+        <button @click="removeTraining()">{{ $t('audioplayer_component.remove') }}</button>
       </div>
     </div>
 
@@ -31,20 +35,28 @@
           class="audio-file-item"
         >
           {{ audioService.extractFilename(item) }}
-          <button class="button-cross" @click.stop="removeAudioFile(item)"></button>
+          <button
+            class="button-cross"
+            @click.stop="removeAudioFile(item)"
+            :title="$t('audioplayer_component.remove_file')"
+          ></button>
         </li>
       </ol>
 
       <!-- File Selection -->
       <div class="file-selection">
         <div class="button-wrap">
-          <button class="buttonbis" @click="selectAudioFileNative">Select Audio File</button>
+          <button class="buttonbis" @click="selectAudioFileNative">
+            {{ $t('audioplayer_component.select_audio_file') }}
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Current Song Info -->
-    <p class="current-song">Song playing: {{ songPlayerStore.currentSong }}</p>
+    <p class="current-song">
+      {{ $t('audioplayer_component.current_song') }}: {{ songPlayerStore.currentSong }}
+    </p>
 
     <!-- Audio Player -->
     <audio
@@ -54,19 +66,19 @@
       @timeupdate="onTimeUpdate"
       @loadedmetadata="onAudioLoaded"
     >
-      Your browser does not support the audio element.
+      {{ $t('audioplayer_component.unsupported_browser') }}
     </audio>
 
     <!-- Playback Controls -->
     <div class="playback-controls">
-      <button class="button" @click="play">Play</button>
-      <button class="button" @click="pause">Pause</button>
-      <button class="button" @click="stop">Stop</button>
+      <button class="button" @click="play">{{ $t('audioplayer_component.play') }}</button>
+      <button class="button" @click="pause">{{ $t('audioplayer_component.pause') }}</button>
+      <button class="button" @click="stop">{{ $t('audioplayer_component.stop') }}</button>
     </div>
 
     <!-- Speed Control -->
     <div class="speed-control">
-      <h3 class="slider-label">Playing Rate</h3>
+      <h3 class="slider-label">{{ $t('audioplayer_component.playback_rate') }}</h3>
       <div class="slider">
         <input
           type="range"
@@ -82,7 +94,7 @@
     <!-- Time Controls -->
     <div class="time-controls">
       <div class="slider-container">
-        <label>Start Time: {{ audioService.formatTime(songPlayerStore.startTime) }}</label>
+        <label>{{ $t('audioplayer_component.start_time') }}: {{ audioService.formatTime(songPlayerStore.startTime) }}</label>
         <input
           type="range"
           v-model="songPlayerStore.startTime"
@@ -93,7 +105,7 @@
       </div>
 
       <div class="slider-container">
-        <label>End Time: {{ audioService.formatTime(songPlayerStore.endTime) }}</label>
+        <label>{{ $t('audioplayer_component.end_time') }}: {{ audioService.formatTime(songPlayerStore.endTime) }}</label>
         <input
           type="range"
           v-model="songPlayerStore.endTime"
@@ -106,7 +118,7 @@
       <div class="checkbox-container">
         <label>
           <input type="checkbox" v-model="songPlayerStore.loop" />
-          Loop
+          {{ $t('audioplayer_component.loop') }}
         </label>
       </div>
     </div>

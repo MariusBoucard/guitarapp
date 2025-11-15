@@ -3,7 +3,7 @@
     <!-- Stacking Thirds -->
     <div class="columnchords" :class="{ collapsed: collapsed.stackingThirds }">
       <p @click="toggleCollapse('stackingThirds')" class="chord-header">
-        <span class="title-text">Stacking Thirds</span>
+        <span class="title-text">{{ $t("suggestion_accords.stacking_thirds") }}</span>
         <span class="toggle-icon">{{ collapsed.stackingThirds ? '▼' : '▲' }}</span>
       </p>
       <transition name="slide-fade">
@@ -18,7 +18,7 @@
     <!-- Diatonic Chords -->
     <div class="columnchords" :class="{ collapsed: collapsed.diatonic }">
       <p @click="toggleCollapse('diatonic')" class="chord-header">
-        <span class="title-text">Diatonic Chords</span>
+        <span class="title-text">{{ $t("suggestion_accords.diatonic_chords") }}</span>
         <span class="toggle-icon">{{ collapsed.diatonic ? '▼' : '▲' }}</span>
       </p>
       <transition name="slide-fade">
@@ -33,7 +33,7 @@
     <!-- Seventh Chords -->
     <div class="columnchords" :class="{ collapsed: collapsed.seventh }">
       <p @click="toggleCollapse('seventh')" class="chord-header">
-        <span class="title-text">Seventh Chords</span>
+        <span class="title-text">{{ $t("suggestion_accords.seventh_chords") }}</span>
         <span class="toggle-icon">{{ collapsed.seventh ? '▼' : '▲' }}</span>
       </p>
       <transition name="slide-fade">
@@ -46,6 +46,7 @@
     </div>
   </div>
 </template>
+
 <script>
   import { useNotesStore } from '@/stores/notesStore'
 

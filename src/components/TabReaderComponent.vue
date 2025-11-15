@@ -1,7 +1,7 @@
 <template>
   <div class="tab-reader-container">
     <div class="tab-reader-header">
-      <h3>Tab Reader</h3>
+      <h3>{{ $t("tab_reader.title") }}</h3>
       <div class="controls">
         <input
           ref="fileInput"
@@ -11,25 +11,26 @@
           style="display: none"
         />
         <button @click="openFileWithPicker" class="load-btn" v-if="supportsFileSystemAccess">
-          📂 Browse File
+          {{ $t("tab_reader.browse_file") }}
         </button>
-        <button @click="openFileDialog" class="load-btn" v-else>📂 Load Guitar Pro File</button>
-        <button @click="openTexJSON()" class="load-btn">📂 Open Tab JSON</button>
-     <!--   <button @click="openScraperModal" class="load-btn">
-          🎸 Scrape Songsterr Tab // NOT USABLE NOW
-        </button>-->
+        <button @click="openFileDialog" class="load-btn" v-else>
+          {{ $t("tab_reader.load_guitarpro") }}
+        </button>
+        <button @click="openTexJSON()" class="load-btn">
+          {{ $t("tab_reader.open_tab_json") }}
+        </button>
         <button v-if="canPlay" @click="playPause" class="play-btn" :class="{ playing: isPlaying }">
-          {{ isPlaying ? '⏸️ Pause' : '▶️ Play' }}
+          {{ isPlaying ? $t("tab_reader.pause") : $t("tab_reader.play") }}
         </button>
-        <button v-if="canPlay" @click="stop" class="stop-btn">⏹️ Stop</button>
+        <button v-if="canPlay" @click="stop" class="stop-btn">{{ $t("tab_reader.stop") }}</button>
         <button @click="showPlaylists = !showPlaylists" class="mixer-toggle-btn">
-          {{ showPlaylists ? '📋 Hide Playlists' : '📋 Show Playlists' }}
+          {{ showPlaylists ? $t("tab_reader.hide_playlists") : $t("tab_reader.show_playlists") }}
         </button>
         <button @click="showAudioSettings = !showAudioSettings" class="mixer-toggle-btn">
-          {{ showAudioSettings ? '🔊 Hide Audio' : '🔊 Audio Quality' }}
+          {{ showAudioSettings ? $t("tab_reader.hide_audio") : $t("tab_reader.audio_quality") }}
         </button>
         <div v-if="canPlay" class="speed-control">
-          <span class="speed-label">Speed: {{ playbackSpeed }}%</span>
+          <span class="speed-label">{{ $t("tab_reader.speed") }}: {{ playbackSpeed }}%</span>
           <input
             type="range"
             min="30"
@@ -45,19 +46,16 @@
     <!-- Playlists Panel -->
     <div v-if="showPlaylists" class="playlists-panel">
       <div class="playlists-header">
-        <h4>Tab Playlists</h4>
+        <h4>{{ $t("tab_reader.tab_playlists") }}</h4>
         <button @click="showCreatePlaylistModal = true" class="create-playlist-btn">
-          ➕ New Playlist
+          {{ $t("tab_reader.new_playlist") }}
         </button>
       </div>
 
       <div class="playlists-container">
         <div v-if="tabPlaylists.length === 0" class="no-playlists">
-          <p>No playlists yet. Create one to organize your tabs!</p>
-          <p class="help-text">
-            💡 Tip: Use "Browse File" button to load tabs with file access, then add them to
-            playlists for quick loading with a single click!
-          </p>
+          <p>{{ $t("tab_reader.no_playlists") }}</p>
+          <p class="help-text">{{ $t("tab_reader.playlists_tip") }}</p>
         </div>
 
         <div v-for="playlist in tabPlaylists" :key="playlist.id" class="playlist-item">
@@ -66,20 +64,12 @@
               expandedPlaylists.includes(playlist.id) ? '▼' : '▶'
             }}</span>
             <span class="playlist-name">{{ playlist.name }}</span>
-            <span class="playlist-count">({{ playlist.tabs.length }} tabs)</span>
+            <span class="playlist-count">({{ playlist.tabs.length }} {{ $t("tab_reader.tabs") }})</span>
             <div class="playlist-actions">
-              <button
-                @click.stop="renamePlaylistPrompt(playlist)"
-                class="action-btn"
-                title="Rename"
-              >
+              <button @click.stop="renamePlaylistPrompt(playlist)" class="action-btn" :title="$t('tab_reader.rename')">
                 ✏️
               </button>
-              <button
-                @click.stop="deletePlaylistConfirm(playlist)"
-                class="action-btn danger"
-                title="Delete"
-              >
+              <button @click.stop="deletePlaylistConfirm(playlist)" class="action-btn danger" :title="$t('tab_reader.delete')">
                 🗑️
               </button>
             </div>
@@ -87,46 +77,29 @@
 
           <div v-if="expandedPlaylists.includes(playlist.id)" class="playlist-content">
             <div v-if="playlist.tabs.length === 0" class="no-tabs">
-              <p>No tabs in this playlist yet.</p>
-              <button
-                @click="addCurrentTabToPlaylist(playlist.id)"
-                v-if="isLoaded"
-                class="add-current-btn"
-              >
-                ➕ Add Current Tab
+              <p>{{ $t("tab_reader.no_tabs_in_playlist") }}</p>
+              <button @click="addCurrentTabToPlaylist(playlist.id)" v-if="isLoaded" class="add-current-btn">
+                {{ $t("tab_reader.add_current_tab") }}
               </button>
             </div>
 
             <div v-else class="tabs-list">
-              <div
-                v-for="tab in playlist.tabs"
-                :key="tab.id"
-                class="tab-item"
-                :class="{ 'has-handle': tab.fileHandleId }"
-              >
+              <div v-for="tab in playlist.tabs" :key="tab.id" class="tab-item" :class="{ 'has-handle': tab.fileHandleId }">
                 <div class="tab-info" @click="loadTabFromPlaylist(tab)">
                   <span class="tab-icon">{{ tab.fileHandleId ? '📄' : '📋' }}</span>
                   <div class="tab-details">
                     <span class="tab-name">{{ tab.name }}</span>
                     <span v-if="tab.artist" class="tab-artist">{{ tab.artist }}</span>
-                    <span v-if="!tab.fileHandleId" class="tab-warning">⚠️ No file access</span>
+                    <span v-if="!tab.fileHandleId" class="tab-warning">⚠️ {{ $t("tab_reader.no_file_access") }}</span>
                   </div>
                 </div>
-                <button
-                  @click="removeTabFromPlaylist(playlist.id, tab.id)"
-                  class="remove-tab-btn"
-                  title="Remove"
-                >
+                <button @click="removeTabFromPlaylist(playlist.id, tab.id)" class="remove-tab-btn" :title="$t('tab_reader.remove')">
                   ✖
                 </button>
               </div>
 
-              <button
-                @click="addCurrentTabToPlaylist(playlist.id)"
-                v-if="isLoaded"
-                class="add-current-btn"
-              >
-                ➕ Add Current Tab
+              <button @click="addCurrentTabToPlaylist(playlist.id)" v-if="isLoaded" class="add-current-btn">
+                {{ $t("tab_reader.add_current_tab") }}
               </button>
             </div>
           </div>
@@ -137,337 +110,42 @@
     <!-- Audio Settings Panel -->
     <div v-if="showAudioSettings" class="audio-settings-panel">
       <div class="settings-header">
-        <h4>Audio Quality Settings</h4>
-        <p class="help-text">
-          💡 Better soundfonts = better sound quality! Download high-quality soundfonts and select
-          them below.
-        </p>
+        <h4>{{ $t("tab_reader.audio_quality_settings") }}</h4>
+        <p class="help-text">{{ $t("tab_reader.audio_quality_tip") }}</p>
       </div>
 
       <div class="settings-container">
         <div class="setting-group">
-          <label class="setting-label">SoundFont Selection:</label>
+          <label class="setting-label">{{ $t("tab_reader.soundfont_selection") }}</label>
           <div class="soundfont-selector-row">
             <select v-model="selectedSoundFont" @change="changeSoundFont" class="soundfont-select">
               <option v-for="sf in availableSoundFonts" :key="sf.path" :value="sf.path">
-                {{ sf.name }} {{ sf.recommended ? '⭐' : '' }} {{ sf.warning ? '⚠️' : '' }} -
-                {{ sf.size }}
+                {{ sf.name }} {{ sf.recommended ? '⭐' : '' }} {{ sf.warning ? '⚠️' : '' }} - {{ sf.size }}
               </option>
             </select>
-            <button @click="testSoundFont" class="test-soundfont-btn" title="Verify soundfont file">
-              🔍 Test
-            </button>
+            <button @click="testSoundFont" class="test-soundfont-btn" :title="$t('tab_reader.verify_soundfont')">🔍</button>
           </div>
         </div>
 
         <div class="setting-group">
           <label class="setting-label">
-            <input
-              type="checkbox"
-              v-model="performanceMode"
-              @change="togglePerformanceMode"
-              style="margin-right: 0.5rem"
-            />
-            Performance Mode (Reduces CPU usage)
+            <input type="checkbox" v-model="performanceMode" @change="togglePerformanceMode" style="margin-right: 0.5rem" />
+            {{ $t("tab_reader.performance_mode") }}
           </label>
-          <p class="setting-hint">
-            Disables some audio effects for better performance with large soundfonts.
-          </p>
-        </div>
-
-        <div class="info-box">
-          <h5>📥 How to Install Better SoundFonts:</h5>
-          <ol>
-            <li>Download a high-quality soundfont (see recommendations below)</li>
-            <li>Place the .sf2 or .sf3 file in: <code>public/soundfont/</code></li>
-            <li>Restart the app and select your soundfont from the dropdown</li>
-          </ol>
-
-          <h5>🎵 Recommended Free SoundFonts (Optimized for Performance):</h5>
-          <div class="soundfont-recommendations">
-            <div class="recommendation recommended">
-              <strong>⭐ GeneralUser GS</strong> (30 MB) - BEST CHOICE <br />Great quality, low CPU
-              usage, perfect balance <br /><small
-                >Download:
-                <a href="https://schristiancollins.com/generaluser.php" target="_blank"
-                  >schristiancollins.com</a
-                ></small
-              >
-            </div>
-            <div class="recommendation recommended">
-              <strong>⭐ MuseScore General</strong> (35 MB SF3) - EXCELLENT PERFORMANCE
-              <br />Compressed format, very efficient, great sound <br /><small
-                >Download:
-                <a
-                  href="https://ftp.osuosl.org/pub/musescore/soundfont/MuseScore_General/"
-                  target="_blank"
-                  >MuseScore FTP</a
-                ></small
-              >
-            </div>
-            <div class="recommendation">
-              <strong>FluidR3 GM</strong> (142 MB) - High quality but heavy <br />⚠️ Warning: May
-              cause performance issues <br /><small
-                >Download:
-                <a
-                  href="https://member.keymusician.com/Member/FluidR3_GM/index.html"
-                  target="_blank"
-                  >keymusician.com</a
-                ></small
-              >
-            </div>
-            <div class="recommendation">
-              <strong>Salamander Grand Piano</strong> (Sound samples) - Lighter alternative
-              <br />For piano-focused playback, much lighter <br /><small
-                >Search: "Salamander Grand Piano samples"</small
-              >
-            </div>
-          </div>
-
-          <div class="performance-tip">
-            💡 <strong>Performance Tip:</strong> Use SF3 files instead of SF2 when available. SF3 is
-            compressed and uses significantly less CPU and memory!
-          </div>
-
-          <div class="warning-box">
-            ⚠️ <strong>Note:</strong> The current "Sonivox" soundfont is optimized for mobile
-            devices (low quality). Replace it with a professional soundfont for dramatically better
-            sound!
-          </div>
+          <p class="setting-hint">{{ $t("tab_reader.performance_hint") }}</p>
         </div>
       </div>
     </div>
 
     <div class="tab-content">
       <div v-if="!isLoaded" class="no-file">
-        <p>No file loaded. Click "Load Guitar Pro File" to get started.</p>
+        <p>{{ $t("tab_reader.no_file_loaded") }}</p>
       </div>
 
       <div ref="alphaTab" class="alphatab-container"></div>
 
       <div v-if="error" class="error">
-        <p>Error: {{ error }}</p>
-      </div>
-    </div>
-
-    <div v-if="isLoaded" class="bottom-panel">
-      <div class="track-selector">
-        <label>Select Track:</label>
-        <select v-model="selectedTrack" @change="changeTrack">
-          <option v-for="(track, index) in tracks" :key="index" :value="index">
-            {{ track.name }} ({{ track.channel?.instrument?.name || 'Unknown Instrument' }})
-          </option>
-        </select>
-
-        <button @click="showMixer = !showMixer" class="mixer-toggle-btn">
-          {{ showMixer ? '🎚️ Hide Mixer' : '🎚️ Show Mixer' }}
-        </button>
-      </div>
-
-      <div class="loop-controls">
-        <label for="loop-start">Start:</label>
-        <input
-          id="loop-start"
-          type="number"
-          v-model.number="loopStartBar"
-          min="1"
-          @change="updateLoopRange"
-        />
-
-        <label for="loop-end">End:</label>
-        <input
-          id="loop-end"
-          type="number"
-          v-model.number="loopEndBar"
-          min="1"
-          @change="updateLoopRange"
-        />
-
-        <button @click="toggleLoop" :class="{ active: isLooping }" class="loop-btn">
-          {{ isLooping ? '🔁 Loop On' : '🔁 Loop Off' }}
-        </button>
-      </div>
-
-      <div v-if="showMixer" class="mixer-panel">
-        <h4>Track Mixer</h4>
-        <div class="mixer-tracks">
-          <div v-for="(track, index) in tracks" :key="index" class="mixer-track">
-            <div class="track-header">
-              <input
-                type="checkbox"
-                :checked="!track.playbackInfo.isMute"
-                @change="toggleMute(index)"
-                :id="'mute-' + index"
-              />
-              <label :for="'mute-' + index" class="track-name">
-                {{ track.name }}
-              </label>
-            </div>
-            <div class="track-controls">
-              <div class="control-group">
-                <label>Volume</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="16"
-                  :value="track.playbackInfo.volume"
-                  @input="changeVolume(index, $event.target.value)"
-                  class="volume-slider"
-                />
-                <span class="value-display">{{ track.playbackInfo.volume }}</span>
-              </div>
-              <div class="control-group">
-                <label>Pan</label>
-                <input
-                  type="range"
-                  min="-64"
-                  max="63"
-                  :value="track.playbackInfo.balance"
-                  @input="changePanning(index, $event.target.value)"
-                  class="pan-slider"
-                />
-                <span class="value-display">{{ track.playbackInfo.balance }}</span>
-              </div>
-              <div class="control-group solo-group">
-                <button
-                  @click="toggleSolo(index)"
-                  :class="{ active: track.playbackInfo.isSolo }"
-                  class="solo-btn"
-                >
-                  S
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-<!--
-    <div v-if="showScraperModal" class="modal-overlay" @click.self="closeScraperModal">
-      <div class="scraper-modal">
-        <div class="modal-header">
-          <h2>Scrape Songsterr Tab</h2>
-          <button @click="closeScraperModal" class="close-btn" :disabled="scraperLoading">✕</button>
-        </div>
-
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="scraper-url">Songsterr URL</label>
-            <input
-              id="scraper-url"
-              v-model="scraperUrl"
-              type="url"
-              placeholder="https://www.songsterr.com/a/wsa/..."
-              :disabled="scraperLoading"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="scraper-directory">Directory (optional)</label>
-            <div class="input-with-button">
-              <input
-                id="scraper-directory"
-                v-model="scraperDirectory"
-                type="text"
-                placeholder="Leave empty for current directory"
-                :disabled="scraperLoading"
-              />
-              <button
-                @click="selectScraperDirectory"
-                :disabled="scraperLoading"
-                class="select-dir-btn"
-              >
-                📁
-              </button>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="scraper-filename">Filename</label>
-            <input
-              id="scraper-filename"
-              v-model="scraperFilename"
-              type="text"
-              placeholder="captured_data.json"
-              :disabled="scraperLoading"
-            />
-          </div>
-
-          <div v-if="scraperError" class="error-message">
-            {{ scraperError }}
-          </div>
-
-          <div v-if="scraperSuccess" class="success-message">
-            {{ scraperSuccess }}
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button @click="closeScraperModal" class="cancel-btn" :disabled="scraperLoading">
-            Cancel
-          </button>
-          <button @click="handleScrape" class="ok-btn" :disabled="scraperLoading">
-            {{ scraperLoading ? 'Scraping...' : 'OK' }}
-          </button>
-        </div>
-      </div>
-    </div> -->
-    <!-- Create Playlist Modal -->
-    <div
-      v-if="showCreatePlaylistModal"
-      class="modal-overlay"
-      @click="showCreatePlaylistModal = false"
-    >
-      <div class="modal-content" @click.stop>
-        <h4>Create New Playlist</h4>
-        <input
-          v-model="newPlaylistName"
-          type="text"
-          placeholder="Enter playlist name"
-          class="modal-input"
-          @keyup.enter="confirmCreatePlaylist"
-          @keyup.esc="showCreatePlaylistModal = false"
-          ref="playlistNameInput"
-        />
-        <div class="modal-actions">
-          <button @click="showCreatePlaylistModal = false" class="modal-btn cancel-btn">
-            Cancel
-          </button>
-          <button @click="confirmCreatePlaylist" class="modal-btn confirm-btn">Create</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Rename Playlist Modal -->
-    <div v-if="showRenamePlaylistModal" class="modal-overlay" @click="cancelRename">
-      <div class="modal-content" @click.stop>
-        <h4>Rename Playlist</h4>
-        <input
-          v-model="newPlaylistName"
-          type="text"
-          placeholder="Enter new playlist name"
-          class="modal-input"
-          @keyup.enter="confirmRename"
-          @keyup.esc="cancelRename"
-          ref="renameInput"
-        />
-        <div class="modal-actions">
-          <button @click="cancelRename" class="modal-btn cancel-btn">Cancel</button>
-          <button @click="confirmRename" class="modal-btn confirm-btn">Rename</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteConfirm" class="modal-overlay" @click="cancelDelete">
-      <div class="modal-content" @click.stop>
-        <h4>Delete Playlist</h4>
-        <p>Are you sure you want to delete playlist "{{ playlistToDelete?.name }}"?</p>
-        <p class="modal-note">This will not delete the tab files.</p>
-        <div class="modal-actions">
-          <button @click="cancelDelete" class="modal-btn cancel-btn">Cancel</button>
-          <button @click="confirmDelete" class="modal-btn delete-btn">Delete</button>
-        </div>
+        <p>{{ $t("tab_reader.error") }}: {{ error }}</p>
       </div>
     </div>
   </div>

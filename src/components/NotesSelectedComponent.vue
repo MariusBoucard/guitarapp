@@ -1,20 +1,27 @@
 <template>
   <div class="notes-selector-container">
     <div class="header-section">
-      <h3 class="title">Note Selection</h3>
-      <p class="subtitle">Choose notes to display on the fretboard</p>
+      <h3 class="title">{{ $t("selection_notes.title") }}</h3>
+      <p class="subtitle">{{ $t("selection_notes.subtitle") }}</p>
 
       <div class="selection-summary" v-if="selectedCount > 0">
-        <span class="selection-count"
-          >{{ selectedCount }} note{{ selectedCount !== 1 ? 's' : '' }} selected</span
-        >
+        <span class="selection-count">
+          {{ selectedCount }}
+          {{ $t("selection_notes.note") }}
+          {{ selectedCount !== 1 ? $t("selection_notes.plural") : '' }}
+          {{ $t("selection_notes.selected") }}
+        </span>
+
         <button class="clear-all-btn" @click="reinit()">
           <span class="clear-icon">🗑️</span>
-          Clear All
+          {{ $t("selection_notes.clear_all") }}
         </button>
       </div>
+
       <div class="no-selection-message" v-else>
-        <span class="message">No notes selected - click notes below to get started</span>
+        <span class="message">
+          {{ $t("selection_notes.no_selection") }}
+        </span>
       </div>
     </div>
 
@@ -41,7 +48,7 @@
 
     <div class="footer-section" v-if="selectedCount > 0">
       <div class="selected-notes-preview">
-        <span class="preview-label">Selected:</span>
+        <span class="preview-label">{{ $t("selection_notes.selected_label") }}</span>
         <div class="preview-notes">
           <span
             v-for="note in selectedNotes"
@@ -56,6 +63,7 @@
     </div>
   </div>
 </template>
+
 <script>
   export default {
     props: {
