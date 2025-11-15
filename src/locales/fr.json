@@ -1,10 +1,10 @@
 {
   "sidebar": {
-    "manche" : "Manche",
-    "selection_notes" : "Selection des notes",
-    "clavier" : "Clavier",
-    "accordeur" : "Accordeur",
-    "gammes" : "Gammes",
+    "manche": "Manche",
+    "selection_notes": "Selection des notes",
+    "clavier": "Clavier",
+    "accordeur": "Accordeur",
+    "gammes": "Gammes",
     "suggestion_accords": "Suggestion accords",
     "lecteur_audio": "Lecteur audio",
     "lecteur_video": "Lecteur vidéo",
@@ -13,13 +13,13 @@
     "affichage_image": "Affichage image",
     "lecteur_tablatures": "Lecteur tablatures",
     "jouer_jeu": "Jouer au jeu",
-    "selection_gammes_automatique":"Selection automatique de gamme",
+    "selection_gammes_automatique": "Selection automatique de gamme",
     "parametres": "Paramètres",
-    "management_utilisateurs" : "Paramètres utilisateurs",
-    "entrainement" : "Entrainement",
-    "accordage" : "Accordage",
-    "jeu" : "Jeu",
-    "minimal" : "Minimal"
+    "management_utilisateurs": "Paramètres utilisateurs",
+    "entrainement": "Entrainement",
+    "accordage": "Accordage",
+    "jeu": "Jeu",
+    "minimal": "Minimal"
   },
   "section_automation": {
     "section_automation_title": "Automatisation de section",
@@ -30,17 +30,17 @@
     "drag_instruction": "Double-cliquez pour ajouter une section",
     "active_section": "Section active"
   },
-    "color_component": {
-      "title": "Configuration des couleurs des notes",
-      "current_colors": "Couleurs actuelles des notes",
-      "edit_color": "Modifier la couleur d'une note",
-      "selected_note": "Note sélectionnée",
-      "select_note": "Sélectionner une note",
-      "new_color": "Nouvelle couleur (format CSS)",
-      "placeholder_color": "ex. : #ff0000, red, rgb(255,0,0)",
-      "update_button": "Mettre à jour la couleur"
+  "color_component": {
+    "title": "Configuration des couleurs des notes",
+    "current_colors": "Couleurs actuelles des notes",
+    "edit_color": "Modifier la couleur d'une note",
+    "selected_note": "Note sélectionnée",
+    "select_note": "Sélectionner une note",
+    "new_color": "Nouvelle couleur (format CSS)",
+    "placeholder_color": "ex. : #ff0000, red, rgb(255,0,0)",
+    "update_button": "Mettre à jour la couleur"
   },
-    "gamme_finder": {
+  "gamme_finder": {
     "current_scale": "Gamme actuelle",
     "no_scale_selected": "Aucune gamme sélectionnée",
     "color_relative_to_scale": "Colorer selon la position dans la gamme",
@@ -48,14 +48,14 @@
     "no_scales_available": "Aucune gamme disponible. Veuillez sélectionner des notes d'abord.",
     "notes_label": "Notes :"
   },
-    "keyboard_component": {
+  "keyboard_component": {
     "title": "Clavier Piano",
     "selected_notes": "Notes sélectionnées :",
     "click_to_select": "Cliquez sur les touches pour sélectionner des notes",
     "clear_all": "Tout effacer",
     "note_count": "{count} note sélectionnée | {count} notes sélectionnées"
   },
-   "loadpicture": {
+  "loadpicture": {
     "gallery_title": "Galerie d'images",
     "gallery_description": "Téléchargez et visualisez vos diagrammes d'accords et images",
     "drop_or_click": "Déposez des images ici ou cliquez pour parcourir",
@@ -66,7 +66,7 @@
     "upload_hint": "Téléchargez votre première image pour commencer",
     "current_image": "Image actuelle"
   },
-   "manche": {
+  "manche": {
     "ready_to_play": "Prêt à jouer ?",
     "enable_christmas_tree": "Activer le sapin de Noël :",
     "christmas_button": "Sapin 🎄",
@@ -74,7 +74,7 @@
     "note_to_play": "Note à jouer",
     "score": "Score"
   },
-    "selection_notes": {
+  "selection_notes": {
     "title": "Sélection des notes",
     "subtitle": "Choisissez les notes à afficher sur le manche",
     "note": "note",
@@ -84,7 +84,7 @@
     "no_selection": "Aucune note sélectionnée - cliquez sur une note ci-dessous pour commencer",
     "selected_label": "Sélectionnées :"
   },
-    "jeu_component": {
+  "jeu_component": {
     "title": "Jeu d'entraînement des notes",
     "play": "Jouer",
     "stop": "Arrêter",
@@ -94,7 +94,7 @@
     "score": "Score",
     "note_played": "Note jouée"
   },
-    "audioplayer_component": {
+  "audioplayer_component": {
     "training_name_placeholder": "Nom de l'entraînement",
     "add": "Ajouter",
     "remove": "Supprimer",
@@ -110,12 +110,12 @@
     "end_time": "Temps de fin",
     "loop": "Boucle"
   },
-    "suggestion_accords": {
+  "suggestion_accords": {
     "stacking_thirds": "Empilement de tierces",
     "diatonic_chords": "Accords diatoniques",
     "seventh_chords": "Accords de septième"
   },
-    "tab_reader": {
+  "tab_reader": {
     "title": "Lecteur de tablatures",
     "browse_file": "📂 Parcourir le fichier",
     "load_guitarpro": "📂 Charger un fichier Guitar Pro",
@@ -146,5 +146,119 @@
     "performance_hint": "Désactive certains effets audio pour de meilleures performances avec de gros soundfonts.",
     "no_file_loaded": "Aucun fichier chargé. Cliquez sur 'Charger un fichier Guitar Pro' pour commencer.",
     "error": "Erreur"
+  },
+  "training": {
+    "training_playlists": "Playlists d'entraînement",
+    "new_playlist_name": "Nom de la nouvelle playlist",
+    "add_playlist": "Ajouter une playlist",
+    "remove_playlist": "Supprimer la playlist",
+    "videos": "Vidéos",
+    "add_single_video": "Ajouter une vidéo seule",
+    "add_from_directory": "Ajouter depuis un dossier",
+    "browse_available_videos": "Parcourir les vidéos disponibles",
+    "upload_file_web": "Téléverser un fichier (Web)",
+    "available_videos_directory": "Vidéos disponibles depuis le dossier",
+    "add_to_playlist": "Ajouter à la playlist",
+    "training_video_player": "Lecteur de vidéos d'entraînement",
+    "play": "Jouer",
+    "pause": "Pause",
+    "stop": "Arrêter",
+    "playing_rate": "Vitesse de lecture",
+    "video_start": "Début de la vidéo",
+    "video_end": "Fin de la vidéo",
+    "loop": "Boucle",
+    "no_videos_found": "Aucune vidéo trouvée. Chargez d'abord un dossier dans le lecteur vidéo.",
+    "search_videos": "Rechercher des vidéos...",
+    "close": "Fermer"
+  },
+  "accordage": {
+    "instrument_tuning_settings": "Paramètres d'accordage de l'instrument",
+    "number_of_strings": "Nombre de cordes",
+    "string_tuning": "Accordage des cordes",
+    "string": "Corde",
+    "fretboard_settings": "Paramètres du manche",
+    "scale_length": "Longueur du diapason",
+    "left_handed_mode": "Mode gaucher"
+  },
+  "user": {
+    "management": "Gestion des utilisateurs",
+    "current_user": "Utilisateur actuel",
+    "no_user": "Aucun utilisateur",
+    "no_email": "Pas d'email",
+    "last_active": "Dernière activité",
+    "all_users": "Tous les utilisateurs ({{count}})",
+    "new_user": "Nouvel utilisateur",
+    "switch": "Changer",
+    "switch_to": "Basculer vers cet utilisateur",
+    "edit": "Modifier",
+    "edit_user": "Modifier utilisateur",
+    "export": "Exporter",
+    "export_user": "Exporter l'utilisateur",
+    "clone": "Cloner",
+    "delete": "Supprimer",
+    "delete_user": "Supprimer l'utilisateur",
+    "import_export": "Importer & Exporter",
+    "save_all": "Sauvegarder tous les utilisateurs",
+    "save_all_desc": "Sauvegarder manuellement tous les utilisateurs dans le localStorage",
+    "check_storage": "Vérifier le stockage",
+    "check_storage_desc": "Vérifier ce qui est stocké dans le localStorage",
+    "import": "Importer",
+    "import_all": "Importer tout",
+    "export_all": "Exporter tout",
+    "create_backup": "Créer une sauvegarde",
+    "restore_backup": "Restaurer sauvegarde",
+    "storage_used": "Espace utilisé",
+    "last_export": "Dernière exportation",
+    "last_import": "Dernière importation",
+    "create_new_user": "Créer un nouvel utilisateur",
+    "user_name": "Nom de l'utilisateur",
+    "enter_user_name": "Entrez le nom de l'utilisateur",
+    "email_optional": "Email (optionnel)",
+    "email_placeholder": "user@example.com",
+    "cancel": "Annuler",
+    "create_user": "Créer l'utilisateur",
+    "save_changes": "Enregistrer les modifications",
+    "delete_confirm": "Êtes-vous sûr de vouloir supprimer l'utilisateur {{name}} ?",
+    "delete_warning": "Cette action est irréversible. Toutes les données de l'utilisateur seront perdues."
+  },
+  "video_component": {
+    "placeholder_training_name": "Nom de l'entraînement",
+    "add": "Ajouter",
+    "remove": "Supprimer",
+    "select_video_file": "Sélectionner un fichier vidéo",
+    "upload_file_web": "Téléverser un fichier (Web)",
+    "play": "Lecture",
+    "pause": "Pause",
+    "stop": "Arrêter",
+    "video_start": "Début de la vidéo",
+    "video_end": "Fin de la vidéo",
+    "loop": "Boucle",
+    "playing_rate": "Vitesse de lecture"
+  },
+  "video_component_dossier": {
+    "video_training_library": "Bibliothèque de formations vidéo",
+    "no_video_library_loaded": "Aucune bibliothèque vidéo chargée. Utilisez « Sélectionner un dossier de formation » ci-dessous pour charger votre collection de vidéos.",
+    "videos": "vidéos",
+    "enter_base_path": "Entrez le chemin de base",
+    "select_training_directory": "Sélectionner le dossier de formation",
+    "select_single_video": "Sélectionner une vidéo unique",
+    "found_previous_directory": "Dossier précédent trouvé :",
+    "need_directory_permission": "Pour accéder à vos vidéos à nouveau, nous avons besoin de l'autorisation du dossier.",
+    "reload_directory": "Recharger le dossier",
+    "dismiss": "Ignorer",
+    "play": "Lecture",
+    "pause": "Pause",
+    "stop": "Arrêter",
+    "playing_rate": "Vitesse de lecture",
+    "video_start": "Début de la vidéo",
+    "video_end": "Fin de la vidéo",
+    "auto_loop_short_videos": "Boucle automatique pour les vidéos courtes :",
+    "use_automation_sections": "Utiliser les sections d'automatisation :",
+    "auto_loop_if_shorter_than": "Boucle automatique si plus courte que :",
+    "seconds": "secondes",
+    "manual_loop": "Boucle manuelle :",
+    "number_of_loops": "Nombre de boucles :",
+    "loops": "boucles",
+    "auto": "Auto"
   }
 }

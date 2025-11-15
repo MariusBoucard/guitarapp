@@ -1,16 +1,16 @@
 <template>
   <div class="note-to-play-container">
     <div class="header">
-      <h2>🎵 {{ $t("jeu_component.title") }}</h2>
+      <h2>🎵 {{ $t('jeu_component.title') }}</h2>
     </div>
 
     <div class="controls-section">
       <div class="playback-controls">
         <button class="control-button play-button" @click="this.play()">
-          ▶️ {{ $t("jeu_component.play") }}
+          ▶️ {{ $t('jeu_component.play') }}
         </button>
         <button class="control-button stop-button" @click="this.stop()">
-          ⏹️ {{ $t("jeu_component.stop") }}
+          ⏹️ {{ $t('jeu_component.stop') }}
         </button>
       </div>
 
@@ -18,21 +18,21 @@
         <label class="checkbox-container">
           <input type="checkbox" v-model="this.cheatEnabled" />
           <span class="checkmark"></span>
-          <span class="checkbox-label">{{ $t("jeu_component.cheat_mode") }}</span>
+          <span class="checkbox-label">{{ $t('jeu_component.cheat_mode') }}</span>
         </label>
       </div>
     </div>
 
     <div class="settings-grid">
       <div class="setting-group">
-        <label class="setting-label">🎼 {{ $t("jeu_component.tempo") }}</label>
+        <label class="setting-label">🎼 {{ $t('jeu_component.tempo') }}</label>
         <select class="setting-select" v-model="this.tempo" @change="changeTempo($event)">
           <option v-for="tempot in 200" :key="tempot">{{ tempot }}</option>
         </select>
       </div>
 
       <div class="setting-group">
-        <label class="setting-label">🥁 {{ $t("jeu_component.metronome") }}</label>
+        <label class="setting-label">🥁 {{ $t('jeu_component.metronome') }}</label>
         <div class="metronome-controls">
           <select
             class="setting-select metronome-select"
@@ -62,7 +62,7 @@
 
         <div class="score-section">
           <div class="score-display">
-            <span class="score-label">🏆 {{ $t("jeu_component.score") }}</span>
+            <span class="score-label">🏆 {{ $t('jeu_component.score') }}</span>
             <span class="score-value">{{ this.score }}</span>
           </div>
         </div>
@@ -70,7 +70,7 @@
 
       <div class="user-feedback">
         <div class="played-note">
-          <span class="feedback-label">🎸 {{ $t("jeu_component.note_played") }}</span>
+          <span class="feedback-label">🎸 {{ $t('jeu_component.note_played') }}</span>
           <span class="feedback-value">{{ this.noteUser }}</span>
         </div>
       </div>

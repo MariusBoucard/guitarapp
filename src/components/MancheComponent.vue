@@ -4,7 +4,7 @@
       <div class="row">
         <div class="column" style="text-align: center">
           <div v-show="showgame">
-            <h1>{{ $t("manche.ready_to_play") }}</h1>
+            <h1>{{ $t('manche.ready_to_play') }}</h1>
           </div>
           <div v-show="!showgame">-</div>
         </div>
@@ -23,23 +23,23 @@
             <p class="note">{{ notePlayed ? notePlayed.slice(0, notePlayed.length - 1) : '' }}</p>
           </div>
 
-          <p>{{ $t("manche.enable_christmas_tree") }}</p>
+          <p>{{ $t('manche.enable_christmas_tree') }}</p>
 
           <button
             class="button"
             @click="allumerSapin"
             :style="{ backgroundColor: getStateButton() }"
           >
-            {{ $t("manche.christmas_button") }}
+            {{ $t('manche.christmas_button') }}
           </button>
         </div>
 
         <div class="column">
           <div v-show="showgame">
-            <p>{{ $t("manche.easy_version_enabled") }}: {{ cheat }}</p>
-            <p v-show="cheat">{{ $t("manche.note_to_play") }}:</p>
+            <p>{{ $t('manche.easy_version_enabled') }}: {{ cheat }}</p>
+            <p v-show="cheat">{{ $t('manche.note_to_play') }}:</p>
             <h1>{{ noteToPlay }}</h1>
-            <h2 class="score">{{ $t("manche.score") }}: {{ score }}</h2>
+            <h2 class="score">{{ $t('manche.score') }}: {{ score }}</h2>
           </div>
           <div v-show="!showgame">-</div>
         </div>

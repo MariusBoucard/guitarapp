@@ -3,7 +3,7 @@
     <div class="two-columns">
       <!-- Left Panel - Playlist Management -->
       <div class="column-left">
-        <h2 class="section-title">Training Playlists</h2>
+        <h2 class="section-title">{{ $t('training.training_playlists') }}</h2>
 
         <!-- Playlist Tabs -->
         <div class="section-card">
@@ -25,12 +25,16 @@
           <input
             v-model="currentName"
             type="text"
-            placeholder="New playlist name"
+            :placeholder="$t('training.new_playlist_name')"
             class="form-input"
           />
           <div class="btn-group">
-            <button @click="addTraining()" class="btn btn-success">Add Playlist</button>
-            <button @click="removeTraining()" class="btn btn-danger-alt">Remove Playlist</button>
+            <button @click="addTraining()" class="btn btn-success">
+              {{ $t('training.add_playlist') }}
+            </button>
+            <button @click="removeTraining()" class="btn btn-danger-alt">
+              {{ $t('training.remove_playlist') }}
+            </button>
           </div>
         </div>
 
@@ -50,7 +54,7 @@
               border: 2px solid var(--bg-primary-border);
             "
           >
-            {{ currentTraining.name }} - Videos
+            {{ currentTraining.name }} - {{ $t('training.videos') }}
           </h3>
           <div class="list-scrollable" style="max-height: 300px">
             <div
@@ -71,12 +75,18 @@
         <!-- File Selection Controls -->
         <div class="section-card">
           <div class="btn-group btn-group-vertical">
-            <button class="btn btn-primary" @click="selectSingleVideo">Add Single Video</button>
-            <button class="btn btn-primary" @click="selectTrainingDirectory">
-              Add From Directory
+            <button class="btn btn-primary" @click="selectSingleVideo">
+              {{ $t('training.add_single_video') }}
             </button>
-            <button class="btn btn-primary" @click="openVideoModal">Browse Available Videos</button>
-            <label class="btn btn-primary" for="uploadVideo">Upload File (Web)</label>
+            <button class="btn btn-primary" @click="selectTrainingDirectory">
+              {{ $t('training.add_from_directory') }}
+            </button>
+            <button class="btn btn-primary" @click="openVideoModal">
+              {{ $t('training.browse_available_videos') }}
+            </button>
+            <label class="btn btn-primary" for="uploadVideo">{{
+              $t('training.upload_file_web')
+            }}</label>
             <input
               id="uploadVideo"
               type="file"
@@ -97,13 +107,13 @@
               font-size: 1.1rem;
             "
           >
-            Available Videos from Directory
+            {{ $t('training.available_videos_directory') }}
           </h3>
           <div class="list-scrollable" style="max-height: 200px">
             <div v-for="video in directoryVideos" :key="video.path" class="list-item-with-action">
               <span @click="playVideoInTrainingPlayer(video)">{{ video.name }}</span>
               <button @click="addVideoToCurrentPlaylist(video)" class="btn btn-warning btn-small">
-                Add to Playlist
+                {{ $t('training.add_to_playlist') }}
               </button>
             </div>
           </div>
@@ -112,7 +122,9 @@
 
       <!-- Right Panel - Video Player -->
       <div class="column-right">
-        <h1 class="section-title">{{ currentVideoName || 'Training Video Player' }}</h1>
+        <h1 class="section-title">
+          {{ currentVideoName || $t('training.training_video_player') }}
+        </h1>
 
         <!-- Video Player -->
         <video
@@ -125,14 +137,14 @@
 
         <!-- Video Controls -->
         <div class="btn-group btn-group-center">
-          <button class="btn btn-success" @click="playVideo">Play</button>
-          <button class="btn btn-warning" @click="pauseVideo">Pause</button>
-          <button class="btn btn-danger" @click="stopVideo">Stop</button>
+          <button class="btn btn-success" @click="playVideo">{{ $t('training.play') }}</button>
+          <button class="btn btn-warning" @click="pauseVideo">{{ $t('training.pause') }}</button>
+          <button class="btn btn-danger" @click="stopVideo">{{ $t('training.stop') }}</button>
         </div>
 
         <!-- Speed Control -->
         <div class="text-center">
-          <h3 class="mb-medium slider-label">Playing rate</h3>
+          <h3 class="mb-medium slider-label">{{ $t('training.playing_rate') }}</h3>
           <div class="slider-container">
             <input
               type="range"
@@ -149,7 +161,7 @@
         <div class="slider-section">
           <div class="slider-grid">
             <div class="slider-container slider-container-vertical">
-              <label for="startSlider" class="slider-label">Video Start</label>
+              <label for="startSlider" class="slider-label">{{ $t('training.video_start') }}</label>
               <input
                 id="startSlider"
                 type="range"
@@ -163,7 +175,7 @@
             </div>
 
             <div class="slider-container slider-container-vertical">
-              <label for="endSlider" class="slider-label">Video End</label>
+              <label for="endSlider" class="slider-label">{{ $t('training.video_end') }}</label>
               <input
                 id="endSlider"
                 type="range"
@@ -180,7 +192,7 @@
 
         <!-- Loop Control -->
         <div class="checkbox-container">
-          <label for="loopCheckbox" class="checkbox-label">Loop:</label>
+          <label for="loopCheckbox" class="checkbox-label">{{ $t('training.loop') }}</label>
           <input id="loopCheckbox" type="checkbox" v-model="loop" class="checkbox-input" />
         </div>
       </div>
@@ -190,25 +202,23 @@
     <div v-if="showVideoModal" class="modal-overlay" @click="closeVideoModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
-          <h2>Browse Available Videos</h2>
+          <h2>{{ $t('training.browse_available_videos') }}</h2>
           <button class="btn-icon-round btn-danger-alt" @click="closeVideoModal"></button>
         </div>
 
         <div class="modal-body">
           <div v-if="availableVideos.length === 0" class="no-content-message">
-            <p>No videos found. First load a directory in the Video Player component.</p>
+            <p>{{ $t('training.no_videos_found') }}</p>
           </div>
 
           <div v-else class="video-browser">
-            <!-- Search filter -->
             <input
               v-model="videoSearchQuery"
               type="text"
-              placeholder="Search videos..."
+              :placeholder="$t('training.search_videos')"
               class="form-input"
             />
 
-            <!-- Training categories -->
             <div class="training-tree">
               <div
                 v-for="(training, trainingIndex) in filteredAvailableVideos"
@@ -220,7 +230,8 @@
                   class="training-category-header"
                   :class="{ 'training-category-header-expanded': training.show }"
                 >
-                  📁 {{ training.trainingType }} ({{ getTrainingVideoCount(training) }} videos)
+                  📁 {{ training.trainingType }} ({{ getTrainingVideoCount(training) }}
+                  {{ $t('training.videos') }})
                 </h3>
 
                 <div v-show="training.show" class="training-items">
@@ -235,18 +246,19 @@
                       :class="{ 'training-item-header-expanded': item.show }"
                     >
                       📂 {{ item.name }}
-                      <span v-if="item.videos">({{ item.videos.length }} videos)</span>
+                      <span v-if="item.videos"
+                        >({{ item.videos.length }} {{ $t('training.videos') }})</span
+                      >
                     </h4>
                     <button
                       class="btn btn-success btn-small"
                       @click.stop="addVideoPlaylistToTraining(item)"
                     >
-                      Add to Playlist
+                      {{ $t('training.add_to_playlist') }}
                     </button>
 
                     <div v-show="item.show">
                       <ul class="video-list">
-                        <!-- Single video (direct file) -->
                         <li
                           v-if="item.isDirectFile"
                           class="video-item"
@@ -257,11 +269,10 @@
                             class="btn btn-success btn-small"
                             @click.stop="addVideoFromModal(item)"
                           >
-                            Add to Playlist
+                            {{ $t('training.add_to_playlist') }}
                           </button>
                         </li>
 
-                        <!-- Multiple videos -->
                         <li
                           v-else
                           v-for="(video, videoIndex) in item.videos || []"
@@ -274,7 +285,7 @@
                             class="btn btn-success btn-small"
                             @click.stop="addVideoFromModal(video)"
                           >
-                            Add to Playlist
+                            {{ $t('training.add_to_playlist') }}
                           </button>
                         </li>
                       </ul>
@@ -287,7 +298,7 @@
         </div>
 
         <div class="modal-footer">
-          <button @click="closeVideoModal" class="btn">Close</button>
+          <button @click="closeVideoModal" class="btn">{{ $t('training.close') }}</button>
         </div>
       </div>
     </div>

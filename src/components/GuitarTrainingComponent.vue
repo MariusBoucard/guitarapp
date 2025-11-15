@@ -91,7 +91,6 @@
             :noteTuner="notesStore.notePlayed"
           >
           </NoteToPlayComponent>
-          <VideoSettingsComponent :videoFolderAll="appStore.videoFolder"></VideoSettingsComponent>
           <ColorComponent
             v-show="appStore.settingsView"
             :couleurdict="notesStore.colors"
@@ -123,7 +122,6 @@
   import LoadPictureComponent from './LoadPictureComponent.vue'
   import VideoComponent from './VideoComponent.vue'
   import TrainingComponent from './TrainingComponent.vue'
-  import VideoSettingsComponent from './VideoSettingsComponent.vue'
   import NoteToPlayComponent from './NoteToPlayComponent.vue'
   import SuggestedChordsComponent from './SuggestedChordsComponent.vue'
   import VideoComponentNewRefactored from './VideoComponentNewRefactored.vue'
@@ -144,14 +142,11 @@
       LoadPictureComponent,
       VideoComponent,
       TrainingComponent,
-      VideoSettingsComponent,
       NoteToPlayComponent,
       VideoComponentNewRefactored,
       KeyboardComponent,
       SuggestedChordsComponent,
       TabReaderComponent,
-      // DISABLED: VST3PluginComponent - may interfere with app quit
-      // VST3PluginComponent,
       UserManagementComponent,
     },
 

@@ -5,11 +5,12 @@
         <div>
           <!-- Training List -->
           <div class="section-card fade-in-up">
-            <h2 class="section-title">Video Training Library</h2>
+            <h2 class="section-title">
+              {{ $t('video_component_dossier.video_training_library') }}
+            </h2>
             <div v-if="trainingList.length === 0" class="no-content-message">
               <p>
-                No video library loaded. Use "Select Training Directory" below to load your video
-                collection.
+                {{ $t('video_component_dossier.no_video_library_loaded') }}
               </p>
             </div>
             <div v-else class="training-tree">
@@ -23,7 +24,8 @@
                   class="training-category-header"
                   :class="{ 'training-category-header-expanded': training.show }"
                 >
-                  📁 {{ training.trainingType }} ({{ getTotalVideosInTraining(training) }} videos)
+                  📁 {{ training.trainingType }} ({{ getTotalVideosInTraining(training) }}
+                  {{ $t('video_component_dossier.videos') }})
                 </h3>
                 <div v-show="training.show" class="training-items">
                   <div
@@ -39,7 +41,7 @@
                       📂 {{ item.name }} ({{
                         item.videos ? item.videos.length : item.isDirectFile ? 1 : 0
                       }}
-                      videos)
+                      {{ $t('video_component_dossier.videos') }})
                     </h4>
                     <ul v-show="item.show" class="video-list">
                       <li v-if="item.isDirectFile" @click="launchFile(item)" class="video-item">
@@ -66,30 +68,31 @@
             <input
               v-model="defaultPath"
               type="text"
-              placeholder="Enter base path"
+              :placeholder="$t('video_component_dossier.enter_base_path')"
               class="form-input"
             />
             <div class="btn-group btn-group-vertical">
               <button @click="selectTrainingDirectory" class="btn btn-primary">
-                Select Training Directory
+                {{ $t('video_component_dossier.select_training_directory') }}
               </button>
               <button @click="selectSingleVideo" class="btn btn-primary">
-                Select Single Video
+                {{ $t('video_component_dossier.select_single_video') }}
               </button>
             </div>
 
             <!-- Auto-reload status -->
             <div v-if="showAutoReloadMessage" class="auto-reload-message">
               <p>
-                📁 Found previous directory: <strong>{{ directoryInfo.name }}</strong>
+                📁 {{ $t('video_component_dossier.found_previous_directory') }}
+                <strong>{{ directoryInfo.name }}</strong>
               </p>
-              <p>To access your videos again, we need directory permission.</p>
+              <p>{{ $t('video_component_dossier.need_directory_permission') }}</p>
               <div class="btn-group gap-small">
                 <button @click="reloadDirectory" class="btn btn-success btn-small">
-                  📂 Reload Directory
+                  📂 {{ $t('video_component_dossier.reload_directory') }}
                 </button>
                 <button @click="hideAutoReloadMessage" class="btn btn-secondary btn-small">
-                  Dismiss
+                  {{ $t('video_component_dossier.dismiss') }}
                 </button>
               </div>
             </div>
@@ -117,14 +120,20 @@
 
         <!-- Video Controls -->
         <div class="btn-group btn-group-center">
-          <button class="btn btn-success" @click="playVideo">Play</button>
-          <button class="btn btn-warning" @click="pauseVideo">Pause</button>
-          <button class="btn btn-danger" @click="stopVideo">Stop</button>
+          <button class="btn btn-success" @click="playVideo">
+            {{ $t('video_component_dossier.play') }}
+          </button>
+          <button class="btn btn-warning" @click="pauseVideo">
+            {{ $t('video_component_dossier.pause') }}
+          </button>
+          <button class="btn btn-danger" @click="stopVideo">
+            {{ $t('video_component_dossier.stop') }}
+          </button>
         </div>
 
         <!-- Speed Control -->
         <div class="text-center">
-          <h3 class="mb-medium slider-label">Playing rate</h3>
+          <h3 class="mb-medium slider-label">{{ $t('video_component_dossier.playing_rate') }}</h3>
           <div class="slider-container">
             <input
               type="range"
@@ -142,7 +151,9 @@
         <div class="slider-section">
           <div class="slider-grid">
             <div class="slider-container slider-container-vertical">
-              <label for="startSlider" class="slider-label">Video Start</label>
+              <label for="startSlider" class="slider-label">
+                {{ $t('video_component_dossier.video_start') }}
+              </label>
               <input
                 id="startSlider"
                 type="range"
@@ -157,7 +168,9 @@
             </div>
 
             <div class="slider-container slider-container-vertical">
-              <label for="endSlider" class="slider-label">Video End</label>
+              <label for="endSlider" class="slider-label">
+                {{ $t('video_component_dossier.video_end') }}
+              </label>
               <input
                 id="endSlider"
                 type="range"
@@ -175,53 +188,54 @@
 
         <!-- Loop Control -->
         <div class="loop-settings-container">
-          <!-- Auto-loop Settings -->
-          <div class="auto-loop-container">
-            <div class="checkbox-group">
-              <label for="enableAutoLoop" class="checkbox-label">Auto-loop short videos:</label>
+          <div class="checkbox-group">
+            <label for="enableAutoLoop" class="checkbox-label">
+              {{ $t('video_component_dossier.auto_loop_short_videos') }}
+            </label>
+            <input
+              id="enableAutoLoop"
+              type="checkbox"
+              v-model="enableAutoLoop"
+              @change="updatePlaybackSettings"
+              class="checkbox-input"
+            />
+          </div>
+
+          <div class="checkbox-group">
+            <label for="useAutomationSections" class="checkbox-label">
+              {{ $t('video_component_dossier.use_automation_sections') }}
+            </label>
+            <input
+              id="useAutomationSections"
+              type="checkbox"
+              v-model="useAutomationSections"
+              @change="handleAutomationModeChange"
+              class="checkbox-input"
+            />
+          </div>
+
+          <div v-if="enableAutoLoop && !useAutomationSections" class="auto-loop-threshold">
+            <label for="autoLoopThreshold" class="threshold-label">
+              {{ $t('video_component_dossier.auto_loop_if_shorter_than') }}
+            </label>
+            <div class="threshold-controls">
               <input
-                id="enableAutoLoop"
-                type="checkbox"
-                v-model="enableAutoLoop"
+                id="autoLoopThreshold"
+                type="number"
+                v-model="autoLoopThreshold"
+                min="1"
+                max="300"
+                class="threshold-input"
                 @change="updatePlaybackSettings"
-                class="checkbox-input"
               />
-            </div>
-
-            <div class="checkbox-group">
-              <label for="useAutomationSections" class="checkbox-label"
-                >Use automation sections:</label
-              >
-              <input
-                id="useAutomationSections"
-                type="checkbox"
-                v-model="useAutomationSections"
-                @change="handleAutomationModeChange"
-                class="checkbox-input"
-              />
-            </div>
-
-            <div v-if="enableAutoLoop && !useAutomationSections" class="auto-loop-threshold">
-              <label for="autoLoopThreshold" class="threshold-label"
-                >Auto-loop if shorter than:</label
-              >
-              <div class="threshold-controls">
-                <input
-                  id="autoLoopThreshold"
-                  type="number"
-                  v-model="autoLoopThreshold"
-                  min="1"
-                  max="300"
-                  class="threshold-input"
-                  @change="updatePlaybackSettings"
-                />
-                <span class="threshold-unit">seconds</span>
-              </div>
+              <span class="threshold-unit">{{ $t('video_component_dossier.seconds') }}</span>
             </div>
           </div>
 
           <div class="checkbox-container">
-            <label for="loopCheckbox" class="checkbox-label">Manual Loop:</label>
+            <label for="loopCheckbox" class="checkbox-label">
+              {{ $t('video_component_dossier.manual_loop') }}
+            </label>
             <input
               id="loopCheckbox"
               type="checkbox"
@@ -232,9 +246,10 @@
             />
           </div>
 
-          <!-- Loop Count Control -->
           <div v-if="loop || isAutoLoopActive" class="loop-count-container">
-            <label for="loopCount" class="loop-count-label">Number of loops:</label>
+            <label for="loopCount" class="loop-count-label">
+              {{ $t('video_component_dossier.number_of_loops') }}
+            </label>
             <div class="loop-count-controls">
               <input
                 id="loopCount"
@@ -246,8 +261,10 @@
                 @change="updatePlaybackSettings"
               />
               <span class="loop-count-info">
-                {{ loopsCompleted }}/{{ loopCount }} loops
-                <span v-if="isAutoLoopActive" class="auto-loop-badge">Auto</span>
+                {{ loopsCompleted }}/{{ loopCount }} {{ $t('video_component_dossier.loops') }}
+                <span v-if="isAutoLoopActive" class="auto-loop-badge">{{
+                  $t('video_component_dossier.auto')
+                }}</span>
               </span>
             </div>
           </div>

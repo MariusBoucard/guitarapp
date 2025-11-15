@@ -1,9 +1,9 @@
 <template>
   <div class="picture-loader-container">
     <div class="section-card">
-      <h3 class="section-title">{{ $t("loadpicture.gallery_title") }}</h3>
+      <h3 class="section-title">{{ $t('loadpicture.gallery_title') }}</h3>
       <p class="text-center" style="color: var(--text-secondary); margin-bottom: 25px">
-        {{ $t("loadpicture.gallery_description") }}
+        {{ $t('loadpicture.gallery_description') }}
       </p>
     </div>
 
@@ -20,11 +20,11 @@
       >
         <div class="upload-content">
           <div class="upload-icon">📷</div>
-          <p class="upload-text">{{ $t("loadpicture.drop_or_click") }}</p>
+          <p class="upload-text">{{ $t('loadpicture.drop_or_click') }}</p>
 
           <button class="btn btn-primary" @click.stop="triggerFileInput">
             <span class="button-icon">📁</span>
-            {{ $t("loadpicture.choose_file") }}
+            {{ $t('loadpicture.choose_file') }}
           </button>
 
           <input
@@ -43,12 +43,12 @@
     <div class="section-card" v-if="picturesPath.length > 0">
       <div class="flex-between mb-medium">
         <h4 style="margin: 0; color: var(--text-primary); font-size: 1.3rem; font-weight: 600">
-          {{ $t("loadpicture.your_images") }} ({{ picturesPath.length }})
+          {{ $t('loadpicture.your_images') }} ({{ picturesPath.length }})
         </h4>
 
         <button class="btn btn-danger-alt btn-small" @click="clearAllPictures">
           <span class="clear-icon">🗑️</span>
-          {{ $t("loadpicture.clear_all") }}
+          {{ $t('loadpicture.clear_all') }}
         </button>
       </div>
 
@@ -67,10 +67,7 @@
           <div class="picture-info">
             <span class="picture-name">{{ formatFileName(item.name) }}</span>
 
-            <button
-              class="btn-icon-round btn-danger"
-              @click.stop="removePicture(index)"
-            ></button>
+            <button class="btn-icon-round btn-danger" @click.stop="removePicture(index)"></button>
           </div>
         </div>
       </div>
@@ -79,15 +76,15 @@
     <!-- No Pictures State -->
     <div class="no-content-message" v-else>
       <div class="empty-icon">🖼️</div>
-      <p class="empty-message">{{ $t("loadpicture.no_images") }}</p>
-      <p class="empty-hint">{{ $t("loadpicture.upload_hint") }}</p>
+      <p class="empty-message">{{ $t('loadpicture.no_images') }}</p>
+      <p class="empty-hint">{{ $t('loadpicture.upload_hint') }}</p>
     </div>
 
     <!-- Image Display -->
     <div class="section-card" v-if="imageUrl">
       <div class="flex-between mb-medium">
         <h4 style="margin: 0; color: var(--text-primary); font-size: 1.3rem; font-weight: 600">
-          {{ $t("loadpicture.current_image") }}
+          {{ $t('loadpicture.current_image') }}
         </h4>
 
         <button

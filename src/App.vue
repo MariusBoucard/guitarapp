@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <div class="image-container">
-      <img class="background-image" src="../public/sky.jpg" alt="Background" />
+      <img class="background-image" src="/sky.jpg" alt="Background" />
       <div class="app-layout">
         <!-- Sidebar -->
         <div class="sidebar-container">

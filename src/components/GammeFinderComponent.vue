@@ -3,9 +3,9 @@
     <!-- Header Section -->
     <div class="card-header">
       <div class="info-panel">
-        <h3 class="info-panel-title">🎵 {{ $t("gamme_finder.current_scale") }}</h3>
+        <h3 class="info-panel-title">🎵 {{ $t('gamme_finder.current_scale') }}</h3>
         <p class="info-panel-value">
-          {{ this.gammeSelected || $t("gamme_finder.no_scale_selected") }}
+          {{ this.gammeSelected || $t('gamme_finder.no_scale_selected') }}
         </p>
       </div>
 
@@ -19,7 +19,7 @@
           />
           <label for="colorScale" class="checkbox-label">
             <span class="checkbox-checkmark">✓</span>
-            {{ $t("gamme_finder.color_relative_to_scale") }}
+            {{ $t('gamme_finder.color_relative_to_scale') }}
           </label>
         </div>
       </div>
@@ -27,10 +27,10 @@
 
     <!-- Scales Section -->
     <div class="card-section">
-      <h2 class="section-title">🎼 {{ $t("gamme_finder.available_scales") }}</h2>
+      <h2 class="section-title">🎼 {{ $t('gamme_finder.available_scales') }}</h2>
 
       <div v-if="!listeGammes.length" class="no-content-message">
-        <p>{{ $t("gamme_finder.no_scales_available") }}</p>
+        <p>{{ $t('gamme_finder.no_scales_available') }}</p>
       </div>
 
       <div v-else class="card-grid">
@@ -49,7 +49,7 @@
             </button>
 
             <div class="preview-section">
-              <div class="preview-label">{{ $t("gamme_finder.notes_label") }}</div>
+              <div class="preview-label">{{ $t('gamme_finder.notes_label') }}</div>
               <div class="preview-content">
                 <span
                   v-for="(note, index) in gammes.notes"

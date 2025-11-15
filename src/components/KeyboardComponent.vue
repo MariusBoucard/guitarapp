@@ -1,10 +1,10 @@
 <template>
   <div class="keyboard-container">
     <div class="keyboard-header">
-      <h3>{{ $t("keyboard_component.title") }}</h3>
+      <h3>{{ $t('keyboard_component.title') }}</h3>
 
       <div class="selected-notes-display" v-if="selectedKey.size > 0">
-        <span class="label">{{ $t("keyboard_component.selected_notes") }}</span>
+        <span class="label">{{ $t('keyboard_component.selected_notes') }}</span>
 
         <div class="note-chips">
           <span
@@ -20,7 +20,7 @@
       </div>
 
       <div class="no-selection" v-else>
-        <span class="label">{{ $t("keyboard_component.click_to_select") }}</span>
+        <span class="label">{{ $t('keyboard_component.click_to_select') }}</span>
       </div>
     </div>
 
@@ -34,10 +34,7 @@
           :class="{ selected: selectedKey.has(note) }"
           :style="{ background: getKeyColor(note) }"
         >
-          <span
-            class="note-label"
-            :style="{ color: getTextColor(note, false) }"
-          >
+          <span class="note-label" :style="{ color: getTextColor(note, false) }">
             {{ formatNote(note) }}
           </span>
         </div>
@@ -52,7 +49,7 @@
           :class="{ selected: selectedKey.has(note) }"
           :style="{
             left: getBlackKeyPosition(index) + '%',
-            background: getKeyColor(note, true)
+            background: getKeyColor(note, true),
           }"
         >
           <span class="note-label" :style="{ color: getTextColor(note, true) }">
@@ -64,11 +61,11 @@
 
     <div class="keyboard-footer">
       <button class="clear-btn" @click="clearSelection" v-if="selectedKey.size > 0">
-        {{ $t("keyboard_component.clear_all") }}
+        {{ $t('keyboard_component.clear_all') }}
       </button>
 
       <div class="note-count">
-        {{ $t("keyboard_component.note_count", selectedKey.size, { count: selectedKey.size }) }}
+        {{ $t('keyboard_component.note_count', selectedKey.size, { count: selectedKey.size }) }}
       </div>
     </div>
   </div>

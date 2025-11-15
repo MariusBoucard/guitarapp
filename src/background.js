@@ -21,14 +21,13 @@ try {
   crashReporter.start({
     productName: 'NeckWanker',
     companyName: 'Guitar App',
-    submitURL: '', 
-    uploadToServer: false, 
+    submitURL: '',
+    uploadToServer: false,
     collectParameters: false,
-    crashesDirectory: '', 
+    crashesDirectory: '',
     extra: {},
   })
-} catch (error) {
-}
+} catch (error) {}
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -83,7 +82,7 @@ async function createWindow() {
 
   if (isDevelopment) {
     try {
-      await win.loadURL('http://localhost:8080') 
+      await win.loadURL('http://localhost:8080')
     } catch (error) {
       console.error('Failed to load development URL:', error)
       const indexPath = join(__dirname, '../dist/index.html')
@@ -120,7 +119,7 @@ async function createWindow() {
           })
       })
     } catch (e) {
-      console.log("pas cool")
+      console.log('pas cool')
       // If DevTools cannot be opened (e.g., in packaged app), ignore silently
     }
   }

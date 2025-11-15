@@ -1,14 +1,14 @@
 <template>
   <div class="tuning-container">
     <div class="header">
-      <h1>🎸 Instrument Tuning Settings</h1>
+      <h1>🎸 {{ $t('accordage.instrument_tuning_settings') }}</h1>
     </div>
 
     <div class="tuning-sections">
       <!-- String Count Section -->
       <div class="section string-count-section">
         <div class="section-header">
-          <h3>🔢 Number of Strings</h3>
+          <h3>🔢 {{ $t('accordage.number_of_strings') }}</h3>
         </div>
         <div class="counter-control">
           <button @click="delCorde()" class="counter-button minus-button">−</button>
@@ -20,11 +20,11 @@
       <!-- Tuning List Section -->
       <div class="section tuning-list-section">
         <div class="section-header">
-          <h3>🎵 String Tuning</h3>
+          <h3>🎵 {{ $t('accordage.string_tuning') }}</h3>
         </div>
         <div class="strings-container">
           <div class="string-item" v-for="corde in tuningList" :key="corde.cordeId">
-            <label class="string-label">String {{ corde.cordeId }}</label>
+            <label class="string-label">{{ $t('accordage.string') }} {{ corde.cordeId }}</label>
             <select
               class="note-select"
               :style="{ backgroundColor: colorFromNote(corde.tuning) }"
@@ -42,11 +42,11 @@
       <!-- Fretboard Settings Section -->
       <div class="section fretboard-section">
         <div class="section-header">
-          <h3>📏 Fretboard Settings</h3>
+          <h3>📏 {{ $t('accordage.fretboard_settings') }}</h3>
         </div>
         <div class="fretboard-controls">
           <div class="diapason-control">
-            <label class="control-label">Scale Length</label>
+            <label class="control-label">{{ $t('accordage.scale_length') }}</label>
             <div class="counter-control">
               <button @click="diapasonMoins()" class="counter-button minus-button">−</button>
               <div class="counter-display">{{ diap }}</div>
@@ -58,7 +58,7 @@
             <label class="checkbox-container">
               <input type="checkbox" v-model="leftyintra" />
               <span class="checkmark"></span>
-              <span class="checkbox-label">🔄 Left-handed Mode</span>
+              <span class="checkbox-label">🔄 {{ $t('accordage.left_handed_mode') }}</span>
             </label>
           </div>
         </div>
@@ -66,6 +66,7 @@
     </div>
   </div>
 </template>
+
 <script>
   import { useTuningStore } from '../stores/tuningStore'
   import { useNotesStore } from '../stores/notesStore'

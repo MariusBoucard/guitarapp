@@ -1,7 +1,7 @@
 <template>
   <div class="tab-reader-container">
     <div class="tab-reader-header">
-      <h3>{{ $t("tab_reader.title") }}</h3>
+      <h3>{{ $t('tab_reader.title') }}</h3>
       <div class="controls">
         <input
           ref="fileInput"
@@ -11,26 +11,26 @@
           style="display: none"
         />
         <button @click="openFileWithPicker" class="load-btn" v-if="supportsFileSystemAccess">
-          {{ $t("tab_reader.browse_file") }}
+          {{ $t('tab_reader.browse_file') }}
         </button>
         <button @click="openFileDialog" class="load-btn" v-else>
-          {{ $t("tab_reader.load_guitarpro") }}
+          {{ $t('tab_reader.load_guitarpro') }}
         </button>
         <button @click="openTexJSON()" class="load-btn">
-          {{ $t("tab_reader.open_tab_json") }}
+          {{ $t('tab_reader.open_tab_json') }}
         </button>
         <button v-if="canPlay" @click="playPause" class="play-btn" :class="{ playing: isPlaying }">
-          {{ isPlaying ? $t("tab_reader.pause") : $t("tab_reader.play") }}
+          {{ isPlaying ? $t('tab_reader.pause') : $t('tab_reader.play') }}
         </button>
-        <button v-if="canPlay" @click="stop" class="stop-btn">{{ $t("tab_reader.stop") }}</button>
+        <button v-if="canPlay" @click="stop" class="stop-btn">{{ $t('tab_reader.stop') }}</button>
         <button @click="showPlaylists = !showPlaylists" class="mixer-toggle-btn">
-          {{ showPlaylists ? $t("tab_reader.hide_playlists") : $t("tab_reader.show_playlists") }}
+          {{ showPlaylists ? $t('tab_reader.hide_playlists') : $t('tab_reader.show_playlists') }}
         </button>
         <button @click="showAudioSettings = !showAudioSettings" class="mixer-toggle-btn">
-          {{ showAudioSettings ? $t("tab_reader.hide_audio") : $t("tab_reader.audio_quality") }}
+          {{ showAudioSettings ? $t('tab_reader.hide_audio') : $t('tab_reader.audio_quality') }}
         </button>
         <div v-if="canPlay" class="speed-control">
-          <span class="speed-label">{{ $t("tab_reader.speed") }}: {{ playbackSpeed }}%</span>
+          <span class="speed-label">{{ $t('tab_reader.speed') }}: {{ playbackSpeed }}%</span>
           <input
             type="range"
             min="30"
@@ -46,16 +46,16 @@
     <!-- Playlists Panel -->
     <div v-if="showPlaylists" class="playlists-panel">
       <div class="playlists-header">
-        <h4>{{ $t("tab_reader.tab_playlists") }}</h4>
+        <h4>{{ $t('tab_reader.tab_playlists') }}</h4>
         <button @click="showCreatePlaylistModal = true" class="create-playlist-btn">
-          {{ $t("tab_reader.new_playlist") }}
+          {{ $t('tab_reader.new_playlist') }}
         </button>
       </div>
 
       <div class="playlists-container">
         <div v-if="tabPlaylists.length === 0" class="no-playlists">
-          <p>{{ $t("tab_reader.no_playlists") }}</p>
-          <p class="help-text">{{ $t("tab_reader.playlists_tip") }}</p>
+          <p>{{ $t('tab_reader.no_playlists') }}</p>
+          <p class="help-text">{{ $t('tab_reader.playlists_tip') }}</p>
         </div>
 
         <div v-for="playlist in tabPlaylists" :key="playlist.id" class="playlist-item">
@@ -64,12 +64,22 @@
               expandedPlaylists.includes(playlist.id) ? '▼' : '▶'
             }}</span>
             <span class="playlist-name">{{ playlist.name }}</span>
-            <span class="playlist-count">({{ playlist.tabs.length }} {{ $t("tab_reader.tabs") }})</span>
+            <span class="playlist-count"
+              >({{ playlist.tabs.length }} {{ $t('tab_reader.tabs') }})</span
+            >
             <div class="playlist-actions">
-              <button @click.stop="renamePlaylistPrompt(playlist)" class="action-btn" :title="$t('tab_reader.rename')">
+              <button
+                @click.stop="renamePlaylistPrompt(playlist)"
+                class="action-btn"
+                :title="$t('tab_reader.rename')"
+              >
                 ✏️
               </button>
-              <button @click.stop="deletePlaylistConfirm(playlist)" class="action-btn danger" :title="$t('tab_reader.delete')">
+              <button
+                @click.stop="deletePlaylistConfirm(playlist)"
+                class="action-btn danger"
+                :title="$t('tab_reader.delete')"
+              >
                 🗑️
               </button>
             </div>
@@ -77,29 +87,48 @@
 
           <div v-if="expandedPlaylists.includes(playlist.id)" class="playlist-content">
             <div v-if="playlist.tabs.length === 0" class="no-tabs">
-              <p>{{ $t("tab_reader.no_tabs_in_playlist") }}</p>
-              <button @click="addCurrentTabToPlaylist(playlist.id)" v-if="isLoaded" class="add-current-btn">
-                {{ $t("tab_reader.add_current_tab") }}
+              <p>{{ $t('tab_reader.no_tabs_in_playlist') }}</p>
+              <button
+                @click="addCurrentTabToPlaylist(playlist.id)"
+                v-if="isLoaded"
+                class="add-current-btn"
+              >
+                {{ $t('tab_reader.add_current_tab') }}
               </button>
             </div>
 
             <div v-else class="tabs-list">
-              <div v-for="tab in playlist.tabs" :key="tab.id" class="tab-item" :class="{ 'has-handle': tab.fileHandleId }">
+              <div
+                v-for="tab in playlist.tabs"
+                :key="tab.id"
+                class="tab-item"
+                :class="{ 'has-handle': tab.fileHandleId }"
+              >
                 <div class="tab-info" @click="loadTabFromPlaylist(tab)">
                   <span class="tab-icon">{{ tab.fileHandleId ? '📄' : '📋' }}</span>
                   <div class="tab-details">
                     <span class="tab-name">{{ tab.name }}</span>
                     <span v-if="tab.artist" class="tab-artist">{{ tab.artist }}</span>
-                    <span v-if="!tab.fileHandleId" class="tab-warning">⚠️ {{ $t("tab_reader.no_file_access") }}</span>
+                    <span v-if="!tab.fileHandleId" class="tab-warning"
+                      >⚠️ {{ $t('tab_reader.no_file_access') }}</span
+                    >
                   </div>
                 </div>
-                <button @click="removeTabFromPlaylist(playlist.id, tab.id)" class="remove-tab-btn" :title="$t('tab_reader.remove')">
+                <button
+                  @click="removeTabFromPlaylist(playlist.id, tab.id)"
+                  class="remove-tab-btn"
+                  :title="$t('tab_reader.remove')"
+                >
                   ✖
                 </button>
               </div>
 
-              <button @click="addCurrentTabToPlaylist(playlist.id)" v-if="isLoaded" class="add-current-btn">
-                {{ $t("tab_reader.add_current_tab") }}
+              <button
+                @click="addCurrentTabToPlaylist(playlist.id)"
+                v-if="isLoaded"
+                class="add-current-btn"
+              >
+                {{ $t('tab_reader.add_current_tab') }}
               </button>
             </div>
           </div>
@@ -110,42 +139,54 @@
     <!-- Audio Settings Panel -->
     <div v-if="showAudioSettings" class="audio-settings-panel">
       <div class="settings-header">
-        <h4>{{ $t("tab_reader.audio_quality_settings") }}</h4>
-        <p class="help-text">{{ $t("tab_reader.audio_quality_tip") }}</p>
+        <h4>{{ $t('tab_reader.audio_quality_settings') }}</h4>
+        <p class="help-text">{{ $t('tab_reader.audio_quality_tip') }}</p>
       </div>
 
       <div class="settings-container">
         <div class="setting-group">
-          <label class="setting-label">{{ $t("tab_reader.soundfont_selection") }}</label>
+          <label class="setting-label">{{ $t('tab_reader.soundfont_selection') }}</label>
           <div class="soundfont-selector-row">
             <select v-model="selectedSoundFont" @change="changeSoundFont" class="soundfont-select">
               <option v-for="sf in availableSoundFonts" :key="sf.path" :value="sf.path">
-                {{ sf.name }} {{ sf.recommended ? '⭐' : '' }} {{ sf.warning ? '⚠️' : '' }} - {{ sf.size }}
+                {{ sf.name }} {{ sf.recommended ? '⭐' : '' }} {{ sf.warning ? '⚠️' : '' }} -
+                {{ sf.size }}
               </option>
             </select>
-            <button @click="testSoundFont" class="test-soundfont-btn" :title="$t('tab_reader.verify_soundfont')">🔍</button>
+            <button
+              @click="testSoundFont"
+              class="test-soundfont-btn"
+              :title="$t('tab_reader.verify_soundfont')"
+            >
+              🔍
+            </button>
           </div>
         </div>
 
         <div class="setting-group">
           <label class="setting-label">
-            <input type="checkbox" v-model="performanceMode" @change="togglePerformanceMode" style="margin-right: 0.5rem" />
-            {{ $t("tab_reader.performance_mode") }}
+            <input
+              type="checkbox"
+              v-model="performanceMode"
+              @change="togglePerformanceMode"
+              style="margin-right: 0.5rem"
+            />
+            {{ $t('tab_reader.performance_mode') }}
           </label>
-          <p class="setting-hint">{{ $t("tab_reader.performance_hint") }}</p>
+          <p class="setting-hint">{{ $t('tab_reader.performance_hint') }}</p>
         </div>
       </div>
     </div>
 
     <div class="tab-content">
       <div v-if="!isLoaded" class="no-file">
-        <p>{{ $t("tab_reader.no_file_loaded") }}</p>
+        <p>{{ $t('tab_reader.no_file_loaded') }}</p>
       </div>
 
       <div ref="alphaTab" class="alphatab-container"></div>
 
       <div v-if="error" class="error">
-        <p>{{ $t("tab_reader.error") }}: {{ error }}</p>
+        <p>{{ $t('tab_reader.error') }}: {{ error }}</p>
       </div>
     </div>
   </div>
@@ -2174,7 +2215,7 @@ Solutions:
   .delete-btn:hover {
     background: var(--danger-hover, #d32f2f);
   }
-/*
+  /*
   .modal-overlay {
     position: fixed;
     top: 0;

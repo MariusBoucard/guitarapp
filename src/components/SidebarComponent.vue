@@ -8,10 +8,18 @@
     <div class="sidebar-section">
       <h4>Quick Presets</h4>
       <div class="preset-buttons">
-        <button class="preset-button" @click="applyPreset('practice')">🎯 {{ $t('sidebar.entrainement') }} </button>
-        <button class="preset-button" @click="applyPreset('tuning')">🎛️  {{ $t('sidebar.accordage') }}</button>
-        <button class="preset-button" @click="applyPreset('game')">🎮  {{ $t('sidebar.jeu') }}</button>
-        <button class="preset-button" @click="applyPreset('minimal')">📱  {{ $t('sidebar.minimal') }}</button>
+        <button class="preset-button" @click="applyPreset('practice')">
+          🎯 {{ $t('sidebar.entrainement') }}
+        </button>
+        <button class="preset-button" @click="applyPreset('tuning')">
+          🎛️ {{ $t('sidebar.accordage') }}
+        </button>
+        <button class="preset-button" @click="applyPreset('game')">
+          🎮 {{ $t('sidebar.jeu') }}
+        </button>
+        <button class="preset-button" @click="applyPreset('minimal')">
+          📱 {{ $t('sidebar.minimal') }}
+        </button>
       </div>
     </div>
 

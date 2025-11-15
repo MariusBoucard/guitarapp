@@ -16,11 +16,20 @@
             </li>
           </ul>
 
-          <input v-model="currentName" type="text" placeholder="Training name" class="form-input" />
+          <input
+            v-model="currentName"
+            type="text"
+            :placeholder="$t('video_component.placeholder_training_name')"
+            class="form-input"
+          />
 
           <div class="btn-group">
-            <button @click="addTraining()" class="btn btn-success">Add</button>
-            <button @click="removeTraining()" class="btn btn-danger-alt">Remove</button>
+            <button @click="addTraining()" class="btn btn-success">
+              {{ $t('video_component.add') }}
+            </button>
+            <button @click="removeTraining()" class="btn btn-danger-alt">
+              {{ $t('video_component.remove') }}
+            </button>
           </div>
         </div>
 
@@ -43,9 +52,11 @@
 
           <div class="btn-group btn-group-vertical">
             <button class="btn btn-primary" @click="selectVideoFileNative">
-              Select Video File
+              {{ $t('video_component.select_video_file') }}
             </button>
-            <label class="btn btn-primary" for="uploadVideo">Upload File (Web)</label>
+            <label class="btn btn-primary" for="uploadVideo">{{
+              $t('video_component.upload_file_web')
+            }}</label>
             <input id="uploadVideo" type="file" @change="loadVideo" class="hidden" />
           </div>
         </div>
@@ -60,15 +71,19 @@
         ></video>
 
         <div class="btn-group btn-group-center">
-          <button class="btn btn-success" @click="play(speed)">Play</button>
-          <button class="btn btn-warning" @click="pause">Pause</button>
-          <button class="btn btn-danger" @click="stop">Stop</button>
+          <button class="btn btn-success" @click="play(speed)">
+            {{ $t('video_component.play') }}
+          </button>
+          <button class="btn btn-warning" @click="pause">{{ $t('video_component.pause') }}</button>
+          <button class="btn btn-danger" @click="stop">{{ $t('video_component.stop') }}</button>
         </div>
 
         <div class="slider-section">
           <div class="slider-grid">
             <div class="slider-container slider-container-vertical">
-              <label for="startSlider" class="slider-label">Video Start</label>
+              <label for="startSlider" class="slider-label">{{
+                $t('video_component.video_start')
+              }}</label>
               <input
                 id="startSlider"
                 type="range"
@@ -82,7 +97,9 @@
             </div>
 
             <div class="slider-container slider-container-vertical">
-              <label for="endSlider" class="slider-label">Video End</label>
+              <label for="endSlider" class="slider-label">{{
+                $t('video_component.video_end')
+              }}</label>
               <input
                 id="endSlider"
                 type="range"
@@ -98,12 +115,12 @@
         </div>
 
         <div class="checkbox-container">
-          <label for="loopCheckbox" class="slider-label">Loop:</label>
+          <label for="loopCheckbox" class="slider-label">{{ $t('video_component.loop') }}</label>
           <input id="loopCheckbox" type="checkbox" v-model="loop" class="checkbox-input" />
         </div>
 
         <div class="text-center">
-          <h3 class="mb-medium slider-label">Playing Rate</h3>
+          <h3 class="mb-medium slider-label">{{ $t('video_component.playing_rate') }}</h3>
           <div class="slider-container">
             <input
               type="range"

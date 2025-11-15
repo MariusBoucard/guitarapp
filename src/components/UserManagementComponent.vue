@@ -1,21 +1,23 @@
 <template>
   <div class="user-management">
     <div class="user-header">
-      <h2>👤 User Management</h2>
+      <h2>👤 {{ $t('user.management') }}</h2>
       <button class="close-btn" @click="$emit('close')">✕</button>
     </div>
 
     <!-- Current User Display -->
     <div class="current-user-section">
-      <h3>Current User</h3>
+      <h3>{{ $t('user.current_user') }}</h3>
       <div class="user-card current">
         <div class="user-avatar">
           {{ userStore.currentUser?.name?.charAt(0).toUpperCase() || '?' }}
         </div>
         <div class="user-info">
-          <h4>{{ userStore.currentUser?.name || 'No User' }}</h4>
-          <p class="user-email">{{ userStore.currentUser?.email || 'No email' }}</p>
-          <p class="user-meta">Last active: {{ formatDate(userStore.currentUser?.lastActive) }}</p>
+          <h4>{{ userStore.currentUser?.name || $t('user.no_user') }}</h4>
+          <p class="user-email">{{ userStore.currentUser?.email || $t('user.no_email') }}</p>
+          <p class="user-meta">
+            {{ $t('user.last_active') }}: {{ formatDate(userStore.currentUser?.lastActive) }}
+          </p>
         </div>
       </div>
     </div>
@@ -23,8 +25,10 @@
     <!-- User List -->
     <div class="users-list-section">
       <div class="section-header">
-        <h3>All Users ({{ userStore.totalUsers }})</h3>
-        <button class="btn-primary" @click="showCreateUserDialog = true">➕ New User</button>
+        <h3>{{ $t('user.all_users', { count: userStore.totalUsers }) }}</h3>
+        <button class="btn-primary" @click="showCreateUserDialog = true">
+          ➕ {{ $t('user.new_user') }}
+        </button>
       </div>
 
       <div class="users-grid">
@@ -39,32 +43,42 @@
           </div>
           <div class="user-info">
             <h4>{{ user.name }}</h4>
-            <p class="user-email">{{ user.email || 'No email' }}</p>
-            <p class="user-meta">Created: {{ formatDate(user.createdAt) }}</p>
+            <p class="user-email">{{ user.email || $t('user.no_email') }}</p>
+            <p class="user-meta">{{ $t('user.created') }}: {{ formatDate(user.createdAt) }}</p>
           </div>
           <div class="user-actions">
             <button
               v-if="user.id !== userStore.currentUserId"
               @click="switchToUser(user.id)"
               class="btn-action"
-              title="Switch to this user"
+              :title="$t('user.switch_to')"
             >
-              🔄 Switch
+              🔄 {{ $t('user.switch') }}
             </button>
-            <button @click="editUser(user)" class="btn-action" title="Edit user">✏️ Edit</button>
-            <button @click="exportUserData(user.id)" class="btn-action" title="Export user data">
-              💾 Export
+            <button @click="editUser(user)" class="btn-action" :title="$t('user.edit_user')">
+              ✏️ {{ $t('user.edit') }}
             </button>
-            <button @click="cloneUserData(user.id)" class="btn-action" title="Clone user">
-              📋 Clone
+            <button
+              @click="exportUserData(user.id)"
+              class="btn-action"
+              :title="$t('user.export_user')"
+            >
+              💾 {{ $t('user.export') }}
+            </button>
+            <button
+              @click="cloneUserData(user.id)"
+              class="btn-action"
+              :title="$t('user.clone_user')"
+            >
+              📋 {{ $t('user.clone') }}
             </button>
             <button
               v-if="userStore.totalUsers > 1"
               @click="confirmDeleteUser(user)"
               class="btn-danger"
-              title="Delete user"
+              :title="$t('user.delete_user')"
             >
-              🗑️ Delete
+              🗑️ {{ $t('user.delete') }}
             </button>
           </div>
         </div>
@@ -73,37 +87,39 @@
 
     <!-- Import/Export Section -->
     <div class="import-export-section">
-      <h3>Import & Export</h3>
+      <h3>{{ $t('user.import_export') }}</h3>
       <div class="actions-grid">
-        <button
-          @click="saveAllUsersNow"
-          class="btn-primary"
-          title="Manually save all users to localStorage"
-        >
-          💾 Save All Users Now
+        <button @click="saveAllUsersNow" class="btn-primary" :title="$t('user.save_all_desc')">
+          💾 {{ $t('user.save_all') }}
         </button>
-        <button
-          @click="checkStorage"
-          class="btn-secondary"
-          title="Check what's saved in localStorage"
-        >
-          🔍 Check Storage
+        <button @click="checkStorage" class="btn-secondary" :title="$t('user.check_storage_desc')">
+          🔍 {{ $t('user.check_storage') }}
         </button>
-        <button @click="importUser" class="btn-secondary">📥 Import User</button>
-        <button @click="importAllUsers" class="btn-secondary">📥 Import All Users</button>
-        <button @click="exportAllUsers" class="btn-secondary">💾 Export All Users</button>
-        <button @click="createBackup" class="btn-secondary">🔄 Create Backup</button>
-        <button @click="restoreBackup" class="btn-secondary">⏮️ Restore Backup</button>
+        <button @click="importUser" class="btn-secondary">📥 {{ $t('user.import') }}</button>
+        <button @click="importAllUsers" class="btn-secondary">
+          📥 {{ $t('user.import_all') }}
+        </button>
+        <button @click="exportAllUsers" class="btn-secondary">
+          💾 {{ $t('user.export_all') }}
+        </button>
+        <button @click="createBackup" class="btn-secondary">
+          🔄 {{ $t('user.create_backup') }}
+        </button>
+        <button @click="restoreBackup" class="btn-secondary">
+          ⏮️ {{ $t('user.restore_backup') }}
+        </button>
       </div>
 
       <!-- Storage Stats -->
       <div class="storage-stats">
-        <p><strong>Storage Used:</strong> {{ storageStats.formattedSize }}</p>
+        <p>
+          <strong>{{ $t('user.storage_used') }}:</strong> {{ storageStats.formattedSize }}
+        </p>
         <p v-if="userStore.lastExportDate">
-          <strong>Last Export:</strong> {{ formatDate(userStore.lastExportDate) }}
+          <strong>{{ $t('user.last_export') }}:</strong> {{ formatDate(userStore.lastExportDate) }}
         </p>
         <p v-if="userStore.lastImportDate">
-          <strong>Last Import:</strong> {{ formatDate(userStore.lastImportDate) }}
+          <strong>{{ $t('user.last_import') }}:</strong> {{ formatDate(userStore.lastImportDate) }}
         </p>
       </div>
     </div>
@@ -115,21 +131,30 @@
       @click.self="showCreateUserDialog = false"
     >
       <div class="modal-dialog">
-        <h3>Create New User</h3>
+        <h3>{{ $t('user.create_new_user') }}</h3>
         <form @submit.prevent="createNewUser">
           <div class="form-group">
-            <label>User Name *</label>
-            <input v-model="newUserForm.name" type="text" required placeholder="Enter user name" />
+            <label>{{ $t('user.user_name') }} *</label>
+            <input
+              v-model="newUserForm.name"
+              type="text"
+              required
+              :placeholder="$t('user.enter_user_name')"
+            />
           </div>
           <div class="form-group">
-            <label>Email (optional)</label>
-            <input v-model="newUserForm.email" type="email" placeholder="user@example.com" />
+            <label>{{ $t('user.email_optional') }}</label>
+            <input
+              v-model="newUserForm.email"
+              type="email"
+              :placeholder="$t('user.email_placeholder')"
+            />
           </div>
           <div class="form-actions">
             <button type="button" @click="showCreateUserDialog = false" class="btn-secondary">
-              Cancel
+              {{ $t('user.cancel') }}
             </button>
-            <button type="submit" class="btn-primary">Create User</button>
+            <button type="submit" class="btn-primary">{{ $t('user.create_user') }}</button>
           </div>
         </form>
       </div>
@@ -138,21 +163,30 @@
     <!-- Edit User Dialog -->
     <div v-if="showEditUserDialog" class="modal-overlay" @click.self="showEditUserDialog = false">
       <div class="modal-dialog">
-        <h3>Edit User</h3>
+        <h3>{{ $t('user.edit_user') }}</h3>
         <form @submit.prevent="saveUserEdit">
           <div class="form-group">
-            <label>User Name *</label>
-            <input v-model="editUserForm.name" type="text" required placeholder="Enter user name" />
+            <label>{{ $t('user.user_name') }} *</label>
+            <input
+              v-model="editUserForm.name"
+              type="text"
+              required
+              :placeholder="$t('user.enter_user_name')"
+            />
           </div>
           <div class="form-group">
-            <label>Email (optional)</label>
-            <input v-model="editUserForm.email" type="email" placeholder="user@example.com" />
+            <label>{{ $t('user.email_optional') }}</label>
+            <input
+              v-model="editUserForm.email"
+              type="email"
+              :placeholder="$t('user.email_placeholder')"
+            />
           </div>
           <div class="form-actions">
             <button type="button" @click="showEditUserDialog = false" class="btn-secondary">
-              Cancel
+              {{ $t('user.cancel') }}
             </button>
-            <button type="submit" class="btn-primary">Save Changes</button>
+            <button type="submit" class="btn-primary">{{ $t('user.save_changes') }}</button>
           </div>
         </form>
       </div>
@@ -161,15 +195,14 @@
     <!-- Delete Confirmation Dialog -->
     <div v-if="showDeleteDialog" class="modal-overlay" @click.self="showDeleteDialog = false">
       <div class="modal-dialog danger">
-        <h3>⚠️ Delete User</h3>
-        <p>
-          Are you sure you want to delete user <strong>{{ userToDelete?.name }}</strong
-          >?
-        </p>
-        <p class="warning-text">This action cannot be undone. All user data will be lost.</p>
+        <h3>⚠️ {{ $t('user.delete_user') }}</h3>
+        <p>{{ $t('user.delete_confirm', { name: userToDelete?.name }) }}</p>
+        <p class="warning-text">{{ $t('user.delete_warning') }}</p>
         <div class="form-actions">
-          <button @click="showDeleteDialog = false" class="btn-secondary">Cancel</button>
-          <button @click="deleteUser" class="btn-danger">Delete User</button>
+          <button @click="showDeleteDialog = false" class="btn-secondary">
+            {{ $t('user.cancel') }}
+          </button>
+          <button @click="deleteUser" class="btn-danger">{{ $t('user.delete_user') }}</button>
         </div>
       </div>
     </div>

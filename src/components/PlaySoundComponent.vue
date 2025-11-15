@@ -94,7 +94,10 @@
     <!-- Time Controls -->
     <div class="time-controls">
       <div class="slider-container">
-        <label>{{ $t('audioplayer_component.start_time') }}: {{ audioService.formatTime(songPlayerStore.startTime) }}</label>
+        <label
+          >{{ $t('audioplayer_component.start_time') }}:
+          {{ audioService.formatTime(songPlayerStore.startTime) }}</label
+        >
         <input
           type="range"
           v-model="songPlayerStore.startTime"
@@ -105,7 +108,10 @@
       </div>
 
       <div class="slider-container">
-        <label>{{ $t('audioplayer_component.end_time') }}: {{ audioService.formatTime(songPlayerStore.endTime) }}</label>
+        <label
+          >{{ $t('audioplayer_component.end_time') }}:
+          {{ audioService.formatTime(songPlayerStore.endTime) }}</label
+        >
         <input
           type="range"
           v-model="songPlayerStore.endTime"
