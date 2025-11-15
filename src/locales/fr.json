@@ -47,5 +47,12 @@
     "available_scales": "Gammes disponibles",
     "no_scales_available": "Aucune gamme disponible. Veuillez sélectionner des notes d'abord.",
     "notes_label": "Notes :"
+  },
+    "keyboard_component": {
+    "title": "Clavier Piano",
+    "selected_notes": "Notes sélectionnées :",
+    "click_to_select": "Cliquez sur les touches pour sélectionner des notes",
+    "clear_all": "Tout effacer",
+    "note_count": "{count} note sélectionnée | {count} notes sélectionnées"
   }
 }
