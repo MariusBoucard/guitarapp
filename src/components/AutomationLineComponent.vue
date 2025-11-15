@@ -1,6 +1,6 @@
 <template>
   <div class="automation-container">
-    <h3 class="automation-title">Section Automation</h3>
+    <h3 class="automation-title">{{ $t("section_automation.section_automation_title") }}</h3>
 
     <!-- Canvas for drawing the automation line -->
     <div class="canvas-container">
@@ -11,10 +11,13 @@
     <!-- Section Controls Bar -->
     <div class="section-controls-bar" v-if="activeSectionIndex !== null">
       <div class="active-section-info">
-        <span class="section-label">Section {{ activeSectionIndex + 1 }}</span>
+        <span class="section-label">
+          {{ $t("section_automation.section") }} {{ activeSectionIndex + 1 }}
+        </span>
+
         <div class="controls-group">
           <div class="control-item">
-            <label>Reps:</label>
+            <label>{{ $t("section_automation.repetitions") }}:</label>
             <input
               type="number"
               v-model.number="sections[activeSectionIndex].NBReps"
@@ -24,8 +27,9 @@
               @change="updateSection"
             />
           </div>
+
           <div class="control-item">
-            <label>Speed:</label>
+            <label>{{ $t("section_automation.vitesse") }}:</label>
             <input
               type="number"
               v-model.number="sections[activeSectionIndex].PlaybackRate"
@@ -49,10 +53,10 @@
         class="section-pill"
         :class="{ active: index === activeSectionIndex }"
       >
-        <span class="section-number">{{ index + 1 }}</span>
-        <span class="section-stats"
-          >{{ section.NBReps }}×&nbsp;•&nbsp;{{ section.PlaybackRate }}%</span
-        >
+        <span class="section-number">{{ $t("section_automation.section") }} {{ index + 1 }}</span>
+        <span class="section-stats">
+          {{ section.NBReps }}x&nbsp;•&nbsp;{{ section.PlaybackRate }}
+        </span>
       </div>
     </div>
   </div>

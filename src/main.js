@@ -7,10 +7,6 @@ import { createI18n } from 'vue-i18n'
 import en from './locales/en.json'
 import fr from './locales/fr.json'
 
-localStorage.setItem("lang", "en")
-location.reload()
-
-Object.defineProperty(navigator, "language", { value: "en-US" })
 const i18n = createI18n({
   locale: 'fr',
   fallbackLocale: 'fr',

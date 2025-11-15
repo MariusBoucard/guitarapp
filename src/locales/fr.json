@@ -15,6 +15,19 @@
     "jouer_jeu": "Jouer au jeu",
     "selection_gammes_automatique":"Selection automatique de gamme",
     "parametres": "Paramètres",
-    "management_utilisateurs" : "Paramètres utilisateurs"
+    "management_utilisateurs" : "Paramètres utilisateurs",
+    "entrainement" : "Entrainement",
+    "accordage" : "Accordage",
+    "jeu" : "Jeu",
+    "minimal" : "Minimal"
+  },
+  "section_automation": {
+    "section_automation_title": "Automatisation de section",
+    "repetitions": "Répétitions",
+    "vitesse": "Vitesse",
+    "section": "Section",
+    "sections_overview": "Aperçu des sections",
+    "drag_instruction": "Double-cliquez pour ajouter une section",
+    "active_section": "Section active"
   }
 }
