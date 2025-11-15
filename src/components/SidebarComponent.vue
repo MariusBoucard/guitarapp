@@ -168,7 +168,7 @@
             :class="{ active: appStore.autoGammeSelect }"
             @click="appStore.toggleAutoGammeSelect()"
           >
-            <span>🔄 {{ $t('sidebar.selection_gamme_automatique') }}</span>
+            <span>🔄 {{ $t('sidebar.selection_gammes_automatique') }}</span>
             <span class="status-indicator" v-if="appStore.autoGammeSelect">●</span>
           </div>
         </div>

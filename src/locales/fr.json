@@ -186,7 +186,7 @@
     "no_user": "Aucun utilisateur",
     "no_email": "Pas d'email",
     "last_active": "Dernière activité",
-    "all_users": "Tous les utilisateurs ({{count}})",
+    "all_users": "Tous les utilisateurs",
     "new_user": "Nouvel utilisateur",
     "switch": "Changer",
     "switch_to": "Basculer vers cet utilisateur",
