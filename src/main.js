@@ -7,8 +7,15 @@ import { createI18n } from 'vue-i18n'
 import en from './locales/en.json'
 import fr from './locales/fr.json'
 
+
+let userLocale = navigator.language.split('-')[0]
+
+if (!['en', 'fr'].includes(userLocale)) {
+  userLocale = 'fr'
+}
+
 const i18n = createI18n({
-  locale: 'fr',
+  locale: userLocale,
   fallbackLocale: 'fr',
   messages: {
     en,
