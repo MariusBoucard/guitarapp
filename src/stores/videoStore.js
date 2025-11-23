@@ -3,19 +3,19 @@ import { useUserStore } from './userStore'
 
 export const useVideoStore = defineStore('video', {
   state: () => ({
-    // UI State only (not user-specific data)
+    // Pas sur que ca soit utilisé ... 
+    // Voir pour essayer de délocaliser depuis le userStore ici, sans casser l export de user.
+    
     selectedVideo: 0,
     currentVideoName: '',
     currentVideo: '',
     videoLength: 0,
 
-    // Playback settings (could be user-specific, kept here for simplicity)
     startTime: 0,
     endTime: 0,
     speed: 100,
     loop: false,
 
-    // Directory management (session-specific, not user data)
     rootDirectory: null, // DirectoryHandle for the root training directory
     rootDirectoryPath: '', // String path to the root directory
     currentDirectoryPath: '', // Current working directory path
@@ -31,7 +31,6 @@ export const useVideoStore = defineStore('video', {
   }),
 
   getters: {
-    // Reference userStore data directly
     videoList() {
       const userStore = useUserStore()
       if (!userStore.currentUser?.data?.videos) {
@@ -100,7 +99,6 @@ export const useVideoStore = defineStore('video', {
       return `${minutes}:${seconds}.${milliseconds}`
     },
 
-    // Directory and path getters
     hasRootDirectory: (state) => state.rootDirectory !== null,
 
     effectiveBasePath: (state) => state.rootDirectoryPath || state.defaultPath,
@@ -134,7 +132,6 @@ export const useVideoStore = defineStore('video', {
   },
 
   actions: {
-    // Video training management - modify userStore data directly
     addVideoTraining(name) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
@@ -171,7 +168,6 @@ export const useVideoStore = defineStore('video', {
       })
     },
 
-    // File management - modify userStore data directly
     addVideoFile(filePath) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
@@ -195,7 +191,6 @@ export const useVideoStore = defineStore('video', {
       }
     },
 
-    // Playback control
     setVideoPlaybackSettings({ startTime, endTime, speed, loop }) {
       if (startTime !== undefined) this.startTime = startTime
       if (endTime !== undefined) this.endTime = endTime
@@ -208,7 +203,6 @@ export const useVideoStore = defineStore('video', {
       this.endTime = duration
     },
 
-    // Niou training management (directory-based) - modify userStore data directly
     setNiouTrainingList(trainingList) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
@@ -240,7 +234,6 @@ export const useVideoStore = defineStore('video', {
       }
     },
 
-    // Directory management actions
     setRootDirectory(directoryHandle, directoryPath) {
       this.rootDirectory = directoryHandle
       this.rootDirectoryPath = directoryPath
@@ -317,7 +310,6 @@ export const useVideoStore = defineStore('video', {
       this.removeDirectoryInfo()
     },
 
-    // Clear all stored training data (useful when paths are outdated)
     clearStoredTrainingData() {
       const userStore = useUserStore()
 
@@ -339,7 +331,6 @@ export const useVideoStore = defineStore('video', {
       console.log('Cleared all stored training data - fresh scan required')
     },
 
-    // Storage methods - now delegates to userStore
     saveDirectoryInfo() {
       const directoryInfo = {
         name: this.directoryStructure.name,
@@ -375,12 +366,10 @@ export const useVideoStore = defineStore('video', {
       userStore.saveUsersToStorage()
     },
 
-    // Load from storage - migrate old data to userStore if needed
     loadFromStorage() {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
-      // Migration: Load old video trainings if user has none
       if (
         (!userStore.currentUser.data.videos || userStore.currentUser.data.videos.length === 0) &&
         localStorage.getItem('videoSave')
@@ -388,7 +377,6 @@ export const useVideoStore = defineStore('video', {
         userStore.currentUser.data.videos = JSON.parse(localStorage.getItem('videoSave'))
       }
 
-      // Migration: Load old niou trainings if user has none
       if (
         (!userStore.currentUser.data.niouTrainingList ||
           userStore.currentUser.data.niouTrainingList.length === 0) &&
@@ -397,7 +385,6 @@ export const useVideoStore = defineStore('video', {
         userStore.currentUser.data.niouTrainingList = JSON.parse(localStorage.getItem('Trainings'))
       }
 
-      // Load directory info (session-specific, not user data)
       if (localStorage.getItem('directoryInfo')) {
         const directoryInfo = JSON.parse(localStorage.getItem('directoryInfo'))
         this.directoryStructure.name = directoryInfo.name || ''
@@ -406,18 +393,16 @@ export const useVideoStore = defineStore('video', {
         this.rootDirectoryPath = directoryInfo.rootDirectoryPath || ''
         this.defaultPath = directoryInfo.defaultPath || this.defaultPath
 
-        // Check if we have outdated Linux paths and clear them
         if (
           this.rootDirectoryPath.includes('/media/marius/DISK') ||
           this.rootDirectoryPath.includes('guitareCourseNew')
         ) {
           console.log('Detected outdated Linux paths, clearing stored data')
           this.clearStoredTrainingData()
-          return // Exit early since we cleared the data
+          return 
         }
       }
 
-      // Migration: Load training metadata
       if (
         (!userStore.currentUser.data.videoMetadata ||
           !userStore.currentUser.data.videoMetadata.lastUpdated) &&
@@ -429,7 +414,6 @@ export const useVideoStore = defineStore('video', {
         }
       }
 
-      // Check for outdated paths in training data
       const niouList = userStore.currentUser.data.niouTrainingList || []
       if (niouList.length > 0) {
         const hasOutdatedPaths = niouList.some((training) =>
@@ -445,11 +429,10 @@ export const useVideoStore = defineStore('video', {
         if (hasOutdatedPaths) {
           console.log('Detected outdated paths in training data, clearing...')
           this.clearStoredTrainingData()
-          return // Exit early since we cleared the data
+          return 
         }
       }
 
-      // Update metadata if we have training data but no metadata
       const metadata = userStore.currentUser.data.videoMetadata
       if (niouList.length > 0 && (!metadata || !metadata.lastUpdated)) {
         this.updateTrainingMetadata()
@@ -458,18 +441,15 @@ export const useVideoStore = defineStore('video', {
       userStore.saveUsersToStorage()
     },
 
-    // Validate and clean FileHandle references
     validateFileHandles(fileService) {
       if (!fileService) {
         return true
       }
 
-      // Don't clear everything - just check if we need to refresh FileHandles
       if (this.niouTrainingList.length === 0) {
         return true
       }
 
-      // Check if any video has a handleId that no longer exists
       let hasInvalidHandles = false
 
       for (const training of this.niouTrainingList) {
@@ -495,7 +475,6 @@ export const useVideoStore = defineStore('video', {
       return true
     },
 
-    // Refresh FileHandle references for existing video data
     async refreshFileHandles(fileService) {
       if (!this.rootDirectory || !fileService || this.niouTrainingList.length === 0) {
         return false
@@ -504,22 +483,17 @@ export const useVideoStore = defineStore('video', {
       try {
         console.log('Refreshing FileHandle references for existing videos')
 
-        // Try to get fresh directory handle
         let directoryHandle = this.rootDirectory
 
-        // If we don't have a valid directory handle, we need user to select again
         if (!directoryHandle || !directoryHandle.values) {
           console.log('Directory handle invalid, need fresh directory access')
           return false
         }
 
-        // Create a map of file paths to FileHandle IDs
         const pathToHandleMap = new Map()
 
-        // Recursively collect all video files and create new FileHandle references
         await this.collectFileHandles(directoryHandle, '', pathToHandleMap, fileService)
 
-        // Update video objects with new FileHandle IDs
         for (const training of this.niouTrainingList) {
           for (const subTraining of training.trainings || []) {
             for (const video of subTraining.videos || []) {
@@ -534,7 +508,6 @@ export const useVideoStore = defineStore('video', {
           }
         }
 
-        // Save updated data
         this.saveNiouTrainings()
         return true
       } catch (error) {
@@ -543,7 +516,6 @@ export const useVideoStore = defineStore('video', {
       }
     },
 
-    // Helper method to collect FileHandles recursively
     async collectFileHandles(directoryHandle, currentPath, pathToHandleMap, fileService) {
       try {
         for await (const entry of directoryHandle.values()) {
@@ -561,14 +533,12 @@ export const useVideoStore = defineStore('video', {
       }
     },
 
-    // Helper method to check if file is a video
     isVideoFile(filename) {
       const videoExtensions = ['.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv', '.webm', '.m4v']
       const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'))
       return videoExtensions.includes(ext)
     },
 
-    // Auto-reload directory if we have stored directory info
     async autoReloadDirectory(fileService) {
       if (!this.directoryStructure.name || !fileService) {
         return false
@@ -577,7 +547,6 @@ export const useVideoStore = defineStore('video', {
       try {
         console.log('Attempting to auto-reload directory:', this.directoryStructure.name)
 
-        // If we have existing video data, try to refresh FileHandles first
         if (this.niouTrainingList.length > 0) {
           console.log('Found existing video data, attempting to refresh FileHandles')
           const refreshed = await this.refreshFileHandles(fileService)
@@ -587,14 +556,11 @@ export const useVideoStore = defineStore('video', {
           }
         }
 
-        // Clear existing training list since we need to re-scan
         this.niouTrainingList = []
 
-        // For Electron, try to get the last used directory
         if (window.electronAPI && window.electronAPI.getLastDirectory) {
           const lastDirectory = await window.electronAPI.getLastDirectory()
           if (lastDirectory && lastDirectory === this.rootDirectoryPath) {
-            // Re-scan the directory using Electron
             const videos = await window.electronAPI.scanDirectory(this.rootDirectoryPath)
             if (videos && videos.length > 0) {
               this.niouTrainingList = this.convertElectronVideosToTrainingList(videos)
@@ -606,11 +572,9 @@ export const useVideoStore = defineStore('video', {
           }
         }
 
-        // For web File System Access API, automatically request directory access
         if (window.showDirectoryPicker) {
           console.log('Web environment: Requesting directory access for auto-reload')
           try {
-            // Auto-prompt for directory access
             const directoryHandle = await fileService.selectDirectory()
             if (directoryHandle) {
               const result = await fileService.readDirectoryRecursive(
@@ -618,14 +582,12 @@ export const useVideoStore = defineStore('video', {
                 this.defaultPath
               )
 
-              // Use the enhanced store method with metadata
               this.setTrainingListWithMetadata(
                 result.trainings,
                 directoryHandle,
                 result.metadata.basePath
               )
 
-              // Force save to ensure new data overwrites old data
               this.saveNiouTrainings()
               this.saveDirectoryInfo()
               this.saveTrainingMetadata()
@@ -650,7 +612,6 @@ export const useVideoStore = defineStore('video', {
       }
     },
 
-    // Convert Electron video list to training list format
     convertElectronVideosToTrainingList(videos) {
       const trainingMap = new Map()
 
@@ -683,7 +644,6 @@ export const useVideoStore = defineStore('video', {
         })
       })
 
-      // Convert maps to arrays
       return Array.from(trainingMap.values()).map((training) => ({
         ...training,
         trainings: Array.from(training.trainings.values()),

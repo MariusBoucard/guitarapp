@@ -1,7 +1,3 @@
-/**
- * Audio Service - Handles all audio-related operations
- * This is part of the Controller layer in MVC architecture
- */
 export class AudioService {
   constructor(serviceManager = null) {
     this.serviceManager = serviceManager
@@ -10,9 +6,6 @@ export class AudioService {
     this.currentAudio = null
   }
 
-  /**
-   * Initialize audio context
-   */
   initializeAudioContext() {
     if (!this.audioContext) {
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
@@ -20,9 +13,6 @@ export class AudioService {
     return this.audioContext
   }
 
-  /**
-   * Load audio file and return metadata
-   */
   async loadAudioFile(filePath) {
     try {
       const audio = new Audio()
@@ -86,9 +76,6 @@ export class AudioService {
     }
   }
 
-  /**
-   * Create blob URL from file
-   */
   createBlobUrl(file) {
     if (!(file instanceof File)) {
       throw new Error('Invalid file object')
@@ -96,27 +83,18 @@ export class AudioService {
     return URL.createObjectURL(file)
   }
 
-  /**
-   * Clean up blob URL
-   */
   revokeBlobUrl(url) {
     if (url && url.startsWith('blob:')) {
       URL.revokeObjectURL(url)
     }
   }
 
-  /**
-   * Set playback rate
-   */
   setPlaybackRate(audio, rate) {
     if (audio && typeof rate === 'number' && rate > 0) {
       audio.playbackRate = rate / 100
     }
   }
 
-  /**
-   * Set current time with bounds checking
-   */
   setCurrentTime(audio, time, startTime = 0, endTime = Infinity) {
     if (!audio) return
 
@@ -124,9 +102,6 @@ export class AudioService {
     audio.currentTime = clampedTime
   }
 
-  /**
-   * Handle time update with loop logic
-   */
   handleTimeUpdate(audio, currentTime, startTime, endTime, loop = false) {
     if (!audio) return
 
@@ -142,9 +117,6 @@ export class AudioService {
     }
   }
 
-  /**
-   * Format seconds to readable time string
-   */
   formatTime(seconds) {
     if (!seconds || isNaN(seconds)) return '0:00.00'
 
@@ -157,38 +129,25 @@ export class AudioService {
     return `${minutes}:${secondsFormatted}.${milliseconds}`
   }
 
-  /**
-   * Extract filename from path
-   */
   extractFilename(filePath) {
     if (!filePath) return ''
 
-    // Handle both Windows and Unix path separators
     const segments = filePath.split(/[\\/]/)
     return segments[segments.length - 1]
   }
 
-  /**
-   * Validate audio file type
-   */
   isValidAudioFile(filename) {
     const audioExtensions = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac']
     const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'))
     return audioExtensions.includes(extension)
   }
 
-  /**
-   * Initialize WaveSurfer (placeholder for future implementation)
-   */
   initWaveSurfer(containerId, audioUrl, options = {}) {
     console.log('Initializing WaveSurfer for:', audioUrl)
     // TODO: Implement WaveSurfer integration when needed
     // This would handle waveform visualization
   }
 
-  /**
-   * Play audio with optional rate
-   */
   async playAudio(audio, playbackRate = 1) {
     if (!audio) return
 
@@ -202,18 +161,13 @@ export class AudioService {
     }
   }
 
-  /**
-   * Pause audio
-   */
+
   pauseAudio(audio) {
     if (audio && !audio.paused) {
       audio.pause()
     }
   }
 
-  /**
-   * Stop audio (pause and reset to start)
-   */
   stopAudio(audio, startTime = 0) {
     if (audio) {
       audio.pause()
@@ -221,9 +175,6 @@ export class AudioService {
     }
   }
 
-  /**
-   * Get current playback state
-   */
   getPlaybackState(audio) {
     if (!audio) {
       return {
@@ -244,9 +195,6 @@ export class AudioService {
     }
   }
 
-  /**
-   * Cleanup audio resources
-   */
   cleanup() {
     if (this.currentAudio) {
       this.currentAudio.pause()
