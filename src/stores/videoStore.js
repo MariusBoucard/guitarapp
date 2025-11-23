@@ -3,9 +3,9 @@ import { useUserStore } from './userStore'
 
 export const useVideoStore = defineStore('video', {
   state: () => ({
-    // Pas sur que ca soit utilisé ... 
+    // Pas sur que ca soit utilisé ...
     // Voir pour essayer de délocaliser depuis le userStore ici, sans casser l export de user.
-    
+
     selectedVideo: 0,
     currentVideoName: '',
     currentVideo: '',
@@ -399,7 +399,7 @@ export const useVideoStore = defineStore('video', {
         ) {
           console.log('Detected outdated Linux paths, clearing stored data')
           this.clearStoredTrainingData()
-          return 
+          return
         }
       }
 
@@ -429,7 +429,7 @@ export const useVideoStore = defineStore('video', {
         if (hasOutdatedPaths) {
           console.log('Detected outdated paths in training data, clearing...')
           this.clearStoredTrainingData()
-          return 
+          return
         }
       }
 

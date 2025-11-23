@@ -47,41 +47,41 @@ export class VideoService {
   /**
    * Set video source using secure IPC loading for Electron
    */
-async setVideoSource(videoElement, filePath) {
-  if (!videoElement) {
-    throw new Error('Video element is required')
-  }
-  
-  // Clean up previous blob URL if it exists
-  if (this.currentBlobUrl) {
-    URL.revokeObjectURL(this.currentBlobUrl)
-    this.currentBlobUrl = null
-  }
-  
-  if (window.electronAPI && window.electronAPI.loadVideoFile) {
-    try {
-      console.log('Loading video via IPC:', filePath)
-      const result = await window.electronAPI.loadVideoFile(filePath)
-      
-      if (result.success) {
-        // Simply use the streaming protocol URL
-        videoElement.src = result.url
-        console.log('Video set up for streaming:', result.url)
-        return result.url
-      } else {
-        throw new Error(result.error || 'Failed to load video file')
-      }
-    } catch (error) {
-      console.error('IPC video loading failed:', error)
-      throw new Error(`Failed to load video: ${error.message}`)
+  async setVideoSource(videoElement, filePath) {
+    if (!videoElement) {
+      throw new Error('Video element is required')
     }
-  } else {
-    // Fallback for web environments
-    const sanitizedPath = this.sanitizeFilePath(filePath)
-    videoElement.src = `file://${sanitizedPath}`
-    return videoElement.src
+
+    // Clean up previous blob URL if it exists
+    if (this.currentBlobUrl) {
+      URL.revokeObjectURL(this.currentBlobUrl)
+      this.currentBlobUrl = null
+    }
+
+    if (window.electronAPI && window.electronAPI.loadVideoFile) {
+      try {
+        console.log('Loading video via IPC:', filePath)
+        const result = await window.electronAPI.loadVideoFile(filePath)
+
+        if (result.success) {
+          // Simply use the streaming protocol URL
+          videoElement.src = result.url
+          console.log('Video set up for streaming:', result.url)
+          return result.url
+        } else {
+          throw new Error(result.error || 'Failed to load video file')
+        }
+      } catch (error) {
+        console.error('IPC video loading failed:', error)
+        throw new Error(`Failed to load video: ${error.message}`)
+      }
+    } else {
+      // Fallback for web environments
+      const sanitizedPath = this.sanitizeFilePath(filePath)
+      videoElement.src = `file://${sanitizedPath}`
+      return videoElement.src
+    }
   }
-}
 
   /**
    * Set video source from FileHandle ID

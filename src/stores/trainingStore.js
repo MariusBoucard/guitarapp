@@ -3,8 +3,8 @@ import { useUserStore } from './userStore'
 
 export const useTrainingStore = defineStore('training', {
   state: () => ({
-    // TODO : Meilleur state a faire : 
-    // trainingVideoList : [] // liste des videos du training en cours a ajouter ? 
+    // TODO : Meilleur state a faire :
+    // trainingVideoList : [] // liste des videos du training en cours a ajouter ?
     // Comment faire pour délocaliser bien la complexité de l'user store ici ?
     selectedTraining: 0,
     currentTrainingName: '',

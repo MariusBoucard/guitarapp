@@ -307,15 +307,15 @@
         errorMessage: '',
         showAutoReloadMessage: false,
         loopsCompleted: 0,
-        loopCount: 3, 
+        loopCount: 3,
         enableAutoLoop: true,
         useAutomationSections: false,
         autoLoopThreshold: 30,
         lastVideoLength: 0,
-        automationSections: [], 
+        automationSections: [],
 
         manualSpeed: 100,
-        manualLoopCount: 3, 
+        manualLoopCount: 3,
       }
     },
 
@@ -545,69 +545,69 @@
         }, 0)
       },
 
-async launchFile(videoData) {
-  try {
-    const videoElement = this.$refs.videoPlayer
-    if (!videoElement) {
-      throw new Error('Video player not found')
-    }
-    
-    let filePath = null
-    if (videoData.absolutePath) {
-      filePath = videoData.absolutePath
-    } else if (typeof videoData === 'string') {
-      filePath = videoData
-    } else if (videoData.url) {
-      filePath = videoData.url
-    } else if (videoData.path && this.videoStore.rootDirectoryPath) {
-      filePath = `${this.videoStore.rootDirectoryPath}/${videoData.path}`.replace(
-        /[\\\/]+/g,
-        '/'
-      )
-    } else {
-      throw new Error('No valid file path available')
-    }
-    
-    await this.videoService.setVideoSource(videoElement, filePath)
-    
-    await new Promise((resolve, reject) => {
-      const onLoadedMetadata = () => {
-        videoElement.removeEventListener('loadedmetadata', onLoadedMetadata)
-        videoElement.removeEventListener('error', onError)
-        resolve()
-      }
-      
-      const onError = (e) => {
-        videoElement.removeEventListener('loadedmetadata', onLoadedMetadata)
-        videoElement.removeEventListener('error', onError)
-        reject(new Error('Failed to load video metadata'))
-      }
-      
-      videoElement.addEventListener('loadedmetadata', onLoadedMetadata)
-      videoElement.addEventListener('error', onError)
-      
-      // If already loaded
-      if (videoElement.readyState >= 1) {
-        onLoadedMetadata()
-      }
-    })
-    
-    this.videoStore.currentVideoName = videoData.name || 'Unknown Video'
-    this.videoStore.speed = 100
-    this.errorMessage = ''
-  } catch (error) {
-    this.errorMessage = `Failed to load video: ${error.message}`
-  }
-},
+      async launchFile(videoData) {
+        try {
+          const videoElement = this.$refs.videoPlayer
+          if (!videoElement) {
+            throw new Error('Video player not found')
+          }
 
-seekTo(timeInSeconds) {
-  const videoElement = this.$refs.videoPlayer
-  if (!videoElement) return
-  
-  if (videoElement.readyState >= 1) {
-    videoElement.currentTime = timeInSeconds
-  }
-},
+          let filePath = null
+          if (videoData.absolutePath) {
+            filePath = videoData.absolutePath
+          } else if (typeof videoData === 'string') {
+            filePath = videoData
+          } else if (videoData.url) {
+            filePath = videoData.url
+          } else if (videoData.path && this.videoStore.rootDirectoryPath) {
+            filePath = `${this.videoStore.rootDirectoryPath}/${videoData.path}`.replace(
+              /[\\\/]+/g,
+              '/'
+            )
+          } else {
+            throw new Error('No valid file path available')
+          }
+
+          await this.videoService.setVideoSource(videoElement, filePath)
+
+          await new Promise((resolve, reject) => {
+            const onLoadedMetadata = () => {
+              videoElement.removeEventListener('loadedmetadata', onLoadedMetadata)
+              videoElement.removeEventListener('error', onError)
+              resolve()
+            }
+
+            const onError = (e) => {
+              videoElement.removeEventListener('loadedmetadata', onLoadedMetadata)
+              videoElement.removeEventListener('error', onError)
+              reject(new Error('Failed to load video metadata'))
+            }
+
+            videoElement.addEventListener('loadedmetadata', onLoadedMetadata)
+            videoElement.addEventListener('error', onError)
+
+            // If already loaded
+            if (videoElement.readyState >= 1) {
+              onLoadedMetadata()
+            }
+          })
+
+          this.videoStore.currentVideoName = videoData.name || 'Unknown Video'
+          this.videoStore.speed = 100
+          this.errorMessage = ''
+        } catch (error) {
+          this.errorMessage = `Failed to load video: ${error.message}`
+        }
+      },
+
+      seekTo(timeInSeconds) {
+        const videoElement = this.$refs.videoPlayer
+        if (!videoElement) return
+
+        if (videoElement.readyState >= 1) {
+          videoElement.currentTime = timeInSeconds
+        }
+      },
 
       handleVideoLoaded() {
         const video = this.$refs.videoPlayer
@@ -619,7 +619,7 @@ seekTo(timeInSeconds) {
           this.loopsCompleted = 0
 
           if (this.enableAutoLoop && duration <= this.autoLoopThreshold) {
-            this.loop = true 
+            this.loop = true
           }
         }
       },
@@ -665,8 +665,8 @@ seekTo(timeInSeconds) {
             }
           }
         } else {
-            shouldLoop = this.loop && this.loopsCompleted < this.loopCount
-            maxLoops = this.loopCount
+          shouldLoop = this.loop && this.loopsCompleted < this.loopCount
+          maxLoops = this.loopCount
         }
 
         if (currentTime >= effectiveEnd - 0.3) {
@@ -676,7 +676,7 @@ seekTo(timeInSeconds) {
             if (this.loopsCompleted >= maxLoops) {
               video.pause()
               video.currentTime = effectiveEnd
-              this.loop = false 
+              this.loop = false
               return
             }
 
@@ -784,7 +784,7 @@ seekTo(timeInSeconds) {
 
       handleAutomationModeChange() {
         const video = this.$refs.videoPlayer
-        this.loopsCompleted = 0 
+        this.loopsCompleted = 0
 
         if (this.useAutomationSections) {
           this.manualSpeed = this.speed

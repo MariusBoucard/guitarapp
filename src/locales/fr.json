@@ -216,7 +216,7 @@
     "enter_user_name": "Entrez le nom de l'utilisateur",
     "email_optional": "Email (optionnel)",
     "cancel": "Annuler",
-    "create_user": "Créer l'utilisateur", 
+    "create_user": "Créer l'utilisateur",
     "save_changes": "Enregistrer les modifications",
     "delete_confirm": "Êtes-vous sûr de vouloir supprimer l'utilisateur {{name}} ?",
     "delete_warning": "Cette action est irréversible. Toutes les données de l'utilisateur seront perdues.",

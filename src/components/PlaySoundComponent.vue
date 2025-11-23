@@ -209,8 +209,7 @@
         }
       },
 
-      async onFileChange(event) {
-      },
+      async onFileChange(event) {},
 
       async loadAudioFile(fileData) {
         try {
@@ -296,7 +295,7 @@
         if (audio && audio.duration) {
           this.songPlayerStore.setSongLength(audio.duration)
 
-          // J'ai du casser ca... 
+          // J'ai du casser ca...
           this.audioService.initWaveSurfer('waveform', audio.src)
         }
       },

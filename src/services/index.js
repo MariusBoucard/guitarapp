@@ -24,7 +24,6 @@ export class ServiceManager {
     this.services.set('user', new UserService(this))
   }
 
-
   getService(serviceName) {
     const service = this.services.get(serviceName)
     if (!service) {

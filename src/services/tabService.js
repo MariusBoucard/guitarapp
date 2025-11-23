@@ -31,7 +31,7 @@ export class TabService {
     const fileName = this.extractFilename(filePath)
 
     return {
-      name: fileName.replace(/\.[^/.]+$/, ''), 
+      name: fileName.replace(/\.[^/.]+$/, ''),
       path: filePath,
       size: arrayBuffer.byteLength,
       artist: '',

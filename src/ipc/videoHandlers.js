@@ -7,40 +7,40 @@ import fs from 'fs-extra'
  */
 
 export function registerVideoHandlers() {
-ipcMain.handle('load-video-file', async (event, filePath) => {
-  try {
-    console.log('🎬 IPC: Validating video file:', filePath);
-    
-    if (!(await fs.pathExists(filePath))) {
-      throw new Error(`File does not exist: ${filePath}`);
+  ipcMain.handle('load-video-file', async (event, filePath) => {
+    try {
+      console.log('🎬 IPC: Validating video file:', filePath)
+
+      if (!(await fs.pathExists(filePath))) {
+        throw new Error(`File does not exist: ${filePath}`)
+      }
+
+      const ext = extname(filePath).toLowerCase()
+      const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv']
+
+      if (!videoExtensions.includes(ext)) {
+        throw new Error(`Unsupported video format: ${ext}`)
+      }
+
+      // DON'T sanitize - keep the native Windows path with backslashes
+      // Encode the ORIGINAL path as-is
+      const encodedPath = Buffer.from(filePath, 'utf-8').toString('hex')
+
+      console.log('✅ IPC: Returning video URL for path:', filePath)
+
+      return {
+        success: true,
+        url: `video-stream://${encodedPath}`,
+        fileName: basename(filePath),
+      }
+    } catch (error) {
+      console.error('❌ IPC: Failed to validate video file:', error)
+      return {
+        success: false,
+        error: error.message,
+      }
     }
-    
-    const ext = extname(filePath).toLowerCase();
-    const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'];
-    
-    if (!videoExtensions.includes(ext)) {
-      throw new Error(`Unsupported video format: ${ext}`);
-    }
-    
-    // DON'T sanitize - keep the native Windows path with backslashes
-    // Encode the ORIGINAL path as-is
-    const encodedPath = Buffer.from(filePath, 'utf-8').toString('hex');
-    
-    console.log('✅ IPC: Returning video URL for path:', filePath);
-    
-    return {
-      success: true,
-      url: `video-stream://${encodedPath}`,
-      fileName: basename(filePath),
-    };
-  } catch (error) {
-    console.error('❌ IPC: Failed to validate video file:', error);
-    return {
-      success: false,
-      error: error.message,
-    };
-  }
-});
+  })
   // Scan video directory handler
   ipcMain.handle('scan-video-directory', async (event, directoryPath) => {
     try {

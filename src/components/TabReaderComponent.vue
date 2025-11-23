@@ -188,88 +188,99 @@
       <div v-if="error" class="error">
         <p>{{ $t('tab_reader.error') }}: {{ error }}</p>
       </div>
-      
-    <div v-if="isLoaded" class="bottom-panel">
-      <div class="track-selector">
-        <label>Select Track:</label>
-        <select v-model="selectedTrack" @change="changeTrack">
-          <option v-for="(track, index) in tracks" :key="index" :value="index">
-            {{ track.name }} ({{ track.channel?.instrument?.name || 'Unknown Instrument' }})
-          </option>
-        </select>
 
-        <button @click="showMixer = !showMixer" class="mixer-toggle-btn">
-          {{ showMixer ? '🎚️ Hide Mixer' : '🎚️ Show Mixer' }}
-        </button>
-      </div>
+      <div v-if="isLoaded" class="bottom-panel">
+        <div class="track-selector">
+          <label>Select Track:</label>
+          <select v-model="selectedTrack" @change="changeTrack">
+            <option v-for="(track, index) in tracks" :key="index" :value="index">
+              {{ track.name }} ({{ track.channel?.instrument?.name || 'Unknown Instrument' }})
+            </option>
+          </select>
 
-      <div class="loop-controls">
-      <label for="loop-start">Start:</label>
-      <input id="loop-start" type="number" v-model.number="loopStartBar" min="1" @change="updateLoopRange">
-      
-      <label for="loop-end">End:</label>
-      <input id="loop-end" type="number" v-model.number="loopEndBar" min="1" @change="updateLoopRange">
-      
-      <button @click="toggleLoop" :class="{ 'active': isLooping }" class="loop-btn">
-        {{ isLooping ? '🔁 Loop On' : '🔁 Loop Off' }}
-      </button>
-    </div>
-      
-      <div v-if="showMixer" class="mixer-panel">
-        <h4>Track Mixer</h4>
-        <div class="mixer-tracks">
-          <div v-for="(track, index) in tracks" :key="index" class="mixer-track">
-            <div class="track-header">
-              <input 
-                type="checkbox" 
-                :checked="!track.playbackInfo.isMute"
-                @change="toggleMute(index)"
-                :id="'mute-' + index"
-              />
-              <label :for="'mute-' + index" class="track-name">
-                {{ track.name }}
-              </label>
-            </div>
-            <div class="track-controls">
-              <div class="control-group">
-                <label>Volume</label>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="16" 
-                  :value="track.playbackInfo.volume"
-                  @input="changeVolume(index, $event.target.value)"
-                  class="volume-slider"
+          <button @click="showMixer = !showMixer" class="mixer-toggle-btn">
+            {{ showMixer ? '🎚️ Hide Mixer' : '🎚️ Show Mixer' }}
+          </button>
+        </div>
+
+        <div class="loop-controls">
+          <label for="loop-start">Start:</label>
+          <input
+            id="loop-start"
+            type="number"
+            v-model.number="loopStartBar"
+            min="1"
+            @change="updateLoopRange"
+          />
+
+          <label for="loop-end">End:</label>
+          <input
+            id="loop-end"
+            type="number"
+            v-model.number="loopEndBar"
+            min="1"
+            @change="updateLoopRange"
+          />
+
+          <button @click="toggleLoop" :class="{ active: isLooping }" class="loop-btn">
+            {{ isLooping ? '🔁 Loop On' : '🔁 Loop Off' }}
+          </button>
+        </div>
+
+        <div v-if="showMixer" class="mixer-panel">
+          <h4>Track Mixer</h4>
+          <div class="mixer-tracks">
+            <div v-for="(track, index) in tracks" :key="index" class="mixer-track">
+              <div class="track-header">
+                <input
+                  type="checkbox"
+                  :checked="!track.playbackInfo.isMute"
+                  @change="toggleMute(index)"
+                  :id="'mute-' + index"
                 />
-                <span class="value-display">{{ track.playbackInfo.volume }}</span>
+                <label :for="'mute-' + index" class="track-name">
+                  {{ track.name }}
+                </label>
               </div>
-              <div class="control-group">
-                <label>Pan</label>
-                <input 
-                  type="range" 
-                  min="-64" 
-                  max="63" 
-                  :value="track.playbackInfo.balance"
-                  @input="changePanning(index, $event.target.value)"
-                  class="pan-slider"
-                />
-                <span class="value-display">{{ track.playbackInfo.balance }}</span>
-              </div>
-              <div class="control-group solo-group">
-                <button 
-                  @click="toggleSolo(index)"
-                  :class="{ 'active': track.playbackInfo.isSolo }"
-                  class="solo-btn"
-                >
-                  S
-                </button>
+              <div class="track-controls">
+                <div class="control-group">
+                  <label>Volume</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="16"
+                    :value="track.playbackInfo.volume"
+                    @input="changeVolume(index, $event.target.value)"
+                    class="volume-slider"
+                  />
+                  <span class="value-display">{{ track.playbackInfo.volume }}</span>
+                </div>
+                <div class="control-group">
+                  <label>Pan</label>
+                  <input
+                    type="range"
+                    min="-64"
+                    max="63"
+                    :value="track.playbackInfo.balance"
+                    @input="changePanning(index, $event.target.value)"
+                    class="pan-slider"
+                  />
+                  <span class="value-display">{{ track.playbackInfo.balance }}</span>
+                </div>
+                <div class="control-group solo-group">
+                  <button
+                    @click="toggleSolo(index)"
+                    :class="{ active: track.playbackInfo.isSolo }"
+                    class="solo-btn"
+                  >
+                    S
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    
     </div>
   </div>
 </template>
@@ -1221,9 +1232,16 @@ Solutions:
         }
 
         try {
+          console.log('Loading tab from playlist:', tab.name)
           const fileHandle = await fileHandleService.getFileHandle(tab.fileHandleId)
           if (!fileHandle) throw new Error('File handle not found. It may have been cleared.')
-
+          const permission = await fileHandle.queryPermission({ mode: 'read' })
+          if (permission !== 'granted') {
+            const newPermission = await fileHandle.requestPermission({ mode: 'read' })
+            if (newPermission !== 'granted') {
+              throw new Error('Permission denied to access file')
+            }
+          }
           const file = await fileHandle.getFile()
 
           if (tab.fileType === 'json' || file.name.endsWith('.json')) {

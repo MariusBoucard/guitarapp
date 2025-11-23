@@ -7,7 +7,7 @@ export const useSongPlayerStore = defineStore('songPlayer', {
     songLength: 0,
     // Tout ca me semble pas utilisé pour l'instant
     // TODO :  Implementer ces reglages dans le player pour que
-    // ça reste lors dechangement de chanson etc... 
+    // ça reste lors dechangement de chanson etc...
     startTime: 0,
     endTime: 0,
     speed: 100,
@@ -17,7 +17,6 @@ export const useSongPlayerStore = defineStore('songPlayer', {
   }),
 
   getters: {
-
     audioPathForTraining: () => (trainingStore) => {
       if (!trainingStore || !trainingStore.currentTrainingData) {
         return []
@@ -144,16 +143,16 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       if (!userStore.currentUser) return
 
       // TODO : devrais marcher sans
-//      const songLength = localStorage.getItem('songLength')
-//      if (songLength) {
- //       for (let i = 0; i < parseInt(songLength); i++) {
- //         const song = localStorage.getItem(`song${i}`)
- //         if (song && !this.songPath.includes(song)) {
- //           this.songPath.push(song)
-  //          this.audioPath.push(song)
-   //       }
-   //     }
-    //  }
+      //      const songLength = localStorage.getItem('songLength')
+      //      if (songLength) {
+      //       for (let i = 0; i < parseInt(songLength); i++) {
+      //         const song = localStorage.getItem(`song${i}`)
+      //         if (song && !this.songPath.includes(song)) {
+      //           this.songPath.push(song)
+      //          this.audioPath.push(song)
+      //       }
+      //     }
+      //  }
     },
   },
 })

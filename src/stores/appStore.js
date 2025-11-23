@@ -20,7 +20,6 @@ export const useAppStore = defineStore('app', {
   }),
 
   getters: {
-
     userStore() {
       return useUserStore()
     },

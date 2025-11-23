@@ -161,7 +161,6 @@ export class AudioService {
     }
   }
 
-
   pauseAudio(audio) {
     if (audio && !audio.paused) {
       audio.pause()
