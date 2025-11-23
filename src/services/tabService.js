@@ -7,9 +7,6 @@ export class TabService {
     this.serviceManager = serviceManager
   }
 
-  /**
-   * Load tab file and return metadata
-   */
   async loadTabFile(filePath) {
     try {
       const response = await fetch(filePath)
@@ -30,15 +27,11 @@ export class TabService {
     }
   }
 
-  /**
-   * Extract metadata from Guitar Pro file
-   * This is a simplified version - AlphaTab will do the full parsing
-   */
   async extractTabMetadata(arrayBuffer, filePath) {
     const fileName = this.extractFilename(filePath)
 
     return {
-      name: fileName.replace(/\.[^/.]+$/, ''), // Remove extension
+      name: fileName.replace(/\.[^/.]+$/, ''),
       path: filePath,
       size: arrayBuffer.byteLength,
       artist: '',
@@ -46,9 +39,6 @@ export class TabService {
     }
   }
 
-  /**
-   * Open file picker for Guitar Pro files
-   */
   async openTabFilePicker() {
     return new Promise((resolve, reject) => {
       try {
@@ -89,12 +79,10 @@ export class TabService {
     })
   }
 
-  /**
-   * Export playlist to JSON file
-   */
   async exportPlaylistToFile(playlist) {
     try {
       const exportData = {
+        // TODO : dynamic app version
         version: '1.0.0',
         exportDate: new Date().toISOString(),
         playlist: {
@@ -124,9 +112,6 @@ export class TabService {
     }
   }
 
-  /**
-   * Import playlist from JSON file
-   */
   async importPlaylistFromFile() {
     return new Promise((resolve, reject) => {
       try {
@@ -170,9 +155,6 @@ export class TabService {
     })
   }
 
-  /**
-   * Validate playlist import data
-   */
   validatePlaylistImport(data) {
     if (!data || typeof data !== 'object') return false
     if (!data.version || !data.playlist) return false
@@ -180,17 +162,11 @@ export class TabService {
     return true
   }
 
-  /**
-   * Extract filename from path
-   */
   extractFilename(filePath) {
     if (!filePath) return 'Unknown'
     return filePath.split(/[\\\/]/).pop() || 'Unknown'
   }
 
-  /**
-   * Sanitize filename for safe file downloads
-   */
   sanitizeFilename(filename) {
     return filename
       .replace(/[^a-z0-9]/gi, '_')
@@ -198,38 +174,16 @@ export class TabService {
       .toLowerCase()
   }
 
-  /**
-   * Check if file is a valid Guitar Pro tab file
-   */
   isValidTabFile(filename) {
     const tabExtensions = ['.gp3', '.gp4', '.gp5', '.gpx', '.gp', '.ptb']
     const extension = filename.toLowerCase().split('.').pop()
     return tabExtensions.includes(`.${extension}`)
   }
 
-  /**
-   * Get file extension
-   */
   getFileExtension(filename) {
     return filename.split('.').pop().toLowerCase()
   }
 
-  /**
-   * Format file size to human-readable string
-   */
-  formatFileSize(bytes) {
-    if (bytes === 0) return '0 B'
-
-    const k = 1024
-    const sizes = ['B', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
-  }
-
-  /**
-   * Sort tabs in playlist by various criteria
-   */
   sortPlaylistTabs(tabs, sortBy = 'name', ascending = true) {
     const sorted = [...tabs].sort((a, b) => {
       let comparison = 0
@@ -254,9 +208,6 @@ export class TabService {
     return sorted
   }
 
-  /**
-   * Search tabs across playlists
-   */
   searchTabs(playlists, searchTerm) {
     const results = []
     const term = searchTerm.toLowerCase()
@@ -281,9 +232,6 @@ export class TabService {
     return results
   }
 
-  /**
-   * Get statistics for tab collection
-   */
   getTabStatistics(playlists) {
     const stats = {
       totalPlaylists: playlists.length,

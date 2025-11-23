@@ -3,13 +3,14 @@
  * Each user has their own instance of trainings, videos, settings, etc.
  * This is the Model layer for user management in MVC architecture
  */
+
 import { defineStore } from 'pinia'
 
 export const useUserStore = defineStore('user', {
   state: () => {
     console.log('🔴 STATE INITIALIZER: Creating initial state...')
 
-    // Try to load from localStorage DURING state creation
+    // TODO : Il doit changer, son model de data doit avoir un pb de format...
     let initialUsers = [
       {
         id: 'default',
@@ -78,7 +79,6 @@ export const useUserStore = defineStore('user', {
 
     let initialCurrentUserId = null
 
-    // Try to load from localStorage RIGHT NOW during state creation
     try {
       if (typeof localStorage !== 'undefined') {
         const savedData = localStorage.getItem('guitarapp_users')
@@ -112,48 +112,29 @@ export const useUserStore = defineStore('user', {
     }
 
     return {
-      // Initialization flag to prevent saves during load
-      // Start as TRUE to prevent saves until initialize() completes
       isInitializing: true,
-
-      // Current active user
       currentUserId: initialCurrentUserId,
       currentUserName: '',
-
-      // List of all users (loaded from localStorage or default)
       users: initialUsers,
-
-      // Import/Export metadata
       lastExportDate: null,
       lastImportDate: null,
     }
   },
 
   getters: {
-    // Get current active user
     currentUser: (state) => {
       return state.users.find((user) => user.id === state.currentUserId) || state.users[0]
     },
-
-    // Get all user names
     userNames: (state) => {
       return state.users.map((user) => ({ id: user.id, name: user.name }))
     },
-
-    // Check if user exists
     userExists: (state) => (userId) => {
       return state.users.some((user) => user.id === userId)
     },
-
-    // Get user by ID
     getUserById: (state) => (userId) => {
       return state.users.find((user) => user.id === userId)
     },
-
-    // Get total users count
     totalUsers: (state) => state.users.length,
-
-    // Get user data for current user
     currentUserData: (state) => {
       const user = state.users.find((user) => user.id === state.currentUserId)
       return user ? user.data : null
@@ -161,7 +142,6 @@ export const useUserStore = defineStore('user', {
   },
 
   actions: {
-    // Initialize - load users from storage and set active user
     initialize() {
       console.log('='.repeat(80))
       console.log('🚀 INITIALIZE: Starting user store initialization...')
@@ -174,9 +154,6 @@ export const useUserStore = defineStore('user', {
       console.log('='.repeat(80))
 
       this.isInitializing = true
-
-      // Check if we already loaded from localStorage during state creation
-      // We know it loaded if we have users AND currentUserId is set
       const alreadyLoadedFromStorage = this.users.length > 0 && this.currentUserId !== null
 
       if (!alreadyLoadedFromStorage) {
@@ -198,7 +175,6 @@ export const useUserStore = defineStore('user', {
         )
       })
 
-      // Ensure currentUserId is set - this is CRITICAL
       if (!this.currentUserId) {
         console.log('⚠️ INITIALIZE: currentUserId not set, fixing...')
         const savedUserId = localStorage.getItem('guitarapp_currentUserId')
@@ -211,7 +187,6 @@ export const useUserStore = defineStore('user', {
           console.log('🔍 INITIALIZE: Set to first user:', this.users[0].name)
         }
       } else {
-        // Ensure currentUserName is also set
         const user = this.getUserById(this.currentUserId)
         if (user) {
           this.currentUserName = user.name
@@ -227,14 +202,10 @@ export const useUserStore = defineStore('user', {
 
       this.isInitializing = false
 
-      // NOW it's safe to update and save
       this.updateLastActive()
-
-      // IMPORTANT: Save to ensure currentUserId is persisted if it was just set
       this.saveUsersToStorage()
     },
 
-    // Create new user
     createUser(userName, email = '', avatar = '') {
       const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
@@ -335,7 +306,6 @@ export const useUserStore = defineStore('user', {
       return userId
     },
 
-    // Delete user
     deleteUser(userId) {
       if (this.users.length <= 1) {
         throw new Error('Cannot delete the last user')
@@ -348,7 +318,6 @@ export const useUserStore = defineStore('user', {
 
       this.users.splice(index, 1)
 
-      // If deleted user was current, switch to first available
       if (this.currentUserId === userId) {
         this.switchUser(this.users[0].id)
       }
@@ -356,14 +325,11 @@ export const useUserStore = defineStore('user', {
       this.saveUsersToStorage()
     },
 
-    // Switch active user
     switchUser(userId) {
       if (!this.userExists(userId)) {
         throw new Error('User does not exist')
       }
 
-      // Simply switch the current user - stores will automatically reflect new data
-      // because they use computed properties that reference currentUser.data
       this.currentUserId = userId
       const user = this.getUserById(userId)
       this.currentUserName = user.name
@@ -373,7 +339,6 @@ export const useUserStore = defineStore('user', {
       this.saveUsersToStorage()
     },
 
-    // Update user profile
     updateUserProfile(userId, updates) {
       const user = this.getUserById(userId)
       if (!user) {
@@ -387,7 +352,6 @@ export const useUserStore = defineStore('user', {
       this.saveUsersToStorage()
     },
 
-    // Update last active timestamp
     updateLastActive() {
       const user = this.currentUser
       if (user) {
@@ -396,33 +360,21 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    // No longer needed - stores reference user data directly
-    // Kept for backward compatibility with export/import
     captureCurrentStoreStates() {
-      // Data is already in currentUser.data - no capture needed
-      // Just save to storage
       this.saveUsersToStorage()
     },
 
-    // No longer needed - stores reference user data directly
-    // Kept for backward compatibility
     restoreUserStoreStates() {
-      // Data is automatically reflected because stores use computed properties
-      // that reference currentUser.data
-      // Just ensure we save to storage
       this.saveUsersToStorage()
     },
 
-    // Export user data to JSON
     exportUser(userId) {
       const user = this.getUserById(userId)
       if (!user) {
         throw new Error('User not found')
       }
 
-      // Data is always up-to-date since stores reference user.data directly
-      // No need to capture state
-
+      // TODO : Set this on app's version's number dynamically
       const exportData = {
         version: '1.0.0',
         exportDate: new Date().toISOString(),
@@ -441,7 +393,6 @@ export const useUserStore = defineStore('user', {
       return exportData
     },
 
-    // Import user data from JSON
     importUser(importData, overwriteExisting = false) {
       if (!importData || !importData.user) {
         throw new Error('Invalid import data')
@@ -449,22 +400,18 @@ export const useUserStore = defineStore('user', {
 
       const userData = importData.user
 
-      // Check if user with same name exists
       const existingUser = this.users.find((u) => u.name === userData.name)
 
       if (existingUser && !overwriteExisting) {
-        // Create new user with modified name
         const newName = `${userData.name} (Imported ${new Date().toLocaleDateString()})`
         const userId = this.createUser(newName, userData.email || '', userData.avatar || '')
         const newUser = this.getUserById(userId)
         newUser.data = JSON.parse(JSON.stringify(userData.data))
       } else if (existingUser && overwriteExisting) {
-        // Overwrite existing user
         existingUser.data = JSON.parse(JSON.stringify(userData.data))
         existingUser.email = userData.email || existingUser.email
         existingUser.avatar = userData.avatar || existingUser.avatar
       } else {
-        // Create new user
         const userId = this.createUser(userData.name, userData.email || '', userData.avatar || '')
         const newUser = this.getUserById(userId)
         newUser.data = JSON.parse(JSON.stringify(userData.data))
@@ -474,11 +421,8 @@ export const useUserStore = defineStore('user', {
       this.saveUsersToStorage()
     },
 
-    // Export all users
     exportAllUsers() {
-      // Data is always up-to-date since stores reference user.data directly
-      // No need to capture state
-
+      // TODO : dynamic versioning
       const exportData = {
         version: '1.0.0',
         exportDate: new Date().toISOString(),
@@ -497,9 +441,7 @@ export const useUserStore = defineStore('user', {
       return exportData
     },
 
-    // Storage methods
     saveUsersToStorage() {
-      // Don't save during initialization to prevent overwriting loaded data
       if (this.isInitializing) {
         console.log('⏸️  SAVE SKIPPED: Still initializing, will save after load complete')
         return false
@@ -531,7 +473,6 @@ export const useUserStore = defineStore('user', {
           })
         )
 
-        // CRITICAL: Verify the write was successful
         const verification = localStorage.getItem('guitarapp_users')
         if (verification) {
           const verifyParsed = JSON.parse(verification)
@@ -570,22 +511,18 @@ export const useUserStore = defineStore('user', {
             usersCount: (parsed.users || parsed).length,
           })
 
-          // Handle new format (with currentUserId) and old format (just array)
           if (parsed.users && Array.isArray(parsed.users)) {
-            // New format
             this.users = parsed.users
             this.currentUserId = parsed.currentUserId || this.users[0]?.id
             console.log('✅ LOAD: Loaded new format:', this.users.length, 'users')
             console.log('✅ LOAD: Current user ID:', this.currentUserId)
             console.log('✅ LOAD: User names:', this.users.map((u) => u.name).join(', '))
           } else if (Array.isArray(parsed)) {
-            // Old format (just array of users)
             this.users = parsed
             this.currentUserId = this.users[0]?.id
             console.log('✅ LOAD: Loaded old format:', this.users.length, 'users')
           }
 
-          // Data migration: Ensure all users have pictures array
           this.users.forEach((user) => {
             if (!user.data.pictures) {
               user.data.pictures = []
@@ -608,7 +545,6 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    // Clear all user data (reset to default)
     resetAllUsers() {
       this.users = [
         {

@@ -3,27 +3,22 @@ import { useUserStore } from './userStore'
 
 export const useSongPlayerStore = defineStore('songPlayer', {
   state: () => ({
-    // UI State only (not user-specific data)
     currentSong: '',
     songLength: 0,
-
-    // Playback settings
+    // Tout ca me semble pas utilisé pour l'instant
+    // TODO :  Implementer ces reglages dans le player pour que
+    // ça reste lors dechangement de chanson etc...
     startTime: 0,
     endTime: 0,
     speed: 100,
     pitch: 0,
     loop: false,
-
-    // Directory settings (session-specific)
     defaultPath: '/media/marius/DISK GROS/',
   }),
 
   getters: {
-    // Get audio files for the currently selected training
-    // This should be called with trainingStore as a parameter from components
     audioPathForTraining: () => (trainingStore) => {
       if (!trainingStore || !trainingStore.currentTrainingData) {
-        // No training selected - return empty array
         return []
       }
 
@@ -34,7 +29,6 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       return training.audioFiles
     },
 
-    // Legacy getter for global audio files (kept for backward compatibility)
     audioPath() {
       const userStore = useUserStore()
       if (!userStore.currentUser?.data?.audioFiles) {
@@ -62,16 +56,13 @@ export const useSongPlayerStore = defineStore('songPlayer', {
   },
 
   actions: {
-    // Audio file management for trainings - modify userStore data directly
     addAudioToTraining(trainingStore, trainingId, audioPath) {
       const training = trainingStore.trainingList.find((t) => t.id === trainingId)
       if (training) {
-        // Initialize audioFiles array if it doesn't exist (for backward compatibility)
         if (!training.audioFiles) {
           training.audioFiles = []
         }
 
-        // Check if audio file already exists
         if (!training.audioFiles.includes(audioPath)) {
           training.audioFiles.push(audioPath)
           trainingStore.saveTrainingsToStorage()
@@ -90,16 +81,13 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       }
     },
 
-    // File management - modify userStore data directly
     addAudioFile(trainingStore, filePath, fileName) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
-      // Add to current training if one is selected
       if (trainingStore.currentTrainingData) {
         this.addAudioToTraining(trainingStore, trainingStore.selectedTraining, filePath)
       } else {
-        // Fallback to global if no training selected
         if (!userStore.currentUser.data.audioFiles) {
           userStore.currentUser.data.audioFiles = []
         }
@@ -114,11 +102,9 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
-      // Remove from current training if one is selected
       if (trainingStore.currentTrainingData) {
         this.removeAudioFromTraining(trainingStore, trainingStore.selectedTraining, filePath)
       } else {
-        // Fallback to global removal
         const audioFiles = userStore.currentUser.data.audioFiles || []
         const index = audioFiles.indexOf(filePath)
         if (index > -1) {
@@ -129,12 +115,10 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       userStore.saveUsersToStorage()
     },
 
-    // Update audio path when training changes (not needed anymore - computed property handles it)
     updateAudioPathForTraining(trainingStore) {
       // No-op: audioPath is now a getter that automatically reflects current data
     },
 
-    // Playback control
     setPlaybackSettings({ startTime, endTime, speed, pitch, loop }) {
       if (startTime !== undefined) this.startTime = startTime
       if (endTime !== undefined) this.endTime = endTime
@@ -148,28 +132,27 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       this.endTime = duration
     },
 
-    // Storage methods - now delegates to userStore
+    // TODO ! C'est débile, on devrait sauver ce store dans le store du user ou qq chose, mais pas ca
     saveAudioToStorage() {
       const userStore = useUserStore()
       userStore.saveUsersToStorage()
     },
 
-    // Load from storage - migrate old data if needed
     loadFromStorage() {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
-      // Migration: Load individual songs (legacy support)
-      const songLength = localStorage.getItem('songLength')
-      if (songLength) {
-        for (let i = 0; i < parseInt(songLength); i++) {
-          const song = localStorage.getItem(`song${i}`)
-          if (song && !this.songPath.includes(song)) {
-            this.songPath.push(song)
-            this.audioPath.push(song)
-          }
-        }
-      }
+      // TODO : devrais marcher sans
+      //      const songLength = localStorage.getItem('songLength')
+      //      if (songLength) {
+      //       for (let i = 0; i < parseInt(songLength); i++) {
+      //         const song = localStorage.getItem(`song${i}`)
+      //         if (song && !this.songPath.includes(song)) {
+      //           this.songPath.push(song)
+      //          this.audioPath.push(song)
+      //       }
+      //     }
+      //  }
     },
   },
 })

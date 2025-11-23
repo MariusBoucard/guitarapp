@@ -15,9 +15,6 @@ export class ServiceManager {
     this.initializeServices()
   }
 
-  /**
-   * Initialize all services
-   */
   initializeServices() {
     this.services.set('audio', new AudioService(this))
     this.services.set('video', new VideoService(this))
@@ -27,9 +24,6 @@ export class ServiceManager {
     this.services.set('user', new UserService(this))
   }
 
-  /**
-   * Get a service by name
-   */
   getService(serviceName) {
     const service = this.services.get(serviceName)
     if (!service) {
@@ -38,65 +32,37 @@ export class ServiceManager {
     return service
   }
 
-  /**
-   * Get audio service
-   */
   get audio() {
     return this.getService('audio')
   }
 
-  /**
-   * Get video service
-   */
   get video() {
     return this.getService('video')
   }
 
-  /**
-   * Get file service
-   */
   get file() {
     return this.getService('file')
   }
 
-  /**
-   * Get settings service
-   */
   get settings() {
     return this.getService('settings')
   }
 
-  /**
-   * Get storage service
-   */
   get storage() {
     return this.getService('storage')
   }
 
-  /**
-   * Get user service
-   */
   get user() {
     return this.getService('user')
   }
 
-  /**
-   * Register a new service
-   */
   registerService(name, service) {
     this.services.set(name, service)
   }
 
-  /**
-   * Check if service exists
-   */
   hasService(serviceName) {
     return this.services.has(serviceName)
   }
-
-  /**
-   * Cleanup all services
-   */
   cleanup() {
     this.services.forEach((service) => {
       if (typeof service.cleanup === 'function') {
@@ -106,6 +72,4 @@ export class ServiceManager {
     this.services.clear()
   }
 }
-
-// Create singleton instance
 export const serviceManager = new ServiceManager()

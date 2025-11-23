@@ -6,7 +6,6 @@ import { defineStore } from 'pinia'
 
 export const useGameStore = defineStore('game', {
   state: () => ({
-    // Game state
     score: 0,
     cheat: false,
     noteGreat: undefined,
@@ -15,12 +14,10 @@ export const useGameStore = defineStore('game', {
   }),
 
   getters: {
-    // Check if game is active
     isGameActive: (state) => {
       return state.isPlayingRoot
     },
 
-    // Get current game stats
     gameStats: (state) => ({
       score: state.score,
       cheat: state.cheat,
@@ -29,7 +26,6 @@ export const useGameStore = defineStore('game', {
   },
 
   actions: {
-    // Score management
     setScore(score) {
       this.score = score
     },
@@ -46,7 +42,6 @@ export const useGameStore = defineStore('game', {
       this.score = 0
     },
 
-    // Cheat mode
     setCheat(cheat) {
       this.cheat = cheat
     },
@@ -55,7 +50,6 @@ export const useGameStore = defineStore('game', {
       this.cheat = !this.cheat
     },
 
-    // Game playing state
     setPlayingRoot(playing) {
       this.isPlayingRoot = playing
     },
@@ -64,17 +58,14 @@ export const useGameStore = defineStore('game', {
       this.isPlayingRoot = !this.isPlayingRoot
     },
 
-    // Note result tracking
     setNoteResult(result) {
       this.noteGreat = result
     },
 
-    // Expected note for game
     setNoteExpected(note) {
       this.noteexpected = note
     },
 
-    // Reset game state
     resetGame() {
       this.score = 0
       this.cheat = false

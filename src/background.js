@@ -1,9 +1,13 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, crashReporter, ipcMain } from 'electron'
+import { app, protocol, BrowserWindow, crashReporter, ipcMain, net } from 'electron'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { join, dirname, basename, extname } from 'path'
+import { Readable } from 'stream'
+import mime from 'mime-types'
+import { fileURLToPath, pathToFileURL } from 'url'
+import * as url from 'url'
+import fs from 'fs-extra'
 
 // Import modular IPC handlers
 import { registerAllIPCHandlers } from './ipc/index.js'
@@ -34,6 +38,16 @@ const __dirname = dirname(__filename)
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } },
+  {
+    scheme: 'video-stream',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      bypassCSP: true,
+      stream: true,
+    },
+  },
 ])
 
 // Track app quit state
@@ -79,7 +93,73 @@ async function createWindow() {
     }
     callback(true)
   })
+  session.protocol.handle('video-stream', async (request) => {
+    const schemePrefixLength = 'video-stream://'.length
+    const urlPath = request.url.slice(schemePrefixLength).replace(/\/$/, '')
 
+    try {
+      let decodedPath = Buffer.from(urlPath, 'hex').toString('utf-8')
+
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.log('🟢 SESSION HANDLER CALLED')
+      console.log('📝 Decoded Path:', decodedPath)
+
+      if (!fs.existsSync(decodedPath)) {
+        console.error('❌ FILE DOES NOT EXIST:', decodedPath)
+        return new Response('File not found', { status: 404 })
+      }
+
+      const stat = fs.statSync(decodedPath)
+      const fileSize = stat.size
+      const mimeType = mime.lookup(decodedPath) || 'video/mp4'
+
+      // Check for range request (critical for video seeking)
+      const range = request.headers.get('range')
+
+      if (range) {
+        console.log('📝 Range request:', range)
+
+        // Parse range header (e.g., "bytes=0-1023")
+        const parts = range.replace(/bytes=/, '').split('-')
+        const start = parseInt(parts[0], 10)
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1
+        const chunkSize = end - start + 1
+
+        console.log(`📝 Serving bytes ${start}-${end} of ${fileSize}`)
+
+        const fileStream = fs.createReadStream(decodedPath, { start, end })
+
+        return new Response(Readable.toWeb(fileStream), {
+          status: 206, // Partial Content
+          headers: {
+            'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+            'Accept-Ranges': 'bytes',
+            'Content-Length': chunkSize.toString(),
+            'Content-Type': mimeType,
+          },
+        })
+      }
+
+      // No range request - serve full file
+      console.log('📝 Serving full file, size:', fileSize)
+      const fileStream = fs.createReadStream(decodedPath)
+
+      return new Response(Readable.toWeb(fileStream), {
+        status: 200,
+        headers: {
+          'Content-Length': fileSize.toString(),
+          'Content-Type': mimeType,
+          'Accept-Ranges': 'bytes', // Tell browser seeking is supported
+        },
+      })
+    } catch (err) {
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.error('❌ SESSION PROTOCOL FAILED')
+      console.error('❌ Error:', err)
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      return new Response('Internal server error', { status: 500 })
+    }
+  })
   if (isDevelopment) {
     try {
       await win.loadURL('http://localhost:8080')
@@ -161,17 +241,6 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-app.once('ready', () => {
-  protocol.interceptFileProtocol('file', (request, callback) => {
-    try {
-      const filePath = fileURLToPath(request.url)
-      callback({ path: filePath })
-    } catch (err) {
-      console.error('Failed to resolve file URL for protocol handler:', request.url, err)
-      callback({ error: -6 })
-    }
-  })
-})
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -183,6 +252,15 @@ app.whenReady().then(async () => {
   console.log('📁 App data directory:', app.getPath('appData'))
   console.log('💾 localStorage will be stored in the user data directory')
 
+  protocol.interceptFileProtocol('file', (request, callback) => {
+    try {
+      const filePath = fileURLToPath(request.url)
+      callback({ path: filePath })
+    } catch (err) {
+      console.error('Failed to resolve file URL for protocol handler:', request.url, err)
+      callback({ error: -6 })
+    }
+  })
   if (isDevelopment && !process.env.IS_TEST) {
     try {
       const session = require('electron').session.defaultSession

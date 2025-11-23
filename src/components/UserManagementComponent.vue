@@ -144,11 +144,7 @@
           </div>
           <div class="form-group">
             <label>{{ $t('user.email_optional') }}</label>
-            <input
-              v-model="newUserForm.email"
-              type="email"
-              :placeholder="$t('user.email_placeholder')"
-            />
+            <input v-model="newUserForm.email" type="email" placeholder="user@example.com" />
           </div>
           <div class="form-actions">
             <button type="button" @click="showCreateUserDialog = false" class="btn-secondary">

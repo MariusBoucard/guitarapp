@@ -58,26 +58,16 @@ export class VideoService {
       this.currentBlobUrl = null
     }
 
-    // For Electron, use IPC to load video securely
     if (window.electronAPI && window.electronAPI.loadVideoFile) {
       try {
         console.log('Loading video via IPC:', filePath)
         const result = await window.electronAPI.loadVideoFile(filePath)
 
         if (result.success) {
-          // Convert base64 to blob URL
-          const binaryString = atob(result.data)
-          const bytes = new Uint8Array(binaryString.length)
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i)
-          }
-
-          const blob = new Blob([bytes], { type: result.mimeType })
-          this.currentBlobUrl = URL.createObjectURL(blob)
-          videoElement.src = this.currentBlobUrl
-
-          console.log('Video loaded successfully via IPC')
-          return this.currentBlobUrl
+          // Simply use the streaming protocol URL
+          videoElement.src = result.url
+          console.log('Video set up for streaming:', result.url)
+          return result.url
         } else {
           throw new Error(result.error || 'Failed to load video file')
         }

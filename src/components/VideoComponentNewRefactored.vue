@@ -63,7 +63,6 @@
             </div>
           </div>
 
-          <!-- Directory Selection -->
           <div class="section-card">
             <input
               v-model="defaultPath"
@@ -270,7 +269,6 @@
           </div>
         </div>
 
-        <!-- Automation Line -->
         <AutomationLineComponent
           @automation-updated="handleAutomationUpdate"
           ref="automationLine"
@@ -309,25 +307,22 @@
         errorMessage: '',
         showAutoReloadMessage: false,
         loopsCompleted: 0,
-        loopCount: 3, // Default to 3 loops
-        enableAutoLoop: true, // Enable auto-loop by default
-        useAutomationSections: false, // Whether to use automation line settings
-        autoLoopThreshold: 15, // Default to 15 seconds
-        lastVideoLength: 0, // Track last video length for auto-loop
-        automationSections: [], // Store automation line data
+        loopCount: 3,
+        enableAutoLoop: true,
+        useAutomationSections: false,
+        autoLoopThreshold: 30,
+        lastVideoLength: 0,
+        automationSections: [],
 
-        // Store the automation settings separately from manual settings
-        manualSpeed: 100, // Store manual speed when not using automation
-        manualLoopCount: 3, // Store manual loop count when not using automation
+        manualSpeed: 100,
+        manualLoopCount: 3,
       }
     },
 
     computed: {
-      // Reference store's training list directly (per-user data)
       trainingList() {
         return this.videoStore.niouTrainingList
       },
-
       currentVideoName() {
         return this.videoStore.currentVideoName
       },
@@ -393,7 +388,6 @@
         )
       },
 
-      // Effective end time is either the user-set end time or the full video duration
       effectiveEndTime() {
         return this.endTime || this.videoDuration
       },
@@ -417,25 +411,21 @@
               if (scanResult.success && scanResult.videos.length > 0) {
                 const videos = scanResult.videos
 
-                // Save the directory tree
                 const saveResult = await window.electronAPI.saveDirectoryTree(selectedPath, videos)
                 if (saveResult.success) {
                   console.log('Directory tree saved to:', saveResult.filePath)
                 }
 
-                // Convert and set the training structure
                 const trainingStructure = this.convertVideosToTrainingStructure(
                   videos,
                   selectedPath
                 )
 
-                // Update store
                 this.videoStore.rootDirectoryPath = selectedPath
                 this.videoStore.directoryStructure.name = selectedPath.split(/[\\\/]/).pop()
                 this.videoStore.directoryStructure.path = selectedPath
                 this.videoStore.directoryStructure.lastScanned = new Date().toISOString()
 
-                // Update the training list in store (per-user data)
                 this.videoStore.setNiouTrainingList(trainingStructure)
 
                 this.videoStore.saveDirectoryInfo()
@@ -524,19 +514,16 @@
       },
 
       toggleTraining(index) {
-        // Close all other trainings first (directly in store data)
         const trainingList = this.videoStore.niouTrainingList
         trainingList.forEach((training, i) => {
           if (i !== index) {
             training.show = false
           }
         })
-        // Toggle the selected training
         this.videoStore.toggleTrainingVisibility(index)
       },
 
       toggleItem(trainingIndex, itemIndex) {
-        // Close all other items in this training (directly in store data)
         const trainingList = this.videoStore.niouTrainingList
         if (trainingList[trainingIndex]?.trainings) {
           trainingList[trainingIndex].trainings.forEach((item, i) => {
@@ -566,7 +553,6 @@
           }
 
           let filePath = null
-
           if (videoData.absolutePath) {
             filePath = videoData.absolutePath
           } else if (typeof videoData === 'string') {
@@ -584,12 +570,42 @@
 
           await this.videoService.setVideoSource(videoElement, filePath)
 
+          await new Promise((resolve, reject) => {
+            const onLoadedMetadata = () => {
+              videoElement.removeEventListener('loadedmetadata', onLoadedMetadata)
+              videoElement.removeEventListener('error', onError)
+              resolve()
+            }
+
+            const onError = (e) => {
+              videoElement.removeEventListener('loadedmetadata', onLoadedMetadata)
+              videoElement.removeEventListener('error', onError)
+              reject(new Error('Failed to load video metadata'))
+            }
+
+            videoElement.addEventListener('loadedmetadata', onLoadedMetadata)
+            videoElement.addEventListener('error', onError)
+
+            // If already loaded
+            if (videoElement.readyState >= 1) {
+              onLoadedMetadata()
+            }
+          })
+
           this.videoStore.currentVideoName = videoData.name || 'Unknown Video'
           this.videoStore.speed = 100
-
           this.errorMessage = ''
         } catch (error) {
           this.errorMessage = `Failed to load video: ${error.message}`
+        }
+      },
+
+      seekTo(timeInSeconds) {
+        const videoElement = this.$refs.videoPlayer
+        if (!videoElement) return
+
+        if (videoElement.readyState >= 1) {
+          videoElement.currentTime = timeInSeconds
         }
       },
 
@@ -600,12 +616,10 @@
           this.videoStore.setVideoLength(duration)
           this.lastVideoLength = duration
 
-          // Reset loop counter
           this.loopsCompleted = 0
 
-          // Set initial loop state based on video length
           if (this.enableAutoLoop && duration <= this.autoLoopThreshold) {
-            this.loop = true // Enable looping for short videos
+            this.loop = true
           }
         }
       },
@@ -622,13 +636,10 @@
         if (this.useAutomationSections && this.automationSections.length > 0) {
           const totalReps = this.automationSections.reduce((sum, s) => sum + s.NBReps, 0)
 
-          // If we have any reps left to do
           if (this.loopsCompleted < totalReps) {
-            // Find the current section based on completed loops
             let completedReps = 0
             let currentSectionIndex = -1
 
-            // Find which section we're currently on
             for (let i = 0; i < this.automationSections.length; i++) {
               const nextRepCount = completedReps + this.automationSections[i].NBReps
               if (this.loopsCompleted < nextRepCount) {
@@ -638,18 +649,15 @@
               completedReps = nextRepCount
             }
 
-            // We found a valid section
             if (currentSectionIndex >= 0) {
               const section = this.automationSections[currentSectionIndex]
               shouldLoop = this.loop
               maxLoops = totalReps
 
-              // ALWAYS update speed to match current section
               this.speed = section.PlaybackRate
               video.playbackRate = section.PlaybackRate / 100
             }
           } else {
-            // We've completed all sections
             shouldLoop = false
             maxLoops = totalReps
             if (video.paused) {
@@ -657,30 +665,25 @@
             }
           }
         } else {
-          // Normal non-automated playback
           shouldLoop = this.loop && this.loopsCompleted < this.loopCount
           maxLoops = this.loopCount
         }
 
-        // Check for loop condition near the end
         if (currentTime >= effectiveEnd - 0.3) {
           if (shouldLoop) {
             this.loopsCompleted++
 
-            // If we've completed all loops, stop
             if (this.loopsCompleted >= maxLoops) {
               video.pause()
               video.currentTime = effectiveEnd
-              this.loop = false // Disable looping when done
+              this.loop = false
               return
             }
 
-            // Update speed for the next section if using automation
             if (this.useAutomationSections && this.automationSections.length > 0) {
               let completedReps = 0
               let nextSectionIndex = 0
 
-              // Find the next section we should be on
               for (let i = 0; i < this.automationSections.length; i++) {
                 if (completedReps + this.automationSections[i].NBReps > this.loopsCompleted) {
                   nextSectionIndex = i
@@ -689,7 +692,6 @@
                 completedReps += this.automationSections[i].NBReps
               }
 
-              // Apply the next section's speed immediately
               if (nextSectionIndex < this.automationSections.length) {
                 const nextSection = this.automationSections[nextSectionIndex]
                 this.speed = nextSection.PlaybackRate
@@ -697,7 +699,6 @@
               }
             }
 
-            // Loop back to start
             video.currentTime = this.startTime || 0
             if (video.paused) {
               video.play().catch((e) => console.error('Failed to resume playback:', e))
@@ -705,7 +706,6 @@
           }
         }
 
-        // Handle normal time updates
         this.videoService.handleTimeUpdate(
           video,
           currentTime,
@@ -756,7 +756,7 @@
         const video = this.$refs.videoPlayer
         if (video) {
           this.videoService.stopVideo(video, this.startTime)
-          this.loopsCompleted = 0 // Reset loop counter when stopping
+          this.loopsCompleted = 0
         }
       },
 
@@ -784,7 +784,7 @@
 
       handleAutomationModeChange() {
         const video = this.$refs.videoPlayer
-        this.loopsCompleted = 0 // Reset loop counter
+        this.loopsCompleted = 0
 
         if (this.useAutomationSections) {
           this.manualSpeed = this.speed
@@ -871,10 +871,8 @@
     },
 
     async mounted() {
-      // Load from storage (loads per-user data)
       this.videoStore.loadFromStorage()
 
-      // Load saved directory tree
       if (window.electronAPI && window.electronAPI.loadDirectoryTree) {
         try {
           const result = await window.electronAPI.loadDirectoryTree()
@@ -899,7 +897,6 @@
         }
       }
 
-      // Listen for launch video events
       const handleLaunchVideo = (event) => {
         const videoData = event.detail
         if (videoData) {
@@ -909,7 +906,6 @@
 
       document.addEventListener('launch-video', handleLaunchVideo)
 
-      // Store the cleanup function for unmount
       this._cleanupVideoLauncher = () => {
         document.removeEventListener('launch-video', handleLaunchVideo)
       }
@@ -924,7 +920,6 @@
 </script>
 
 <style scoped>
-  /* Component-specific styles that can't be generalized */
   .auto-reload-message {
     margin: 15px 0;
     padding: 15px;
