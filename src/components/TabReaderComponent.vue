@@ -225,12 +225,16 @@
           <button @click="toggleLoop" :class="{ active: isLooping }" class="count-in-btn">
             {{ isLooping ? '🔁 Loop On' : '🔁 Loop Off' }}
           </button>
-            <button @click="toggleCountIn" :class="{ active: countInEnabled }" class="count-in-btn">
-    {{ countInEnabled ? '🎵 Count-In: On' : '🎵 Count-In: Off' }}
-        </button>
-                  <button @click="toggleMetronome" :class="{ active: metronomeEnabled }" class="metronome-btn">
-          {{ metronomeEnabled ? '🥁 Metronome: On' : '🥁 Metronome: Off' }}
-        </button>
+          <button @click="toggleCountIn" :class="{ active: countInEnabled }" class="count-in-btn">
+            {{ countInEnabled ? '🎵 Count-In: On' : '🎵 Count-In: Off' }}
+          </button>
+          <button
+            @click="toggleMetronome"
+            :class="{ active: metronomeEnabled }"
+            class="metronome-btn"
+          >
+            {{ metronomeEnabled ? '🥁 Metronome: On' : '🥁 Metronome: Off' }}
+          </button>
         </div>
 
         <div v-if="showMixer" class="mixer-panel">
@@ -285,6 +289,64 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="showCreatePlaylistModal"
+      class="modal-overlay"
+      @click="showCreatePlaylistModal = false"
+    >
+      <div class="modal-content" @click.stop>
+        <h4>Create New Playlist</h4>
+        <input
+          v-model="newPlaylistName"
+          type="text"
+          placeholder="Enter playlist name"
+          class="modal-input"
+          @keyup.enter="confirmCreatePlaylist"
+          @keyup.esc="showCreatePlaylistModal = false"
+          ref="playlistNameInput"
+        />
+        <div class="modal-actions">
+          <button @click="showCreatePlaylistModal = false" class="modal-btn cancel-btn">
+            Cancel
+          </button>
+          <button @click="confirmCreatePlaylist" class="modal-btn confirm-btn">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rename Playlist Modal -->
+    <div v-if="showRenamePlaylistModal" class="modal-overlay" @click="cancelRename">
+      <div class="modal-content" @click.stop>
+        <h4>Rename Playlist</h4>
+        <input
+          v-model="newPlaylistName"
+          type="text"
+          placeholder="Enter new playlist name"
+          class="modal-input"
+          @keyup.enter="confirmRename"
+          @keyup.esc="cancelRename"
+          ref="renameInput"
+        />
+        <div class="modal-actions">
+          <button @click="cancelRename" class="modal-btn cancel-btn">Cancel</button>
+          <button @click="confirmRename" class="modal-btn confirm-btn">Rename</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteConfirm" class="modal-overlay" @click="cancelDelete">
+      <div class="modal-content" @click.stop>
+        <h4>Delete Playlist</h4>
+        <p>Are you sure you want to delete playlist "{{ playlistToDelete?.name }}"?</p>
+        <p class="modal-note">This will not delete the tab files.</p>
+        <div class="modal-actions">
+          <button @click="cancelDelete" class="modal-btn cancel-btn">Cancel</button>
+          <button @click="confirmDelete" class="modal-btn delete-btn">Delete</button>
         </div>
       </div>
     </div>
@@ -361,7 +423,7 @@
         loopStartBar: 1,
         loopEndBar: 4,
         metronomeEnabled: false,
-            countInEnabled: false,
+        countInEnabled: false,
       }
     },
     computed: {
@@ -424,21 +486,21 @@
       }
     },
     methods: {
-        toggleMetronome() {
-    this.metronomeEnabled = !this.metronomeEnabled
-    
-    if (this.alphaTabApi) {
-      this.alphaTabApi.metronomeVolume = this.metronomeEnabled ? 1 : 0
-    }
-  },
-   toggleCountIn() {
-    this.countInEnabled = !this.countInEnabled
-    
-    if (this.alphaTabApi) {
-      // Set count-in volume: 1 = on, 0 = off
-      this.alphaTabApi.countInVolume = this.countInEnabled ? 1 : 0
-    }
-  },
+      toggleMetronome() {
+        this.metronomeEnabled = !this.metronomeEnabled
+
+        if (this.alphaTabApi) {
+          this.alphaTabApi.metronomeVolume = this.metronomeEnabled ? 1 : 0
+        }
+      },
+      toggleCountIn() {
+        this.countInEnabled = !this.countInEnabled
+
+        if (this.alphaTabApi) {
+          // Set count-in volume: 1 = on, 0 = off
+          this.alphaTabApi.countInVolume = this.countInEnabled ? 1 : 0
+        }
+      },
 
       updatePlaybackSpeed() {
         if (this.alphaTabApi) {
@@ -2171,60 +2233,60 @@ Solutions:
     background: var(--danger-hover, #d32f2f);
   }
   .metronome-btn {
-  padding: 8px 16px;
-  border: 2px solid #666;
-  background: #2a2a2a;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-left: 10px;
-}
+    padding: 8px 16px;
+    border: 2px solid #666;
+    background: #2a2a2a;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 10px;
+  }
 
-.metronome-btn:hover {
-  background: #3a3a3a;
-  border-color: #888;
-}
+  .metronome-btn:hover {
+    background: #3a3a3a;
+    border-color: #888;
+  }
 
-.metronome-btn.active {
-  background: #ff6b35;
-  border-color: #ff6b35;
-  font-weight: bold;
-}
-.count-in-btn,
-.metronome-btn {
-  padding: 8px 16px;
-  border: 2px solid #666;
-  background: #2a2a2a;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-left: 10px;
-}
+  .metronome-btn.active {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    font-weight: bold;
+  }
+  .count-in-btn,
+  .metronome-btn {
+    padding: 8px 16px;
+    border: 2px solid #666;
+    background: #2a2a2a;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 10px;
+  }
 
-.count-in-btn:hover,
-.metronome-btn:hover {
-  background: #3a3a3a;
-  border-color: #888;
-}
+  .count-in-btn:hover,
+  .metronome-btn:hover {
+    background: #3a3a3a;
+    border-color: #888;
+  }
 
-.count-in-btn.active {
-  background: #4caf50;
-  border-color: #4caf50;
-  font-weight: bold;
-}
+  .count-in-btn.active {
+    background: #4caf50;
+    border-color: #4caf50;
+    font-weight: bold;
+  }
 
-.loop-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 10px;
-}
+  .loop-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px;
+  }
 
-.metronome-btn.active {
-  background: #ff6b35;
-  border-color: #ff6b35;
-  font-weight: bold;
-}
+  .metronome-btn.active {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    font-weight: bold;
+  }
 </style>
