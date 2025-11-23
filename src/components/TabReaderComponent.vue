@@ -291,8 +291,6 @@
   import { jsonToAlphaTex } from '../services/jsonToAlphaTexService.js'
   import jsondata from '../services/jsontoparseTab.json' with { type: 'json' }
   import { fileHandleService } from '../services/fileHandleService.js'
-  //import { scrapeSongsterrTab } from '../services/onlineTabParsing.js'
-  //import path from 'path'
   export default {
     name: 'TabReaderComponent',
     data() {
@@ -313,6 +311,7 @@
         selectedSoundFont: './soundfont/sonivox.sf2',
         performanceMode: false,
         availableSoundFonts: [
+          // Todo : etre sur que ces differentes configs marchent, je crois pas ...
           {
             name: 'MuseScore General HQ (⭐ Best Choice)',
             path: './soundfont/MuseScore_General.sf3',
@@ -343,8 +342,8 @@
         customSoundFontFile: null,
         currentLoadedFile: null,
         currentLoadedFileName: '',
-        currentFileHandle: null, // Current file handle (not persisted)
-        currentFileHandleId: null, // ID of stored file handle in IndexedDB
+        currentFileHandle: null, 
+        currentFileHandleId: null, 
         // Modal states
         showCreatePlaylistModal: false,
         showRenamePlaylistModal: false,
@@ -353,16 +352,8 @@
         playlistToDelete: null,
         showDeleteConfirm: false,
         isLooping: false,
-        loopStartBar: 1, // The bar to start at (1-based)
+        loopStartBar: 1,
         loopEndBar: 4,
-        /*
-        showScraperModal: false,
-        scraperUrl: '',
-        scraperFilename: 'captured_data.json',
-        scraperDirectory: '',
-        scraperLoading: false,
-        scraperError: '',
-        scraperSuccess: '',*/
       }
     },
     computed: {
@@ -383,14 +374,12 @@
       // Load saved soundfont preference
       const savedSoundFont = localStorage.getItem('guitarapp_soundfont')
       if (savedSoundFont) {
-        // Test if saved soundfont exists before using it
         try {
           const response = await fetch(savedSoundFont, { method: 'HEAD' })
           if (response.ok) {
             this.selectedSoundFont = savedSoundFont
           } else {
             console.warn('Saved soundfont not found, using default')
-            // Try MuseScore as default
             this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
           }
         } catch (err) {
@@ -398,11 +387,9 @@
           this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
         }
       } else {
-        // Default to MuseScore instead of Sonivox
         this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
       }
 
-      // Load performance mode preference
       const savedPerformanceMode = localStorage.getItem('guitarapp_performanceMode')
       if (savedPerformanceMode !== null) {
         this.performanceMode = savedPerformanceMode === 'true'
@@ -516,37 +503,33 @@
           settings.display.layoutMode = 'page'
           settings.core.enableLazyLoading = true
 
-          // Player settings
           settings.player.enablePlayer = true
           settings.player.enableAudioSynthesis = true
           settings.player.soundFont = this.selectedSoundFont
           settings.player.enableCursor = true
           settings.player.enableUserInteraction = true
-          settings.player.enableElementHighlighting = true // Highlight current element
-          settings.player.scrollMode = 'continuous' // Enable continuous scrolling
-          settings.player.scrollElement = this.$refs.alphaTab // Set scroll container for reference
-          settings.display.layoutMode = 'horizontal-screen' // Use screen-based layout
+          settings.player.playTripletFeel = true
+          settings.player.enableElementHighlighting = true 
+          settings.player.scrollMode = 'off' 
+          settings.player.scrollElement = this.$refs.alphaTab 
+          settings.display.layoutMode = 'horizontal-screen' 
           settings.display.autoSize = true
-          settings.player.scrollOffsetY = -30 // Add some padding above the current position
+      // settings.notation.displayTranspositionPitches = true // Peut etre marant pour transposition
 
-          // Setup better visual organization
-          settings.notation.notationMode = 'SongBook' // More compact notation
-          settings.staveProfile = 'ScoreTab' // Show both score and tab
+          settings.notation.notationMode = 'SongBook' 
+          settings.staveProfile = 'ScoreTab' 
 
-          // Apply performance mode settings
           if (this.performanceMode) {
-            settings.player.vibrato = false // Disable vibrato for better performance
-            settings.display.resources.effectFont = null // Reduce font rendering
+            settings.player.vibrato = false 
+            settings.display.resources.effectFont = null 
           }
           const isElectron = window.process?.versions?.electron
 
           if (isElectron) {
-            // In Electron, use paths relative to the loaded HTML file
             const baseUrl = window.location.href.replace(/[^/]*$/, '')
             settings.core.scriptFile = `${baseUrl}alphatab/alphaTab.min.js`
             settings.core.fontDirectory = `${baseUrl}alphatab/font/`
 
-            // Set the worklet for audio synthesis
             settings.player.enableAudioWorklet = true
             settings.player.scriptFile = `${baseUrl}alphatab/alphaTab.worklet.min.mjs`
           }
@@ -604,10 +587,6 @@
             endTick: endTick,
           }
 
-          // {
-          // startTick: startBarIndex,
-          // endTick: endBarIndex
-          //};
         } else {
           // Clear the playback range to play the whole song
           this.alphaTabApi.playbackRange = null
@@ -647,10 +626,9 @@
 
           const container = this.$refs.alphaTab
 
-          // Find both cursor elements
           const cursorBar = container.querySelector('.at-cursor-bar')
           const cursorBeat = container.querySelector('.at-cursor-beat')
-          const cursor = cursorBeat || cursorBar // Prefer beat cursor, fall back to bar cursor
+          const cursor = cursorBeat || cursorBar 
 
           if (!cursor) return
 
@@ -661,37 +639,16 @@
           // Get cursor's absolute position relative to the viewport
           const cursorRect = cursor.getBoundingClientRect()
           const containerRect = container.getBoundingClientRect()
-
-          // Calculate cursor's position relative to the container
           const cursorRelativeTop = cursorRect.top - containerRect.top
-          const cursorRelativeBottom = cursorRect.bottom - containerRect.top
-
-          // Define the visible area with padding
-          const visibleAreaPadding = 100 // pixels of padding above and below
-          const isAboveVisible = cursorRelativeTop < visibleAreaPadding
-          const isBelowVisible = cursorRelativeBottom > containerRect.height - visibleAreaPadding
-
-          if (isAboveVisible || isBelowVisible) {
-            // Calculate the ideal scroll position
-            let targetScrollTop
-
-            if (isAboveVisible) {
-              // Scroll up to show content above the cursor
-              targetScrollTop = container.scrollTop - (visibleAreaPadding - cursorRelativeTop)
-            } else {
-              // Scroll down to show content below the cursor
-              targetScrollTop =
-                container.scrollTop +
-                (cursorRelativeBottom - (containerRect.height - visibleAreaPadding))
-            }
-
-            // Ensure we don't scroll beyond the content
-            const maxScroll = surface.offsetHeight - containerRect.height
-            targetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScroll))
-
-            // Apply the scroll with smooth animation
+          const targetOffset = 80 
+          const scrollAdjustment = cursorRelativeTop - targetOffset
+          if (Math.abs(scrollAdjustment) > 5) {
+        const targetScrollTop = container.scrollTop + scrollAdjustment
+    const maxScroll = surface.offsetHeight - containerRect.height
+    const finalScrollTop = Math.max(0, Math.min(targetScrollTop, maxScroll))
+    
             container.scrollTo({
-              top: targetScrollTop,
+              top: finalScrollTop,
               behavior: 'smooth',
             })
           }
@@ -875,15 +832,14 @@ Solutions:
           reader.readAsArrayBuffer(file)
         })
       },
-
       playPause() {
         if (!this.alphaTabApi || !this.alphaTabApi.isReadyForPlayback) return
 
         if (this.isPlaying) {
           this.alphaTabApi.pause()
         } else {
-          this.alphaTabApi.play()
-        }
+        this.alphaTabApi.play()
+          }
       },
 
       stop() {
@@ -1268,130 +1224,6 @@ Solutions:
           console.error('Error loading tab from playlist:', error)
         }
       },
-      /*
-      openScraperModal() {
-        this.showScraperModal = true
-        this.scraperError = ''
-        this.scraperSuccess = ''
-        // Pre-fill with example URL if empty
-        if (!this.scraperUrl) {
-          this.scraperUrl = 'https://www.songsterr.com/a/wsa/'
-        }
-      },
-
-
-      closeScraperModal() {
-        if (!this.scraperLoading) {
-          this.showScraperModal = false
-          this.scraperUrl = ''
-          this.scraperDirectory = ''
-          this.scraperFilename = 'captured_data.json'
-          this.scraperError = ''
-          this.scraperSuccess = ''
-        }
-      },
-
-
-      async selectScraperDirectory() {
-        try {
-          // For Electron environment
-          if (window.require) {
-            const { dialog } =
-              window.require('@electron/remote') || window.require('electron').remote
-            const result = await dialog.showOpenDialog({
-              properties: ['openDirectory'],
-            })
-
-            if (!result.canceled && result.filePaths.length > 0) {
-              this.scraperDirectory = result.filePaths[0]
-            }
-          }
-          // For browser with File System Access API
-          else if (window.showDirectoryPicker) {
-            const dirHandle = await window.showDirectoryPicker()
-            this.scraperDirectory = dirHandle.name
-            // Store handle for later use if needed
-            window.selectedDirHandle = dirHandle
-          } else {
-            this.scraperError =
-              'Directory picker not supported in this environment. Enter path manually.'
-          }
-        } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error('Directory selection error:', err)
-            this.scraperError = 'Failed to select directory: ' + err.message
-          }
-        }
-      },
-
-      async handleScrape() {
-        this.scraperError = ''
-        this.scraperSuccess = ''
-
-        // Validation
-        if (!this.scraperUrl.trim()) {
-          this.scraperError = 'Please enter a URL'
-          return
-        }
-
-        if (!this.scraperFilename.trim()) {
-          this.scraperError = 'Please enter a filename'
-          return
-        }
-
-        if (!this.scraperUrl.includes('songsterr.com')) {
-          this.scraperError = 'Please enter a valid Songsterr URL'
-          return
-        }
-
-        // Ensure filename has .json extension
-        let filename = this.scraperFilename.trim()
-        if (!filename.endsWith('.json')) {
-          filename += '.json'
-        }
-
-        this.scraperLoading = true
-
-        try {
-          // Build the full file path
-          let filepath
-          if (this.scraperDirectory) {
-            // Use path.join if available (Node.js/Electron)
-            if (typeof path !== 'undefined' && path.join) {
-              filepath = path.join(this.scraperDirectory, filename)
-            } else {
-              // Fallback for browser environment
-              filepath = `${this.scraperDirectory}/${filename}`
-            }
-          } else {
-            // Save in current directory or default location
-            filepath = filename
-          }
-
-          console.log('Starting scrape:', {
-            url: this.scraperUrl.trim(),
-            filepath: filepath,
-          })
-
-          // Call the scraping function
-          const result = await scrapeSongsterrTab(this.scraperUrl.trim(), filepath)
-
-          console.log('Scrape completed:', result)
-
-          this.scraperSuccess = `Successfully saved ${result.count} items to ${filename}`
-
-          // Auto-close modal after 2 seconds on success
-          setTimeout(() => {
-            this.closeScraperModal()
-          }, 2000)
-        } catch (err) {
-          console.error('Scraping error:', err)
-          this.scraperError =
-            err.message || 'An error occurred during scraping. Check console for details.'
-        } finally {
-          this.scraperLoading = false
-        }
-      },*/
     },
   }
 </script>
@@ -2315,186 +2147,4 @@ Solutions:
   .delete-btn:hover {
     background: var(--danger-hover, #d32f2f);
   }
-  /*
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-
-  .scraper-modal {
-    background: white;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  .modal-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #111827;
-  }
-
-  .close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #6b7280;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .close-btn:hover:not(:disabled) {
-    color: #111827;
-  }
-
-  .close-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .modal-body {
-    padding: 20px;
-  }
-
-  .form-group {
-    margin-bottom: 16px;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #374151;
-  }
-
-  .form-group input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    box-sizing: border-box;
-  }
-
-  .form-group input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  .form-group input:disabled {
-    background-color: #f3f4f6;
-    cursor: not-allowed;
-  }
-
-  .input-with-button {
-    display: flex;
-    gap: 8px;
-  }
-
-  .input-with-button input {
-    flex: 1;
-  }
-
-  .select-dir-btn {
-    padding: 10px 16px;
-    background: #f3f4f6;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1.2rem;
-  }
-
-  .select-dir-btn:hover:not(:disabled) {
-    background: #e5e7eb;
-  }
-
-  .select-dir-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .error-message {
-    padding: 12px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
-    color: #991b1b;
-    font-size: 0.875rem;
-  }
-
-  .success-message {
-    padding: 12px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 6px;
-    color: #166534;
-    font-size: 0.875rem;
-  }
-
-  .modal-footer {
-    display: flex;
-    gap: 12px;
-    padding: 20px;
-    border-top: 1px solid #e5e7eb;
-  }
-
-  .modal-footer button {
-    flex: 1;
-    padding: 10px 16px;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .cancel-btn {
-    background: white;
-    border: 1px solid #d1d5db;
-    color: #374151;
-  }
-
-  .cancel-btn:hover:not(:disabled) {
-    background: #f9fafb;
-  }
-
-  .ok-btn {
-    background: #3b82f6;
-    border: 1px solid #3b82f6;
-    color: white;
-  }
-
-  .ok-btn:hover:not(:disabled) {
-    background: #2563eb;
-  }
-
-  .modal-footer button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }*/
 </style>
