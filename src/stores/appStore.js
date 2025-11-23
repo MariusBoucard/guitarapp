@@ -10,27 +10,21 @@ import { useUserStore } from './userStore'
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    // Session-only UI states (not saved per-user)
     settingsView: false,
     keyboard: false,
     userManagementDisplay: false,
-
-    // Global UI Properties (session state)
     lefty: false,
     autoGammeSelect: false,
     isPlayingRoot: false,
-
-    // Video Settings (session state)
     videoFolder: '',
   }),
 
   getters: {
-    // Reference to userStore
+
     userStore() {
       return useUserStore()
     },
 
-    // Display states from current user's settings
     mancheDisplay() {
       return this.userStore.currentUser?.data?.settings?.mancheDisplay ?? true
     },
@@ -68,7 +62,6 @@ export const useAppStore = defineStore('app', {
       return this.userStore.currentUser?.data?.settings?.tabReaderDisplay ?? false
     },
 
-    // Get all display states for easy iteration
     displayStates() {
       return {
         mancheDisplay: this.mancheDisplay,
@@ -91,7 +84,6 @@ export const useAppStore = defineStore('app', {
   },
 
   actions: {
-    // Toggle display states - now updates current user's settings
     toggleManche() {
       const settings = this.userStore.currentUser?.data?.settings
       if (settings && !this.userStore.isInitializing) {
@@ -196,8 +188,6 @@ export const useAppStore = defineStore('app', {
       }
     },
 
-    // toggleVST3Plugin removed - feature disabled
-
     toggleUserManagement() {
       this.userManagementDisplay = !this.userManagementDisplay
     },
@@ -210,7 +200,6 @@ export const useAppStore = defineStore('app', {
       this.isPlayingRoot = !this.isPlayingRoot
     },
 
-    // Set states
     setLefty(value) {
       this.lefty = value
     },
@@ -219,7 +208,6 @@ export const useAppStore = defineStore('app', {
       this.videoFolder = folder
     },
 
-    // Set display state by name
     setDisplayState(stateName, value) {
       if (stateName in this) {
         this[stateName] = value

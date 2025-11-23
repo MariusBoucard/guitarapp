@@ -91,7 +91,6 @@
       </div>
     </div>
 
-    <!-- Time Controls -->
     <div class="time-controls">
       <div class="slider-container">
         <label
@@ -166,19 +165,15 @@
     },
 
     mounted() {
-      // Load data from storage
       this.trainingStore.loadFromStorage()
       this.songPlayerStore.loadFromStorage()
 
-      // Initialize audio context
       this.audioService.initializeAudioContext()
     },
 
     methods: {
-      // Training management
       selectTraining(training) {
         this.trainingStore.selectTraining(training)
-        // Audio files will automatically update via computed property
       },
 
       addTraining() {
@@ -195,7 +190,6 @@
           : 'unselectedTrain'
       },
 
-      // File management
       async selectAudioFileNative() {
         try {
           if (!window.electronAPI?.selectAudioFile) {
@@ -212,26 +206,21 @@
           }
         } catch (error) {
           console.error('Error selecting audio file:', error)
-          // Could add user notification here
         }
       },
 
       async onFileChange(event) {
-        // Removed - only native file selection is used
       },
 
       async loadAudioFile(fileData) {
         try {
-          // Add to song player store
+          // Strange that we put into a training store although we are in song player? Hmm.
           this.songPlayerStore.addAudioFile(this.trainingStore, fileData.path, fileData.name)
 
-          // Load audio metadata
           const audioData = await this.audioService.loadAudioFile(fileData.path)
 
-          // Update audio player
           this.$refs.audioPlayer.src = audioData.src
 
-          // Store audio reference
           this.currentAudio = audioData.audio
         } catch (error) {
           console.error('Error loading audio file:', error)
@@ -247,7 +236,6 @@
           const fileName = this.audioService.extractFilename(filePath)
           this.songPlayerStore.currentSong = fileName
 
-          // Load the audio file
           const audioData = await this.audioService.loadAudioFile(filePath)
           this.$refs.audioPlayer.src = audioData.src
           this.currentAudio = audioData.audio
@@ -256,7 +244,6 @@
         }
       },
 
-      // Playback controls
       async play() {
         try {
           await this.audioService.playAudio(
@@ -291,7 +278,6 @@
         }
       },
 
-      // Event handlers
       onTimeUpdate() {
         const audio = this.$refs.audioPlayer
         if (!audio) return
@@ -310,14 +296,13 @@
         if (audio && audio.duration) {
           this.songPlayerStore.setSongLength(audio.duration)
 
-          // Initialize waveform if needed
+          // J'ai du casser ca... 
           this.audioService.initWaveSurfer('waveform', audio.src)
         }
       },
     },
 
     beforeUnmount() {
-      // Cleanup
       if (this.currentAudio) {
         this.audioService.cleanup()
       }
@@ -337,7 +322,6 @@
     color: #2c3e50;
   }
 
-  /* Training Section */
   .training-section {
     margin-bottom: 10px;
     background: rgba(255, 255, 255, 0.7);
@@ -446,7 +430,6 @@
     box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
   }
 
-  /* Audio Files Section */
   .audio-files-section {
     margin-bottom: 30px;
     background: rgba(255, 255, 255, 0.7);
@@ -560,7 +543,6 @@
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
   }
 
-  /* Current Song */
   .current-song {
     font-weight: 500;
     margin: 0px 0;
@@ -573,7 +555,6 @@
     border: 2px solid rgba(102, 126, 234, 0.2);
   }
 
-  /* Audio Player */
   audio {
     width: 100%;
     margin: 10px 0;
@@ -582,7 +563,6 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
-  /* Playback Controls */
   .playback-controls {
     display: flex;
     justify-content: center;
@@ -628,7 +608,6 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   }
 
-  /* Time Controls */
   .time-controls {
     margin: 10px 0;
     background: rgba(255, 255, 255, 0.7);
@@ -695,7 +674,6 @@
     font-size: 0.95rem;
   }
 
-  /* Speed Control */
   .speed-control {
     text-align: center;
     margin: 30px 0;
@@ -760,7 +738,6 @@
     border: 2px solid rgba(255, 152, 0, 0.2);
   }
 
-  /* Waveform */
   .waveform-container {
     height: 120px;
     margin: 30px 0;
@@ -770,7 +747,6 @@
     backdrop-filter: blur(10px);
   }
 
-  /* Responsive Design */
   @media (max-width: 768px) {
     .playsound-component {
       width: 95%;

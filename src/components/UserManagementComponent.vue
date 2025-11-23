@@ -147,7 +147,7 @@
             <input
               v-model="newUserForm.email"
               type="email"
-              :placeholder="$t('user.email_placeholder')"
+              placeholder="user@example.com"
             />
           </div>
           <div class="form-actions">

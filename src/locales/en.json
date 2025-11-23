@@ -214,7 +214,6 @@
     "user_name": "User name",
     "enter_user_name": "Enter user name",
     "email_optional": "Email (optional)",
-    "email_placeholder": "user@example.com",
     "cancel": "Cancel",
     "create_user": "Create user",
     "save_changes": "Save changes",
