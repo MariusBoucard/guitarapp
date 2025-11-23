@@ -225,6 +225,9 @@
           <button @click="toggleLoop" :class="{ active: isLooping }" class="loop-btn">
             {{ isLooping ? '🔁 Loop On' : '🔁 Loop Off' }}
           </button>
+            <button @click="toggleMetronome" :class="{ active: metronomeEnabled }" class="metronome-btn">
+    {{ metronomeEnabled ? '🥁 Metronome: On' : '🥁 Metronome: Off' }}
+  </button>
         </div>
 
         <div v-if="showMixer" class="mixer-panel">
@@ -342,8 +345,8 @@
         customSoundFontFile: null,
         currentLoadedFile: null,
         currentLoadedFileName: '',
-        currentFileHandle: null, 
-        currentFileHandleId: null, 
+        currentFileHandle: null,
+        currentFileHandleId: null,
         // Modal states
         showCreatePlaylistModal: false,
         showRenamePlaylistModal: false,
@@ -354,6 +357,7 @@
         isLooping: false,
         loopStartBar: 1,
         loopEndBar: 4,
+        metronomeEnabled: false,
       }
     },
     computed: {
@@ -416,6 +420,14 @@
       }
     },
     methods: {
+        toggleMetronome() {
+    this.metronomeEnabled = !this.metronomeEnabled
+    
+    if (this.alphaTabApi) {
+      this.alphaTabApi.metronomeVolume = this.metronomeEnabled ? 1 : 0
+    }
+  },
+
       updatePlaybackSpeed() {
         if (this.alphaTabApi) {
           // Convert percentage to decimal (e.g., 150% -> 1.5)
@@ -509,19 +521,19 @@
           settings.player.enableCursor = true
           settings.player.enableUserInteraction = true
           settings.player.playTripletFeel = true
-          settings.player.enableElementHighlighting = true 
-          settings.player.scrollMode = 'off' 
-          settings.player.scrollElement = this.$refs.alphaTab 
-          settings.display.layoutMode = 'horizontal-screen' 
+          settings.player.enableElementHighlighting = true
+          settings.player.scrollMode = 'off'
+          settings.player.scrollElement = this.$refs.alphaTab
+          settings.display.layoutMode = 'horizontal-screen'
           settings.display.autoSize = true
-      // settings.notation.displayTranspositionPitches = true // Peut etre marant pour transposition
+          // settings.notation.displayTranspositionPitches = true // Peut etre marant pour transposition
 
-          settings.notation.notationMode = 'SongBook' 
-          settings.staveProfile = 'ScoreTab' 
+          settings.notation.notationMode = 'SongBook'
+          settings.staveProfile = 'ScoreTab'
 
           if (this.performanceMode) {
-            settings.player.vibrato = false 
-            settings.display.resources.effectFont = null 
+            settings.player.vibrato = false
+            settings.display.resources.effectFont = null
           }
           const isElectron = window.process?.versions?.electron
 
@@ -586,7 +598,6 @@
             startTick: startTick,
             endTick: endTick,
           }
-
         } else {
           // Clear the playback range to play the whole song
           this.alphaTabApi.playbackRange = null
@@ -628,7 +639,7 @@
 
           const cursorBar = container.querySelector('.at-cursor-bar')
           const cursorBeat = container.querySelector('.at-cursor-beat')
-          const cursor = cursorBeat || cursorBar 
+          const cursor = cursorBeat || cursorBar
 
           if (!cursor) return
 
@@ -640,13 +651,13 @@
           const cursorRect = cursor.getBoundingClientRect()
           const containerRect = container.getBoundingClientRect()
           const cursorRelativeTop = cursorRect.top - containerRect.top
-          const targetOffset = 80 
+          const targetOffset = 80
           const scrollAdjustment = cursorRelativeTop - targetOffset
           if (Math.abs(scrollAdjustment) > 5) {
-        const targetScrollTop = container.scrollTop + scrollAdjustment
-    const maxScroll = surface.offsetHeight - containerRect.height
-    const finalScrollTop = Math.max(0, Math.min(targetScrollTop, maxScroll))
-    
+            const targetScrollTop = container.scrollTop + scrollAdjustment
+            const maxScroll = surface.offsetHeight - containerRect.height
+            const finalScrollTop = Math.max(0, Math.min(targetScrollTop, maxScroll))
+
             container.scrollTo({
               top: finalScrollTop,
               behavior: 'smooth',
@@ -838,8 +849,8 @@ Solutions:
         if (this.isPlaying) {
           this.alphaTabApi.pause()
         } else {
-        this.alphaTabApi.play()
-          }
+          this.alphaTabApi.play()
+        }
       },
 
       stop() {
@@ -2147,4 +2158,25 @@ Solutions:
   .delete-btn:hover {
     background: var(--danger-hover, #d32f2f);
   }
+  .metronome-btn {
+  padding: 8px 16px;
+  border: 2px solid #666;
+  background: #2a2a2a;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+}
+
+.metronome-btn:hover {
+  background: #3a3a3a;
+  border-color: #888;
+}
+
+.metronome-btn.active {
+  background: #ff6b35;
+  border-color: #ff6b35;
+  font-weight: bold;
+}
 </style>
