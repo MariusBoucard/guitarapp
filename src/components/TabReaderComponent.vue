@@ -222,12 +222,15 @@
             @change="updateLoopRange"
           />
 
-          <button @click="toggleLoop" :class="{ active: isLooping }" class="loop-btn">
+          <button @click="toggleLoop" :class="{ active: isLooping }" class="count-in-btn">
             {{ isLooping ? '🔁 Loop On' : '🔁 Loop Off' }}
           </button>
-            <button @click="toggleMetronome" :class="{ active: metronomeEnabled }" class="metronome-btn">
-    {{ metronomeEnabled ? '🥁 Metronome: On' : '🥁 Metronome: Off' }}
-  </button>
+            <button @click="toggleCountIn" :class="{ active: countInEnabled }" class="count-in-btn">
+    {{ countInEnabled ? '🎵 Count-In: On' : '🎵 Count-In: Off' }}
+        </button>
+                  <button @click="toggleMetronome" :class="{ active: metronomeEnabled }" class="metronome-btn">
+          {{ metronomeEnabled ? '🥁 Metronome: On' : '🥁 Metronome: Off' }}
+        </button>
         </div>
 
         <div v-if="showMixer" class="mixer-panel">
@@ -358,6 +361,7 @@
         loopStartBar: 1,
         loopEndBar: 4,
         metronomeEnabled: false,
+            countInEnabled: false,
       }
     },
     computed: {
@@ -425,6 +429,14 @@
     
     if (this.alphaTabApi) {
       this.alphaTabApi.metronomeVolume = this.metronomeEnabled ? 1 : 0
+    }
+  },
+   toggleCountIn() {
+    this.countInEnabled = !this.countInEnabled
+    
+    if (this.alphaTabApi) {
+      // Set count-in volume: 1 = on, 0 = off
+      this.alphaTabApi.countInVolume = this.countInEnabled ? 1 : 0
     }
   },
 
@@ -2172,6 +2184,42 @@ Solutions:
 .metronome-btn:hover {
   background: #3a3a3a;
   border-color: #888;
+}
+
+.metronome-btn.active {
+  background: #ff6b35;
+  border-color: #ff6b35;
+  font-weight: bold;
+}
+.count-in-btn,
+.metronome-btn {
+  padding: 8px 16px;
+  border: 2px solid #666;
+  background: #2a2a2a;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+}
+
+.count-in-btn:hover,
+.metronome-btn:hover {
+  background: #3a3a3a;
+  border-color: #888;
+}
+
+.count-in-btn.active {
+  background: #4caf50;
+  border-color: #4caf50;
+  font-weight: bold;
+}
+
+.loop-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px;
 }
 
 .metronome-btn.active {
