@@ -44,7 +44,7 @@
             v-if="currentTraining"
             style="
               margin: 0 0 15px 0;
-              color: var(--text-primary);
+              color: var(--text-dark);
               font-weight: 600;
               font-size: 1.1rem;
               text-align: center;
@@ -133,7 +133,7 @@
           <h3
             style="
               margin: 0 0 15px 0;
-              color: var(--text-primary);
+              color: var(--text-dark);
               font-weight: 600;
               font-size: 1.1rem;
             "
@@ -1180,11 +1180,12 @@
   .toggle-icon {
     margin-right: 8px;
     font-size: 0.9rem;
+    color: var(--text-muted);
   }
 
   .playlist-name {
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text-dark);
     flex: 1;
   }
 
@@ -1206,6 +1207,7 @@
     align-items: center;
     padding: 10px 15px 10px 35px;
     cursor: pointer;
+    color:  var(--text-dark);
     transition: background-color 0.2s;
     border-bottom: 1px solid var(--bg-primary-border);
   }

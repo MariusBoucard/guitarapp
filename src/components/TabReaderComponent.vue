@@ -536,32 +536,27 @@
             return
           }
 
-          // --- Convert JSON → AlphaTex ---
-          const tex = jsonToAlphaTex(songJson)
+          const tex = jsonToAlphaTex(songJson, file.name)
           this.alphaTabApi.tex(tex)
           console.log('✅ Generated AlphaTex:', tex)
 
-          // --- Save runtime info ---
           this.currentLoadedFile = file
           this.currentLoadedFileName = file.name
           this.isLoaded = true
 
-          // --- Save handle and wait for ID before adding to playlist ---
           let fileHandleId = null
           fileHandleId = await fileHandleService.storeFileHandle(fileHandle)
           this.currentFileHandleId = fileHandleId
 
-          // --- Build playlist entry ---
           const tabData = {
             name: songJson.name || file.name || 'Untitled JSON Tab',
             path: file.name,
             artist: songJson.artist || '',
             album: songJson.album || '',
-            fileHandleId, // ✅ now always defined
+            fileHandleId,
             fileType: 'json',
           }
 
-          // --- Add to playlist ---
           this.tabStore.addTabToPlaylist('recent', tabData)
         } catch (err) {
           if (err.name !== 'AbortError') {

@@ -1,4 +1,4 @@
-export function jsonToAlphaTex(songJson) {
+export function jsonToAlphaTex(songJson, fileName) {
   const lines = []
 
   // Handle array of objects - each becomes a separate track
@@ -6,7 +6,7 @@ export function jsonToAlphaTex(songJson) {
     // --- GLOBAL METADATA (before any tracks) ---
     const firstSong = songJson[0]
     if (firstSong) {
-      lines.push(`\\title "${escapeQuotes(firstSong.name || 'Untitled')}"`)
+      lines.push(`\\title "${escapeQuotes(fileName || 'Untitled')}"`)
       if (firstSong.subtitle) lines.push(`\\subtitle "${escapeQuotes(firstSong.subtitle)}"`)
 
       const firstTempo =
@@ -75,7 +75,7 @@ function convertSingleTrack(songJson, trackIndex) {
   const lines = []
 
   // --- TRACK DECLARATION ---
-  const trackName = songJson.name || `Track ${trackIndex + 1}`
+  const trackName = songJson.instrument || `Track ${trackIndex + 1}`
   lines.push(`\\track "${escapeQuotes(trackName)}"`)
 
   // --- STAFF DECLARATION ---
