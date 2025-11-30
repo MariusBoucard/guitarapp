@@ -821,12 +821,18 @@
       },
 
       updatePlaybackSettings() {
+        let shouldloop = this.loop
+        if (this.enableAutoLoop && this.endTime - this.startTime <= this.autoLoopThreshold) {
+            shouldloop = true
+        } 
+        
         this.videoStore.setVideoPlaybackSettings({
           startTime: this.startTime,
           endTime: this.endTime,
           speed: this.speed,
-          loop: this.loop,
+          loop: shouldloop,
         })
+
       },
 
       formatTime(seconds) {
