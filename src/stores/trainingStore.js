@@ -107,23 +107,58 @@ export const useTrainingStore = defineStore('training', {
       }
     },
 
+    addVideoPlaylistToTraining(trainingId, playlistData) {
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+
+      const training = userStore.currentUser.data.trainings.find((t) => t.id === trainingId)
+      if (!training) {
+        console.error(`Training with ID ${trainingId} not found`)
+        return
+      }
+
+      
+      const exists = training.list.some((item) => {
+        const isPlaylistMatch = item.isPlaylist && item.name === playlistData.name
+        return isPlaylistMatch
+      })
+
+      if (!exists) {
+        const newPlaylist = {
+          isPlaylist: true,
+          name: playlistData.name,
+          parentName: playlistData.parentName || '',
+          videos: Array.isArray(playlistData.videos) ? playlistData.videos : [],
+          createdAt: new Date().toISOString(),
+        }
+        training.list.push(newPlaylist)
+        userStore.saveUsersToStorage()
+      }
+    },
+
     removeVideoFromTraining(trainingId, videoData) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
       const training = userStore.currentUser.data.trainings.find((t) => t.id === trainingId)
-      if (training) {
-        const identifier =
-          typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData)
-        const index = training.list.findIndex((item) => {
-          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item)
-          return existingIdentifier === identifier
-        })
+      if (!training) return
 
-        if (index > -1) {
-          training.list.splice(index, 1)
-          userStore.saveUsersToStorage()
+      
+      const index = training.list.findIndex((item) => {
+        if (item.isPlaylist && videoData.isPlaylist) {
+          return item.name === videoData.name
         }
+        if (!item.isPlaylist && !videoData.isPlaylist) {
+          const existingIdentifier = typeof item === 'string' ? item : this.getVideoIdentifier(item)
+          const identifier = typeof videoData === 'string' ? videoData : this.getVideoIdentifier(videoData)
+          return existingIdentifier === identifier
+        }
+        return false
+      })
+
+      if (index > -1) {
+        training.list.splice(index, 1)
+        userStore.saveUsersToStorage()
       }
     },
 

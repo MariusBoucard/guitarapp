@@ -174,7 +174,7 @@ async function createWindow() {
     await win.loadFile(indexPath)
   }
 
-  if (true) {
+  if (isDevelopment) {
     try {
       win.webContents.openDevTools()
 

@@ -57,17 +57,48 @@
             {{ currentTraining.name }} - {{ $t('training.videos') }}
           </h3>
           <div class="list-scrollable" style="max-height: 300px">
-            <div
-              v-for="(item, index) in currentPlaylistVideos"
-              :key="index"
-              @click="playVideoInTrainingPlayer(item)"
-              class="list-item-with-action"
-            >
-              <span>{{ getVideoDisplayName(item) }}</span>
-              <button
-                class="btn-icon-round btn-danger-alt"
-                @click.stop="removeVideoFromPlaylist(item)"
-              ></button>
+            <div v-for="(item, index) in currentPlaylistVideos" :key="index">
+              <!-- Playlist item (folder) -->
+              <div v-if="item.isPlaylist" class="playlist-item">
+                <div 
+                  @click="togglePlaylistExpanded(index)"
+                  class="playlist-header"
+                >
+                  <span class="toggle-icon">{{ expandedPlaylists.has(index) ? '▼' : '▶' }}</span>
+                  <span class="playlist-name">{{ item.name }}</span>
+                  <span class="video-count">({{ item.videos?.length || 0 }})</span>
+                  <button
+                    class="btn-icon-round btn-danger-alt"
+                    @click.stop="removeVideoFromPlaylist(item)"
+                    style="margin-left: auto;"
+                  ></button>
+                </div>
+                
+                <!-- Nested videos in playlist -->
+                <div v-if="expandedPlaylists.has(index)" class="playlist-videos">
+                  <div
+                    v-for="(video, vIndex) in item.videos"
+                    :key="vIndex"
+                    @click="playVideoInTrainingPlayer(video)"
+                    class="nested-video-item"
+                  >
+                    <span>{{ getVideoDisplayName(video) }}</span>
+                    <button
+                      class="btn-icon-round btn-danger-alt"
+                      @click.stop="removeVideoFromPlaylistItem(item, vIndex)"
+                    ></button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Individual video item -->
+              <div v-else @click="playVideoInTrainingPlayer(item)" class="list-item-with-action">
+                <span>{{ getVideoDisplayName(item) }}</span>
+                <button
+                  class="btn-icon-round btn-danger-alt"
+                  @click.stop="removeVideoFromPlaylist(item)"
+                ></button>
+              </div>
             </div>
           </div>
         </div>
@@ -352,6 +383,7 @@
 
         // Blob URL cleanup
         cleanupBlobUrl: null,
+        expandedPlaylists: new Set(),
       }
     },
 
@@ -434,11 +466,9 @@
         if (this.currentTraining && videoData) {
           console.log('Adding video to playlist:', videoData)
 
-          // Ensure video has an absolute path
           let enhancedVideoData = this.ensureAbsolutePath(videoData)
           console.log('Enhanced video data:', enhancedVideoData)
 
-          // Check if video is already in playlist (by identifier)
           const identifier =
             typeof enhancedVideoData === 'string'
               ? enhancedVideoData
@@ -468,19 +498,32 @@
         }
       },
 
+      togglePlaylistExpanded(playlistIndex) {
+        if (this.expandedPlaylists.has(playlistIndex)) {
+          this.expandedPlaylists.delete(playlistIndex)
+        } else {
+          this.expandedPlaylists.add(playlistIndex)
+        }
+        this.$forceUpdate()
+      },
+
+      removeVideoFromPlaylistItem(playlist, videoIndex) {
+        if (playlist && playlist.videos) {
+          playlist.videos.splice(videoIndex, 1)
+          this.trainingStore.saveTrainingsToStorage()
+        }
+      },
+
       selectVideoForPlayback(videoData) {
-        // Play video in the training component's own player
         this.playVideoInTrainingPlayer(videoData)
       },
 
-      // Training Component Video Player Methods
       async playVideoInTrainingPlayer(videoData) {
         try {
           console.log('playVideoInTrainingPlayer called with:', videoData)
           console.log('videoData type:', typeof videoData)
           console.log('videoData properties:', Object.keys(videoData || {}))
 
-          // Cleanup any previous blob URL
           if (this.cleanupBlobUrl) {
             this.cleanupBlobUrl()
             this.cleanupBlobUrl = null
@@ -492,7 +535,6 @@
             return
           }
 
-          // --- 1. Extract video path and name ---
           const { videoPath, videoName } = this.resolveVideoPath(videoData)
           if (!videoPath) {
             console.error('No valid video path found for training player')
@@ -501,13 +543,11 @@
 
           console.log('Final video path for loading:', videoPath)
 
-          // --- 2. Try loading via Electron IPC (preferred method) ---
           if (window.electronAPI?.loadVideoFile) {
             const loaded = await this.tryLoadViaIPC(videoPath, videoPlayer, videoName)
-            if (loaded) return // success
+            if (loaded) return 
           }
 
-          // --- 3. Fallback to file:// URL ---
           const finalUrl = `file://${videoPath.replace(/#/g, '%23')}`
           videoPlayer.src = finalUrl
           this.currentVideoName = videoName
@@ -533,28 +573,23 @@
           return { videoPath, videoName }
         }
 
-        // Absolute path provided
         if (videoData.absolutePath) {
           return { videoPath: videoData.absolutePath, videoName: videoData.name || 'Video' }
         }
 
-        // Handle fileHandle (delegated)
         if (videoData.fileHandleId) {
           this.handleFileHandleVideo(videoData)
           return {}
         }
 
-        // Try constructing a valid absolute or relative path
         const pathCandidates = [videoData.url, videoData.path, videoData.identifier]
         for (const path of pathCandidates) {
           if (!path) continue
 
-          // Absolute path cases
           if (path.startsWith('/') || path.match(/^[A-Z]:/)) {
             return { videoPath: path, videoName: videoData.name || 'Video' }
           }
 
-          // Relative path + known root directory
           if (this.videoStore?.rootDirectoryPath) {
             const combined = `${this.videoStore.rootDirectoryPath}/${path}`.replace(/[\\/]+/g, '/')
             return { videoPath: combined, videoName: videoData.name || 'Video' }
@@ -571,7 +606,6 @@
 
           if (!result.success) throw new Error(result.error || 'Failed to load video file')
 
-          // Convert base64 → Blob → object URL
           const binaryString = atob(result.data)
           const bytes = new Uint8Array(binaryString.length)
           for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i)
@@ -579,7 +613,6 @@
           const blob = new Blob([bytes], { type: result.mimeType })
           const blobUrl = URL.createObjectURL(blob)
 
-          // Setup cleanup
           this.cleanupBlobUrl = () => URL.revokeObjectURL(blobUrl)
 
           videoPlayer.src = blobUrl
@@ -603,21 +636,17 @@
 
           console.log('Handling FileHandle video:', videoData.fileHandleId)
 
-          // Get the FileHandle from the FileService
           const fileHandle = this.fileService.getFileHandle(videoData.fileHandleId)
           if (!fileHandle) {
             throw new Error(`FileHandle not found for ID: ${videoData.fileHandleId}`)
           }
 
-          // Get the file and create a blob URL
           const file = await fileHandle.getFile()
           const blobUrl = URL.createObjectURL(file)
 
-          // Set the video source
           videoPlayer.src = blobUrl
           this.currentVideoName = videoData.name || 'FileHandle Video'
 
-          // Clean up blob URL when component unmounts or new video loads
           this.cleanupBlobUrl = () => URL.revokeObjectURL(blobUrl)
 
           console.log('FileHandle video loaded successfully:', videoData.name)
@@ -627,7 +656,6 @@
         }
       },
 
-      // Video Player Controls
       playVideo() {
         const videoPlayer = this.$refs.trainingVideoPlayer
         if (videoPlayer) {
@@ -669,7 +697,6 @@
         if (videoPlayer) {
           const currentTime = videoPlayer.currentTime
 
-          // Handle loop and time bounds
           if (currentTime >= this.endTime) {
             if (this.loop) {
               videoPlayer.currentTime = this.startTime
@@ -702,7 +729,6 @@
               this.addVideoToCurrentPlaylist(videoData)
             }
           } else {
-            // Fallback for web
             const input = document.createElement('input')
             input.type = 'file'
             input.accept = 'video/*'
@@ -734,7 +760,6 @@
               await this.loadDirectoryVideos(directoryPath)
             }
           } else if (window.showDirectoryPicker) {
-            // Web File System Access API
             const directoryHandle = await window.showDirectoryPicker()
             await this.loadDirectoryVideosFromHandle(directoryHandle)
           } else {
@@ -808,7 +833,6 @@
 
         let videoData
         if (file.path) {
-          // Electron environment
           videoData = {
             name: file.name,
             path: file.path.replace(/#/g, '%23'),
@@ -816,7 +840,6 @@
             isNative: true,
           }
         } else {
-          // Web environment
           videoData = {
             name: file.name,
             url: URL.createObjectURL(file),
@@ -838,11 +861,8 @@
           lastScanned: null,
         }
       },
-
-      // Modal methods
       openVideoModal() {
         this.showVideoModal = true
-        // Initialize expanded state
         this.expandedTrainings.clear()
         this.expandedItems.clear()
       },
@@ -859,7 +879,7 @@
         } else {
           this.expandedTrainings.add(training.trainingType)
         }
-        this.$forceUpdate() // Force reactivity update
+        this.$forceUpdate()
       },
 
       toggleTrainingItem(trainingIndex, itemIndex) {
@@ -870,7 +890,7 @@
         } else {
           this.expandedItems.add(key)
         }
-        this.$forceUpdate() // Force reactivity update
+        this.$forceUpdate() 
       },
 
       getTrainingVideoCount(training) {
@@ -885,21 +905,51 @@
       },
 
       selectVideoFromModal(video) {
-        // Preview/play the video in the training player
         this.playVideoInTrainingPlayer(video)
       },
 
       addVideoPlaylistToTraining(item) {
-        if (item.videos && item.videos.length > 0) {
-          item.videos.forEach((video) => {
-            this.addVideoFromModal(video)
-          })
+        if (!item.videos || item.videos.length === 0) return
+        
+        if (!this.currentTraining) {
+          console.error('No current training selected')
+          return
         }
+
+        const playlistData = {
+          name: item.name,
+          isPlaylist: true,
+          parentName: item.parentName || '',
+          videos: item.videos.map(video => ({
+            name: video.name,
+            identifier: this.getVideoIdentifier(video),
+            fileHandleId: video.fileHandleId,
+            url: video.url,
+            path: video.path,
+            isDirectFile: video.isDirectFile,
+            parentName: video.parentName,
+          }))
+        }
+        
+        console.log('Adding playlist to training:', this.currentTraining.id, playlistData)
+        
+        // Add to store
+        this.trainingStore.addVideoPlaylistToTraining(
+          this.trainingStore.selectedTraining,
+          playlistData
+        )
+        
+        console.log(`Added playlist "${item.name}" with ${item.videos.length} videos to training`)
+        
+        // Close the modal and refresh UI
+        this.showVideoModal = false
+        this.$nextTick(() => {
+          console.log('After closing modal, current playlist videos:', this.currentPlaylistVideos)
+        })
       },
       addVideoFromModal(video) {
         const videoIdentifier = this.getVideoIdentifier(video)
         if (videoIdentifier) {
-          // Store the complete video object for playlist management
           const videoData = {
             name: video.name,
             identifier: videoIdentifier,
@@ -916,19 +966,16 @@
       },
 
       getVideoIdentifier(video) {
-        // Return the appropriate identifier for the video
         if (video.fileHandleId) {
-          return video.fileHandleId // For videos from VideoComponentNewRefactored
+          return video.fileHandleId 
         }
-        // For videos with absolutePath, use the relative path as identifier
         if (video.absolutePath && video.path) {
-          return video.path // Use relative path as identifier
+          return video.path 
         }
         return video.url || video.path || video.identifier
       },
 
       ensureAbsolutePath(videoData) {
-        // If videoData is a string, treat it as a path
         if (typeof videoData === 'string') {
           return {
             name: videoData.split(/[\\\/]/).pop() || 'Video',
@@ -938,36 +985,29 @@
           }
         }
 
-        // If it's an object, ensure it has absolutePath
         if (videoData && typeof videoData === 'object') {
-          // If already has absolutePath, return as-is
           if (videoData.absolutePath) {
             return videoData
           }
 
-          // Try to construct absolute path
           let absolutePath = null
 
           if (
             (videoData.url && videoData.url.startsWith('/')) ||
             (videoData.url && videoData.url.match(/^[A-Z]:/))
           ) {
-            // Already looks like an absolute path
             absolutePath = videoData.url
           } else if (
             videoData.path &&
             (videoData.path.startsWith('/') || videoData.path.match(/^[A-Z]:/))
           ) {
-            // Path is already absolute
             absolutePath = videoData.path
           } else if (videoData.path && this.videoStore.rootDirectoryPath) {
-            // Construct from root + relative path
             absolutePath = `${this.videoStore.rootDirectoryPath}/${videoData.path}`.replace(
               /[\\\/]+/g,
               '/'
             )
           } else {
-            // Fallback to whatever path we have
             absolutePath = videoData.url || videoData.path || videoData.identifier
           }
 
@@ -986,6 +1026,10 @@
           const pathParts = videoItem.split(/[\\\/]/)
           return pathParts[pathParts.length - 1]
         }
+        // Handle playlist items
+        if (videoItem.isPlaylist) {
+          return `📁 ${videoItem.name} (${videoItem.videos?.length || 0} videos)`
+        }
         return videoItem.name || videoItem.identifier || 'Unknown Video'
       },
     },
@@ -1000,12 +1044,10 @@
     },
 
     mounted() {
-      // Load saved playlists from store
       this.trainingStore.loadTrainings()
     },
 
     beforeUnmount() {
-      // Clean up blob URLs
       if (this.cleanupBlobUrl) {
         this.cleanupBlobUrl()
       }
@@ -1110,5 +1152,69 @@
     .modal-footer {
       padding: 15px;
     }
+  }
+
+  /* Playlist styles */
+  .playlist-item {
+    border: 1px solid var(--bg-primary-border);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background: var(--bg-primary-light);
+    overflow: hidden;
+  }
+
+  .playlist-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    cursor: pointer;
+    background: var(--bg-primary-light);
+    transition: background-color 0.2s;
+    user-select: none;
+  }
+
+  .playlist-header:hover {
+    background: var(--bg-primary-border);
+  }
+
+  .toggle-icon {
+    margin-right: 8px;
+    font-size: 0.9rem;
+  }
+
+  .playlist-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  .video-count {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-right: 10px;
+  }
+
+  .playlist-videos {
+    background: var(--bg-darker);
+    border-top: 1px solid var(--bg-primary-border);
+    padding: 0;
+  }
+
+  .nested-video-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px 10px 35px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid var(--bg-primary-border);
+  }
+
+  .nested-video-item:hover {
+    background: var(--bg-primary-light);
+  }
+
+  .nested-video-item:last-child {
+    border-bottom: none;
   }
 </style>
