@@ -8,6 +8,7 @@ export const useVideoStore = defineStore('video', {
 
     selectedVideo: 0,
     currentVideoName: '',
+    currentVideoPath: '',
     currentVideo: '',
     videoLength: 0,
 

@@ -13229,7 +13229,7 @@ async function createWindow() {
     const indexPath = require$$1.join(__dirname$1, "../dist/index.html");
     await win.loadFile(indexPath);
   }
-  {
+  if (isDevelopment) {
     try {
       win.webContents.openDevTools();
       win.webContents.on("devtools-opened", () => {
