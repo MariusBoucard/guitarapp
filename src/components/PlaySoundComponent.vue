@@ -1,27 +1,27 @@
 <template>
   <div class="card">
-    <!-- Training List -->
+    <!-- Playlist List -->
     <div class="training-section">
       <ul class="horizontal-list">
         <li
-          v-for="training in trainingStore.trainingList"
-          @click="selectTraining(training)"
-          :class="getTrainingClass(training)"
-          :key="training.id"
+          v-for="playlist in songPlayerStore.playlistList"
+          @click="selectPlaylist(playlist)"
+          :class="getPlaylistClass(playlist)"
+          :key="playlist.id"
         >
-          <p>{{ training.name }}</p>
+          <p>{{ playlist.name }}</p>
         </li>
       </ul>
 
       <input
-        v-model="trainingStore.currentTrainingName"
+        v-model="songPlayerStore.currentPlaylistName"
         type="text"
         :placeholder="$t('audioplayer_component.training_name_placeholder')"
       />
 
       <div class="training-controls">
-        <button @click="addTraining()">{{ $t('audioplayer_component.add') }}</button>
-        <button @click="removeTraining()">{{ $t('audioplayer_component.remove') }}</button>
+        <button @click="addPlaylist()">{{ $t('audioplayer_component.add') }}</button>
+        <button @click="removePlaylist()">{{ $t('audioplayer_component.remove') }}</button>
       </div>
     </div>
 
@@ -131,7 +131,6 @@
 </template>
 
 <script>
-  import { useTrainingStore } from '../stores/trainingStore.js'
   import { useSongPlayerStore } from '../stores/songPlayerStore.js'
   import { serviceManager } from '../services/index.js'
 
@@ -139,14 +138,12 @@
     name: 'PlaySoundComponent',
 
     setup() {
-      const trainingStore = useTrainingStore()
       const songPlayerStore = useSongPlayerStore()
       const audioService = serviceManager.audio
       const fileService = serviceManager.file
       const storageService = serviceManager.storage
 
       return {
-        trainingStore,
         songPlayerStore,
         audioService,
         fileService,
@@ -155,37 +152,36 @@
     },
 
     computed: {
-      // Get audio files for the currently selected training
+      // Get audio files for the currently selected playlist
       currentAudioFiles() {
-        if (!this.trainingStore.currentTrainingData) {
-          return []
+        if (!this.songPlayerStore.currentPlaylistData) {
+          // If no playlist selected, show global audio files
+          return this.songPlayerStore.audioPath
         }
-        return this.trainingStore.currentTrainingAudioFiles
+        return this.songPlayerStore.currentPlaylistAudioFiles
       },
     },
 
     mounted() {
-      this.trainingStore.loadFromStorage()
       this.songPlayerStore.loadFromStorage()
-
       this.audioService.initializeAudioContext()
     },
 
     methods: {
-      selectTraining(training) {
-        this.trainingStore.selectTraining(training)
+      selectPlaylist(playlist) {
+        this.songPlayerStore.selectPlaylist(playlist)
       },
 
-      addTraining() {
-        this.trainingStore.addTraining()
+      addPlaylist() {
+        this.songPlayerStore.addPlaylist()
       },
 
-      removeTraining() {
-        this.trainingStore.removeTraining()
+      removePlaylist() {
+        this.songPlayerStore.removePlaylist()
       },
 
-      getTrainingClass(training) {
-        return training.id === this.trainingStore.selectedTraining
+      getPlaylistClass(playlist) {
+        return playlist.id === this.songPlayerStore.selectedPlaylistId
           ? 'selectedTrain'
           : 'unselectedTrain'
       },
@@ -209,17 +205,13 @@
         }
       },
 
-      async onFileChange(event) {},
-
       async loadAudioFile(fileData) {
         try {
-          // Strange that we put into a training store although we are in song player? Hmm.
-          this.songPlayerStore.addAudioFile(this.trainingStore, fileData.path, fileData.name)
+          // Add to the songPlayerStore (will add to playlist or global based on selection)
+          this.songPlayerStore.addAudioFile(fileData.path, fileData.name)
 
           const audioData = await this.audioService.loadAudioFile(fileData.path)
-
           this.$refs.audioPlayer.src = audioData.src
-
           this.currentAudio = audioData.audio
         } catch (error) {
           console.error('Error loading audio file:', error)
@@ -227,7 +219,7 @@
       },
 
       removeAudioFile(filePath) {
-        this.songPlayerStore.removeAudioFile(this.trainingStore, filePath)
+        this.songPlayerStore.removeAudioFile(filePath)
       },
 
       async launchFile(filePath) {
@@ -295,8 +287,10 @@
         if (audio && audio.duration) {
           this.songPlayerStore.setSongLength(audio.duration)
 
-          // J'ai du casser ca...
-          this.audioService.initWaveSurfer('waveform', audio.src)
+          // Initialize wave surfer if available
+          if (this.audioService.initWaveSurfer) {
+            this.audioService.initWaveSurfer('waveform', audio.src)
+          }
         }
       },
     },

@@ -5,30 +5,19 @@ export const useSongPlayerStore = defineStore('songPlayer', {
   state: () => ({
     currentSong: '',
     songLength: 0,
-    // Tout ca me semble pas utilisé pour l'instant
-    // TODO :  Implementer ces reglages dans le player pour que
-    // ça reste lors dechangement de chanson etc...
     startTime: 0,
     endTime: 0,
     speed: 100,
     pitch: 0,
     loop: false,
     defaultPath: '/media/marius/DISK GROS/',
+    
+    playlists: [],
+    selectedPlaylistId: null,
+    currentPlaylistName: '',
   }),
 
   getters: {
-    audioPathForTraining: () => (trainingStore) => {
-      if (!trainingStore || !trainingStore.currentTrainingData) {
-        return []
-      }
-
-      const training = trainingStore.currentTrainingData
-      if (!training.audioFiles) {
-        training.audioFiles = []
-      }
-      return training.audioFiles
-    },
-
     audioPath() {
       const userStore = useUserStore()
       if (!userStore.currentUser?.data?.audioFiles) {
@@ -53,57 +42,108 @@ export const useSongPlayerStore = defineStore('songPlayer', {
         .padStart(2, '0')
       return `${minutes}:${seconds}.${milliseconds}`
     },
+
+    playlistList() {
+      const userStore = useUserStore()
+      if (!userStore.currentUser?.data?.audioPlaylists) {
+        if (userStore.currentUser) {
+          userStore.currentUser.data.audioPlaylists = []
+        }
+        return []
+      }
+      return userStore.currentUser.data.audioPlaylists
+    },
+
+    currentPlaylistData: (state) => {
+      const userStore = useUserStore()
+      const playlists = userStore.currentUser?.data?.audioPlaylists || []
+      return playlists.find((playlist) => playlist.id === state.selectedPlaylistId)
+    },
+
+    currentPlaylistAudioFiles() {
+      return this.currentPlaylistData?.audioFiles || []
+    },
   },
 
   actions: {
-    addAudioToTraining(trainingStore, trainingId, audioPath) {
-      const training = trainingStore.trainingList.find((t) => t.id === trainingId)
-      if (training) {
-        if (!training.audioFiles) {
-          training.audioFiles = []
-        }
-
-        if (!training.audioFiles.includes(audioPath)) {
-          training.audioFiles.push(audioPath)
-          trainingStore.saveTrainingsToStorage()
-        }
-      }
-    },
-
-    removeAudioFromTraining(trainingStore, trainingId, audioPath) {
-      const training = trainingStore.trainingList.find((t) => t.id === trainingId)
-      if (training && training.audioFiles) {
-        const index = training.audioFiles.indexOf(audioPath)
-        if (index > -1) {
-          training.audioFiles.splice(index, 1)
-          trainingStore.saveTrainingsToStorage()
-        }
-      }
-    },
-
-    addAudioFile(trainingStore, filePath, fileName) {
+    // Playlist management actions
+    addPlaylist(name) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
-      if (trainingStore.currentTrainingData) {
-        this.addAudioToTraining(trainingStore, trainingStore.selectedTraining, filePath)
+      if (!userStore.currentUser.data.audioPlaylists) {
+        userStore.currentUser.data.audioPlaylists = []
+      }
+
+      const playlists = userStore.currentUser.data.audioPlaylists
+      playlists.push({
+        id: playlists.length,
+        name: name || this.currentPlaylistName,
+        audioFiles: [],
+      })
+      this.reindexPlaylists()
+      userStore.saveUsersToStorage()
+    },
+
+    removePlaylist(index = this.selectedPlaylistId) {
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+
+      if (!userStore.currentUser.data.audioPlaylists) return
+
+      userStore.currentUser.data.audioPlaylists.splice(index, 1)
+      this.reindexPlaylists()
+      
+      if (this.selectedPlaylistId === index) {
+        this.selectedPlaylistId = null
+      }
+      
+      userStore.saveUsersToStorage()
+    },
+
+    selectPlaylist(playlist) {
+      this.selectedPlaylistId = playlist.id
+    },
+
+    reindexPlaylists() {
+      const userStore = useUserStore()
+      if (!userStore.currentUser?.data?.audioPlaylists) return
+
+      userStore.currentUser.data.audioPlaylists.forEach((playlist, index) => {
+        playlist.id = index
+      })
+    },
+
+    addAudioFile(filePath, fileName) {
+      const userStore = useUserStore()
+      if (!userStore.currentUser) return
+
+      if (this.currentPlaylistData) {
+        if (!this.currentPlaylistData.audioFiles.includes(filePath)) {
+          this.currentPlaylistData.audioFiles.push(filePath)
+        }
       } else {
         if (!userStore.currentUser.data.audioFiles) {
           userStore.currentUser.data.audioFiles = []
         }
-        userStore.currentUser.data.audioFiles.push(filePath)
+        if (!userStore.currentUser.data.audioFiles.includes(filePath)) {
+          userStore.currentUser.data.audioFiles.push(filePath)
+        }
       }
 
       this.currentSong = fileName
       userStore.saveUsersToStorage()
     },
 
-    removeAudioFile(trainingStore, filePath) {
+    removeAudioFile(filePath) {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
-      if (trainingStore.currentTrainingData) {
-        this.removeAudioFromTraining(trainingStore, trainingStore.selectedTraining, filePath)
+      if (this.currentPlaylistData) {
+        const index = this.currentPlaylistData.audioFiles.indexOf(filePath)
+        if (index > -1) {
+          this.currentPlaylistData.audioFiles.splice(index, 1)
+        }
       } else {
         const audioFiles = userStore.currentUser.data.audioFiles || []
         const index = audioFiles.indexOf(filePath)
@@ -113,10 +153,6 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       }
 
       userStore.saveUsersToStorage()
-    },
-
-    updateAudioPathForTraining(trainingStore) {
-      // No-op: audioPath is now a getter that automatically reflects current data
     },
 
     setPlaybackSettings({ startTime, endTime, speed, pitch, loop }) {
@@ -132,7 +168,6 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       this.endTime = duration
     },
 
-    // TODO ! C'est débile, on devrait sauver ce store dans le store du user ou qq chose, mais pas ca
     saveAudioToStorage() {
       const userStore = useUserStore()
       userStore.saveUsersToStorage()
@@ -142,17 +177,19 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       const userStore = useUserStore()
       if (!userStore.currentUser) return
 
-      // TODO : devrais marcher sans
-      //      const songLength = localStorage.getItem('songLength')
-      //      if (songLength) {
-      //       for (let i = 0; i < parseInt(songLength); i++) {
-      //         const song = localStorage.getItem(`song${i}`)
-      //         if (song && !this.songPath.includes(song)) {
-      //           this.songPath.push(song)
-      //          this.audioPath.push(song)
-      //       }
-      //     }
-      //  }
+      if (
+        (!userStore.currentUser.data.audioPlaylists ||
+          userStore.currentUser.data.audioPlaylists.length === 0) &&
+        localStorage.getItem('songSave')
+      ) {
+        const oldPlaylists = JSON.parse(localStorage.getItem('songSave'))
+        userStore.currentUser.data.audioPlaylists = oldPlaylists.map((playlist, index) => ({
+          id: index,
+          name: playlist.name || `Playlist ${index + 1}`,
+          audioFiles: playlist.audioFiles || [],
+        }))
+        userStore.saveUsersToStorage()
+      }
     },
   },
 })
