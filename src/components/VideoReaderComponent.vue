@@ -419,9 +419,9 @@ export default {
           this.loopsCompleted++
 
           if (this.loopsCompleted >= maxLoops) {
-            video.pause()
+            this.pauseVideo();
             video.currentTime = effectiveEnd
-            this.loop = false
+            
             return
           }
 
@@ -492,8 +492,8 @@ export default {
     pauseVideo() {
       const video = this.$refs.videoPlayer
       if (video) {
-        this.loopsCompleted = 0
         this.videoService.pauseVideo(video)
+        this.loopsCompleted = 0
       }
     },
 

@@ -69,10 +69,8 @@ export function registerFileHandlers() {
     return []
   })
 
-  // Directory tree operations
-  ipcMain.handle('save-directory-tree', async (event, directoryPath, treeData) => {
+   ipcMain.handle('save-directory-tree', async (event, directoryPath, treeData) => {
     try {
-      // Save to app data directory
       const appDataPath = join(homedir(), '.guitarapp')
       await fs.ensureDir(appDataPath)
 
@@ -91,7 +89,6 @@ export function registerFileHandlers() {
     }
   })
 
-  // Load directory tree from file
   ipcMain.handle('load-directory-tree', async () => {
     try {
       const appDataPath = join(homedir(), '.guitarapp')

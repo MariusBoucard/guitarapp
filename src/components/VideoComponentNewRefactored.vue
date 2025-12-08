@@ -174,10 +174,10 @@
 
             if (selectedPath) {
               const scanResult = await window.electronAPI.scanVideoDirectory(selectedPath)
-
+              
               if (scanResult.success && scanResult.videos.length > 0) {
                 const videos = scanResult.videos
-
+                // Video est juste une liste... erreur nommage ici
                 const saveResult = await window.electronAPI.saveDirectoryTree(selectedPath, videos)
                 if (saveResult.success) {
                   console.log('Directory tree saved to:', saveResult.filePath)
@@ -213,6 +213,7 @@
           console.error('Directory selection error:', error)
         }
       },
+
 
       convertVideosToTrainingStructure(videos, basePath) {
         const trainingMap = new Map()
@@ -250,10 +251,23 @@
           }
         })
 
-        const result = Array.from(trainingMap.values()).map((training) => ({
-          ...training,
-          trainings: Array.from(training.trainings.values()),
-        }))
+        const result = Array.from(trainingMap.values())
+          .map((training) => ({
+            ...training,
+            trainings: Array.from(training.trainings.values())
+              .map((trainingItem) => ({
+                ...trainingItem,
+                videos: trainingItem.videos.sort((a, b) => 
+                  a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+                ),
+              }))
+              .sort((a, b) => 
+                a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+              ),
+          }))
+          .sort((a, b) => 
+            a.trainingType.localeCompare(b.trainingType, undefined, { numeric: true, sensitivity: 'base' })
+          )
 
         console.log('Converted training structure:', result)
         return result
