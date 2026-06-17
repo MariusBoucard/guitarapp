@@ -15,6 +15,8 @@
           {{ $t('tab_reader.load_guitarpro') }}
         </button>
         <button @click="openTexJSON()" class="btn btn--sm">{{ $t('tab_reader.open_tab_json') }}</button>
+        <button v-if="isLoaded" @click="exportGP" class="btn btn--sm btn--accent">⬇ GP</button>
+        <button v-if="isLoaded" @click="exportMidi" class="btn btn--sm btn--accent">⬇ MIDI</button>
         <button @click="showPlaylists = !showPlaylists" class="btn btn--sm btn--outline">{{ $t('tab_reader.show_playlists') }}</button>
         <button @click="showAudioSettings = !showAudioSettings" class="btn btn--sm btn--outline">{{ $t('tab_reader.audio_quality') }}</button>
       </div>
@@ -169,7 +171,7 @@
 </template>
 
 <script>
-  import { Settings, AlphaTabApi } from '@coderline/alphatab'
+  import { Settings, AlphaTabApi, exporter } from '@coderline/alphatab'
   import { useTabStore } from '../stores/tabStore.js'
   import { jsonToAlphaTex } from '../services/jsonToAlphaTexService.js'
   import jsondata from '../services/jsontoparseTab.json' with { type: 'json' }
@@ -739,6 +741,37 @@
         }
       },
 
+      // ── Export / Import ─────────────────────────────────────
+      exportGP() {
+        if (!this.alphaTabApi?.score) return
+        try {
+          const exp = new exporter.Gp7Exporter()
+          const data = exp.export(this.alphaTabApi.score, this.alphaTabApi.settings)
+          const blob = new Blob([data], { type: 'application/gp' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = (this.alphaTabApi.score.title || this.currentLoadedFileName || 'tab') + '.gp'
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+        } catch (err) {
+          this.error = `Export failed: ${err.message}`
+          console.error('GP export error:', err)
+        }
+      },
+
+      exportMidi() {
+        if (!this.alphaTabApi?.score) return
+        try {
+          this.alphaTabApi.downloadMidi()
+        } catch (err) {
+          this.error = `MIDI export failed: ${err.message}`
+          console.error('MIDI export error:', err)
+        }
+      },
+
       trySelectNoteAtClick(e) {
         if (!this.alphaTabApi || !this.alphaTabApi.boundsLookup) return
         const scoreEl = this.$refs.alphaTab?.closest('.tab-score')
@@ -829,6 +862,8 @@
   .btn--primary:hover { background: #2563eb; }
   .btn--outline { background: transparent; border: 1px solid #475569; color: #94a3b8; }
   .btn--outline:hover { border-color: #64748b; color: #e2e8f0; }
+  .btn--accent { background: #8b5cf6; color: #fff; font-size: 0.7rem; padding: 0.2rem 0.5rem; }
+  .btn--accent:hover { background: #7c3aed; }
   .btn--dashed { width: 100%; background: transparent; border: 1px dashed #475569; color: #64748b; margin-top: 0.375rem; }
   .btn--dashed:hover { border-color: #3b82f6; color: #3b82f6; }
   .icon-btn { background: none; border: none; color: #64748b; cursor: pointer; padding: 0.15rem 0.35rem; font-size: 0.85rem; border-radius: 4px; }
