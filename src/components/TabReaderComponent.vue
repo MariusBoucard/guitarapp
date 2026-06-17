@@ -251,7 +251,7 @@
           s.player.enableElementHighlighting = true
           s.player.enableUserInteraction = true
           s.player.scrollMode = 'continuous'
-          s.player.scrollElement = this.$refs.alphaTab
+          s.player.scrollElement = this.$refs.alphaTab?.parentElement || this.$refs.alphaTab
           s.player.scrollOffsetY = -40
           s.player.scrollSpeed = 200
 
@@ -306,17 +306,19 @@
           }))
         })
 
-        // Auto-scroll
+        // Auto-scroll — use the .tab-score wrapper as scroll container
         this.alphaTabApi.playerPositionChanged.on((e) => {
           if (!this.$refs.alphaTab || !this.isPlaying) return
-          const c = this.$refs.alphaTab
-          const cursor = c.querySelector('.at-cursor-bar') || c.querySelector('.at-cursor-beat')
+          const scoreEl = this.$refs.alphaTab.closest('.tab-score')
+          if (!scoreEl) return
+          const cursor = scoreEl.querySelector('.at-cursor-bar') || scoreEl.querySelector('.at-cursor-beat')
           if (!cursor) return
-          const cRect = c.getBoundingClientRect()
-          const y = cursor.getBoundingClientRect().top - cRect.top
-          const pad = 80
-          if (y < pad || y > cRect.height - pad) {
-            c.scrollTo({ top: c.scrollTop + y - cRect.height / 2, behavior: 'smooth' })
+          const cRect = scoreEl.getBoundingClientRect()
+          const y = cursor.getBoundingClientRect().top - cRect.top + scoreEl.scrollTop
+          const pad = 60
+          const target = y - cRect.height / 2
+          if (Math.abs(scoreEl.scrollTop - target) > pad) {
+            scoreEl.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
           }
         })
 
@@ -564,7 +566,8 @@
   .tab-reader {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     background: #0f172a;
     color: #e2e8f0;
     font-family: 'Inter', system-ui, sans-serif;

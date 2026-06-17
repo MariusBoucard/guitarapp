@@ -13,7 +13,7 @@
     <div class="main-content">
       <div class="row" :class="{ 'sidebar-folded': isRightColumnFolded }">
         <div class="column">
-          <div>
+          <div class="column-inner">
             <MancheComponent
               :lefty="appStore.lefty"
               :noteToPlay="gameStore.noteexpected"
@@ -65,9 +65,6 @@
               v-show="appStore.notesSelectedDisplay"
             ></NotesSelectedComponent>
             <TuningComponent v-show="appStore.settingsView"></TuningComponent>
-          </div>
-          <div class="row">
-            <div class="columnhalf"></div>
           </div>
         </div>
         <div class="columnd" v-show="!isRightColumnFolded">
@@ -630,12 +627,19 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-    min-width: 0; /* Allow flex shrinking */
+    min-width: 0;
     transition: flex 0.3s ease;
-    overflow-y: auto; /* Allow vertical scrolling */
-    overflow-x: hidden; /* Prevent horizontal overflow */
+    overflow: hidden;
     padding: var(--spacing-md);
-    height: 100%; /* Take full height */
+    height: 100%;
+  }
+
+  .column-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
   }
 
   /* When sidebar is folded, expand the main column */
