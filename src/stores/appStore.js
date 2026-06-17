@@ -1,216 +1,129 @@
 /**
- * App Store - Global application state
- * This is the Model layer for overall app state in MVC architecture
+ * App Store - Display visibility + pure UI state
  *
- * IMPORTANT: Display settings now come from currentUser.data.settings
- * This ensures settings persist per-user and don't get reset
+ * Owns all display booleans in Pinia state.
+ * Persists via userDataService.
  */
 import { defineStore } from 'pinia'
-import { useUserStore } from './userStore'
+import { userDataService } from '@/services/userDataService.js'
+
+/** Default display values */
+const D = {
+  mancheDisplay: true,
+  notesSelectedDisplay: true,
+  tunderDisplay: false,
+  pictureDisplay: false,
+  soundDisplay: false,
+  scalesDisplay: true,
+  videoDisplay: false,
+  videoDisplayNew: true,
+  trainingDisplay: false,
+  gameDisplay: false,
+  chordssuggestDisplay: false,
+  tabReaderDisplay: false,
+}
 
 export const useAppStore = defineStore('app', {
-  state: () => ({
-    settingsView: false,
-    keyboard: false,
-    userManagementDisplay: false,
-    lefty: false,
-    autoGammeSelect: false,
-    isPlayingRoot: false,
-    videoFolder: '',
-  }),
+  state: () => {
+    const s = userDataService.currentUser?.data?.settings || {}
+    return {
+      // Display booleans — the single source of truth for what's visible
+      mancheDisplay: s.mancheDisplay ?? D.mancheDisplay,
+      notesSelectedDisplay: s.notesSelectedDisplay ?? D.notesSelectedDisplay,
+      tunderDisplay: s.tunerDisplay ?? s.tunderDisplay ?? D.tunderDisplay,
+      pictureDisplay: s.pictureDisplay ?? D.pictureDisplay,
+      soundDisplay: s.soundDisplay ?? D.soundDisplay,
+      scalesDisplay: s.scalesDisplay ?? D.scalesDisplay,
+      videoDisplay: s.videoDisplay ?? D.videoDisplay,
+      videoDisplayNew: s.videoDisplayNew ?? D.videoDisplayNew,
+      trainingDisplay: s.trainingDisplay ?? D.trainingDisplay,
+      gameDisplay: s.gameDisplay ?? D.gameDisplay,
+      chordssuggestDisplay: s.chordssuggestDisplay ?? D.chordssuggestDisplay,
+      tabReaderDisplay: s.tabReaderDisplay ?? D.tabReaderDisplay,
+
+      // Transient UI state (not persisted)
+      settingsView: false,
+      keyboard: false,
+      userManagementDisplay: false,
+      lefty: false,
+      autoGammeSelect: false,
+      isPlayingRoot: false,
+      videoFolder: '',
+    }
+  },
 
   getters: {
-    userStore() {
-      return useUserStore()
-    },
+    // Alias for the typo name used everywhere
+    tunerDisplay: (state) => state.tunderDisplay,
 
-    mancheDisplay() {
-      return this.userStore.currentUser?.data?.settings?.mancheDisplay ?? true
-    },
-    notesSelectedDisplay() {
-      return this.userStore.currentUser?.data?.settings?.notesSelectedDisplay ?? true
-    },
-    tunerDisplay() {
-      return this.userStore.currentUser?.data?.settings?.tunerDisplay ?? false
-    },
-    pictureDisplay() {
-      return this.userStore.currentUser?.data?.settings?.pictureDisplay ?? false
-    },
-    soundDisplay() {
-      return this.userStore.currentUser?.data?.settings?.soundDisplay ?? false
-    },
-    scalesDisplay() {
-      return this.userStore.currentUser?.data?.settings?.scalesDisplay ?? true
-    },
-    videoDisplay() {
-      return this.userStore.currentUser?.data?.settings?.videoDisplay ?? false
-    },
-    videoDisplayNew() {
-      return this.userStore.currentUser?.data?.settings?.videoDisplayNew ?? true
-    },
-    trainingDisplay() {
-      return this.userStore.currentUser?.data?.settings?.trainingDisplay ?? false
-    },
-    gameDisplay() {
-      return this.userStore.currentUser?.data?.settings?.gameDisplay ?? false
-    },
-    chordssuggestDisplay() {
-      return this.userStore.currentUser?.data?.settings?.chordssuggestDisplay ?? false
-    },
-    tabReaderDisplay() {
-      return this.userStore.currentUser?.data?.settings?.tabReaderDisplay ?? false
-    },
-
-    displayStates() {
-      return {
-        mancheDisplay: this.mancheDisplay,
-        notesSelectedDisplay: this.notesSelectedDisplay,
-        tunerDisplay: this.tunerDisplay,
-        pictureDisplay: this.pictureDisplay,
-        soundDisplay: this.soundDisplay,
-        scalesDisplay: this.scalesDisplay,
-        videoDisplay: this.videoDisplay,
-        videoDisplayNew: this.videoDisplayNew,
-        trainingDisplay: this.trainingDisplay,
-        gameDisplay: this.gameDisplay,
-        chordssuggestDisplay: this.chordssuggestDisplay,
-        settingsView: this.settingsView,
-        keyboard: this.keyboard,
-        tabReaderDisplay: this.tabReaderDisplay,
-        userManagementDisplay: this.userManagementDisplay,
-      }
-    },
+    displayStates: (state) => ({
+      mancheDisplay: state.mancheDisplay,
+      notesSelectedDisplay: state.notesSelectedDisplay,
+      tunderDisplay: state.tunderDisplay,
+      pictureDisplay: state.pictureDisplay,
+      soundDisplay: state.soundDisplay,
+      scalesDisplay: state.scalesDisplay,
+      videoDisplay: state.videoDisplay,
+      videoDisplayNew: state.videoDisplayNew,
+      trainingDisplay: state.trainingDisplay,
+      gameDisplay: state.gameDisplay,
+      chordssuggestDisplay: state.chordssuggestDisplay,
+      tabReaderDisplay: state.tabReaderDisplay,
+    }),
   },
 
   actions: {
-    toggleManche() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.mancheDisplay = !settings.mancheDisplay
-        this.userStore.saveUsersToStorage()
+    /** Toggle a display boolean and persist */
+    _toggleDisplay(key) {
+      this[key] = !this[key]
+      userDataService.updateSetting(key, this[key])
+    },
+
+    toggleManche()           { this._toggleDisplay('mancheDisplay') },
+    toggleNotesSelected()    { this._toggleDisplay('notesSelectedDisplay') },
+    toggleTuner()            { this._toggleDisplay('tunderDisplay') },
+    togglePicture()          { this._toggleDisplay('pictureDisplay') },
+    toggleSound()            { this._toggleDisplay('soundDisplay') },
+    toggleScales()           { this._toggleDisplay('scalesDisplay') },
+    toggleVideo()            { this._toggleDisplay('videoDisplay') },
+    toggleVideoNew()         { this._toggleDisplay('videoDisplayNew') },
+    toggleTraining()         { this._toggleDisplay('trainingDisplay') },
+    toggleGame()             { this._toggleDisplay('gameDisplay') },
+    toggleChordssuggestion() { this._toggleDisplay('chordssuggestDisplay') },
+    toggleTabReader()        { this._toggleDisplay('tabReaderDisplay') },
+
+    // Transient toggles
+    toggleSettings()        { this.settingsView = !this.settingsView },
+    toggleKeyboard()        { this.keyboard = !this.keyboard },
+    toggleUserManagement()  { this.userManagementDisplay = !this.userManagementDisplay },
+    toggleAutoGammeSelect() { this.autoGammeSelect = !this.autoGammeSelect },
+    togglePlayingRoot()     { this.isPlayingRoot = !this.isPlayingRoot },
+
+    setLefty(value)   { this.lefty = value },
+    setVideoFolder(f) { this.videoFolder = f },
+
+    setDisplayState(key, value) {
+      if (key in this && typeof this[key] === 'boolean') {
+        this[key] = value
+        userDataService.updateSetting(key, value)
       }
     },
 
-    toggleNotesSelected() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.notesSelectedDisplay = !settings.notesSelectedDisplay
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    toggleTuner() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.tunerDisplay = !settings.tunerDisplay
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    togglePicture() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.pictureDisplay = !settings.pictureDisplay
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    toggleSound() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.soundDisplay = !settings.soundDisplay
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    toggleScales() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.scalesDisplay = !settings.scalesDisplay
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    toggleVideo() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.videoDisplay = !settings.videoDisplay
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    toggleVideoNew() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.videoDisplayNew = !settings.videoDisplayNew
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    toggleTraining() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.trainingDisplay = !settings.trainingDisplay
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    toggleGame() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.gameDisplay = !settings.gameDisplay
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    toggleChordssuggestion() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.chordssuggestDisplay = !settings.chordssuggestDisplay
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    toggleSettings() {
-      this.settingsView = !this.settingsView
-    },
-
-    toggleKeyboard() {
-      this.keyboard = !this.keyboard
-    },
-
-    toggleTabReader() {
-      const settings = this.userStore.currentUser?.data?.settings
-      if (settings && !this.userStore.isInitializing) {
-        settings.tabReaderDisplay = !settings.tabReaderDisplay
-        this.userStore.saveUsersToStorage()
-      }
-    },
-
-    toggleUserManagement() {
-      this.userManagementDisplay = !this.userManagementDisplay
-    },
-
-    toggleAutoGammeSelect() {
-      this.autoGammeSelect = !this.autoGammeSelect
-    },
-
-    togglePlayingRoot() {
-      this.isPlayingRoot = !this.isPlayingRoot
-    },
-
-    setLefty(value) {
-      this.lefty = value
-    },
-
-    setVideoFolder(folder) {
-      this.videoFolder = folder
-    },
-
-    setDisplayState(stateName, value) {
-      if (stateName in this) {
-        this[stateName] = value
-      }
+    /** Re-sync all display booleans from userDataService (e.g. after user switch) */
+    syncFromUserData() {
+      const s = userDataService.currentUser?.data?.settings || {}
+      this.mancheDisplay = s.mancheDisplay ?? D.mancheDisplay
+      this.notesSelectedDisplay = s.notesSelectedDisplay ?? D.notesSelectedDisplay
+      this.tunderDisplay = s.tunerDisplay ?? s.tunderDisplay ?? D.tunderDisplay
+      this.pictureDisplay = s.pictureDisplay ?? D.pictureDisplay
+      this.soundDisplay = s.soundDisplay ?? D.soundDisplay
+      this.scalesDisplay = s.scalesDisplay ?? D.scalesDisplay
+      this.videoDisplay = s.videoDisplay ?? D.videoDisplay
+      this.videoDisplayNew = s.videoDisplayNew ?? D.videoDisplayNew
+      this.trainingDisplay = s.trainingDisplay ?? D.trainingDisplay
+      this.gameDisplay = s.gameDisplay ?? D.gameDisplay
+      this.chordssuggestDisplay = s.chordssuggestDisplay ?? D.chordssuggestDisplay
+      this.tabReaderDisplay = s.tabReaderDisplay ?? D.tabReaderDisplay
     },
   },
 })

@@ -2,8 +2,8 @@ import { AudioService } from './audioService.js'
 import { VideoService } from './videoService.js'
 import { FileService } from './fileService.js'
 import { StorageService } from './storageService.js'
-import { SettingsService } from './settingsService.js'
 import { UserService } from './userService.js'
+import { userDataService } from './userDataService.js'
 
 /**
  * Service Manager - Central service locator
@@ -20,8 +20,8 @@ export class ServiceManager {
     this.services.set('video', new VideoService(this))
     this.services.set('file', new FileService(this))
     this.services.set('storage', new StorageService(this))
-    this.services.set('settings', new SettingsService(this))
     this.services.set('user', new UserService(this))
+    this.services.set('userData', userDataService)
   }
 
   getService(serviceName) {
@@ -44,12 +44,12 @@ export class ServiceManager {
     return this.getService('file')
   }
 
-  get settings() {
-    return this.getService('settings')
-  }
-
   get storage() {
     return this.getService('storage')
+  }
+
+  get userData() {
+    return this.getService('userData')
   }
 
   get user() {
@@ -63,6 +63,7 @@ export class ServiceManager {
   hasService(serviceName) {
     return this.services.has(serviceName)
   }
+
   cleanup() {
     this.services.forEach((service) => {
       if (typeof service.cleanup === 'function') {
@@ -72,4 +73,5 @@ export class ServiceManager {
     this.services.clear()
   }
 }
+
 export const serviceManager = new ServiceManager()

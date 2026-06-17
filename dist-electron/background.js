@@ -12831,12 +12831,6 @@ const require$$0 = {
   "x-shader/x-fragment": { "compressible": true },
   "x-shader/x-vertex": { "compressible": true }
 };
-/*!
- * mime-db
- * Copyright(c) 2014 Jonathan Ong
- * Copyright(c) 2015-2022 Douglas Christopher Wilson
- * MIT Licensed
- */
 var mimeDb;
 var hasRequiredMimeDb;
 function requireMimeDb() {
@@ -12845,12 +12839,6 @@ function requireMimeDb() {
   mimeDb = require$$0;
   return mimeDb;
 }
-/*!
- * mime-types
- * Copyright(c) 2014 Jonathan Ong
- * Copyright(c) 2015 Douglas Christopher Wilson
- * MIT Licensed
- */
 var hasRequiredMimeTypes;
 function requireMimeTypes() {
   if (hasRequiredMimeTypes) return mimeTypes;

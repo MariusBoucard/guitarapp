@@ -110,6 +110,7 @@
   import { useGameStore } from '@/stores/gameStore.js'
   import { useVideoStore } from '@/stores/videoStore.js'
   import { useSongPlayerStore } from '@/stores/songPlayerStore.js'
+  import { useTrainingStore } from '@/stores/trainingStore.js'
 
   // Components
   import MancheComponent from './MancheComponent.vue'
@@ -161,6 +162,7 @@
       const gameStore = useGameStore()
       const videoStore = useVideoStore()
       const songPlayerStore = useSongPlayerStore()
+      const trainingStore = useTrainingStore()
 
       // Sidebar fold/unfold state
       const isRightColumnFolded = ref(false)
@@ -526,6 +528,7 @@
         tuningStore,
         gameStore,
         videoStore,
+        trainingStore,
         appController,
         videoTreeList,
         toggleTrainingCategory,

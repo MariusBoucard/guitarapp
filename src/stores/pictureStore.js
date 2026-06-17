@@ -1,83 +1,53 @@
 /**
- * Picture Store - Image gallery management
- * Per-user picture data stored in userStore
+ * Picture Store - Image gallery UI state
+ *
+ * Syncs persistent data into Pinia state for reactivity.
+ * Delegates mutations to UserDataService.
  */
 import { defineStore } from 'pinia'
-import { useUserStore } from './userStore'
+import { userDataService } from '@/services/userDataService.js'
 
 export const usePictureStore = defineStore('picture', {
   state: () => ({
-    // UI state (not persisted)
     imageCache: new Map(),
     selectedPictureIndex: null,
     currentImageUrl: '',
+    _pictures: JSON.parse(JSON.stringify(userDataService.getPictures())),
   }),
 
   getters: {
-    // Get current user's picture list from userStore
-    pictureList() {
-      const userStore = useUserStore()
-      return userStore.currentUser?.data.pictures || []
-    },
+    pictureList: (state) => state._pictures,
 
-    // Get selected picture
     selectedPicture() {
-      if (
-        this.selectedPictureIndex === null ||
-        this.selectedPictureIndex >= this.pictureList.length
-      ) {
+      if (this.selectedPictureIndex === null || this.selectedPictureIndex >= this._pictures.length) {
         return null
       }
-      return this.pictureList[this.selectedPictureIndex]
+      return this._pictures[this.selectedPictureIndex]
     },
   },
 
   actions: {
-    // Add a picture to the current user's list
-    addPicture(pictureData) {
-      const userStore = useUserStore()
-      if (userStore.currentUser) {
-        // Check if picture already exists
-        const exists = userStore.currentUser.data.pictures.some(
-          (pic) => pic.name === pictureData.name && pic.size === pictureData.size
-        )
-
-        if (!exists) {
-          userStore.currentUser.data.pictures.push({
-            name: pictureData.name,
-            size: pictureData.size,
-            type: pictureData.type,
-            lastModified: pictureData.lastModified,
-            dataUrl: pictureData.dataUrl, // Store the base64 data URL
-          })
-          userStore.saveUsersToStorage()
-          return true
-        }
-      }
-      return false
+    _syncFromUserData() {
+      this._pictures = JSON.parse(JSON.stringify(userDataService.getPictures()))
     },
 
-    // Remove a picture by index
+    addPicture(pictureData) {
+      const result = userDataService.addPicture(pictureData)
+      if (result) this._syncFromUserData()
+      return result
+    },
+
     removePicture(index) {
-      const userStore = useUserStore()
-      if (
-        userStore.currentUser &&
-        index >= 0 &&
-        index < userStore.currentUser.data.pictures.length
-      ) {
-        const removedPicture = userStore.currentUser.data.pictures[index]
-        userStore.currentUser.data.pictures.splice(index, 1)
-
-        // Clear cache for removed picture
+      if (index >= 0 && index < this._pictures.length) {
+        const removedPicture = this._pictures[index]
         this.imageCache.delete(removedPicture.name)
+        userDataService.removePicture(index)
+        this._syncFromUserData()
 
-        // Adjust selected index if needed
+        const newPictures = this._pictures
         if (this.selectedPictureIndex === index) {
-          if (userStore.currentUser.data.pictures.length > 0) {
-            this.selectedPictureIndex = Math.min(
-              index,
-              userStore.currentUser.data.pictures.length - 1
-            )
+          if (newPictures.length > 0) {
+            this.selectedPictureIndex = Math.min(index, newPictures.length - 1)
             this.loadPictureUrl(this.selectedPictureIndex)
           } else {
             this.clearSelection()
@@ -85,76 +55,62 @@ export const usePictureStore = defineStore('picture', {
         } else if (this.selectedPictureIndex > index) {
           this.selectedPictureIndex--
         }
-
-        userStore.saveUsersToStorage()
       }
     },
 
-    // Clear all pictures for current user
     clearAllPictures() {
-      const userStore = useUserStore()
-      if (userStore.currentUser) {
-        userStore.currentUser.data.pictures = []
-        this.imageCache.clear()
-        this.clearSelection()
-        userStore.saveUsersToStorage()
-      }
+      userDataService.clearAllPictures()
+      this._pictures = []
+      this.imageCache.clear()
+      this.clearSelection()
     },
 
-    // Select a picture and load its URL
     selectPicture(index) {
-      if (index >= 0 && index < this.pictureList.length) {
+      if (index >= 0 && index < this._pictures.length) {
         this.selectedPictureIndex = index
         this.loadPictureUrl(index)
       }
     },
 
-    // Load picture URL from data or cache
     loadPictureUrl(index) {
-      const picture = this.pictureList[index]
+      const picture = this._pictures[index]
       if (!picture) {
         this.currentImageUrl = ''
         return
       }
-
-      // Check cache first
       if (this.imageCache.has(picture.name)) {
         this.currentImageUrl = this.imageCache.get(picture.name)
         return
       }
-
-      // Use stored dataUrl
       if (picture.dataUrl) {
         this.currentImageUrl = picture.dataUrl
         this.imageCache.set(picture.name, picture.dataUrl)
       }
     },
 
-    // Get image preview (with caching)
     getImagePreview(pictureName) {
       if (this.imageCache.has(pictureName)) {
         return this.imageCache.get(pictureName)
       }
-
-      const picture = this.pictureList.find((p) => p.name === pictureName)
-      if (picture && picture.dataUrl) {
+      const picture = this._pictures.find((p) => p.name === pictureName)
+      if (picture?.dataUrl) {
         this.imageCache.set(pictureName, picture.dataUrl)
         return picture.dataUrl
       }
-
-      // Return placeholder
       return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZjVmNWY1Ii8+CjxwYXRoIGQ9Ik0yMCAyNUwyNSAxNUgxNUwyMCAyNVoiIGZpbGw9IiNjY2MiLz4KPC9zdmc+'
     },
 
-    // Clear selection
     clearSelection() {
       this.selectedPictureIndex = null
       this.currentImageUrl = ''
     },
 
-    // Cache an image
     cacheImage(name, dataUrl) {
       this.imageCache.set(name, dataUrl)
+    },
+
+    syncFromUserData() {
+      this._syncFromUserData()
     },
   },
 })

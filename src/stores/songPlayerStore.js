@@ -1,122 +1,79 @@
+/**
+ * Song Player Store - Audio playback UI state
+ *
+ * Syncs persistent audio files into Pinia state for reactivity.
+ * Session-only playback state kept here.
+ */
 import { defineStore } from 'pinia'
-import { useUserStore } from './userStore'
+import { userDataService } from '@/services/userDataService.js'
 
 export const useSongPlayerStore = defineStore('songPlayer', {
   state: () => ({
     currentSong: '',
     songLength: 0,
-    // Tout ca me semble pas utilisé pour l'instant
-    // TODO :  Implementer ces reglages dans le player pour que
-    // ça reste lors dechangement de chanson etc...
     startTime: 0,
     endTime: 0,
     speed: 100,
     pitch: 0,
     loop: false,
     defaultPath: '/media/marius/DISK GROS/',
+    _audioFiles: JSON.parse(JSON.stringify(userDataService.getAudioFiles())),
   }),
 
   getters: {
+    audioPath: (state) => state._audioFiles,
+    songPath: (state) => state._audioFiles,
+
     audioPathForTraining: () => (trainingStore) => {
-      if (!trainingStore || !trainingStore.currentTrainingData) {
-        return []
-      }
-
-      const training = trainingStore.currentTrainingData
-      if (!training.audioFiles) {
-        training.audioFiles = []
-      }
-      return training.audioFiles
-    },
-
-    audioPath() {
-      const userStore = useUserStore()
-      if (!userStore.currentUser?.data?.audioFiles) {
-        if (userStore.currentUser) {
-          userStore.currentUser.data.audioFiles = []
-        }
-        return []
-      }
-      return userStore.currentUser.data.audioFiles
-    },
-
-    songPath() {
-      return this.audioPath
+      if (!trainingStore?.currentTrainingData) return []
+      return trainingStore.currentTrainingData.audioFiles || []
     },
 
     formattedSongLength: (state) => {
       const dateObj = new Date(state.songLength * 1000)
       const minutes = dateObj.getUTCMinutes()
       const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0')
-      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10)
-        .toString()
-        .padStart(2, '0')
+      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0')
       return `${minutes}:${seconds}.${milliseconds}`
     },
   },
 
   actions: {
-    addAudioToTraining(trainingStore, trainingId, audioPath) {
-      const training = trainingStore.trainingList.find((t) => t.id === trainingId)
-      if (training) {
-        if (!training.audioFiles) {
-          training.audioFiles = []
-        }
+    _syncFromUserData() {
+      this._audioFiles = JSON.parse(JSON.stringify(userDataService.getAudioFiles()))
+    },
 
-        if (!training.audioFiles.includes(audioPath)) {
-          training.audioFiles.push(audioPath)
-          trainingStore.saveTrainingsToStorage()
-        }
-      }
+    addAudioToTraining(trainingStore, trainingId, audioPath) {
+      userDataService.addAudioToTraining(trainingId, audioPath)
+      this._syncFromUserData()
     },
 
     removeAudioFromTraining(trainingStore, trainingId, audioPath) {
-      const training = trainingStore.trainingList.find((t) => t.id === trainingId)
-      if (training && training.audioFiles) {
-        const index = training.audioFiles.indexOf(audioPath)
-        if (index > -1) {
-          training.audioFiles.splice(index, 1)
-          trainingStore.saveTrainingsToStorage()
-        }
-      }
+      userDataService.removeAudioFromTraining(trainingId, audioPath)
+      this._syncFromUserData()
     },
 
     addAudioFile(trainingStore, filePath, fileName) {
-      const userStore = useUserStore()
-      if (!userStore.currentUser) return
-
-      if (trainingStore.currentTrainingData) {
-        this.addAudioToTraining(trainingStore, trainingStore.selectedTraining, filePath)
+      if (trainingStore?.currentTrainingData) {
+        userDataService.addAudioToTraining(trainingStore.selectedTraining, filePath)
       } else {
-        if (!userStore.currentUser.data.audioFiles) {
-          userStore.currentUser.data.audioFiles = []
-        }
-        userStore.currentUser.data.audioFiles.push(filePath)
+        userDataService.addAudioFile(filePath)
       }
-
+      this._syncFromUserData()
       this.currentSong = fileName
-      userStore.saveUsersToStorage()
     },
 
     removeAudioFile(trainingStore, filePath) {
-      const userStore = useUserStore()
-      if (!userStore.currentUser) return
-
-      if (trainingStore.currentTrainingData) {
-        this.removeAudioFromTraining(trainingStore, trainingStore.selectedTraining, filePath)
+      if (trainingStore?.currentTrainingData) {
+        userDataService.removeAudioFromTraining(trainingStore.selectedTraining, filePath)
       } else {
-        const audioFiles = userStore.currentUser.data.audioFiles || []
-        const index = audioFiles.indexOf(filePath)
-        if (index > -1) {
-          audioFiles.splice(index, 1)
-        }
+        userDataService.removeAudioFile(filePath)
       }
-
-      userStore.saveUsersToStorage()
+      this._syncFromUserData()
     },
 
     updateAudioPathForTraining(trainingStore) {
-      // No-op: audioPath is now a getter that automatically reflects current data
+      this._syncFromUserData()
     },
 
     setPlaybackSettings({ startTime, endTime, speed, pitch, loop }) {
@@ -132,27 +89,16 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       this.endTime = duration
     },
 
-    // TODO ! C'est débile, on devrait sauver ce store dans le store du user ou qq chose, mais pas ca
     saveAudioToStorage() {
-      const userStore = useUserStore()
-      userStore.saveUsersToStorage()
+      userDataService.save()
     },
 
     loadFromStorage() {
-      const userStore = useUserStore()
-      if (!userStore.currentUser) return
+      this._syncFromUserData()
+    },
 
-      // TODO : devrais marcher sans
-      //      const songLength = localStorage.getItem('songLength')
-      //      if (songLength) {
-      //       for (let i = 0; i < parseInt(songLength); i++) {
-      //         const song = localStorage.getItem(`song${i}`)
-      //         if (song && !this.songPath.includes(song)) {
-      //           this.songPath.push(song)
-      //          this.audioPath.push(song)
-      //       }
-      //     }
-      //  }
+    syncFromUserData() {
+      this._syncFromUserData()
     },
   },
 })
