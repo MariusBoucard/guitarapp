@@ -87,6 +87,21 @@
         <button @click="openFileDialog" class="btn btn--primary" v-else>{{ $t('tab_reader.load_guitarpro') }}</button>
       </div>
       <div ref="alphaTab" class="alphatab-render"></div>
+
+      <!-- Fret Editor Overlay -->
+      <div v-if="showFretEditor" class="fret-editor" :style="{ left: fretEditorX + 'px', top: fretEditorY + 'px' }" @click.stop>
+        <input
+          ref="fretInput"
+          type="number"
+          v-model="editingFret"
+          min="0"
+          max="24"
+          class="fret-input"
+          @keydown="handleFretKeydown"
+          @blur="applyFretEdit"
+        />
+        <span class="fret-label">fret</span>
+      </div>
       <div v-if="error" class="error-bar">{{ error }}</div>
     </div>
 
@@ -133,6 +148,9 @@
       </div>
 
       <div class="transport__right">
+        <span v-if="isLoaded && totalBars" class="transport-bar-pos">
+          {{ currentBarNumber || '—' }} / {{ totalBars }}
+        </span>
         <button @click="showMixer = !showMixer" class="btn btn--sm btn--outline">{{ showMixer ? '🎚 Hide Mixer' : '🎚 Mixer' }}</button>
       </div>
 
@@ -195,6 +213,14 @@
         loopStartBar: 1,
         loopEndBar: 4,
         currentBeatNotes: [],
+        currentBarNumber: 0,
+        totalBars: 0,
+        // Note editing
+        editingNote: null,
+        editingFret: '',
+        showFretEditor: false,
+        fretEditorX: 0,
+        fretEditorY: 0,
       }
     },
     computed: {
@@ -219,8 +245,12 @@
 
       this.$nextTick(() => this.initializeAlphaTab())
       this.tabStore.loadFromStorage()
+
+      // Close fret editor when clicking outside
+      document.addEventListener('mousedown', this.handleOutsideClick)
     },
     beforeUnmount() {
+      document.removeEventListener('mousedown', this.handleOutsideClick)
       if (this.alphaTabApi) this.alphaTabApi.destroy()
     },
     methods: {
@@ -234,6 +264,7 @@
           s.core.engine = 'html5'
           s.core.useWorkers = true
           s.core.enableLazyLoading = true
+          s.core.includeNoteBounds = true
 
           s.display.layoutMode = 'page'
           s.display.stretchForce = 1.0
@@ -287,6 +318,8 @@
           this.score = score
           this.error = null
           this.currentBeatNotes = []
+          this.currentBarNumber = 0
+          this.totalBars = score.masterBars?.length || 0
         })
 
         this.alphaTabApi.playerReady.on(() => { this.isPlayerReady = true })
@@ -306,9 +339,48 @@
           }))
         })
 
+        // Click-to-seek — user clicks any beat to jump playback there
+        this.alphaTabApi.beatMouseDown.on((beat) => {
+          if (!this.alphaTabApi || !beat) return
+          // Only seek if we're NOT clicking on a note (note click = edit mode)
+          if (!this.editingNote) {
+            this.alphaTabApi.tickPosition = beat.start
+          }
+        })
+
+        // Note click — edit fret
+        this.alphaTabApi.noteMouseDown.on((note) => {
+          if (!note || !this.alphaTabApi) return
+          console.log('📝 noteMouseDown fired:', note.fret, 'string', note.string)
+          this.openFretEditor(note)
+        })
+
+        // Fallback: click on score area — check if we hit a note via bounds
+        this.$nextTick(() => {
+          const scoreEl = this.$refs.alphaTab?.closest('.tab-score')
+          if (scoreEl) {
+            scoreEl.addEventListener('dblclick', (e) => {
+              if (this.showFretEditor) return
+              this.trySelectNoteAtClick(e)
+            })
+          }
+        })
+
         // Auto-scroll — use the .tab-score wrapper as scroll container
         this.alphaTabApi.playerPositionChanged.on((e) => {
           if (!this.$refs.alphaTab || !this.isPlaying) return
+
+          // Update current bar number
+          if (this.score && this.score.masterBars.length) {
+            const tick = e.currentTick || 0
+            for (let i = this.score.masterBars.length - 1; i >= 0; i--) {
+              if (tick >= this.score.masterBars[i].start) {
+                this.currentBarNumber = i + 1
+                break
+              }
+            }
+          }
+
           const scoreEl = this.$refs.alphaTab.closest('.tab-score')
           if (!scoreEl) return
           const cursor = scoreEl.querySelector('.at-cursor-bar') || scoreEl.querySelector('.at-cursor-beat')
@@ -558,6 +630,154 @@
         }
         return colors[noteName] || '#8b5cf6'
       },
+
+      // ── Note Editing ──────────────────────────────────────
+      openFretEditor(note) {
+        if (!note || !this.alphaTabApi) return
+        console.log('📝 Note clicked:', { fret: note.fret, string: note.string, octave: note.octave })
+
+        this.editingNote = note
+        this.editingFret = String(note.fret)
+
+        // Try to position the editor near the note via bounds lookup
+        try {
+          const lookup = this.alphaTabApi.boundsLookup
+          if (lookup && lookup.staffSystems) {
+            for (const sys of lookup.staffSystems) {
+              for (const mb of (sys.bars || [])) {
+                for (const bar of (mb.bars || [])) {
+                  for (const beat of (bar.beats || [])) {
+                    for (const nb of (beat.notes || [])) {
+                      if (nb.note === note) {
+                        const scoreEl = this.$refs.alphaTab?.closest('.tab-score')
+                        if (scoreEl && nb.noteHeadBounds) {
+                          const sRect = scoreEl.getBoundingClientRect()
+                          const r = nb.noteHeadBounds
+                          this.fretEditorX = (r.x + r.w / 2) - sRect.left + scoreEl.scrollLeft
+                          this.fretEditorY = r.y - sRect.top + scoreEl.scrollTop
+                          this.showFretEditor = true
+                          this.$nextTick(() => {
+                            const inp = this.$refs.fretInput
+                            if (inp) { inp.focus(); inp.select() }
+                          })
+                          return
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Bounds lookup failed:', e)
+        }
+
+        // Fallback: position at center of score area
+        const scoreEl = this.$refs.alphaTab?.closest('.tab-score')
+        if (scoreEl) {
+          this.fretEditorX = scoreEl.clientWidth / 2
+          this.fretEditorY = 100
+        }
+        this.showFretEditor = true
+        this.$nextTick(() => {
+          const inp = this.$refs.fretInput
+          if (inp) { inp.focus(); inp.select() }
+        })
+      },
+
+      applyFretEdit() {
+        if (!this.editingNote || !this.alphaTabApi) return
+        const val = parseInt(this.editingFret, 10)
+        if (isNaN(val) || val < 0 || val > 24) {
+          this.cancelFretEdit()
+          return
+        }
+
+        // Modify the note in the score data model
+        this.editingNote.fret = val
+
+        // Recalculate pitch based on new fret
+        const staff = this.editingNote.beat?.voice?.bar?.staff
+        if (staff && staff.stringTuning) {
+          const tuning = staff.stringTuning
+          const noteIndex = this.editingNote.string - 1
+          if (noteIndex >= 0 && noteIndex < tuning.length) {
+            this.editingNote.tone = tuning[noteIndex] + val
+            this.editingNote.octave = Math.floor(this.editingNote.tone / 12) - 1
+          }
+        }
+
+        // Re-render the score to show the change
+        const score = this.alphaTabApi.score
+        const trackIdx = this.selectedTrack
+        this.alphaTabApi.renderScore(score, [trackIdx])
+
+        // Reload MIDI so playback reflects the change
+        this.alphaTabApi.loadMidiForScore(score)
+
+        this.cancelFretEdit()
+      },
+
+      cancelFretEdit() {
+        this.showFretEditor = false
+        this.editingNote = null
+        this.editingFret = ''
+      },
+
+      handleFretKeydown(e) {
+        if (e.key === 'Enter') {
+          this.applyFretEdit()
+        } else if (e.key === 'Escape') {
+          this.cancelFretEdit()
+        }
+      },
+
+      handleOutsideClick(e) {
+        if (this.showFretEditor && this.$refs.fretInput && !this.$refs.fretInput.contains(e.target)) {
+          this.applyFretEdit()
+        }
+      },
+
+      trySelectNoteAtClick(e) {
+        if (!this.alphaTabApi || !this.alphaTabApi.boundsLookup) return
+        const scoreEl = this.$refs.alphaTab?.closest('.tab-score')
+        if (!scoreEl) return
+        const sRect = scoreEl.getBoundingClientRect()
+        const clickX = e.clientX - sRect.left + scoreEl.scrollLeft
+        const clickY = e.clientY - sRect.top + scoreEl.scrollTop
+
+        // Search bounds for the closest note
+        let closest = null
+        let closestDist = Infinity
+        try {
+          const lookup = this.alphaTabApi.boundsLookup
+          if (!lookup?.staffSystems) return
+          for (const sys of lookup.staffSystems) {
+            for (const mb of (sys.bars || [])) {
+              for (const bar of (mb.bars || [])) {
+                for (const beat of (bar.beats || [])) {
+                  for (const nb of (beat.notes || [])) {
+                    if (!nb.noteHeadBounds) continue
+                    const r = nb.noteHeadBounds
+                    const cx = r.x + r.w / 2
+                    const cy = r.y + r.h / 2
+                    const dist = Math.sqrt((clickX - cx) ** 2 + (clickY - cy) ** 2)
+                    if (dist < closestDist && dist < 30) {
+                      closestDist = dist
+                      closest = nb.note
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } catch (err) { console.warn('Bounds search error:', err) }
+
+        if (closest) {
+          this.openFretEditor(closest)
+        }
+      },
     },
   }
 </script>
@@ -654,12 +874,51 @@
   .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
   .alphatab-render { width: 100%; min-height: 100%; }
 
-  /* AlphaTab cursor styling */
-  .tab-score :deep(.at-cursor-bar) { background: rgba(59, 130, 246, 0.35) !important; width: 3px !important; }
-  .tab-score :deep(.at-cursor-beat) { background: rgba(59, 130, 246, 0.15) !important; }
-  .tab-score :deep(.at-highlight) { background: rgba(250, 204, 21, 0.25) !important; }
+  /* AlphaTab cursor & highlight styling */
+  .tab-score :deep(.at-cursor-bar) {
+    background: rgba(59, 130, 246, 0.4) !important;
+    width: 3px !important;
+  }
+  .tab-score :deep(.at-cursor-beat) {
+    background: rgba(59, 130, 246, 0.15) !important;
+  }
+  .tab-score :deep(.at-highlight) {
+    background: rgba(250, 204, 21, 0.35) !important;
+  }
 
   .error-bar { position: absolute; top: 0.5rem; left: 0.5rem; right: 0.5rem; padding: 0.5rem 0.75rem; background: #991b1b; color: #fecaca; border-radius: 6px; font-size: 0.82rem; z-index: 50; white-space: pre-line; }
+
+  /* ── Fret Editor ─── */
+  .fret-editor {
+    position: absolute;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transform: translate(-50%, -120%);
+    background: #1e293b;
+    border: 2px solid #3b82f6;
+    border-radius: 8px;
+    padding: 0.25rem 0.4rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  .fret-input {
+    width: 48px;
+    padding: 0.2rem 0.3rem;
+    background: #0f172a;
+    border: 1px solid #475569;
+    color: #f1f5f9;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    -moz-appearance: textfield;
+  }
+  .fret-input::-webkit-outer-spin-button,
+  .fret-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .fret-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
+  .fret-label { font-size: 0.65rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
 
   /* ── Beat HUD ─── */
   .beat-hud {
@@ -705,6 +964,7 @@
   }
   .transport__left, .transport__center, .transport__right { display: flex; align-items: center; gap: 0.375rem; }
   .transport__center { flex: 1; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+  .transport__right { gap: 0.75rem; }
 
   .transport-btn {
     width: 36px; height: 36px;
@@ -717,6 +977,18 @@
   .transport-btn--play { width: 44px; height: 44px; font-size: 1.2rem; }
   .transport-btn--solo { width: 28px; height: 28px; font-size: 0.7rem; font-weight: 700; border-radius: 4px; }
   .transport-btn--solo.active { background: #eab308; border-color: #eab308; color: #000; }
+
+  .transport-bar-pos {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #94a3b8;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 0.2rem 0.5rem;
+    background: #0f172a;
+    border-radius: 4px;
+    border: 1px solid #334155;
+    white-space: nowrap;
+  }
 
   .transport-track, .transport-loop, .transport-speed { display: flex; align-items: center; gap: 0.375rem; font-size: 0.78rem; color: #94a3b8; }
   .transport-track label, .transport-loop label, .transport-speed label { font-weight: 500; white-space: nowrap; }
