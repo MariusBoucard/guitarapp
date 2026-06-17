@@ -322,6 +322,7 @@
           this.currentBeatNotes = []
           this.currentBarNumber = 0
           this.totalBars = score.masterBars?.length || 0
+          this._buildNoteBoundsMap()
         })
 
         this.alphaTabApi.playerReady.on(() => { this.isPlayerReady = true })
@@ -350,20 +351,19 @@
           }
         })
 
-        // Note click — edit fret
+        // Note click — edit fret (use prebuilt bounds map for instant positioning)
         this.alphaTabApi.noteMouseDown.on((note) => {
           if (!note || !this.alphaTabApi) return
-          console.log('📝 noteMouseDown fired:', note.fret, 'string', note.string)
           this.openFretEditor(note)
         })
 
-        // Fallback: click on score area — check if we hit a note via bounds
+        // Fallback: double-click on score area — find note by proximity to mouse
         this.$nextTick(() => {
           const scoreEl = this.$refs.alphaTab?.closest('.tab-score')
           if (scoreEl) {
             scoreEl.addEventListener('dblclick', (e) => {
               if (this.showFretEditor) return
-              this.trySelectNoteAtClick(e)
+              this.selectNoteAtPosition(e)
             })
           }
         })
@@ -419,6 +419,9 @@
       changeTrack() {
         if (!this.alphaTabApi || this.selectedTrack >= this.tracks.length) return
         this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
+        this.alphaTabApi.renderFinished.on(() => {
+          this._buildNoteBoundsMap()
+        }, { once: true })
       },
       changeVolume(i, v) {
         if (!this.alphaTabApi || !this.tracks[i]) return
@@ -562,6 +565,9 @@
               else if (this.currentFileHandle) { const f = await this.currentFileHandle.getFile(); data = await f.arrayBuffer() }
               if (data) {
                 this.alphaTabApi.load(data)
+                this.alphaTabApi.renderFinished.on(() => {
+                  this._buildNoteBoundsMap()
+                }, { once: true })
                 await new Promise((r) => { const t = setTimeout(() => { clearInterval(i); r() }, 10000); const i = setInterval(() => { if (this.isPlayerReady) { clearInterval(i); clearTimeout(t); r() } }, 100) })
                 if (wasPlaying && time > 0) this.alphaTabApi.timePosition = time
               }
@@ -634,53 +640,54 @@
       },
 
       // ── Note Editing ──────────────────────────────────────
-      openFretEditor(note) {
-        if (!note || !this.alphaTabApi) return
-        console.log('📝 Note clicked:', { fret: note.fret, string: note.string, octave: note.octave })
-
-        this.editingNote = note
-        this.editingFret = String(note.fret)
-
-        // Try to position the editor near the note via bounds lookup
-        try {
-          const lookup = this.alphaTabApi.boundsLookup
-          if (lookup && lookup.staffSystems) {
-            for (const sys of lookup.staffSystems) {
-              for (const mb of (sys.bars || [])) {
-                for (const bar of (mb.bars || [])) {
-                  for (const beat of (bar.beats || [])) {
-                    for (const nb of (beat.notes || [])) {
-                      if (nb.note === note) {
-                        const scoreEl = this.$refs.alphaTab?.closest('.tab-score')
-                        if (scoreEl && nb.noteHeadBounds) {
-                          const sRect = scoreEl.getBoundingClientRect()
-                          const r = nb.noteHeadBounds
-                          this.fretEditorX = (r.x + r.w / 2) - sRect.left + scoreEl.scrollLeft
-                          this.fretEditorY = r.y - sRect.top + scoreEl.scrollTop
-                          this.showFretEditor = true
-                          this.$nextTick(() => {
-                            const inp = this.$refs.fretInput
-                            if (inp) { inp.focus(); inp.select() }
-                          })
-                          return
-                        }
-                      }
-                    }
+      _buildNoteBoundsMap() {
+        // Build a flat Map<Note, {x,y,w,h}> for O(1) lookup
+        this._noteBoundsMap = new Map()
+        const lookup = this.alphaTabApi?.boundsLookup
+        if (!lookup?.staffSystems) return
+        for (const sys of lookup.staffSystems) {
+          for (const mb of (sys.bars || [])) {
+            for (const bar of (mb.bars || [])) {
+              for (const beat of (bar.beats || [])) {
+                for (const nb of (beat.notes || [])) {
+                  if (nb.note && nb.noteHeadBounds) {
+                    this._noteBoundsMap.set(nb.note, nb.noteHeadBounds)
                   }
                 }
               }
             }
           }
-        } catch (e) {
-          console.warn('Bounds lookup failed:', e)
         }
+        console.log('📝 Built note bounds map:', this._noteBoundsMap.size, 'notes')
+      },
 
-        // Fallback: position at center of score area
+      openFretEditor(note, mouseX, mouseY) {
+        if (!note || !this.alphaTabApi) return
+
+        this.editingNote = note
+        this.editingFret = String(note.fret)
+
         const scoreEl = this.$refs.alphaTab?.closest('.tab-score')
         if (scoreEl) {
-          this.fretEditorX = scoreEl.clientWidth / 2
-          this.fretEditorY = 100
+          const sRect = scoreEl.getBoundingClientRect()
+
+          if (mouseX !== undefined && mouseY !== undefined) {
+            // From double-click — use mouse coords directly
+            this.fretEditorX = mouseX - sRect.left + scoreEl.scrollLeft
+            this.fretEditorY = mouseY - sRect.top + scoreEl.scrollTop - 10
+          } else {
+            // From noteMouseDown — use prebuilt bounds map (instant lookup)
+            const b = this._noteBoundsMap?.get(note)
+            if (b) {
+              this.fretEditorX = (b.x + b.w / 2) - sRect.left + scoreEl.scrollLeft
+              this.fretEditorY = b.y - sRect.top + scoreEl.scrollTop - 5
+            } else {
+              this.fretEditorX = scoreEl.clientWidth / 2
+              this.fretEditorY = 100
+            }
+          }
         }
+
         this.showFretEditor = true
         this.$nextTick(() => {
           const inp = this.$refs.fretInput
@@ -714,6 +721,11 @@
         const score = this.alphaTabApi.score
         const trackIdx = this.selectedTrack
         this.alphaTabApi.renderScore(score, [trackIdx])
+
+        // Rebuild bounds map after render (note positions changed)
+        this.alphaTabApi.renderFinished.on(() => {
+          this._buildNoteBoundsMap()
+        }, { once: true })
 
         // Reload MIDI so playback reflects the change
         this.alphaTabApi.loadMidiForScore(score)
@@ -772,43 +784,27 @@
         }
       },
 
-      trySelectNoteAtClick(e) {
-        if (!this.alphaTabApi || !this.alphaTabApi.boundsLookup) return
+      selectNoteAtPosition(e) {
+        if (!this._noteBoundsMap || this._noteBoundsMap.size === 0) return
         const scoreEl = this.$refs.alphaTab?.closest('.tab-score')
         if (!scoreEl) return
         const sRect = scoreEl.getBoundingClientRect()
         const clickX = e.clientX - sRect.left + scoreEl.scrollLeft
         const clickY = e.clientY - sRect.top + scoreEl.scrollTop
 
-        // Search bounds for the closest note
         let closest = null
         let closestDist = Infinity
-        try {
-          const lookup = this.alphaTabApi.boundsLookup
-          if (!lookup?.staffSystems) return
-          for (const sys of lookup.staffSystems) {
-            for (const mb of (sys.bars || [])) {
-              for (const bar of (mb.bars || [])) {
-                for (const beat of (bar.beats || [])) {
-                  for (const nb of (beat.notes || [])) {
-                    if (!nb.noteHeadBounds) continue
-                    const r = nb.noteHeadBounds
-                    const cx = r.x + r.w / 2
-                    const cy = r.y + r.h / 2
-                    const dist = Math.sqrt((clickX - cx) ** 2 + (clickY - cy) ** 2)
-                    if (dist < closestDist && dist < 30) {
-                      closestDist = dist
-                      closest = nb.note
-                    }
-                  }
-                }
-              }
-            }
+        for (const [note, b] of this._noteBoundsMap) {
+          const cx = b.x + b.w / 2
+          const cy = b.y + b.h / 2
+          const dist = Math.sqrt((clickX - cx) ** 2 + (clickY - cy) ** 2)
+          if (dist < closestDist && dist < 30) {
+            closestDist = dist
+            closest = note
           }
-        } catch (err) { console.warn('Bounds search error:', err) }
-
+        }
         if (closest) {
-          this.openFretEditor(closest)
+          this.openFretEditor(closest, e.clientX, e.clientY)
         }
       },
     },
