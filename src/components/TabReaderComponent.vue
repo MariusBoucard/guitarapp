@@ -1,134 +1,55 @@
 <template>
-  <div class="tab-reader-container">
-    <div class="tab-reader-header">
-      <h3>{{ $t('tab_reader.title') }}</h3>
-      <div class="controls">
-        <input
-          ref="fileInput"
-          type="file"
-          accept=".gp,.gp3,.gp4,.gp5,.gpx,.gp6,.ptb"
-          @change="loadFile"
-          style="display: none"
-        />
-        <button @click="openFileWithPicker" class="load-btn" v-if="supportsFileSystemAccess">
+  <div class="tab-reader">
+    <!-- ─── Header ─── -->
+    <header class="tab-header">
+      <div class="tab-header__left">
+        <h3 class="tab-title">{{ $t('tab_reader.title') }}</h3>
+        <span v-if="isLoaded" class="tab-filename">{{ currentLoadedFileName }}</span>
+      </div>
+      <div class="tab-header__right">
+        <input ref="fileInput" type="file" accept=".gp,.gp3,.gp4,.gp5,.gpx,.gp6,.ptb" @change="loadFile" style="display:none" />
+        <button @click="openFileWithPicker" class="btn btn--sm" v-if="supportsFileSystemAccess">
           {{ $t('tab_reader.browse_file') }}
         </button>
-        <button @click="openFileDialog" class="load-btn" v-else>
+        <button @click="openFileDialog" class="btn btn--sm" v-else>
           {{ $t('tab_reader.load_guitarpro') }}
         </button>
-        <button @click="openTexJSON()" class="load-btn">
-          {{ $t('tab_reader.open_tab_json') }}
-        </button>
-        <button v-if="canPlay" @click="playPause" class="play-btn" :class="{ playing: isPlaying }">
-          {{ isPlaying ? $t('tab_reader.pause') : $t('tab_reader.play') }}
-        </button>
-        <button v-if="canPlay" @click="stop" class="stop-btn">{{ $t('tab_reader.stop') }}</button>
-        <button @click="showPlaylists = !showPlaylists" class="mixer-toggle-btn">
-          {{ showPlaylists ? $t('tab_reader.hide_playlists') : $t('tab_reader.show_playlists') }}
-        </button>
-        <button @click="showAudioSettings = !showAudioSettings" class="mixer-toggle-btn">
-          {{ showAudioSettings ? $t('tab_reader.hide_audio') : $t('tab_reader.audio_quality') }}
-        </button>
-        <div v-if="canPlay" class="speed-control">
-          <span class="speed-label">{{ $t('tab_reader.speed') }}: {{ playbackSpeed }}%</span>
-          <input
-            type="range"
-            min="30"
-            max="300"
-            v-model="playbackSpeed"
-            @input="updatePlaybackSpeed"
-            class="speed-slider"
-          />
-        </div>
+        <button @click="openTexJSON()" class="btn btn--sm">{{ $t('tab_reader.open_tab_json') }}</button>
+        <button @click="showPlaylists = !showPlaylists" class="btn btn--sm btn--outline">{{ $t('tab_reader.show_playlists') }}</button>
+        <button @click="showAudioSettings = !showAudioSettings" class="btn btn--sm btn--outline">{{ $t('tab_reader.audio_quality') }}</button>
       </div>
-    </div>
+    </header>
 
-    <!-- Playlists Panel -->
-    <div v-if="showPlaylists" class="playlists-panel">
-      <div class="playlists-header">
-        <h4>{{ $t('tab_reader.tab_playlists') }}</h4>
-        <button @click="showCreatePlaylistModal = true" class="create-playlist-btn">
-          {{ $t('tab_reader.new_playlist') }}
-        </button>
-      </div>
-
-      <div class="playlists-container">
-        <div v-if="tabPlaylists.length === 0" class="no-playlists">
-          <p>{{ $t('tab_reader.no_playlists') }}</p>
-          <p class="help-text">{{ $t('tab_reader.playlists_tip') }}</p>
+    <!-- ─── Playlists Panel (sliding) ─── -->
+    <div v-if="showPlaylists" class="panels">
+      <div class="playlists-panel">
+        <div class="panel-header">
+          <h4>{{ $t('tab_reader.tab_playlists') }}</h4>
+          <button @click="showCreatePlaylistModal = true" class="btn btn--sm btn--primary">{{ $t('tab_reader.new_playlist') }}</button>
         </div>
-
-        <div v-for="playlist in tabPlaylists" :key="playlist.id" class="playlist-item">
-          <div class="playlist-header" @click="togglePlaylist(playlist.id)">
-            <span class="playlist-toggle">{{
-              expandedPlaylists.includes(playlist.id) ? '▼' : '▶'
-            }}</span>
-            <span class="playlist-name">{{ playlist.name }}</span>
-            <span class="playlist-count"
-              >({{ playlist.tabs.length }} {{ $t('tab_reader.tabs') }})</span
-            >
-            <div class="playlist-actions">
-              <button
-                @click.stop="renamePlaylistPrompt(playlist)"
-                class="action-btn"
-                :title="$t('tab_reader.rename')"
-              >
-                ✏️
-              </button>
-              <button
-                @click.stop="deletePlaylistConfirm(playlist)"
-                class="action-btn danger"
-                :title="$t('tab_reader.delete')"
-              >
-                🗑️
-              </button>
-            </div>
+        <div class="playlists-body">
+          <div v-if="tabPlaylists.length === 0" class="empty-state">
+            <p>{{ $t('tab_reader.no_playlists') }}</p>
           </div>
-
-          <div v-if="expandedPlaylists.includes(playlist.id)" class="playlist-content">
-            <div v-if="playlist.tabs.length === 0" class="no-tabs">
-              <p>{{ $t('tab_reader.no_tabs_in_playlist') }}</p>
-              <button
-                @click="addCurrentTabToPlaylist(playlist.id)"
-                v-if="isLoaded"
-                class="add-current-btn"
-              >
-                {{ $t('tab_reader.add_current_tab') }}
-              </button>
+          <div v-for="playlist in tabPlaylists" :key="playlist.id" class="playlist-item">
+            <div class="playlist-head" @click="togglePlaylist(playlist.id)">
+              <span class="playlist-arrow">{{ expandedPlaylists.includes(playlist.id) ? '▾' : '▸' }}</span>
+              <span class="playlist-name">{{ playlist.name }}</span>
+              <span class="playlist-count">({{ playlist.tabs.length }})</span>
+              <button @click.stop="renamePlaylistPrompt(playlist)" class="icon-btn">✎</button>
+              <button @click.stop="deletePlaylistConfirm(playlist)" class="icon-btn icon-btn--danger">×</button>
             </div>
-
-            <div v-else class="tabs-list">
-              <div
-                v-for="tab in playlist.tabs"
-                :key="tab.id"
-                class="tab-item"
-                :class="{ 'has-handle': tab.fileHandleId }"
-              >
-                <div class="tab-info" @click="loadTabFromPlaylist(tab)">
-                  <span class="tab-icon">{{ tab.fileHandleId ? '📄' : '📋' }}</span>
-                  <div class="tab-details">
-                    <span class="tab-name">{{ tab.name }}</span>
-                    <span v-if="tab.artist" class="tab-artist">{{ tab.artist }}</span>
-                    <span v-if="!tab.fileHandleId" class="tab-warning"
-                      >⚠️ {{ $t('tab_reader.no_file_access') }}</span
-                    >
-                  </div>
-                </div>
-                <button
-                  @click="removeTabFromPlaylist(playlist.id, tab.id)"
-                  class="remove-tab-btn"
-                  :title="$t('tab_reader.remove')"
-                >
-                  ✖
-                </button>
+            <div v-if="expandedPlaylists.includes(playlist.id)" class="playlist-body">
+              <div v-if="playlist.tabs.length === 0" class="empty-state">
+                <p>{{ $t('tab_reader.no_tabs_in_playlist') }}</p>
               </div>
-
-              <button
-                @click="addCurrentTabToPlaylist(playlist.id)"
-                v-if="isLoaded"
-                class="add-current-btn"
-              >
-                {{ $t('tab_reader.add_current_tab') }}
+              <div v-for="tab in playlist.tabs" :key="tab.id" class="tab-entry" :class="{ 'tab-entry--handle': tab.fileHandleId }">
+                <span class="tab-entry__name" @click="loadTabFromPlaylist(tab)">{{ tab.name }}</span>
+                <span v-if="tab.artist" class="tab-entry__artist">{{ tab.artist }}</span>
+                <button @click="removeTabFromPlaylist(playlist.id, tab.id)" class="icon-btn icon-btn--danger">×</button>
+              </div>
+              <button v-if="isLoaded" @click="addCurrentTabToPlaylist(playlist.id)" class="btn btn--dashed">
+                + {{ $t('tab_reader.add_current_tab') }}
               </button>
             </div>
           </div>
@@ -136,152 +57,96 @@
       </div>
     </div>
 
-    <!-- Audio Settings Panel -->
-    <div v-if="showAudioSettings" class="audio-settings-panel">
-      <div class="settings-header">
-        <h4>{{ $t('tab_reader.audio_quality_settings') }}</h4>
-        <p class="help-text">{{ $t('tab_reader.audio_quality_tip') }}</p>
-      </div>
-
-      <div class="settings-container">
-        <div class="setting-group">
-          <label class="setting-label">{{ $t('tab_reader.soundfont_selection') }}</label>
-          <div class="soundfont-selector-row">
-            <select v-model="selectedSoundFont" @change="changeSoundFont" class="soundfont-select">
-              <option v-for="sf in availableSoundFonts" :key="sf.path" :value="sf.path">
-                {{ sf.name }} {{ sf.recommended ? '⭐' : '' }} {{ sf.warning ? '⚠️' : '' }} -
-                {{ sf.size }}
-              </option>
-            </select>
-            <button
-              @click="testSoundFont"
-              class="test-soundfont-btn"
-              :title="$t('tab_reader.verify_soundfont')"
-            >
-              🔍
-            </button>
-          </div>
+    <!-- ─── Audio Settings Panel ─── -->
+    <div v-if="showAudioSettings" class="panels">
+      <div class="audio-panel">
+        <div class="panel-header">
+          <h4>{{ $t('tab_reader.audio_quality_settings') }}</h4>
         </div>
-
-        <div class="setting-group">
-          <label class="setting-label">
-            <input
-              type="checkbox"
-              v-model="performanceMode"
-              @change="togglePerformanceMode"
-              style="margin-right: 0.5rem"
-            />
-            {{ $t('tab_reader.performance_mode') }}
-          </label>
-          <p class="setting-hint">{{ $t('tab_reader.performance_hint') }}</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-content">
-      <div v-if="!isLoaded" class="no-file">
-        <p>{{ $t('tab_reader.no_file_loaded') }}</p>
-      </div>
-
-      <div ref="alphaTab" class="alphatab-container"></div>
-
-      <div v-if="error" class="error">
-        <p>{{ $t('tab_reader.error') }}: {{ error }}</p>
-      </div>
-
-      <div v-if="isLoaded" class="bottom-panel">
-        <div class="track-selector">
-          <label>Select Track:</label>
-          <select v-model="selectedTrack" @change="changeTrack">
-            <option v-for="(track, index) in tracks" :key="index" :value="index">
-              {{ track.name }} ({{ track.channel?.instrument?.name || 'Unknown Instrument' }})
+        <div class="audio-body">
+          <label class="field-label">{{ $t('tab_reader.soundfont_selection') }}</label>
+          <select v-model="selectedSoundFont" @change="changeSoundFont" class="select-field">
+            <option v-for="sf in availableSoundFonts" :key="sf.path" :value="sf.path">
+              {{ sf.name }} {{ sf.recommended ? '★' : '' }} {{ sf.warning ? '⚠' : '' }} — {{ sf.size }}
             </option>
           </select>
-
-          <button @click="showMixer = !showMixer" class="mixer-toggle-btn">
-            {{ showMixer ? '🎚️ Hide Mixer' : '🎚️ Show Mixer' }}
-          </button>
-        </div>
-
-        <div class="loop-controls">
-          <label for="loop-start">Start:</label>
-          <input
-            id="loop-start"
-            type="number"
-            v-model.number="loopStartBar"
-            min="1"
-            @change="updateLoopRange"
-          />
-
-          <label for="loop-end">End:</label>
-          <input
-            id="loop-end"
-            type="number"
-            v-model.number="loopEndBar"
-            min="1"
-            @change="updateLoopRange"
-          />
-
-          <button @click="toggleLoop" :class="{ active: isLooping }" class="loop-btn">
-            {{ isLooping ? '🔁 Loop On' : '🔁 Loop Off' }}
-          </button>
-        </div>
-
-        <div v-if="showMixer" class="mixer-panel">
-          <h4>Track Mixer</h4>
-          <div class="mixer-tracks">
-            <div v-for="(track, index) in tracks" :key="index" class="mixer-track">
-              <div class="track-header">
-                <input
-                  type="checkbox"
-                  :checked="!track.playbackInfo.isMute"
-                  @change="toggleMute(index)"
-                  :id="'mute-' + index"
-                />
-                <label :for="'mute-' + index" class="track-name">
-                  {{ track.name }}
-                </label>
-              </div>
-              <div class="track-controls">
-                <div class="control-group">
-                  <label>Volume</label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="16"
-                    :value="track.playbackInfo.volume"
-                    @input="changeVolume(index, $event.target.value)"
-                    class="volume-slider"
-                  />
-                  <span class="value-display">{{ track.playbackInfo.volume }}</span>
-                </div>
-                <div class="control-group">
-                  <label>Pan</label>
-                  <input
-                    type="range"
-                    min="-64"
-                    max="63"
-                    :value="track.playbackInfo.balance"
-                    @input="changePanning(index, $event.target.value)"
-                    class="pan-slider"
-                  />
-                  <span class="value-display">{{ track.playbackInfo.balance }}</span>
-                </div>
-                <div class="control-group solo-group">
-                  <button
-                    @click="toggleSolo(index)"
-                    :class="{ active: track.playbackInfo.isSolo }"
-                    class="solo-btn"
-                  >
-                    S
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <label class="field-check">
+            <input type="checkbox" v-model="performanceMode" @change="togglePerformanceMode" />
+            {{ $t('tab_reader.performance_mode') }}
+          </label>
         </div>
       </div>
     </div>
+
+    <!-- ─── Main Score Area ─── -->
+    <div class="tab-score">
+      <div v-if="!isLoaded && !error" class="empty-state">
+        <div class="empty-icon">♪</div>
+        <p>{{ $t('tab_reader.no_file_loaded') }}</p>
+        <button @click="openFileWithPicker" class="btn btn--primary" v-if="supportsFileSystemAccess">{{ $t('tab_reader.browse_file') }}</button>
+        <button @click="openFileDialog" class="btn btn--primary" v-else>{{ $t('tab_reader.load_guitarpro') }}</button>
+      </div>
+      <div ref="alphaTab" class="alphatab-render"></div>
+      <div v-if="error" class="error-bar">{{ error }}</div>
+    </div>
+
+    <!-- ─── Now Playing HUD ─── -->
+    <transition name="hud-fade">
+      <div v-if="isPlaying && currentBeatNotes.length" class="beat-hud">
+        <span v-for="(n, i) in currentBeatNotes" :key="i" class="beat-hud__note" :style="{ background: getNoteColor(n.note) }">
+          {{ n.string }}:{{ n.fret }}
+        </span>
+      </div>
+    </transition>
+
+    <!-- ─── Transport Bar (fixed bottom) ─── -->
+    <footer class="transport">
+      <div class="transport__left">
+        <button @click="playPause" class="transport-btn transport-btn--play" :class="{ active: isPlaying }">
+          {{ isPlaying ? '⏸' : '▶' }}
+        </button>
+        <button @click="stop" class="transport-btn">⏹</button>
+      </div>
+
+      <div class="transport__center">
+        <div class="transport-track" v-if="tracks.length">
+          <label>{{ $t('tab_reader.track') || 'Track' }}:</label>
+          <select v-model="selectedTrack" @change="changeTrack" class="select-field select-field--compact">
+            <option v-for="(track, index) in tracks" :key="index" :value="index">
+              {{ track.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="transport-loop">
+          <label>Bars:</label>
+          <input type="number" v-model.number="loopStartBar" min="1" class="num-input" @change="updateLoopRange" />
+          <span>—</span>
+          <input type="number" v-model.number="loopEndBar" min="1" class="num-input" @change="updateLoopRange" />
+          <button @click="toggleLoop" class="transport-btn" :class="{ active: isLooping }">🔁</button>
+        </div>
+
+        <div class="transport-speed">
+          <label>{{ playbackSpeed }}%</label>
+          <input type="range" min="30" max="300" v-model="playbackSpeed" @input="updatePlaybackSpeed" class="range-field" />
+        </div>
+      </div>
+
+      <div class="transport__right">
+        <button @click="showMixer = !showMixer" class="btn btn--sm btn--outline">{{ showMixer ? '🎚 Hide Mixer' : '🎚 Mixer' }}</button>
+      </div>
+
+      <!-- Inline Mixer -->
+      <div v-if="showMixer" class="mixer-inline">
+        <div v-for="(track, index) in tracks" :key="index" class="mixer-row">
+          <input type="checkbox" :checked="!track.playbackInfo.isMute" @change="toggleMute(index)" :id="'m'+index" />
+          <label :for="'m'+index" class="mixer-label">{{ track.name }}</label>
+          <input type="range" min="0" max="16" :value="track.playbackInfo.volume" @input="changeVolume(index, $event.target.value)" class="range-field range-field--sm" />
+          <input type="range" min="-64" max="63" :value="track.playbackInfo.balance" @input="changePanning(index, $event.target.value)" class="range-field range-field--sm" />
+          <button @click="toggleSolo(index)" class="transport-btn transport-btn--solo" :class="{ active: track.playbackInfo.isSolo }">S</button>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -291,8 +156,7 @@
   import { jsonToAlphaTex } from '../services/jsonToAlphaTexService.js'
   import jsondata from '../services/jsontoparseTab.json' with { type: 'json' }
   import { fileHandleService } from '../services/fileHandleService.js'
-  //import { scrapeSongsterrTab } from '../services/onlineTabParsing.js'
-  //import path from 'path'
+
   export default {
     name: 'TabReaderComponent',
     data() {
@@ -313,39 +177,14 @@
         selectedSoundFont: './soundfont/sonivox.sf2',
         performanceMode: false,
         availableSoundFonts: [
-          {
-            name: 'MuseScore General HQ (⭐ Best Choice)',
-            path: './soundfont/MuseScore_General.sf3',
-            size: '35 MB',
-            recommended: true,
-          },
-          {
-            name: 'GeneralUser GS (Great Balance)',
-            path: './soundfont/GeneralUser_GS.sf2',
-            size: '30 MB',
-            recommended: true,
-          },
-          { name: 'Sonivox (Original Default)', path: './soundfont/sonivox.sf2', size: '2 MB' },
-          { name: 'Sonivox (Compressed)', path: './soundfont/sonivox.sf3', size: '1 MB' },
-          {
-            name: 'FluidR3 GM (High Quality - Heavy)',
-            path: './soundfont/FluidR3_GM.sf2',
-            size: '142 MB',
-            warning: 'High CPU usage',
-          },
-          {
-            name: 'SGM-V2.01 (Pro Quality - Very Heavy)',
-            path: './soundfont/SGM-V2.01.sf2',
-            size: '239 MB',
-            warning: 'Very high CPU',
-          },
+          { name: 'MuseScore General HQ', path: './soundfont/MuseScore_General.sf3', size: '35 MB', recommended: true },
+          { name: 'GeneralUser GS', path: './soundfont/GeneralUser_GS.sf2', size: '30 MB', recommended: true },
+          { name: 'Sonivox', path: './soundfont/sonivox.sf2', size: '2 MB' },
         ],
-        customSoundFontFile: null,
         currentLoadedFile: null,
         currentLoadedFileName: '',
-        currentFileHandle: null, // Current file handle (not persisted)
-        currentFileHandleId: null, // ID of stored file handle in IndexedDB
-        // Modal states
+        currentFileHandle: null,
+        currentFileHandleId: null,
         showCreatePlaylistModal: false,
         showRenamePlaylistModal: false,
         newPlaylistName: '',
@@ -353,2148 +192,567 @@
         playlistToDelete: null,
         showDeleteConfirm: false,
         isLooping: false,
-        loopStartBar: 1, // The bar to start at (1-based)
+        loopStartBar: 1,
         loopEndBar: 4,
-        /*
-        showScraperModal: false,
-        scraperUrl: '',
-        scraperFilename: 'captured_data.json',
-        scraperDirectory: '',
-        scraperLoading: false,
-        scraperError: '',
-        scraperSuccess: '',*/
+        currentBeatNotes: [],
       }
     },
     computed: {
-      canPlay() {
-        return this.isLoaded && this.isPlayerReady
-      },
-      tabStore() {
-        return useTabStore()
-      },
-      tabPlaylists() {
-        return this.tabStore.tabPlaylists
-      },
-      supportsFileSystemAccess() {
-        return 'showOpenFilePicker' in window
-      },
+      canPlay() { return this.isLoaded && this.isPlayerReady },
+      tabStore() { return useTabStore() },
+      tabPlaylists() { return this.tabStore.tabPlaylists },
+      supportsFileSystemAccess() { return 'showOpenFilePicker' in window },
     },
     async mounted() {
-      // Load saved soundfont preference
-      const savedSoundFont = localStorage.getItem('guitarapp_soundfont')
-      if (savedSoundFont) {
-        // Test if saved soundfont exists before using it
+      const saved = localStorage.getItem('guitarapp_soundfont')
+      if (saved) {
         try {
-          const response = await fetch(savedSoundFont, { method: 'HEAD' })
-          if (response.ok) {
-            this.selectedSoundFont = savedSoundFont
-          } else {
-            console.warn('Saved soundfont not found, using default')
-            // Try MuseScore as default
-            this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
-          }
-        } catch (err) {
-          console.warn('Could not verify saved soundfont:', err)
-          this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
-        }
+          const r = await fetch(saved, { method: 'HEAD' })
+          if (r.ok) this.selectedSoundFont = saved
+          else this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
+        } catch { this.selectedSoundFont = './soundfont/MuseScore_General.sf3' }
       } else {
-        // Default to MuseScore instead of Sonivox
         this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
       }
+      const pm = localStorage.getItem('guitarapp_performanceMode')
+      if (pm !== null) this.performanceMode = pm === 'true'
 
-      // Load performance mode preference
-      const savedPerformanceMode = localStorage.getItem('guitarapp_performanceMode')
-      if (savedPerformanceMode !== null) {
-        this.performanceMode = savedPerformanceMode === 'true'
-      }
-
-      this.$nextTick(() => {
-        this.initializeAlphaTab()
-      })
-      // Initialize tab store data
+      this.$nextTick(() => this.initializeAlphaTab())
       this.tabStore.loadFromStorage()
     },
-    watch: {
-      showCreatePlaylistModal(newVal) {
-        if (newVal) {
-          this.$nextTick(() => {
-            this.$refs.playlistNameInput?.focus()
-          })
-        }
-      },
-    },
     beforeUnmount() {
-      if (this.alphaTabApi) {
-        this.alphaTabApi.destroy()
-      }
+      if (this.alphaTabApi) this.alphaTabApi.destroy()
     },
     methods: {
-      updatePlaybackSpeed() {
-        if (this.alphaTabApi) {
-          // Convert percentage to decimal (e.g., 150% -> 1.5)
-          const speedFactor = this.playbackSpeed / 100
-          this.alphaTabApi.playbackSpeed = speedFactor
-        }
-      },
-      async openTexJSON() {
-        try {
-          const [fileHandle] = await window.showOpenFilePicker({
-            types: [
-              {
-                description: 'Song JSON File',
-                accept: { 'application/json': ['.json'] },
-              },
-            ],
-            multiple: false,
-          })
-
-          if (!fileHandle) return
-
-          const file = await fileHandle.getFile()
-          const text = await file.text()
-
-          // --- Parse JSON ---
-          let songJson
-          try {
-            songJson = JSON.parse(text)
-          } catch (parseErr) {
-            console.error('Invalid JSON file:', parseErr)
-            alert('❌ Invalid JSON file format.')
-            return
-          }
-
-          // --- Convert JSON → AlphaTex ---
-          const tex = jsonToAlphaTex(songJson)
-          this.alphaTabApi.tex(tex)
-          console.log('✅ Generated AlphaTex:', tex)
-
-          // --- Save runtime info ---
-          this.currentLoadedFile = file
-          this.currentLoadedFileName = file.name
-          this.isLoaded = true
-
-          // --- Save handle and wait for ID before adding to playlist ---
-          let fileHandleId = null
-          fileHandleId = await fileHandleService.storeFileHandle(fileHandle)
-          this.currentFileHandleId = fileHandleId
-
-          // --- Build playlist entry ---
-          const tabData = {
-            name: songJson.name || file.name || 'Untitled JSON Tab',
-            path: file.name,
-            artist: songJson.artist || '',
-            album: songJson.album || '',
-            fileHandleId, // ✅ now always defined
-            fileType: 'json',
-          }
-
-          // --- Add to playlist ---
-          this.tabStore.addTabToPlaylist('recent', tabData)
-        } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error('File picker error:', err)
-            alert(`❌ Failed to open file: ${err.message}`)
-          }
-        }
-      },
+      // ── AlphaTab Init ───────────────────────────────────────
       initializeAlphaTab() {
         try {
-          if (!this.$refs.alphaTab) {
-            this.error = 'Failed to find AlphaTab container element'
-            return
-          }
-
+          if (!this.$refs.alphaTab) return
           this.$refs.alphaTab.innerHTML = ''
 
-          const settings = new Settings()
+          const s = new Settings()
+          s.core.engine = 'html5'
+          s.core.useWorkers = true
+          s.core.enableLazyLoading = true
 
-          settings.core.engine = 'html5'
-          settings.core.useWorkers = true
-          settings.display.scale = 1.0
-          settings.display.stretchForce = 0.8
+          s.display.layoutMode = 'page'
+          s.display.stretchForce = 1.0
+          s.display.autoSize = true
+          s.display.scale = 1.0
 
-          settings.display.layoutMode = 'page'
-          settings.core.enableLazyLoading = true
+          s.notation.notationMode = 'SongBook'
+          s.staveProfile = 'ScoreTab'
 
-          // Player settings
-          settings.player.enablePlayer = true
-          settings.player.enableAudioSynthesis = true
-          settings.player.soundFont = this.selectedSoundFont
-          settings.player.enableCursor = true
-          settings.player.enableUserInteraction = true
-          settings.player.enableElementHighlighting = true // Highlight current element
-          settings.player.scrollMode = 'continuous' // Enable continuous scrolling
-          settings.player.scrollElement = this.$refs.alphaTab // Set scroll container for reference
-          settings.display.layoutMode = 'horizontal-screen' // Use screen-based layout
-          settings.display.autoSize = true
-          settings.player.scrollOffsetY = -30 // Add some padding above the current position
+          s.player.enablePlayer = true
+          s.player.enableAudioSynthesis = true
+          s.player.soundFont = this.selectedSoundFont
+          s.player.enableCursor = true
+          s.player.enableAnimatedBeatCursor = true
+          s.player.enableElementHighlighting = true
+          s.player.enableUserInteraction = true
+          s.player.scrollMode = 'continuous'
+          s.player.scrollElement = this.$refs.alphaTab
+          s.player.scrollOffsetY = -40
+          s.player.scrollSpeed = 200
 
-          // Setup better visual organization
-          settings.notation.notationMode = 'SongBook' // More compact notation
-          settings.staveProfile = 'ScoreTab' // Show both score and tab
-
-          // Apply performance mode settings
           if (this.performanceMode) {
-            settings.player.vibrato = false // Disable vibrato for better performance
-            settings.display.resources.effectFont = null // Reduce font rendering
+            s.player.vibrato = false
           }
+
           const isElectron = window.process?.versions?.electron
-
           if (isElectron) {
-            // In Electron, use paths relative to the loaded HTML file
-            const baseUrl = window.location.href.replace(/[^/]*$/, '')
-            settings.core.scriptFile = `${baseUrl}alphatab/alphaTab.min.js`
-            settings.core.fontDirectory = `${baseUrl}alphatab/font/`
-
-            // Set the worklet for audio synthesis
-            settings.player.enableAudioWorklet = true
-            settings.player.scriptFile = `${baseUrl}alphatab/alphaTab.worklet.min.mjs`
+            const base = window.location.href.replace(/[^/]*$/, '')
+            s.core.scriptFile = `${base}alphatab/alphaTab.min.js`
+            s.core.fontDirectory = `${base}alphatab/font/`
+            s.player.enableAudioWorklet = true
+            s.player.scriptFile = `${base}alphatab/alphaTab.worklet.min.mjs`
           }
-          // Core settings
-          settings.core.fontDirectory = './font/'
+          s.core.fontDirectory = './font/'
 
-          this.alphaTabApi = new AlphaTabApi(this.$refs.alphaTab, settings)
+          this.alphaTabApi = new AlphaTabApi(this.$refs.alphaTab, s)
           this.setupEventListeners()
         } catch (err) {
           this.error = `Failed to initialize AlphaTab: ${err.message}`
-          console.error('AlphaTab initialization error:', err)
-        }
-      },
-      toggleLoop() {
-        if (!this.alphaTabApi) return
-
-        // Toggle our component's state
-        this.isLooping = !this.isLooping
-
-        // Update the alphaTab player's state
-        this.alphaTabApi.player.isLooping = this.isLooping
-
-        // Apply or clear the playback range
-        this.updateLoopRange()
-      },
-
-      updateLoopRange() {
-        if (!this.alphaTabApi) {
-          console.log('No AlphaTab API available')
-          return
-        }
-        const startBarIndex = Math.max(0, this.loopStartBar - 1)
-        const endBarIndex = Math.max(startBarIndex, this.loopEndBar - 1)
-        if (!this.score) {
-          console.log('No score available')
-          return
-        }
-        console.log(this.score)
-        if (endBarIndex >= this.score.masterBars.length) return
-
-        if (this.isLooping) {
-          const startTick = this.score.masterBars[startBarIndex].start
-
-          const endBarForTick = endBarIndex + 1
-
-          let endTick
-          if (endBarForTick < this.score.masterBars.length) {
-            endTick = this.score.masterBars[endBarForTick].start
-          } else {
-            endTick = this.score.duration
-          }
-
-          this.alphaTabApi.player.playbackRange = {
-            startTick: startTick,
-            endTick: endTick,
-          }
-
-          // {
-          // startTick: startBarIndex,
-          // endTick: endBarIndex
-          //};
-        } else {
-          // Clear the playback range to play the whole song
-          this.alphaTabApi.playbackRange = null
         }
       },
 
+      // ── Events ──────────────────────────────────────────────
       setupEventListeners() {
         if (!this.alphaTabApi) return
 
-        // Score loaded
         this.alphaTabApi.scoreLoaded.on((score) => {
           this.isLoaded = true
           this.tracks = score.tracks || []
           this.selectedTrack = 0
           this.score = score
           this.error = null
+          this.currentBeatNotes = []
         })
 
-        // Player ready
-        this.alphaTabApi.playerReady.on(() => {
-          this.isPlayerReady = true
-        })
-
-        // Player state changes
-        this.alphaTabApi.playerStateChanged.on((e) => {
-          this.isPlaying = e.state === 1
-        })
-
-        // Player finished
+        this.alphaTabApi.playerReady.on(() => { this.isPlayerReady = true })
+        this.alphaTabApi.playerStateChanged.on((e) => { this.isPlaying = e.state === 1 })
         this.alphaTabApi.playerFinished.on(() => {
           this.isPlaying = false
+          this.currentBeatNotes = []
         })
 
-        // Player position changed - handle auto-scrolling with AlphaTab's cursor
+        // Beat change — extract note info for HUD
+        this.alphaTabApi.playedBeatChanged.on((beat) => {
+          if (!beat || !beat.notes) { this.currentBeatNotes = []; return }
+          this.currentBeatNotes = beat.notes.map((n) => ({
+            string: n.string,
+            fret: n.fret,
+            note: n.name || '',
+          }))
+        })
+
+        // Auto-scroll
         this.alphaTabApi.playerPositionChanged.on((e) => {
           if (!this.$refs.alphaTab || !this.isPlaying) return
-
-          const container = this.$refs.alphaTab
-
-          // Find both cursor elements
-          const cursorBar = container.querySelector('.at-cursor-bar')
-          const cursorBeat = container.querySelector('.at-cursor-beat')
-          const cursor = cursorBeat || cursorBar // Prefer beat cursor, fall back to bar cursor
-
+          const c = this.$refs.alphaTab
+          const cursor = c.querySelector('.at-cursor-bar') || c.querySelector('.at-cursor-beat')
           if (!cursor) return
-
-          // Get the surface element (the container that holds all the rendered content)
-          const surface = container.querySelector('.at-surface')
-          if (!surface) return
-
-          // Get cursor's absolute position relative to the viewport
-          const cursorRect = cursor.getBoundingClientRect()
-          const containerRect = container.getBoundingClientRect()
-
-          // Calculate cursor's position relative to the container
-          const cursorRelativeTop = cursorRect.top - containerRect.top
-          const cursorRelativeBottom = cursorRect.bottom - containerRect.top
-
-          // Define the visible area with padding
-          const visibleAreaPadding = 100 // pixels of padding above and below
-          const isAboveVisible = cursorRelativeTop < visibleAreaPadding
-          const isBelowVisible = cursorRelativeBottom > containerRect.height - visibleAreaPadding
-
-          if (isAboveVisible || isBelowVisible) {
-            // Calculate the ideal scroll position
-            let targetScrollTop
-
-            if (isAboveVisible) {
-              // Scroll up to show content above the cursor
-              targetScrollTop = container.scrollTop - (visibleAreaPadding - cursorRelativeTop)
-            } else {
-              // Scroll down to show content below the cursor
-              targetScrollTop =
-                container.scrollTop +
-                (cursorRelativeBottom - (containerRect.height - visibleAreaPadding))
-            }
-
-            // Ensure we don't scroll beyond the content
-            const maxScroll = surface.offsetHeight - containerRect.height
-            targetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScroll))
-
-            // Apply the scroll with smooth animation
-            container.scrollTo({
-              top: targetScrollTop,
-              behavior: 'smooth',
-            })
+          const cRect = c.getBoundingClientRect()
+          const y = cursor.getBoundingClientRect().top - cRect.top
+          const pad = 80
+          if (y < pad || y > cRect.height - pad) {
+            c.scrollTo({ top: c.scrollTop + y - cRect.height / 2, behavior: 'smooth' })
           }
         })
 
-        // Error handling
-        this.alphaTabApi.error.on((error) => {
-          if (
-            error.type === 'FormatError' &&
-            error.message &&
-            error.message.includes('Soundfont')
-          ) {
-            this.error = `❌ Invalid SoundFont File
-
-The selected soundfont is not valid or corrupted.
-
-Possible causes:
-• File is not actually a .sf2/.sf3 soundfont
-• File was corrupted during download
-• Wrong file was placed in the folder
-
-Solutions:
-1. Re-download the soundfont from official source
-2. Verify the file extension is .sf2 or .sf3
-3. Try a different soundfont (e.g., GeneralUser GS)
-4. Switch back to Sonivox (default) which is already installed`
-          } else {
-            this.error = `Error: ${error.message || error}`
-          }
-          console.error('AlphaTab error:', error)
+        this.alphaTabApi.error.on((err) => {
+          this.error = err.type === 'FormatError' && String(err.message).includes('Soundfont')
+            ? 'Invalid SoundFont. Try MuseScore_General.sf3'
+            : `Error: ${err.message || err}`
         })
       },
-      openFileDialog() {
-        this.$refs.fileInput.click()
+
+      // ── Transport ───────────────────────────────────────────
+      playPause() {
+        if (!this.alphaTabApi?.isReadyForPlayback) return
+        this.isPlaying ? this.alphaTabApi.pause() : this.alphaTabApi.play()
+      },
+      stop() {
+        if (!this.alphaTabApi?.isReadyForPlayback) return
+        this.alphaTabApi.stop()
+        this.currentBeatNotes = []
+      },
+      updatePlaybackSpeed() {
+        if (this.alphaTabApi) this.alphaTabApi.playbackSpeed = this.playbackSpeed / 100
+      },
+      changeTrack() {
+        if (!this.alphaTabApi || this.selectedTrack >= this.tracks.length) return
+        this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
+      },
+      changeVolume(i, v) {
+        if (!this.alphaTabApi || !this.tracks[i]) return
+        const vol = parseInt(v)
+        this.alphaTabApi.changeTrackVolume([this.tracks[i]], vol)
+        this.tracks[i].playbackInfo.volume = vol
+        this.$forceUpdate()
+      },
+      changePanning(i, b) {
+        if (!this.alphaTabApi || !this.tracks[i]) return
+        const bal = parseInt(b)
+        this.alphaTabApi.changeTrackBalance([this.tracks[i]], bal)
+        this.tracks[i].playbackInfo.balance = bal
+        this.$forceUpdate()
+      },
+      toggleMute(i) {
+        if (!this.alphaTabApi || !this.tracks[i]) return
+        const m = !this.tracks[i].playbackInfo.isMute
+        this.alphaTabApi.changeTrackMute([this.tracks[i]], m)
+        this.tracks[i].playbackInfo.isMute = m
+        this.$forceUpdate()
+      },
+      toggleSolo(i) {
+        if (!this.alphaTabApi || !this.tracks[i]) return
+        const s = !this.tracks[i].playbackInfo.isSolo
+        this.alphaTabApi.changeTrackSolo([this.tracks[i]], s)
+        this.tracks[i].playbackInfo.isSolo = s
+        this.$forceUpdate()
       },
 
-      async openFileWithPicker() {
-        try {
-          // Use File System Access API
-          const [fileHandle] = await window.showOpenFilePicker({
-            types: [
-              {
-                description: 'Guitar Pro Files',
-                accept: {
-                  'application/x-guitar-pro': [
-                    '.gp',
-                    '.gp3',
-                    '.gp4',
-                    '.gp5',
-                    '.gpx',
-                    '.gp6',
-                    '.ptb',
-                  ],
-                },
-              },
-            ],
-            multiple: false,
-          })
-
-          if (fileHandle) {
-            await this.loadFileFromHandle(fileHandle)
-          }
-        } catch (err) {
-          // User cancelled or error occurred
-          if (err.name !== 'AbortError') {
-            this.error = `Failed to open file: ${err.message}`
-            console.error('File picker error:', err)
-          }
+      // ── Loop ────────────────────────────────────────────────
+      toggleLoop() {
+        if (!this.alphaTabApi) return
+        this.isLooping = !this.isLooping
+        this.alphaTabApi.player.isLooping = this.isLooping
+        this.updateLoopRange()
+      },
+      updateLoopRange() {
+        if (!this.alphaTabApi || !this.score) return
+        const s = Math.max(0, this.loopStartBar - 1)
+        const e = Math.max(s, this.loopEndBar - 1)
+        if (e >= this.score.masterBars.length) return
+        if (this.isLooping) {
+          const startTick = this.score.masterBars[s].start
+          const endTick = (e + 1 < this.score.masterBars.length)
+            ? this.score.masterBars[e + 1].start
+            : this.score.duration
+          this.alphaTabApi.player.playbackRange = { startTick, endTick }
+        } else {
+          this.alphaTabApi.playbackRange = null
         }
       },
 
+      // ── File Load ───────────────────────────────────────────
+      openFileDialog() { this.$refs.fileInput.click() },
+      async openFileWithPicker() {
+        try {
+          const [h] = await window.showOpenFilePicker({
+            types: [{ description: 'Guitar Pro', accept: { 'application/x-guitar-pro': ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb'] } }],
+            multiple: false,
+          })
+          if (h) await this.loadFileFromHandle(h)
+        } catch (err) {
+          if (err.name !== 'AbortError') this.error = `Failed: ${err.message}`
+        }
+      },
+      async openTexJSON() {
+        try {
+          const [h] = await window.showOpenFilePicker({
+            types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+            multiple: false,
+          })
+          if (!h) return
+          const file = await h.getFile()
+          const text = await file.text()
+          let songJson
+          try { songJson = JSON.parse(text) } catch { this.error = 'Invalid JSON'; return }
+          const tex = jsonToAlphaTex(songJson)
+          this.alphaTabApi.tex(tex)
+          this.currentLoadedFile = file
+          this.currentLoadedFileName = file.name
+          this.isLoaded = true
+          this.currentFileHandleId = await fileHandleService.storeFileHandle(h)
+          this.tabStore.addTabToPlaylist('recent', {
+            name: songJson.name || file.name, path: file.name,
+            artist: songJson.artist || '', album: songJson.album || '',
+            fileHandleId: this.currentFileHandleId, fileType: 'json',
+          })
+        } catch (err) {
+          if (err.name !== 'AbortError') this.error = `Failed: ${err.message}`
+        }
+      },
       async loadFile(event) {
         const file = event.target.files[0]
         if (!file) return
-
-        try {
-          this.error = null
-          this.isLoaded = false
-          this.isPlayerReady = false
-
-          // Check if AlphaTab API is initialized
-          if (!this.alphaTabApi) {
-            throw new Error('AlphaTab is not initialized. Please try again.')
-          }
-
-          // Validate file type
-          const validExtensions = ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb']
-          const fileName = file.name.toLowerCase()
-          const isValidFile = validExtensions.some((ext) => fileName.endsWith(ext))
-
-          if (!isValidFile) {
-            throw new Error(
-              'Invalid file type. Please select a Guitar Pro file (.gp, .gp3, .gp4, .gp5, .gpx, .gp6, .ptb)'
-            )
-          }
-
-          // Store current file info for playlist management
-          this.currentLoadedFile = file
-          this.currentLoadedFileName = file.name.replace(/\.[^/.]+$/, '') // Remove extension
-          this.currentFileHandle = null // File input doesn't provide handle
-
-          // Convert file to ArrayBuffer
-          const arrayBuffer = await this.fileToArrayBuffer(file)
-
-          // Load the file in AlphaTab
-          const success = this.alphaTabApi.load(arrayBuffer)
-          if (!success) {
-            throw new Error(
-              'Failed to load the Guitar Pro file. The file might be corrupted or unsupported.'
-            )
-          }
-        } catch (err) {
-          this.error = `Failed to load file: ${err.message}`
-          console.error('File loading error:', err)
-        }
+        this.error = null; this.isLoaded = false; this.isPlayerReady = false
+        if (!this.alphaTabApi) { this.error = 'AlphaTab not initialized'; return }
+        const valid = ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb']
+        if (!valid.some((e) => file.name.toLowerCase().endsWith(e))) { this.error = 'Invalid file type'; return }
+        this.currentLoadedFile = file
+        this.currentLoadedFileName = file.name.replace(/\.[^/.]+$/, '')
+        this.currentFileHandle = null
+        const buf = await this.fileToArrayBuffer(file)
+        if (!this.alphaTabApi.load(buf)) this.error = 'Failed to load file'
       },
-
       async loadFileFromHandle(fileHandle, handleId = null) {
-        try {
-          this.error = null
-          this.isLoaded = false
-          this.isPlayerReady = false
-
-          if (!this.alphaTabApi) {
-            throw new Error('AlphaTab is not initialized. Please try again.')
-          }
-
-          // Request permission if needed
-          const permission = await fileHandle.queryPermission({ mode: 'read' })
-          if (permission !== 'granted') {
-            const newPermission = await fileHandle.requestPermission({ mode: 'read' })
-            if (newPermission !== 'granted') {
-              throw new Error('File access permission denied')
-            }
-          }
-
-          const file = await fileHandle.getFile()
-
-          // Validate file type
-          const validExtensions = ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb']
-          const fileName = file.name.toLowerCase()
-          const isValidFile = validExtensions.some((ext) => fileName.endsWith(ext))
-
-          if (!isValidFile) {
-            throw new Error('Invalid file type. Please select a Guitar Pro file')
-          }
-
-          // Store current file info
-          this.currentLoadedFile = file
-          this.currentLoadedFileName = file.name.replace(/\.[^/.]+$/, '')
-          this.currentFileHandle = fileHandle
-
-          // Store file handle in IndexedDB if not already stored
-          if (!handleId) {
-            this.currentFileHandleId = await fileHandleService.storeFileHandle(fileHandle)
-          } else {
-            this.currentFileHandleId = handleId
-          }
-
-          // Convert file to ArrayBuffer
-          const arrayBuffer = await this.fileToArrayBuffer(file)
-
-          // Load the file in AlphaTab
-          const success = this.alphaTabApi.load(arrayBuffer)
-          if (!success) {
-            throw new Error(
-              'Failed to load the Guitar Pro file. The file might be corrupted or unsupported.'
-            )
-          }
-        } catch (err) {
-          this.error = `Failed to load file: ${err.message}`
-          console.error('File loading error:', err)
-        }
+        this.error = null; this.isLoaded = false; this.isPlayerReady = false
+        if (!this.alphaTabApi) { this.error = 'AlphaTab not initialized'; return }
+        const p = await fileHandle.queryPermission({ mode: 'read' })
+        if (p !== 'granted') { const np = await fileHandle.requestPermission({ mode: 'read' }); if (np !== 'granted') { this.error = 'Permission denied'; return } }
+        const file = await fileHandle.getFile()
+        const valid = ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb']
+        if (!valid.some((e) => file.name.toLowerCase().endsWith(e))) { this.error = 'Invalid file type'; return }
+        this.currentLoadedFile = file
+        this.currentLoadedFileName = file.name.replace(/\.[^/.]+$/, '')
+        this.currentFileHandle = fileHandle
+        this.currentFileHandleId = handleId || await fileHandleService.storeFileHandle(fileHandle)
+        const buf = await this.fileToArrayBuffer(file)
+        if (!this.alphaTabApi.load(buf)) this.error = 'Failed to load file'
       },
+      fileToArrayBuffer(file) { return new Promise((r, e) => { const rd = new FileReader(); rd.onload = (ev) => r(ev.target.result); rd.onerror = e; rd.readAsArrayBuffer(file) }) },
 
-      fileToArrayBuffer(file) {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = (e) => resolve(e.target.result)
-          reader.onerror = reject
-          reader.readAsArrayBuffer(file)
-        })
-      },
-
-      playPause() {
-        if (!this.alphaTabApi || !this.alphaTabApi.isReadyForPlayback) return
-
-        if (this.isPlaying) {
-          this.alphaTabApi.pause()
-        } else {
-          this.alphaTabApi.play()
-        }
-      },
-
-      stop() {
-        if (!this.alphaTabApi || !this.alphaTabApi.isReadyForPlayback) return
-        this.alphaTabApi.stop()
-      },
-
-      changeTrack() {
-        if (!this.alphaTabApi || !this.isLoaded || this.selectedTrack >= this.tracks.length) return
-        this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
-      },
-
-      changeVolume(trackIndex, volume) {
-        if (!this.alphaTabApi || !this.tracks[trackIndex]) return
-        const volumeValue = parseInt(volume)
-        this.alphaTabApi.changeTrackVolume([this.tracks[trackIndex]], volumeValue)
-        this.tracks[trackIndex].playbackInfo.volume = volumeValue
-        this.$forceUpdate()
-      },
-
-      changePanning(trackIndex, balance) {
-        if (!this.alphaTabApi || !this.tracks[trackIndex]) return
-        const balanceValue = parseInt(balance)
-        this.alphaTabApi.changeTrackBalance([this.tracks[trackIndex]], balanceValue)
-        this.tracks[trackIndex].playbackInfo.balance = balanceValue
-        this.$forceUpdate()
-      },
-
-      toggleMute(trackIndex) {
-        if (!this.alphaTabApi || !this.tracks[trackIndex]) return
-        const track = this.tracks[trackIndex]
-        const newMuteState = !track.playbackInfo.isMute
-        this.alphaTabApi.changeTrackMute([track], newMuteState)
-        track.playbackInfo.isMute = newMuteState
-        this.$forceUpdate()
-      },
-
-      toggleSolo(trackIndex) {
-        if (!this.alphaTabApi || !this.tracks[trackIndex]) return
-        const track = this.tracks[trackIndex]
-        const newSoloState = !track.playbackInfo.isSolo
-        this.alphaTabApi.changeTrackSolo([track], newSoloState)
-        track.playbackInfo.isSolo = newSoloState
-        this.$forceUpdate()
-      },
-
-      // Audio settings methods
+      // ── SoundFont ───────────────────────────────────────────
       async changeSoundFont() {
         if (!this.alphaTabApi) return
-
         try {
-          // Show loading message
-          this.error = 'Loading new soundfont... This may take a moment.'
-
-          // Validate soundfont file
-          const validation = await this.validateSoundFont(this.selectedSoundFont)
-          if (!validation.valid) {
-            throw new Error(validation.error)
-          }
-
-          // Store current state
-          const currentScore = this.alphaTabApi.score
+          this.error = 'Loading soundfont...'
+          const cur = this.alphaTabApi.score
           const wasPlaying = this.isPlaying
-          const currentTime = this.alphaTabApi.timePosition
-
-          if (wasPlaying) {
-            this.alphaTabApi.pause()
-          }
-
-          // Save preference first
+          const time = this.alphaTabApi.timePosition
+          if (wasPlaying) this.alphaTabApi.pause()
           localStorage.setItem('guitarapp_soundfont', this.selectedSoundFont)
-
-          // Destroy and reinitialize AlphaTab with new soundfont
-          this.alphaTabApi.destroy()
-          this.alphaTabApi = null
-
-          // Wait a bit for cleanup
-          await new Promise((resolve) => setTimeout(resolve, 100))
-
-          // Reinitialize with new soundfont
+          this.alphaTabApi.destroy(); this.alphaTabApi = null
+          await new Promise((r) => setTimeout(r, 100))
           this.initializeAlphaTab()
-
-          // Wait for initialization
-          await new Promise((resolve) => setTimeout(resolve, 500))
-
-          // Reload the score if one was loaded
-          if (currentScore && this.currentLoadedFile) {
+          await new Promise((r) => setTimeout(r, 500))
+          if (cur && this.currentLoadedFile) {
             try {
-              // Get the score data as array buffer
-              let scoreData
-              if (this.currentLoadedFile instanceof File) {
-                scoreData = await this.currentLoadedFile.arrayBuffer()
-              } else if (this.currentFileHandle) {
-                // Reload from file handle
-                const file = await this.currentFileHandle.getFile()
-                scoreData = await file.arrayBuffer()
+              let data
+              if (this.currentLoadedFile instanceof File) data = await this.currentLoadedFile.arrayBuffer()
+              else if (this.currentFileHandle) { const f = await this.currentFileHandle.getFile(); data = await f.arrayBuffer() }
+              if (data) {
+                this.alphaTabApi.load(data)
+                await new Promise((r) => { const t = setTimeout(() => { clearInterval(i); r() }, 10000); const i = setInterval(() => { if (this.isPlayerReady) { clearInterval(i); clearTimeout(t); r() } }, 100) })
+                if (wasPlaying && time > 0) this.alphaTabApi.timePosition = time
               }
-
-              if (scoreData) {
-                this.alphaTabApi.load(scoreData)
-
-                // Wait for score to load with timeout
-                await new Promise((resolve) => {
-                  const timeout = setTimeout(() => {
-                    clearInterval(checkReady)
-                    resolve()
-                  }, 10000) // 10 second timeout
-
-                  const checkReady = setInterval(() => {
-                    if (this.isPlayerReady) {
-                      clearInterval(checkReady)
-                      clearTimeout(timeout)
-                      resolve()
-                    }
-                  }, 100)
-                })
-
-                // Restore playback position if it was playing
-                if (wasPlaying && currentTime > 0) {
-                  this.alphaTabApi.timePosition = currentTime
-                  // Optionally resume playback
-                  // this.alphaTabApi.play()
-                }
-              }
-            } catch (reloadErr) {
-              console.warn('Could not reload score:', reloadErr)
-              this.error = '✅ SoundFont loaded! Please reload your tab file.'
-              setTimeout(() => {
-                this.error = null
-              }, 5000)
-              return
-            }
+            } catch { this.error = 'SoundFont loaded! Please reload tab.'; setTimeout(() => { this.error = null }, 5000); return }
           }
-
-          this.error = '✅ SoundFont loaded successfully!'
-          setTimeout(() => {
-            this.error = null
-          }, 3000)
-        } catch (err) {
-          this.error = err.message
-          console.error('SoundFont loading error:', err)
-          setTimeout(() => {
-            this.error = null
-          }, 5000)
-        }
+          this.error = ''; setTimeout(() => { this.error = null }, 3000)
+        } catch (err) { this.error = err.message; setTimeout(() => { this.error = null }, 5000) }
       },
-
       togglePerformanceMode() {
-        // Save preference
         localStorage.setItem('guitarapp_performanceMode', this.performanceMode)
-
-        // If AlphaTab is loaded, reinitialize with new settings
-        if (this.alphaTabApi) {
-          this.error = 'Performance mode changed. Reloading...'
-          setTimeout(async () => {
-            await this.changeSoundFont()
-          }, 500)
-        }
+        if (this.alphaTabApi) { this.error = 'Reloading...'; setTimeout(() => this.changeSoundFont(), 500) }
       },
 
-      async validateSoundFont(path) {
-        try {
-          // Check if file exists
-          const response = await fetch(path, { method: 'HEAD' })
-          if (!response.ok) {
-            return {
-              valid: false,
-              error: `SoundFont file not found at: ${path}\n\nPlease:\n1. Download the soundfont\n2. Place it in public/soundfont/\n3. Make sure the filename matches exactly`,
-            }
-          }
-
-          // Check file extension
-          const extension = path.toLowerCase().split('.').pop()
-          if (!['sf2', 'sf3'].includes(extension)) {
-            return {
-              valid: false,
-              error: `Invalid file format: .${extension}\n\nOnly .sf2 and .sf3 soundfonts are supported.`,
-            }
-          }
-
-          // Check file size (basic validation)
-          const contentLength = response.headers.get('content-length')
-          if (contentLength) {
-            const sizeMB = parseInt(contentLength) / (1024 * 1024)
-            if (sizeMB < 0.1) {
-              return {
-                valid: false,
-                error: `File is too small (${sizeMB.toFixed(2)} MB). It may be corrupted or not a valid soundfont.`,
-              }
-            }
-          }
-
-          const headerResponse = await fetch(path, {
-            headers: { Range: 'bytes=0-11' },
-          })
-
-          if (headerResponse.ok) {
-            const buffer = await headerResponse.arrayBuffer()
-            const view = new DataView(buffer)
-
-            // Check for RIFF header (SF2 files start with "RIFF")
-            const riff = String.fromCharCode(
-              view.getUint8(0),
-              view.getUint8(1),
-              view.getUint8(2),
-              view.getUint8(3)
-            )
-            if (riff !== 'RIFF') {
-              return {
-                valid: false,
-                error: `Invalid soundfont format. File does not have a valid RIFF header.\n\nThe file may be:\n- Corrupted during download\n- Not actually a soundfont file\n- In an unsupported format`,
-              }
-            }
-
-            // Check for sfbk signature (SF2 files have "sfbk" at offset 8)
-            const sfbk = String.fromCharCode(
-              view.getUint8(8),
-              view.getUint8(9),
-              view.getUint8(10),
-              view.getUint8(11)
-            )
-            if (sfbk !== 'sfbk') {
-              return {
-                valid: false,
-                error: `Invalid soundfont format. File is a RIFF file but not a soundfont.\n\nMake sure you downloaded a .sf2 or .sf3 file, not a webpage or other file type.`,
-              }
-            }
-          }
-
-          return { valid: true }
-        } catch (error) {
-          return {
-            valid: false,
-            error: `Error validating soundfont: ${error.message}\n\nMake sure the file is accessible and not corrupted.`,
-          }
-        }
-      },
-
-      // Playlist management methods
+      // ── Playlists ───────────────────────────────────────────
+      togglePlaylist(id) { const i = this.expandedPlaylists.indexOf(id); i > -1 ? this.expandedPlaylists.splice(i, 1) : this.expandedPlaylists.push(id) },
       confirmCreatePlaylist() {
-        if (this.newPlaylistName && this.newPlaylistName.trim()) {
-          const playlistId = this.tabStore.createPlaylist(this.newPlaylistName.trim())
-          this.expandedPlaylists.push(playlistId)
-          this.showCreatePlaylistModal = false
-          this.newPlaylistName = ''
+        if (this.newPlaylistName?.trim()) {
+          const id = this.tabStore.createPlaylist(this.newPlaylistName.trim())
+          this.expandedPlaylists.push(id)
+          this.showCreatePlaylistModal = false; this.newPlaylistName = ''
         }
       },
-
-      togglePlaylist(playlistId) {
-        const index = this.expandedPlaylists.indexOf(playlistId)
-        if (index > -1) {
-          this.expandedPlaylists.splice(index, 1)
-        } else {
-          this.expandedPlaylists.push(playlistId)
-        }
-      },
-
-      renamePlaylistPrompt(playlist) {
-        this.playlistToRename = playlist
-        this.newPlaylistName = playlist.name
-        this.showRenamePlaylistModal = true
-        this.$nextTick(() => {
-          this.$refs.renameInput?.focus()
-        })
-      },
-
+      renamePlaylistPrompt(p) { this.playlistToRename = p; this.newPlaylistName = p.name; this.showRenamePlaylistModal = true },
       confirmRename() {
-        if (
-          this.newPlaylistName &&
-          this.newPlaylistName.trim() &&
-          this.playlistToRename &&
-          this.newPlaylistName !== this.playlistToRename.name
-        ) {
+        if (this.newPlaylistName?.trim() && this.playlistToRename && this.newPlaylistName !== this.playlistToRename.name)
           this.tabStore.renamePlaylist(this.playlistToRename.id, this.newPlaylistName.trim())
-        }
-        this.cancelRename()
+        this.showRenamePlaylistModal = false; this.playlistToRename = null; this.newPlaylistName = ''
       },
-
-      cancelRename() {
-        this.showRenamePlaylistModal = false
-        this.playlistToRename = null
-        this.newPlaylistName = ''
-      },
-
-      deletePlaylistConfirm(playlist) {
-        this.playlistToDelete = playlist
-        this.showDeleteConfirm = true
-      },
-
+      deletePlaylistConfirm(p) { this.playlistToDelete = p; this.showDeleteConfirm = true },
       confirmDelete() {
         if (this.playlistToDelete) {
           this.tabStore.deletePlaylist(this.playlistToDelete.id)
-          // Remove from expanded list
-          const index = this.expandedPlaylists.indexOf(this.playlistToDelete.id)
-          if (index > -1) {
-            this.expandedPlaylists.splice(index, 1)
-          }
+          const i = this.expandedPlaylists.indexOf(this.playlistToDelete.id)
+          if (i > -1) this.expandedPlaylists.splice(i, 1)
         }
-        this.cancelDelete()
+        this.showDeleteConfirm = false; this.playlistToDelete = null
       },
-
-      cancelDelete() {
-        this.showDeleteConfirm = false
-        this.playlistToDelete = null
+      addCurrentTabToPlaylist(pid) {
+        if (!this.isLoaded || !this.currentLoadedFile) { this.error = 'No tab loaded'; setTimeout(() => { this.error = null }, 3000); return }
+        const d = { name: this.currentLoadedFileName, path: this.currentLoadedFile.name, artist: '', album: '', fileHandleId: this.currentFileHandleId, fileType: this.currentLoadedFile.name?.endsWith('.json') ? 'json' : 'gp' }
+        if (this.alphaTabApi?.score) { d.name = this.alphaTabApi.score.title || d.name; d.artist = this.alphaTabApi.score.artist || ''; d.album = this.alphaTabApi.score.album || '' }
+        this.tabStore.addTabToPlaylist(pid, d)
       },
-
-      addCurrentTabToPlaylist(playlistId) {
-        if (!this.isLoaded || !this.currentLoadedFile) {
-          this.error = 'No tab is currently loaded'
-          setTimeout(() => {
-            this.error = null
-          }, 3000)
-          return
-        }
-
-        const isJsonTab = this.currentLoadedFile.name?.endsWith('.json')
-
-        const tabData = {
-          name: this.currentLoadedFileName || 'Untitled Tab',
-          path: this.currentLoadedFile.name || '',
-          artist: '',
-          album: '',
-          fileHandleId: this.currentFileHandleId,
-          fileType: isJsonTab ? 'json' : 'gp', // 👈 distinguish formats
-        }
-
-        if (this.alphaTabApi?.score) {
-          tabData.name = this.alphaTabApi.score.title || tabData.name
-          tabData.artist = this.alphaTabApi.score.artist || ''
-          tabData.album = this.alphaTabApi.score.album || ''
-        }
-
-        this.tabStore.addTabToPlaylist(playlistId, tabData)
-      },
-      removeTabFromPlaylist(playlistId, tabId) {
-        this.tabStore.removeTabFromPlaylist(playlistId, tabId)
-      },
-
+      removeTabFromPlaylist(pid, tid) { this.tabStore.removeTabFromPlaylist(pid, tid) },
       async loadTabFromPlaylist(tab) {
-        if (!tab.fileHandleId) {
-          this.error = `This tab doesn't have file access saved. Please use "Browse File" button and re-add it to the playlist: ${tab.name}`
-          setTimeout(() => {
-            this.error = null
-          }, 5000)
-          return
-        }
-
+        if (!tab.fileHandleId) { this.error = 'No file access. Re-add via Browse.'; setTimeout(() => { this.error = null }, 5000); return }
         try {
-          console.log('Loading tab from playlist:', tab.name)
-          const fileHandle = await fileHandleService.getFileHandle(tab.fileHandleId)
-          if (!fileHandle) throw new Error('File handle not found. It may have been cleared.')
-          const permission = await fileHandle.queryPermission({ mode: 'read' })
-          if (permission !== 'granted') {
-            const newPermission = await fileHandle.requestPermission({ mode: 'read' })
-            if (newPermission !== 'granted') {
-              throw new Error('Permission denied to access file')
-            }
-          }
-          const file = await fileHandle.getFile()
-
+          const fh = await fileHandleService.getFileHandle(tab.fileHandleId)
+          if (!fh) throw new Error('Handle not found')
+          const p = await fh.queryPermission({ mode: 'read' })
+          if (p !== 'granted') { const np = await fh.requestPermission({ mode: 'read' }); if (np !== 'granted') throw new Error('Denied') }
+          const file = await fh.getFile()
           if (tab.fileType === 'json' || file.name.endsWith('.json')) {
-            // --- JSON Tab ---
-            const text = await file.text()
-            const songJson = JSON.parse(text)
-            const tex = jsonToAlphaTex(songJson)
-            this.alphaTabApi.tex(tex)
-
-            this.currentLoadedFile = file
-            this.currentLoadedFileName = file.name
-            this.isLoaded = true
-
-            console.log('✅ Loaded JSON tab from playlist:', file.name)
+            const text = await file.text(); const j = JSON.parse(text); const tex = jsonToAlphaTex(j)
+            this.alphaTabApi.tex(tex); this.currentLoadedFile = file; this.currentLoadedFileName = file.name; this.isLoaded = true
           } else {
-            // --- GP/Other Tabs ---
-            await this.loadFileFromHandle(fileHandle, tab.fileHandleId)
+            await this.loadFileFromHandle(fh, tab.fileHandleId)
           }
-        } catch (error) {
-          this.error = `Failed to load tab: ${error.message}`
-          setTimeout(() => {
-            this.error = null
-          }, 5000)
-          console.error('Error loading tab from playlist:', error)
-        }
-      },
-      /*
-      openScraperModal() {
-        this.showScraperModal = true
-        this.scraperError = ''
-        this.scraperSuccess = ''
-        // Pre-fill with example URL if empty
-        if (!this.scraperUrl) {
-          this.scraperUrl = 'https://www.songsterr.com/a/wsa/'
-        }
+        } catch (err) { this.error = `Failed: ${err.message}`; setTimeout(() => { this.error = null }, 5000) }
       },
 
-
-      closeScraperModal() {
-        if (!this.scraperLoading) {
-          this.showScraperModal = false
-          this.scraperUrl = ''
-          this.scraperDirectory = ''
-          this.scraperFilename = 'captured_data.json'
-          this.scraperError = ''
-          this.scraperSuccess = ''
+      // ── Note Colors ─────────────────────────────────────────
+      getNoteColor(noteName) {
+        const colors = {
+          'C': '#3b82f6', 'CS': '#60a5fa', 'D': '#ef4444', 'DS': '#f87171',
+          'E': '#22c55e', 'F': '#92400e', 'FS': '#b45309', 'G': '#eab308',
+          'GS': '#facc15', 'A': '#111827', 'AS': '#6b7280', 'B': '#f5f5f4',
         }
+        return colors[noteName] || '#8b5cf6'
       },
-
-
-      async selectScraperDirectory() {
-        try {
-          // For Electron environment
-          if (window.require) {
-            const { dialog } =
-              window.require('@electron/remote') || window.require('electron').remote
-            const result = await dialog.showOpenDialog({
-              properties: ['openDirectory'],
-            })
-
-            if (!result.canceled && result.filePaths.length > 0) {
-              this.scraperDirectory = result.filePaths[0]
-            }
-          }
-          // For browser with File System Access API
-          else if (window.showDirectoryPicker) {
-            const dirHandle = await window.showDirectoryPicker()
-            this.scraperDirectory = dirHandle.name
-            // Store handle for later use if needed
-            window.selectedDirHandle = dirHandle
-          } else {
-            this.scraperError =
-              'Directory picker not supported in this environment. Enter path manually.'
-          }
-        } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error('Directory selection error:', err)
-            this.scraperError = 'Failed to select directory: ' + err.message
-          }
-        }
-      },
-
-      async handleScrape() {
-        this.scraperError = ''
-        this.scraperSuccess = ''
-
-        // Validation
-        if (!this.scraperUrl.trim()) {
-          this.scraperError = 'Please enter a URL'
-          return
-        }
-
-        if (!this.scraperFilename.trim()) {
-          this.scraperError = 'Please enter a filename'
-          return
-        }
-
-        if (!this.scraperUrl.includes('songsterr.com')) {
-          this.scraperError = 'Please enter a valid Songsterr URL'
-          return
-        }
-
-        // Ensure filename has .json extension
-        let filename = this.scraperFilename.trim()
-        if (!filename.endsWith('.json')) {
-          filename += '.json'
-        }
-
-        this.scraperLoading = true
-
-        try {
-          // Build the full file path
-          let filepath
-          if (this.scraperDirectory) {
-            // Use path.join if available (Node.js/Electron)
-            if (typeof path !== 'undefined' && path.join) {
-              filepath = path.join(this.scraperDirectory, filename)
-            } else {
-              // Fallback for browser environment
-              filepath = `${this.scraperDirectory}/${filename}`
-            }
-          } else {
-            // Save in current directory or default location
-            filepath = filename
-          }
-
-          console.log('Starting scrape:', {
-            url: this.scraperUrl.trim(),
-            filepath: filepath,
-          })
-
-          // Call the scraping function
-          const result = await scrapeSongsterrTab(this.scraperUrl.trim(), filepath)
-
-          console.log('Scrape completed:', result)
-
-          this.scraperSuccess = `Successfully saved ${result.count} items to ${filename}`
-
-          // Auto-close modal after 2 seconds on success
-          setTimeout(() => {
-            this.closeScraperModal()
-          }, 2000)
-        } catch (err) {
-          console.error('Scraping error:', err)
-          this.scraperError =
-            err.message || 'An error occurred during scraping. Check console for details.'
-        } finally {
-          this.scraperLoading = false
-        }
-      },*/
     },
   }
 </script>
 
 <style scoped>
-  .tab-reader-container {
-    width: 100%;
-    min-height: 600px;
-    max-height: 90vh;
+  .tab-reader {
     display: flex;
     flex-direction: column;
-    background: var(--bg-color, #1a1a1a);
-    color: var(--text-color, #ffffff);
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid #444;
-    margin: 10px 0;
+    height: 100%;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: 'Inter', system-ui, sans-serif;
     position: relative;
+    overflow: hidden;
   }
 
-  .tab-reader-header {
-    padding: 1rem;
-    background: var(--header-bg, #2a2a2a);
-    border-bottom: 1px solid var(--border-color, #444);
+  /* ── Header ─── */
+  .tab-header {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-  }
-
-  .tab-reader-header h3 {
-    margin: 0;
-    color: var(--primary-color, #4caf50);
-  }
-
-  .controls {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .controls button {
     padding: 0.5rem 1rem;
-    background: var(--primary-color, #4caf50);
-    color: white;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    flex-shrink: 0;
+    min-height: 44px;
+  }
+  .tab-header__left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+  .tab-header__right { display: flex; align-items: center; gap: 0.375rem; flex-shrink: 0; }
+  .tab-title { margin: 0; font-size: 1rem; font-weight: 600; color: #f1f5f9; }
+  .tab-filename { font-size: 0.8rem; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+
+  /* ── Buttons ─── */
+  .btn {
+    padding: 0.35rem 0.75rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s;
-    font-size: 12px;
+    transition: all 0.15s;
+    background: #334155;
+    color: #e2e8f0;
   }
+  .btn:hover { background: #475569; }
+  .btn--sm { padding: 0.25rem 0.6rem; font-size: 0.72rem; }
+  .btn--primary { background: #3b82f6; color: #fff; }
+  .btn--primary:hover { background: #2563eb; }
+  .btn--outline { background: transparent; border: 1px solid #475569; color: #94a3b8; }
+  .btn--outline:hover { border-color: #64748b; color: #e2e8f0; }
+  .btn--dashed { width: 100%; background: transparent; border: 1px dashed #475569; color: #64748b; margin-top: 0.375rem; }
+  .btn--dashed:hover { border-color: #3b82f6; color: #3b82f6; }
+  .icon-btn { background: none; border: none; color: #64748b; cursor: pointer; padding: 0.15rem 0.35rem; font-size: 0.85rem; border-radius: 4px; }
+  .icon-btn:hover { color: #e2e8f0; background: #334155; }
+  .icon-btn--danger:hover { color: #ef4444; }
 
-  .controls button:hover {
-    background: var(--primary-hover, #45a049);
-  }
+  /* ── Panels ─── */
+  .panels { flex-shrink: 0; border-bottom: 1px solid #334155; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; background: #1e293b; }
+  .panel-header h4 { margin: 0; font-size: 0.85rem; font-weight: 600; color: #94a3b8; }
+  .playlists-panel, .audio-panel { max-height: 300px; display: flex; flex-direction: column; }
+  .playlists-body, .audio-body { flex: 1; overflow-y: auto; padding: 0.5rem 1rem; }
+  .empty-state { text-align: center; padding: 1.5rem; color: #64748b; font-size: 0.85rem; }
 
-  .controls button:disabled {
-    background: #666;
-    cursor: not-allowed;
-  }
+  .playlist-item { margin-bottom: 0.375rem; border: 1px solid #334155; border-radius: 6px; overflow: hidden; }
+  .playlist-head { display: flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.6rem; cursor: pointer; background: #1e293b; }
+  .playlist-head:hover { background: #263348; }
+  .playlist-arrow { color: #3b82f6; font-size: 0.7rem; width: 14px; }
+  .playlist-name { font-weight: 600; flex: 1; font-size: 0.85rem; }
+  .playlist-count { color: #64748b; font-size: 0.75rem; }
+  .playlist-body { padding: 0.375rem 0.6rem; background: #0f172a; }
+  .tab-entry { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.4rem; border-radius: 4px; font-size: 0.82rem; }
+  .tab-entry:hover { background: #1e293b; }
+  .tab-entry--handle { border-left: 2px solid #3b82f6; padding-left: 0.5rem; }
+  .tab-entry__name { flex: 1; cursor: pointer; }
+  .tab-entry__name:hover { color: #3b82f6; }
+  .tab-entry__artist { color: #64748b; font-size: 0.75rem; }
 
-  .play-btn.playing {
-    background: var(--secondary-color, #ff5722) !important;
-  }
+  .field-label { display: block; font-size: 0.8rem; font-weight: 500; color: #94a3b8; margin: 0.5rem 0 0.25rem; }
+  .field-check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: #94a3b8; margin-top: 0.5rem; cursor: pointer; }
+  .select-field { width: 100%; padding: 0.4rem 0.6rem; background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; font-size: 0.82rem; }
+  .select-field--compact { width: auto; min-width: 140px; padding: 0.2rem 0.4rem; font-size: 0.75rem; }
 
-  .play-btn.playing:hover {
-    background: var(--secondary-hover, #e64a19) !important;
-  }
-
-  .stop-btn {
-    background: var(--danger-color, #f44336) !important;
-  }
-
-  .stop-btn:hover {
-    background: var(--danger-hover, #d32f2f) !important;
-  }
-
-  .debug-btn {
-    background: var(--info-color, #2196f3) !important;
-    font-size: 11px !important;
-  }
-
-  .debug-btn:hover {
-    background: var(--info-hover, #1976d2) !important;
-  }
-
-  .status-text {
-    color: var(--text-muted, #888);
-    font-size: 12px;
-    font-style: italic;
-  }
-
-  .electron-warning {
-    color: #ff9500 !important;
-    font-weight: bold;
-    font-style: normal;
-  }
-
-  .electron-info {
-    color: #2196f3 !important;
-    font-weight: bold;
-    font-style: normal;
-  }
-
-  .electron-success {
-    color: #4caf50 !important;
-    font-weight: bold;
-    font-style: normal;
-  }
-
-  .success-text {
-    color: #4caf50 !important;
-    font-weight: bold;
-    font-style: normal;
-  }
-
-  .info-text {
-    color: #2196f3 !important;
-    font-weight: bold;
-    font-style: normal;
-  }
-
-  .tab-content {
+  /* ── Score Area ─── */
+  .tab-score {
     flex: 1;
-    overflow: hidden;
-    position: relative;
-    min-height: 500px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .no-file {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 200px;
-    color: var(--text-muted, #888);
-    text-align: center;
-    padding: 20px;
-  }
-
-  .alphatab-container {
-    width: 100%;
-    flex: 1;
-    background: white;
-    border-radius: 4px;
-    padding: 10px 20px;
     overflow: auto;
+    background: #ffffff;
     position: relative;
-    scroll-behavior: smooth;
-    height: calc(100vh - 200px);
-    contain: paint; /* Optimize rendering performance */
-    overflow-x: hidden;
+    min-height: 0;
   }
+  .tab-score .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #0f172a; color: #64748b; }
+  .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+  .alphatab-render { width: 100%; min-height: 100%; }
 
-  /* AlphaTab's built-in cursor styling  */
-  .alphatab-container :deep(.at-cursor-bar) {
-    background: rgba(255, 0, 0, 0.3) !important;
-    width: 3px !important;
-  }
+  /* AlphaTab cursor styling */
+  .tab-score :deep(.at-cursor-bar) { background: rgba(59, 130, 246, 0.35) !important; width: 3px !important; }
+  .tab-score :deep(.at-cursor-beat) { background: rgba(59, 130, 246, 0.15) !important; }
+  .tab-score :deep(.at-highlight) { background: rgba(250, 204, 21, 0.25) !important; }
 
-  .alphatab-container :deep(.at-cursor-beat) {
-    background: rgba(255, 0, 0, 0.25) !important;
-  }
+  .error-bar { position: absolute; top: 0.5rem; left: 0.5rem; right: 0.5rem; padding: 0.5rem 0.75rem; background: #991b1b; color: #fecaca; border-radius: 6px; font-size: 0.82rem; z-index: 50; white-space: pre-line; }
 
-  .alphatab-container :deep(.at-highlight) {
-    background: rgba(255, 200, 0, 0.3) !important;
-  }
-
-  .error {
-    padding: 1rem;
-    background: #ff4444;
-    color: white;
-    margin: 1rem;
-    border-radius: 4px;
-    text-align: left;
-    white-space: pre-line;
-    line-height: 1.6;
-    font-size: 0.95rem;
-  }
-
-  .error p {
-    margin: 0;
-  }
-
-  .bottom-panel {
+  /* ── Beat HUD ─── */
+  .beat-hud {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(42, 42, 42, 0.98);
-    border-top: 1px solid var(--border-color, #444);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    backdrop-filter: blur(10px);
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(8px);
+    border-radius: 999px;
+    border: 1px solid #334155;
+    z-index: 200;
   }
+  .beat-hud__note {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .hud-fade-enter-active, .hud-fade-leave-active { transition: opacity 0.15s, transform 0.15s; }
+  .hud-fade-enter-from, .hud-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(6px); }
 
-  .track-selector {
-    padding: 1rem;
+  /* ── Transport Bar ─── */
+  .transport {
+    flex-shrink: 0;
+    background: #1e293b;
+    border-top: 1px solid #334155;
+    padding: 0.5rem 1rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-  }
-
-  .track-selector label {
-    color: var(--text-color, #fff);
-    font-weight: bold;
-  }
-
-  .track-selector select {
-    padding: 0.5rem;
-    background: var(--input-bg, #333);
-    color: var(--text-color, #fff);
-    border: 1px solid var(--border-color, #444);
-    border-radius: 4px;
-    min-width: 200px;
-    flex: 1;
-  }
-
-  .mixer-toggle-btn {
-    padding: 0.5rem 1rem;
-    background: var(--primary-color, #4caf50);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background-color 0.2s;
-  }
-
-  .mixer-toggle-btn:hover {
-    background: var(--primary-hover, #45a049);
-  }
-
-  .mixer-panel {
-    padding: 1rem;
-    background: rgba(26, 26, 26, 0.98);
-    border-top: 1px solid var(--border-color, #444);
-    max-height: 350px;
-    overflow-y: auto;
-    backdrop-filter: blur(5px);
-  }
-
-  .mixer-panel h4 {
-    margin: 0 0 1rem 0;
-    color: var(--primary-color, #4caf50);
-    font-size: 1.1rem;
-  }
-
-  .mixer-tracks {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1rem;
+    position: relative;
+    flex-wrap: wrap;
   }
+  .transport__left, .transport__center, .transport__right { display: flex; align-items: center; gap: 0.375rem; }
+  .transport__center { flex: 1; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
 
-  .mixer-track {
-    background: var(--header-bg, #2a2a2a);
-    border: 1px solid var(--border-color, #444);
-    border-radius: 6px;
-    padding: 0.75rem;
+  .transport-btn {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid #475569; background: #0f172a; color: #e2e8f0;
+    border-radius: 8px; cursor: pointer; font-size: 1rem; transition: all 0.15s;
   }
+  .transport-btn:hover { background: #334155; }
+  .transport-btn.active { background: #3b82f6; border-color: #3b82f6; }
+  .transport-btn--play { width: 44px; height: 44px; font-size: 1.2rem; }
+  .transport-btn--solo { width: 28px; height: 28px; font-size: 0.7rem; font-weight: 700; border-radius: 4px; }
+  .transport-btn--solo.active { background: #eab308; border-color: #eab308; color: #000; }
 
-  .track-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border-color, #444);
-  }
+  .transport-track, .transport-loop, .transport-speed { display: flex; align-items: center; gap: 0.375rem; font-size: 0.78rem; color: #94a3b8; }
+  .transport-track label, .transport-loop label, .transport-speed label { font-weight: 500; white-space: nowrap; }
+  .num-input { width: 44px; padding: 0.2rem 0.3rem; background: #0f172a; border: 1px solid #334155; color: #e2e8f0; border-radius: 4px; font-size: 0.75rem; text-align: center; }
+  .num-input:focus { outline: none; border-color: #3b82f6; }
+  .range-field { width: 120px; height: 4px; -webkit-appearance: none; appearance: none; background: #475569; border-radius: 2px; outline: none; cursor: pointer; }
+  .range-field::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: #3b82f6; border-radius: 50%; cursor: pointer; }
+  .range-field::-moz-range-thumb { width: 14px; height: 14px; background: #3b82f6; border-radius: 50%; cursor: pointer; border: none; }
+  .range-field--sm { width: 60px; }
 
-  .track-header input[type='checkbox'] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-
-  .track-name {
-    color: var(--text-color, #fff);
-    font-weight: bold;
-    font-size: 0.9rem;
-    cursor: pointer;
-    flex: 1;
-  }
-
-  .track-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .control-group {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .control-group label {
-    color: var(--text-muted, #888);
-    font-size: 0.85rem;
-    width: 50px;
-  }
-
-  .volume-slider,
-  .pan-slider {
-    flex: 1;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--input-bg, #333);
-    outline: none;
-    cursor: pointer;
-  }
-
-  .volume-slider::-webkit-slider-thumb,
-  .pan-slider::-webkit-slider-thumb {
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--primary-color, #4caf50);
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .volume-slider::-webkit-slider-thumb:hover,
-  .pan-slider::-webkit-slider-thumb:hover {
-    background: var(--primary-hover, #45a049);
-  }
-
-  .volume-slider::-moz-range-thumb,
-  .pan-slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--primary-color, #4caf50);
-    cursor: pointer;
-    border: none;
-    transition: background 0.2s;
-  }
-
-  .volume-slider::-moz-range-thumb:hover,
-  .pan-slider::-moz-range-thumb:hover {
-    background: var(--primary-hover, #45a049);
-  }
-
-  .value-display {
-    color: var(--text-color, #fff);
-    font-size: 0.85rem;
-    min-width: 30px;
-    text-align: right;
-    font-family: monospace;
-  }
-
-  .solo-group {
-    justify-content: flex-end;
-  }
-
-  .solo-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
-    border: 2px solid var(--border-color, #444);
-    background: var(--input-bg, #333);
-    color: var(--text-muted, #888);
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .solo-btn:hover {
-    border-color: #ffc107;
-    color: #ffc107;
-  }
-
-  .solo-btn.active {
-    background: #ffc107;
-    border-color: #ffc107;
-    color: #000;
-  }
-
-  /* Playlists Panel */
-  .playlists-panel {
-    background: rgba(42, 42, 42, 0.98);
-    border-bottom: 1px solid var(--border-color, #444);
-    max-height: 400px;
-    min-height: 200px;
-    overflow-y: auto;
-    backdrop-filter: blur(5px);
-    flex-shrink: 0;
-  }
-
-  /* Audio Settings Panel */
-  .audio-settings-panel {
-    background: rgba(42, 42, 42, 0.98);
-    border-bottom: 1px solid var(--border-color, #444);
-    max-height: 500px;
-    overflow-y: auto;
-    backdrop-filter: blur(5px);
-    flex-shrink: 0;
-  }
-
-  .settings-header {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color, #444);
-    background: rgba(26, 26, 26, 0.98);
-  }
-
-  .settings-header h4 {
-    margin: 0 0 0.5rem 0;
-    color: var(--primary-color, #4caf50);
-    font-size: 1.1rem;
-  }
-
-  .settings-header .help-text {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--text-muted, #888);
-    font-style: italic;
-  }
-
-  .settings-container {
-    padding: 1rem;
-  }
-
-  .setting-group {
-    margin-bottom: 1.5rem;
-  }
-
-  .setting-label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: var(--text-color, #fff);
-    font-weight: bold;
-    font-size: 0.95rem;
-  }
-
-  .setting-hint {
-    margin: 0.5rem 0 0 0;
-    padding: 0.5rem;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-    color: var(--text-muted, #888);
-    font-size: 0.85rem;
-    line-height: 1.4;
-  }
-
-  .soundfont-select {
+  /* ── Mixer ─── */
+  .mixer-inline {
     width: 100%;
-    padding: 0.75rem;
-    background: var(--input-bg, #333);
-    color: var(--text-color, #fff);
-    border: 1px solid var(--border-color, #444);
-    border-radius: 4px;
-    font-size: 0.95rem;
-    cursor: pointer;
-  }
-
-  .soundfont-select:focus {
-    outline: none;
-    border-color: var(--primary-color, #4caf50);
-  }
-
-  .info-box {
-    background: rgba(76, 175, 80, 0.1);
-    border: 1px solid var(--primary-color, #4caf50);
-    border-radius: 6px;
-    padding: 1.5rem;
-    margin-top: 1.5rem;
-  }
-
-  .info-box h5 {
-    margin: 0 0 0.75rem 0;
-    color: var(--primary-color, #4caf50);
-    font-size: 1rem;
-  }
-
-  .info-box ol {
-    margin: 0 0 1.5rem 1.5rem;
-    padding: 0;
-    color: var(--text-color, #fff);
-    line-height: 1.6;
-  }
-
-  .info-box li {
-    margin-bottom: 0.5rem;
-  }
-
-  .info-box code {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 0.2rem 0.5rem;
-    border-radius: 3px;
-    color: #4caf50;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-  }
-
-  .soundfont-recommendations {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .recommendation {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 0.75rem;
-    border-radius: 4px;
-    border-left: 3px solid var(--primary-color, #4caf50);
-    color: var(--text-color, #fff);
-    line-height: 1.5;
-  }
-
-  .recommendation strong {
-    color: var(--primary-color, #4caf50);
-    font-size: 1rem;
-  }
-
-  .recommendation small {
-    color: var(--text-muted, #888);
-  }
-
-  .recommendation a {
-    color: #2196f3;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .recommendation a:hover {
-    color: #64b5f6;
-    text-decoration: underline;
-  }
-
-  .recommendation.recommended {
-    border-left-color: #ffd700;
-    background: rgba(255, 215, 0, 0.1);
-  }
-
-  .recommendation.recommended strong {
-    color: #ffd700;
-  }
-
-  .performance-tip {
-    margin-top: 1rem;
-    background: rgba(33, 150, 243, 0.1);
-    border: 1px solid #2196f3;
-    border-radius: 4px;
-    padding: 1rem;
-    color: #64b5f6;
-    line-height: 1.5;
-  }
-
-  .warning-box {
-    margin-top: 1.5rem;
-    background: rgba(255, 152, 0, 0.1);
-    border: 1px solid #ff9800;
-    border-radius: 4px;
-    padding: 1rem;
-    color: #ff9800;
-    line-height: 1.5;
-  }
-
-  .playlists-header {
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color, #444);
-    background: rgba(26, 26, 26, 0.98);
-  }
-
-  .playlists-header h4 {
-    margin: 0;
-    color: var(--primary-color, #4caf50);
-    font-size: 1.1rem;
-  }
-
-  .create-playlist-btn {
-    padding: 0.5rem 1rem;
-    background: var(--primary-color, #4caf50);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background-color 0.2s;
-  }
-
-  .create-playlist-btn:hover {
-    background: var(--primary-hover, #45a049);
-  }
-
-  .playlists-container {
-    padding: 1rem;
-  }
-
-  .no-playlists {
-    text-align: center;
-    padding: 2rem;
-    color: var(--text-muted, #888);
-  }
-
-  .no-playlists p {
-    margin: 0.5rem 0;
-  }
-
-  .help-text {
-    font-size: 0.9rem;
-    color: var(--text-muted, #888);
-    font-style: italic;
-    max-width: 600px;
-    margin: 1rem auto 0;
-    line-height: 1.4;
-  }
-
-  .playlist-item {
-    margin-bottom: 0.75rem;
-    background: var(--header-bg, #2a2a2a);
-    border: 1px solid var(--border-color, #444);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-
-  .playlist-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .playlist-header:hover {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .playlist-toggle {
-    color: var(--primary-color, #4caf50);
-    font-size: 0.9rem;
-    width: 20px;
-  }
-
-  .playlist-name {
-    color: var(--text-color, #fff);
-    font-weight: bold;
-    flex: 1;
-  }
-
-  .playlist-count {
-    color: var(--text-muted, #888);
-    font-size: 0.9rem;
-  }
-
-  .playlist-actions {
-    display: flex;
-    gap: 0.25rem;
-  }
-
-  .action-btn {
-    padding: 0.25rem 0.5rem;
-    background: transparent;
-    border: 1px solid var(--border-color, #444);
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-  }
-
-  .action-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--primary-color, #4caf50);
-  }
-
-  .action-btn.danger:hover {
-    border-color: var(--danger-color, #f44336);
-  }
-
-  .playlist-content {
-    padding: 0.75rem;
-    border-top: 1px solid var(--border-color, #444);
-    background: rgba(0, 0, 0, 0.2);
-  }
-
-  .no-tabs {
-    text-align: center;
-    padding: 1rem;
-    color: var(--text-muted, #888);
-  }
-
-  .tabs-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .tab-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem;
-    background: var(--input-bg, #333);
-    border: 1px solid var(--border-color, #444);
-    border-radius: 4px;
-    transition: all 0.2s;
-  }
-
-  .tab-item.has-handle {
-    border-left: 3px solid var(--primary-color, #4caf50);
-  }
-
-  .tab-item:hover {
-    background: rgba(76, 175, 80, 0.1);
-    border-color: var(--primary-color, #4caf50);
-  }
-
-  .tab-info {
-    flex: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .tab-icon {
-    font-size: 1.2rem;
-    flex-shrink: 0;
-  }
-
-  .tab-details {
-    flex: 1;
+    padding: 0.5rem 0;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    border-top: 1px solid #334155;
   }
+  .mixer-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
+  .mixer-row input[type='checkbox'] { width: 16px; height: 16px; accent-color: #3b82f6; }
+  .mixer-label { min-width: 100px; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  .tab-name {
-    color: var(--text-color, #fff);
-    font-weight: 500;
-  }
+  /* ── Scrollbar ─── */
+  .tab-score::-webkit-scrollbar,
+  .playlists-body::-webkit-scrollbar,
+  .audio-body::-webkit-scrollbar { width: 6px; }
+  .tab-score::-webkit-scrollbar-track,
+  .playlists-body::-webkit-scrollbar-track,
+  .audio-body::-webkit-scrollbar-track { background: transparent; }
+  .tab-score::-webkit-scrollbar-thumb,
+  .playlists-body::-webkit-scrollbar-thumb,
+  .audio-body::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
 
-  .tab-artist {
-    color: var(--text-muted, #888);
-    font-size: 0.85rem;
+  @media (max-width: 768px) {
+    .tab-header { flex-direction: column; gap: 0.375rem; padding: 0.375rem 0.5rem; }
+    .tab-header__right { flex-wrap: wrap; justify-content: center; }
+    .transport { flex-direction: column; align-items: stretch; }
+    .transport__left, .transport__center, .transport__right { justify-content: center; }
+    .transport__center { flex-direction: column; }
   }
-
-  .tab-warning {
-    color: #ff9500;
-    font-size: 0.75rem;
-    font-style: italic;
-  }
-
-  .remove-tab-btn {
-    padding: 0.25rem 0.5rem;
-    background: transparent;
-    border: 1px solid var(--border-color, #444);
-    border-radius: 3px;
-    cursor: pointer;
-    color: var(--text-muted, #888);
-    transition: all 0.2s;
-  }
-
-  .remove-tab-btn:hover {
-    background: var(--danger-color, #f44336);
-    border-color: var(--danger-color, #f44336);
-    color: white;
-  }
-
-  .add-current-btn {
-    width: 100%;
-    margin-top: 0.5rem;
-    padding: 0.5rem;
-    background: transparent;
-    border: 2px dashed var(--border-color, #444);
-    border-radius: 4px;
-    cursor: pointer;
-    color: var(--primary-color, #4caf50);
-    font-size: 0.9rem;
-    transition: all 0.2s;
-  }
-
-  .add-current-btn:hover {
-    background: rgba(76, 175, 80, 0.1);
-    border-color: var(--primary-color, #4caf50);
-  }
-
-  /* Modal Styles */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    backdrop-filter: blur(5px);
-  }
-
-  .modal-content {
-    background: var(--header-bg, #2a2a2a);
-    border: 2px solid var(--border-color, #444);
-    border-radius: 8px;
-    padding: 1.5rem;
-    min-width: 400px;
-    max-width: 90%;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  }
-
-  .modal-content h4 {
-    margin: 0 0 1rem 0;
-    color: var(--primary-color, #4caf50);
-    font-size: 1.2rem;
-  }
-
-  .modal-content p {
-    margin: 0.5rem 0;
-    color: var(--text-color, #fff);
-  }
-
-  .modal-note {
-    font-size: 0.9rem;
-    color: var(--text-muted, #888);
-    font-style: italic;
-  }
-
-  .modal-input {
-    width: 100%;
-    padding: 0.75rem;
-    background: var(--input-bg, #333);
-    border: 1px solid var(--border-color, #444);
-    border-radius: 4px;
-    color: var(--text-color, #fff);
-    font-size: 1rem;
-    margin-bottom: 1rem;
-    box-sizing: border-box;
-  }
-
-  .modal-input:focus {
-    outline: none;
-    border-color: var(--primary-color, #4caf50);
-  }
-
-  .modal-actions {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
-  }
-
-  .modal-btn {
-    padding: 0.5rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    transition: all 0.2s;
-  }
-
-  .cancel-btn {
-    background: var(--input-bg, #333);
-    color: var(--text-color, #fff);
-    border: 1px solid var(--border-color, #444);
-  }
-
-  .cancel-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .confirm-btn {
-    background: var(--primary-color, #4caf50);
-    color: white;
-  }
-
-  .confirm-btn:hover {
-    background: var(--primary-hover, #45a049);
-  }
-
-  .delete-btn {
-    background: var(--danger-color, #f44336);
-  }
-
-  .speed-control {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-left: 15px;
-  }
-
-  .speed-label {
-    min-width: 85px;
-    color: var(--text-color, #fff);
-  }
-
-  .speed-slider {
-    width: 150px;
-    height: 5px;
-    -webkit-appearance: none;
-    appearance: none;
-    background: var(--primary-color, #4caf50);
-    outline: none;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-
-  .speed-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 15px;
-    height: 15px;
-    background: #fff;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-
-  .speed-slider::-moz-range-thumb {
-    width: 15px;
-    height: 15px;
-    background: #fff;
-    border-radius: 50%;
-    cursor: pointer;
-    border: none;
-  }
-
-  .delete-btn:hover {
-    background: var(--danger-hover, #d32f2f);
-  }
-  /*
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-
-  .scraper-modal {
-    background: white;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  .modal-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #111827;
-  }
-
-  .close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #6b7280;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .close-btn:hover:not(:disabled) {
-    color: #111827;
-  }
-
-  .close-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .modal-body {
-    padding: 20px;
-  }
-
-  .form-group {
-    margin-bottom: 16px;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #374151;
-  }
-
-  .form-group input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    box-sizing: border-box;
-  }
-
-  .form-group input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  .form-group input:disabled {
-    background-color: #f3f4f6;
-    cursor: not-allowed;
-  }
-
-  .input-with-button {
-    display: flex;
-    gap: 8px;
-  }
-
-  .input-with-button input {
-    flex: 1;
-  }
-
-  .select-dir-btn {
-    padding: 10px 16px;
-    background: #f3f4f6;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1.2rem;
-  }
-
-  .select-dir-btn:hover:not(:disabled) {
-    background: #e5e7eb;
-  }
-
-  .select-dir-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .error-message {
-    padding: 12px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
-    color: #991b1b;
-    font-size: 0.875rem;
-  }
-
-  .success-message {
-    padding: 12px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 6px;
-    color: #166534;
-    font-size: 0.875rem;
-  }
-
-  .modal-footer {
-    display: flex;
-    gap: 12px;
-    padding: 20px;
-    border-top: 1px solid #e5e7eb;
-  }
-
-  .modal-footer button {
-    flex: 1;
-    padding: 10px 16px;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .cancel-btn {
-    background: white;
-    border: 1px solid #d1d5db;
-    color: #374151;
-  }
-
-  .cancel-btn:hover:not(:disabled) {
-    background: #f9fafb;
-  }
-
-  .ok-btn {
-    background: #3b82f6;
-    border: 1px solid #3b82f6;
-    color: white;
-  }
-
-  .ok-btn:hover:not(:disabled) {
-    background: #2563eb;
-  }
-
-  .modal-footer button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }*/
 </style>
