@@ -60,7 +60,7 @@
     </div>
 
     <div class="keyboard-footer">
-      <button class="clear-btn" @click="clearSelection" v-if="selectedKey.size > 0">
+      <button class="btn btn-danger-alt" @click="clearSelection" v-if="selectedKey.size > 0">
         {{ $t('keyboard_component.clear_all') }}
       </button>
 
@@ -184,10 +184,10 @@
     max-width: 900px;
     margin: 20px auto;
     padding: 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: var(--bg-main-gradient);
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: var(--shadow-main);
+    font-family: var(--font-family);
   }
 
   .keyboard-header {
@@ -197,7 +197,7 @@
 
   .keyboard-header h3 {
     margin: 0 0 15px 0;
-    color: #2c3e50;
+    color: var(--text-dark);
     font-size: 1.8rem;
     font-weight: 600;
   }
@@ -228,7 +228,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     color: white;
     padding: 6px 12px;
     border-radius: 20px;
@@ -236,12 +236,12 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: var(--shadow-primary);
   }
 
   .note-chip:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: var(--shadow-primary-hover);
   }
 
   .remove-icon {
@@ -384,34 +384,12 @@
     min-height: 50px;
   }
 
-  .clear-btn {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
-  }
-
-  .clear-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-  }
-
-  .clear-btn:active {
-    transform: translateY(0);
-  }
-
   .note-count {
     color: #666;
     font-size: 0.9rem;
     font-weight: 500;
   }
 
-  /* Responsive design */
   @media (max-width: 768px) {
     .keyboard-container {
       margin: 10px;

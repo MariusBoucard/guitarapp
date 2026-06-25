@@ -1,15 +1,15 @@
 <template>
   <div class="note-to-play-container">
     <div class="header">
-      <h2>🎵 {{ $t('jeu_component.title') }}</h2>
+      <h2 class="gradient-header">🎵 {{ $t('jeu_component.title') }}</h2>
     </div>
 
-    <div class="controls-section">
+    <div class="section-card">
       <div class="playback-controls">
-        <button class="control-button play-button" @click="this.play()">
+        <button class="btn btn-success" @click="this.play()">
           ▶️ {{ $t('jeu_component.play') }}
         </button>
-        <button class="control-button stop-button" @click="this.stop()">
+        <button class="btn btn-danger" @click="this.stop()">
           ⏹️ {{ $t('jeu_component.stop') }}
         </button>
       </div>
@@ -24,18 +24,18 @@
     </div>
 
     <div class="settings-grid">
-      <div class="setting-group">
+      <div class="section-card">
         <label class="setting-label">🎼 {{ $t('jeu_component.tempo') }}</label>
-        <select class="setting-select" v-model="this.tempo" @change="changeTempo($event)">
+        <select class="form-input" v-model="this.tempo" @change="changeTempo($event)">
           <option v-for="tempot in 200" :key="tempot">{{ tempot }}</option>
         </select>
       </div>
 
-      <div class="setting-group">
+      <div class="section-card">
         <label class="setting-label">🥁 {{ $t('jeu_component.metronome') }}</label>
         <div class="metronome-controls">
           <select
-            class="setting-select metronome-select"
+            class="form-input metronome-select"
             v-model="this.metronomeNumerateur"
             @change="changeNumerateur($event)"
           >
@@ -43,7 +43,7 @@
           </select>
           <span class="metronome-divider">/</span>
           <select
-            class="setting-select metronome-select"
+            class="form-input metronome-select"
             v-model="this.metronomeDenominateur"
             @change="changeDenominateur($event)"
           >
@@ -53,7 +53,7 @@
       </div>
     </div>
 
-    <div class="game-display">
+    <div class="section-card">
       <div class="note-display">
         <div class="current-note">
           <h1 class="root-note">{{ this.rootNote }}</h1>
@@ -314,43 +314,21 @@
 </script>
 
 <style scoped>
-  /* Main Container */
   .note-to-play-container {
     background: rgba(255, 255, 255, 0.9);
     border-radius: 16px;
     padding: 25px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-main);
     backdrop-filter: blur(10px);
-    color: #2c3e50;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-dark);
+    font-family: var(--font-family);
     max-width: 400px;
     margin: 0 auto;
   }
 
-  /* Header */
   .header {
     text-align: center;
     margin-bottom: 25px;
-  }
-
-  .header h2 {
-    margin: 0;
-    font-size: 1.4rem;
-    font-weight: 700;
-    padding: 15px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 25px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  }
-
-  /* Controls Section */
-  .controls-section {
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
   .playback-controls {
@@ -360,95 +338,11 @@
     margin-bottom: 20px;
   }
 
-  .control-button {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-    min-width: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .play-button {
-    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-  }
-
-  .stop-button {
-    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
-  }
-
-  .control-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Checkbox Section */
   .cheat-section {
     display: flex;
     justify-content: center;
   }
 
-  .checkbox-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    padding: 10px;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-  }
-
-  .checkbox-container:hover {
-    background: rgba(102, 126, 234, 0.1);
-  }
-
-  .checkbox-container input[type='checkbox'] {
-    display: none;
-  }
-
-  .checkmark {
-    width: 20px;
-    height: 20px;
-    background: white;
-    border: 2px solid #e0e6ed;
-    border-radius: 4px;
-    position: relative;
-    transition: all 0.2s ease;
-  }
-
-  .checkbox-container input[type='checkbox']:checked + .checkmark {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: #667eea;
-  }
-
-  .checkbox-container input[type='checkbox']:checked + .checkmark::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-weight: bold;
-    font-size: 12px;
-  }
-
-  .checkbox-label {
-    font-weight: 500;
-    color: #2c3e50;
-    font-size: 0.9rem;
-  }
-
-  /* Settings Grid */
   .settings-grid {
     display: flex;
     flex-direction: column;
@@ -456,64 +350,25 @@
     margin-bottom: 25px;
   }
 
-  .setting-group {
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  }
-
   .setting-label {
     display: block;
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--text-dark);
     margin-bottom: 10px;
     font-size: 1rem;
   }
 
-  .setting-select {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e0e6ed;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    background: white;
-    color: #2c3e50;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .setting-select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
-  }
-
-  /* Metronome Controls */
   .metronome-controls {
     display: flex;
     align-items: center;
     gap: 10px;
   }
 
-  .metronome-select {
-    flex: 1;
-  }
-
   .metronome-divider {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #667eea;
+    color: var(--primary-color);
     padding: 0 5px;
-  }
-
-  /* Game Display */
-  .game-display {
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    text-align: center;
   }
 
   .note-display {
@@ -521,11 +376,17 @@
   }
 
   .current-note {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .current-note:hover {
+    animation-play-state: paused;
+    transform: scale(1.02);
   }
 
   .root-note {
@@ -544,20 +405,23 @@
     font-weight: 500;
   }
 
-  /* Score Section */
   .score-section {
     display: flex;
     justify-content: center;
   }
 
   .score-display {
-    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    background: var(--warning-gradient);
     border-radius: 20px;
     padding: 15px 25px;
     display: flex;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    box-shadow: var(--shadow-warning);
+  }
+
+  .score-display:hover {
+    transform: scale(1.05);
   }
 
   .score-label {
@@ -573,7 +437,6 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
-  /* User Feedback */
   .user-feedback {
     display: flex;
     justify-content: center;
@@ -591,87 +454,41 @@
     justify-content: center;
   }
 
+  .played-note:hover {
+    border-color: var(--secondary-blue);
+    background: rgba(52, 152, 219, 0.15);
+  }
+
   .feedback-label {
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--text-dark);
     font-size: 0.9rem;
   }
 
   .feedback-value {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #3498db;
+    color: var(--secondary-blue);
     padding: 5px 12px;
     background: rgba(52, 152, 219, 0.1);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     min-width: 40px;
     text-align: center;
   }
 
-  /* Animations */
   @keyframes pulse {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
+    0%,
     100% {
       transform: scale(1);
     }
+    50% {
+      transform: scale(1.02);
+    }
   }
 
-  .current-note {
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  /* Responsive Design */
   @media (max-width: 768px) {
     .note-to-play-container {
-      padding: 20px;
-      margin: 10px;
-      max-width: none;
+      max-width: 100%;
     }
-
-    .playback-controls {
-      flex-direction: column;
-    }
-
-    .control-button {
-      width: 100%;
-    }
-
-    .metronome-controls {
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .metronome-select {
-      width: 100%;
-    }
-
-    .root-note {
-      font-size: 2.5rem;
-    }
-  }
-
-  /* Hover Effects */
-  .setting-group:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  }
-
-  .current-note:hover {
-    animation-play-state: paused;
-    transform: scale(1.02);
-  }
-
-  .score-display:hover {
-    transform: scale(1.05);
-  }
-
-  .played-note:hover {
-    border-color: #3498db;
-    background: rgba(52, 152, 219, 0.15);
   }
 </style>

@@ -12,7 +12,7 @@
           {{ $t('selection_notes.selected') }}
         </span>
 
-        <button class="clear-all-btn" @click="reinit()">
+        <button class="btn btn-danger-alt" @click="reinit()">
           <span class="clear-icon">🗑️</span>
           {{ $t('selection_notes.clear_all') }}
         </button>
@@ -144,10 +144,10 @@
     max-width: 900px;
     margin: 20px auto;
     padding: 25px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: var(--bg-main-gradient);
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: var(--shadow-main);
+    font-family: var(--font-family);
   }
 
   .header-section {
@@ -157,7 +157,7 @@
 
   .title {
     margin: 0 0 8px 0;
-    color: #2c3e50;
+    color: var(--text-dark);
     font-size: 1.8rem;
     font-weight: 600;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -182,34 +182,9 @@
   }
 
   .selection-count {
-    color: #2c3e50;
+    color: var(--text-dark);
     font-weight: 600;
     font-size: 1.1rem;
-  }
-
-  .clear-all-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
-  }
-
-  .clear-all-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-  }
-
-  .clear-all-btn:active {
-    transform: translateY(0);
   }
 
   .clear-icon {

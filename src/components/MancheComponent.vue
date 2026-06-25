@@ -26,7 +26,7 @@
           <p>{{ $t('manche.enable_christmas_tree') }}</p>
 
           <button
-            class="button"
+            class="btn btn-primary"
             @click="allumerSapin"
             :style="{ backgroundColor: getStateButton() }"
           >
@@ -47,7 +47,7 @@
     </div>
 
     <div class="manche-container">
-      <ul :class="this.lefty ? 'ulmanche' : ''">
+      <ul :class="this.lefty ? 'ulmanche custom-scrollbar' : 'custom-scrollbar'">
         <li class="horizontalli">
           <ul>
             <li
@@ -627,26 +627,6 @@
   }
 
   /* Buttons */
-  .button {
-    background: var(--btn-primary);
-    border: none;
-    color: var(--text-primary);
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: var(--font-medium);
-    transition: all var(--transition-normal);
-    margin: var(--spacing-sm);
-  }
-
-  .button:hover {
-    background: var(--btn-primary-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px var(--shadow-medium);
-  }
-
-  /* Responsive design */
   @media (max-width: 768px) {
     .ulmanche,
     ul:not(.ulmanche) {
@@ -667,27 +647,7 @@
   }
 
   /* Scrollbar styling */
-  .ulmanche::-webkit-scrollbar,
-  ul:not(.ulmanche)::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  .ulmanche::-webkit-scrollbar-track,
-  ul:not(.ulmanche)::-webkit-scrollbar-track {
-    background: var(--primary-dark);
-    border-radius: var(--radius-sm);
-  }
-
-  .ulmanche::-webkit-scrollbar-thumb,
-  ul:not(.ulmanche)::-webkit-scrollbar-thumb {
-    background: var(--primary-medium);
-    border-radius: var(--radius-sm);
-  }
-
-  .ulmanche::-webkit-scrollbar-thumb:hover,
-  ul:not(.ulmanche)::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-accent);
-  }
+  /* Scrollbar handled by .custom-scrollbar main.css */
 
   /* Ensure no wrapping and proper spacing */
   .ulmanche > *,

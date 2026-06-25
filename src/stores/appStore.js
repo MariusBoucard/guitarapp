@@ -79,28 +79,66 @@ export const useAppStore = defineStore('app', {
       userDataService.updateSetting(key, this[key])
     },
 
-    toggleManche()           { this._toggleDisplay('mancheDisplay') },
-    toggleNotesSelected()    { this._toggleDisplay('notesSelectedDisplay') },
-    toggleTuner()            { this._toggleDisplay('tunderDisplay') },
-    togglePicture()          { this._toggleDisplay('pictureDisplay') },
-    toggleSound()            { this._toggleDisplay('soundDisplay') },
-    toggleScales()           { this._toggleDisplay('scalesDisplay') },
-    toggleVideo()            { this._toggleDisplay('videoDisplay') },
-    toggleVideoNew()         { this._toggleDisplay('videoDisplayNew') },
-    toggleTraining()         { this._toggleDisplay('trainingDisplay') },
-    toggleGame()             { this._toggleDisplay('gameDisplay') },
-    toggleChordssuggestion() { this._toggleDisplay('chordssuggestDisplay') },
-    toggleTabReader()        { this._toggleDisplay('tabReaderDisplay') },
+    toggleManche() {
+      this._toggleDisplay('mancheDisplay')
+    },
+    toggleNotesSelected() {
+      this._toggleDisplay('notesSelectedDisplay')
+    },
+    toggleTuner() {
+      this._toggleDisplay('tunderDisplay')
+    },
+    togglePicture() {
+      this._toggleDisplay('pictureDisplay')
+    },
+    toggleSound() {
+      this._toggleDisplay('soundDisplay')
+    },
+    toggleScales() {
+      this._toggleDisplay('scalesDisplay')
+    },
+    toggleVideo() {
+      this._toggleDisplay('videoDisplay')
+    },
+    toggleVideoNew() {
+      this._toggleDisplay('videoDisplayNew')
+    },
+    toggleTraining() {
+      this._toggleDisplay('trainingDisplay')
+    },
+    toggleGame() {
+      this._toggleDisplay('gameDisplay')
+    },
+    toggleChordssuggestion() {
+      this._toggleDisplay('chordssuggestDisplay')
+    },
+    toggleTabReader() {
+      this._toggleDisplay('tabReaderDisplay')
+    },
 
     // Transient toggles
-    toggleSettings()        { this.settingsView = !this.settingsView },
-    toggleKeyboard()        { this.keyboard = !this.keyboard },
-    toggleUserManagement()  { this.userManagementDisplay = !this.userManagementDisplay },
-    toggleAutoGammeSelect() { this.autoGammeSelect = !this.autoGammeSelect },
-    togglePlayingRoot()     { this.isPlayingRoot = !this.isPlayingRoot },
+    toggleSettings() {
+      this.settingsView = !this.settingsView
+    },
+    toggleKeyboard() {
+      this.keyboard = !this.keyboard
+    },
+    toggleUserManagement() {
+      this.userManagementDisplay = !this.userManagementDisplay
+    },
+    toggleAutoGammeSelect() {
+      this.autoGammeSelect = !this.autoGammeSelect
+    },
+    togglePlayingRoot() {
+      this.isPlayingRoot = !this.isPlayingRoot
+    },
 
-    setLefty(value)   { this.lefty = value },
-    setVideoFolder(f) { this.videoFolder = f },
+    setLefty(value) {
+      this.lefty = value
+    },
+    setVideoFolder(f) {
+      this.videoFolder = f
+    },
 
     setDisplayState(key, value) {
       if (key in this && typeof this[key] === 'boolean') {

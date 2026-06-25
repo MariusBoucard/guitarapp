@@ -19,7 +19,10 @@ export const usePictureStore = defineStore('picture', {
     pictureList: (state) => state._pictures,
 
     selectedPicture() {
-      if (this.selectedPictureIndex === null || this.selectedPictureIndex >= this._pictures.length) {
+      if (
+        this.selectedPictureIndex === null ||
+        this.selectedPictureIndex >= this._pictures.length
+      ) {
         return null
       }
       return this._pictures[this.selectedPictureIndex]

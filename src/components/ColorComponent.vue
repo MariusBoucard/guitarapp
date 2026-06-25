@@ -1,11 +1,11 @@
 <template>
   <div class="color-component-container">
     <div class="header">
-      <h1>🎨 {{ $t('color_component.title') }}</h1>
+      <h1 class="gradient-header">🎨 {{ $t('color_component.title') }}</h1>
     </div>
 
     <!-- Color Display Section -->
-    <div class="color-display-section">
+    <div class="section-card">
       <div class="section-header">
         <h3>🌈 {{ $t('color_component.current_colors') }}</h3>
       </div>
@@ -22,7 +22,7 @@
     </div>
 
     <!-- Color Editor Section -->
-    <div class="color-editor-section">
+    <div class="section-card">
       <div class="section-header">
         <h3>✏️ {{ $t('color_component.edit_color') }}</h3>
       </div>
@@ -59,7 +59,7 @@
             />
           </div>
 
-          <button type="submit" class="submit-button">
+          <button type="submit" class="btn btn-success">
             🔄 {{ $t('color_component.update_button') }}
           </button>
         </div>
@@ -95,70 +95,23 @@
 </script>
 
 <style scoped>
-  /* Main Container */
   .color-component-container {
     background: rgba(255, 255, 255, 0.9);
     border-radius: 16px;
     padding: 25px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-main);
     backdrop-filter: blur(10px);
-    color: #2c3e50;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-dark);
+    font-family: var(--font-family);
     max-width: 700px;
     margin: 0 auto;
   }
 
-  /* Header */
   .header {
     text-align: center;
     margin-bottom: 30px;
   }
 
-  .header h1 {
-    margin: 0;
-    font-size: 1.6rem;
-    font-weight: 700;
-    padding: 20px 25px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 25px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  }
-
-  /* Sections */
-  .color-display-section,
-  .color-editor-section {
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-  }
-
-  .color-display-section:hover,
-  .color-editor-section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-
-  .section-header {
-    margin-bottom: 20px;
-  }
-
-  .section-header h3 {
-    margin: 0;
-    color: #2c3e50;
-    font-size: 1.2rem;
-    font-weight: 600;
-    padding: 12px 20px;
-    background: rgba(102, 126, 234, 0.1);
-    border-radius: 20px;
-    border: 2px solid rgba(102, 126, 234, 0.2);
-    text-align: center;
-  }
-
-  /* Colors Grid */
   .colors-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -167,15 +120,15 @@
 
   .color-item {
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
+    border-radius: var(--border-radius);
     padding: 15px;
-    border: 2px solid rgba(102, 126, 234, 0.2);
-    transition: all 0.2s ease;
+    border: 2px solid var(--bg-primary-border);
+    transition: var(--transition-fast);
     text-align: center;
   }
 
   .color-item:hover {
-    border-color: #667eea;
+    border-color: var(--primary-color);
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
   }
@@ -183,17 +136,17 @@
   .note-label {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: var(--text-dark);
     margin-bottom: 10px;
     padding: 8px 12px;
-    background: rgba(102, 126, 234, 0.1);
+    background: var(--bg-primary-light);
     border-radius: 15px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid var(--bg-primary-border);
   }
 
   .color-preview {
     height: 60px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -215,25 +168,19 @@
     backdrop-filter: blur(4px);
   }
 
-  /* Color Editor Form */
+  .selected-note-display {
+    text-align: center;
+    padding: 15px;
+    background: var(--warning-gradient);
+    border-radius: var(--border-radius);
+    color: white;
+    box-shadow: var(--shadow-warning);
+  }
+
   .color-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
-  }
-
-  .selected-note-display {
-    text-align: center;
-    padding: 15px;
-    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-    border-radius: 12px;
-    color: white;
-    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
-  }
-
-  .note-indicator {
-    font-size: 1.1rem;
-    font-weight: 600;
   }
 
   .form-controls {
@@ -250,187 +197,7 @@
 
   .form-label {
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--text-dark);
     font-size: 1rem;
-  }
-
-  .note-select {
-    padding: 12px 16px;
-    border: 2px solid #e0e6ed;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    background: white;
-    color: #2c3e50;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .note-select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
-  }
-
-  .note-select:hover {
-    border-color: #667eea;
-    transform: translateY(-1px);
-  }
-
-  .color-input {
-    padding: 12px 16px;
-    border: 2px solid #e0e6ed;
-    border-radius: 8px;
-    font-size: 1rem;
-    background: white;
-    color: #2c3e50;
-    transition: all 0.2s ease;
-  }
-
-  .color-input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
-  }
-
-  .color-input:hover {
-    border-color: #667eea;
-  }
-
-  .color-input::placeholder {
-    color: #95a5a6;
-    font-style: italic;
-  }
-
-  .submit-button {
-    padding: 15px 25px;
-    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-    color: white;
-    border: none;
-    border-radius: 25px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-    text-align: center;
-  }
-
-  .submit-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-    background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
-  }
-
-  .submit-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
-  }
-
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .color-component-container {
-      padding: 20px;
-      margin: 10px;
-      max-width: none;
-    }
-
-    .colors-grid {
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 12px;
-    }
-
-    .color-display-section,
-    .color-editor-section {
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    .form-controls {
-      gap: 15px;
-    }
-
-    .header h1 {
-      font-size: 1.4rem;
-      padding: 18px 20px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .colors-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .color-item {
-      padding: 12px;
-    }
-
-    .color-preview {
-      height: 50px;
-    }
-
-    .note-label {
-      font-size: 1rem;
-      padding: 6px 10px;
-    }
-  }
-
-  /* Animations */
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .color-display-section,
-  .color-editor-section {
-    animation: fadeInUp 0.3s ease-out;
-  }
-
-  .color-editor-section {
-    animation-delay: 0.1s;
-  }
-
-  @keyframes colorPulse {
-    0%,
-    100% {
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    50% {
-      box-shadow:
-        inset 0 2px 4px rgba(0, 0, 0, 0.2),
-        0 0 20px rgba(102, 126, 234, 0.3);
-    }
-  }
-
-  .color-preview:hover {
-    animation: colorPulse 1s ease-in-out infinite;
-  }
-
-  /* Special hover effects */
-  .color-display-section:hover .section-header h3 {
-    background: rgba(255, 152, 0, 0.1);
-    border-color: rgba(255, 152, 0, 0.3);
-    color: #ff9800;
-  }
-
-  .color-editor-section:hover .section-header h3 {
-    background: rgba(76, 175, 80, 0.1);
-    border-color: rgba(76, 175, 80, 0.3);
-    color: #4caf50;
-  }
-
-  /* Color item specific effects */
-  .color-item:nth-child(even) {
-    animation-delay: 0.05s;
-  }
-
-  .color-item:nth-child(odd) {
-    animation-delay: 0.1s;
   }
 </style>

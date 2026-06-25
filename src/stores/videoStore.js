@@ -54,7 +54,9 @@ export const useVideoStore = defineStore('video', {
       const dateObj = new Date(state.videoLength * 1000)
       const minutes = dateObj.getUTCMinutes()
       const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0')
-      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0')
+      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10)
+        .toString()
+        .padStart(2, '0')
       return `${minutes}:${seconds}.${milliseconds}`
     },
     hasRootDirectory: (state) => state.rootDirectory !== null,
@@ -64,9 +66,12 @@ export const useVideoStore = defineStore('video', {
     },
     totalVideosCount() {
       return this._niouTrainingList.reduce((total, training) => {
-        return total + training.trainings.reduce((t, item) => {
-          return t + (item.videos ? item.videos.length : 1)
-        }, 0)
+        return (
+          total +
+          training.trainings.reduce((t, item) => {
+            return t + (item.videos ? item.videos.length : 1)
+          }, 0)
+        )
       }, 0)
     },
     trainingByIndex: (state) => (index) => state._niouTrainingList[index],
@@ -109,7 +114,11 @@ export const useVideoStore = defineStore('video', {
       this.rootDirectoryPath = ''
       this.currentDirectoryPath = ''
       this.directoryStructure = {
-        name: '', path: '', handle: null, lastScanned: null, totalSize: 0,
+        name: '',
+        path: '',
+        handle: null,
+        lastScanned: null,
+        totalSize: 0,
       }
       this._niouTrainingList = []
       userDataService.clearNiouTrainingData()
@@ -171,7 +180,9 @@ export const useVideoStore = defineStore('video', {
           this.rootDirectoryPath = parsed.rootDirectoryPath || ''
           this.defaultPath = parsed.defaultPath || this.defaultPath
         }
-      } catch (e) { /* ignore */ }
+      } catch (e) {
+        /* ignore */
+      }
     },
 
     isVideoFile(filename) {

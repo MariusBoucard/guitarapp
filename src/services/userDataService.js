@@ -174,7 +174,11 @@ export class UserDataService {
 
   _notifyListeners() {
     this.listeners.forEach((fn) => {
-      try { fn() } catch (e) { console.error('UserDataService listener error', e) }
+      try {
+        fn()
+      } catch (e) {
+        console.error('UserDataService listener error', e)
+      }
     })
   }
 
@@ -339,12 +343,14 @@ export class UserDataService {
   // ─── Tuning Domain ─────────────────────────────────────────────
 
   getTuning() {
-    return this.currentUser?.data?.tuning || {
-      nbfrettes: 24,
-      diapason: 648,
-      nbStrings: 6,
-      tuningList: createDefaultTuningList(),
-    }
+    return (
+      this.currentUser?.data?.tuning || {
+        nbfrettes: 24,
+        diapason: 648,
+        nbStrings: 6,
+        tuningList: createDefaultTuningList(),
+      }
+    )
   }
 
   getDiapason() {
@@ -379,9 +385,7 @@ export class UserDataService {
 
   updateStringTuning(stringId, tuning) {
     if (!this.currentUser?.data?.tuning) return
-    const existing = this.currentUser.data.tuning.tuningList.find(
-      (t) => t.cordeId === stringId
-    )
+    const existing = this.currentUser.data.tuning.tuningList.find((t) => t.cordeId === stringId)
     if (existing) {
       existing.tuning = tuning
     } else {
@@ -430,17 +434,23 @@ export class UserDataService {
 
   _reindexTrainings() {
     const trainings = this.getTrainings()
-    trainings.forEach((t, i) => { t.id = i })
+    trainings.forEach((t, i) => {
+      t.id = i
+    })
   }
 
   addVideoToTraining(trainingId, videoData) {
     const training = this.getTrainings().find((t) => t.id === trainingId)
     if (!training) return
-    const identifier = typeof videoData === 'string'
-      ? videoData
-      : (videoData.path || videoData.fileHandleId || videoData.identifier || videoData.url)
+    const identifier =
+      typeof videoData === 'string'
+        ? videoData
+        : videoData.path || videoData.fileHandleId || videoData.identifier || videoData.url
     const exists = training.list.some((item) => {
-      const id = typeof item === 'string' ? item : (item.path || item.fileHandleId || item.identifier || item.url)
+      const id =
+        typeof item === 'string'
+          ? item
+          : item.path || item.fileHandleId || item.identifier || item.url
       return id === identifier
     })
     if (!exists) {
@@ -452,11 +462,15 @@ export class UserDataService {
   removeVideoFromTraining(trainingId, videoData) {
     const training = this.getTrainings().find((t) => t.id === trainingId)
     if (!training) return
-    const identifier = typeof videoData === 'string'
-      ? videoData
-      : (videoData.path || videoData.fileHandleId || videoData.identifier || videoData.url)
+    const identifier =
+      typeof videoData === 'string'
+        ? videoData
+        : videoData.path || videoData.fileHandleId || videoData.identifier || videoData.url
     const index = training.list.findIndex((item) => {
-      const id = typeof item === 'string' ? item : (item.path || item.fileHandleId || item.identifier || item.url)
+      const id =
+        typeof item === 'string'
+          ? item
+          : item.path || item.fileHandleId || item.identifier || item.url
       return id === identifier
     })
     if (index > -1) {
@@ -491,7 +505,9 @@ export class UserDataService {
 
   _reindexVideoTrainings() {
     const videos = this.getVideos()
-    videos.forEach((v, i) => { v.id = i })
+    videos.forEach((v, i) => {
+      v.id = i
+    })
   }
 
   getNiouTrainingList() {
@@ -515,19 +531,20 @@ export class UserDataService {
   toggleItemVisibility(trainingIndex, itemIndex) {
     const list = this.getNiouTrainingList()
     if (list[trainingIndex]?.trainings?.[itemIndex]) {
-      list[trainingIndex].trainings[itemIndex].show =
-        !list[trainingIndex].trainings[itemIndex].show
+      list[trainingIndex].trainings[itemIndex].show = !list[trainingIndex].trainings[itemIndex].show
       this.save()
     }
   }
 
   getVideoMetadata() {
-    return this.currentUser?.data?.videoMetadata || {
-      lastUpdated: null,
-      totalVideos: 0,
-      totalTrainings: 0,
-      averageDuration: 0,
-    }
+    return (
+      this.currentUser?.data?.videoMetadata || {
+        lastUpdated: null,
+        totalVideos: 0,
+        totalTrainings: 0,
+        averageDuration: 0,
+      }
+    )
   }
 
   updateVideoMetadata() {
@@ -536,9 +553,12 @@ export class UserDataService {
     const niouList = this.currentUser.data.niouTrainingList || []
     metadata.totalTrainings = niouList.length
     metadata.totalVideos = niouList.reduce((total, training) => {
-      return total + training.trainings.reduce((t, item) => {
-        return t + (item.videos ? item.videos.length : 1)
-      }, 0)
+      return (
+        total +
+        training.trainings.reduce((t, item) => {
+          return t + (item.videos ? item.videos.length : 1)
+        }, 0)
+      )
     }, 0)
     metadata.lastUpdated = new Date().toISOString()
     this.currentUser.data.videoMetadata = metadata
@@ -637,11 +657,13 @@ export class UserDataService {
   // ─── Tabs Domain ───────────────────────────────────────────────
 
   getTabs() {
-    return this.currentUser?.data?.tabs || {
-      playlists: [],
-      files: [],
-      metadata: { lastUpdated: null, totalTabs: 0, totalPlaylists: 0 },
-    }
+    return (
+      this.currentUser?.data?.tabs || {
+        playlists: [],
+        files: [],
+        metadata: { lastUpdated: null, totalTabs: 0, totalPlaylists: 0 },
+      }
+    )
   }
 
   getTabPlaylists() {
@@ -739,9 +761,7 @@ export class UserDataService {
   addPicture(pictureData) {
     if (!this.currentUser?.data) return false
     const pictures = this.getPictures()
-    const exists = pictures.some(
-      (p) => p.name === pictureData.name && p.size === pictureData.size
-    )
+    const exists = pictures.some((p) => p.name === pictureData.name && p.size === pictureData.size)
     if (!exists) {
       pictures.push({
         name: pictureData.name,
@@ -789,17 +809,23 @@ export class UserDataService {
           localStorage.removeItem('guitarapp_tabs')
         }
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
 
     // Migrate old training data
     try {
       const oldTrainings = localStorage.getItem('songSave') || localStorage.getItem('videoSave')
       if (oldTrainings && (!user.data.trainings || user.data.trainings.length === 0)) {
         const parsed = JSON.parse(oldTrainings)
-        parsed.forEach((t) => { if (!t.audioFiles) t.audioFiles = [] })
+        parsed.forEach((t) => {
+          if (!t.audioFiles) t.audioFiles = []
+        })
         user.data.trainings = parsed
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
 
     // Migrate old niou training list
     try {
@@ -807,7 +833,9 @@ export class UserDataService {
       if (oldNiou && (!user.data.niouTrainingList || user.data.niouTrainingList.length === 0)) {
         user.data.niouTrainingList = JSON.parse(oldNiou)
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
 
     // Migrate old directory info
     try {
@@ -818,7 +846,9 @@ export class UserDataService {
           // Just store the path info, directory handle can't be migrated
         }
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
   }
 
   _ensureDataIntegrity() {
@@ -828,29 +858,41 @@ export class UserDataService {
     // Ensure all required data structures exist
     if (!user.data) user.data = createDefaultUserData()
     if (!user.data.settings) user.data.settings = createDefaultSettings()
-    if (!user.data.notes) user.data.notes = { noteSlectedList: createDefaultNoteSelection(), gammeSelected: '' }
+    if (!user.data.notes)
+      user.data.notes = { noteSlectedList: createDefaultNoteSelection(), gammeSelected: '' }
     if (!user.data.notes.noteSlectedList || user.data.notes.noteSlectedList.length === 0) {
       user.data.notes.noteSlectedList = createDefaultNoteSelection()
     }
     if (!user.data.colors || user.data.colors.length === 0) {
       user.data.colors = createDefaultColors()
     }
-    if (!user.data.tuning) user.data.tuning = {
-      nbfrettes: 24, diapason: 648, nbStrings: 6, tuningList: createDefaultTuningList(),
-    }
+    if (!user.data.tuning)
+      user.data.tuning = {
+        nbfrettes: 24,
+        diapason: 648,
+        nbStrings: 6,
+        tuningList: createDefaultTuningList(),
+      }
     if (!user.data.tuning.tuningList) user.data.tuning.tuningList = createDefaultTuningList()
     if (!user.data.trainings) user.data.trainings = []
     if (!user.data.videos) user.data.videos = []
     if (!user.data.niouTrainingList) user.data.niouTrainingList = []
-    if (!user.data.videoMetadata) user.data.videoMetadata = {
-      lastUpdated: null, totalVideos: 0, totalTrainings: 0, averageDuration: 0,
-    }
+    if (!user.data.videoMetadata)
+      user.data.videoMetadata = {
+        lastUpdated: null,
+        totalVideos: 0,
+        totalTrainings: 0,
+        averageDuration: 0,
+      }
     if (!user.data.audioFiles) user.data.audioFiles = []
     if (!user.data.videoFiles) user.data.videoFiles = []
     if (!user.data.pictures) user.data.pictures = []
-    if (!user.data.tabs) user.data.tabs = {
-      playlists: [], files: [], metadata: { lastUpdated: null, totalTabs: 0, totalPlaylists: 0 },
-    }
+    if (!user.data.tabs)
+      user.data.tabs = {
+        playlists: [],
+        files: [],
+        metadata: { lastUpdated: null, totalTabs: 0, totalPlaylists: 0 },
+      }
   }
 
   // ─── Import/Export ─────────────────────────────────────────────

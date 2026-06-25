@@ -12,7 +12,7 @@
     <!-- Main Content Area -->
     <div class="main-content">
       <div class="row" :class="{ 'sidebar-folded': isRightColumnFolded }">
-        <div class="column">
+        <div class="column custom-scrollbar">
           <div class="column-inner">
             <MancheComponent
               :lefty="appStore.lefty"
@@ -67,7 +67,7 @@
             <TuningComponent v-show="appStore.settingsView"></TuningComponent>
           </div>
         </div>
-        <div class="columnd" v-show="!isRightColumnFolded">
+        <div class="columnd custom-scrollbar" v-show="!isRightColumnFolded">
           <TunerComponent
             v-show="appStore.tunderDisplay"
             @changenote="appController.handleNoteChange($event)"
@@ -677,29 +677,7 @@
     color: var(--text-primary);
   }
 
-  /* Custom Scrollbars for main columns */
-  .column::-webkit-scrollbar,
-  .columnd::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .column::-webkit-scrollbar-track,
-  .columnd::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-  }
-
-  .column::-webkit-scrollbar-thumb,
-  .columnd::-webkit-scrollbar-thumb {
-    background: rgba(52, 152, 219, 0.5);
-    border-radius: 4px;
-    transition: background 0.2s;
-  }
-
-  .column::-webkit-scrollbar-thumb:hover,
-  .columnd::-webkit-scrollbar-thumb:hover {
-    background: rgba(52, 152, 219, 0.8);
-  }
+  /* No custom scrollbar styles needed — using .custom-scrollbar from main.css */
 
   /* Ensure child components don't overflow */
   .column > *,
@@ -874,25 +852,7 @@
     border-bottom: none;
   }
 
-  /* Custom Scrollbar */
-  .training-tree::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .training-tree::-webkit-scrollbar-track {
-    background: var(--primary-dark);
-    border-radius: var(--radius-sm);
-  }
-
-  .training-tree::-webkit-scrollbar-thumb {
-    background: var(--primary-medium);
-    border-radius: var(--radius-sm);
-    transition: background var(--transition-normal);
-  }
-
-  .training-tree::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-accent);
-  }
+  /* Scrollbar handled by .custom-scrollbar main.css */
 
   /* Component containers styling */
   .guitar-training-container > * {
@@ -1177,40 +1137,5 @@
     box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
   }
 
-  /* Custom Scrollbar for states container */
-  .states-container::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .states-container::-webkit-scrollbar-track {
-    background: var(--primary-dark);
-    border-radius: var(--radius-sm);
-  }
-
-  .states-container::-webkit-scrollbar-thumb {
-    background: var(--primary-medium);
-    border-radius: var(--radius-sm);
-    transition: background var(--transition-normal);
-  }
-
-  .states-container::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-accent);
-  }
-
-  /* Add subtle animations */
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .video-training-tree,
-  .song-player-state-manager {
-    animation: fadeInUp var(--transition-slow) ease-out;
-  }
+  /* States container scrollbar handled by .custom-scrollbar main.css */
 </style>

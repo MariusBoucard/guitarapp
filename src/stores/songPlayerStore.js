@@ -33,7 +33,9 @@ export const useSongPlayerStore = defineStore('songPlayer', {
       const dateObj = new Date(state.songLength * 1000)
       const minutes = dateObj.getUTCMinutes()
       const seconds = dateObj.getUTCSeconds().toString().padStart(2, '0')
-      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10).toString().padStart(2, '0')
+      const milliseconds = Math.floor(dateObj.getUTCMilliseconds() / 10)
+        .toString()
+        .padStart(2, '0')
       return `${minutes}:${seconds}.${milliseconds}`
     },
   },

@@ -26,7 +26,7 @@
     </div>
 
     <!-- Audio Files List -->
-    <div class="audio-files-section">
+    <div class="audio-files-section section-card">
       <ol class="audio-files-list">
         <li
           v-for="item in currentAudioFiles"
@@ -46,7 +46,7 @@
       <!-- File Selection -->
       <div class="file-selection">
         <div class="button-wrap">
-          <button class="buttonbis" @click="selectAudioFileNative">
+          <button class="btn btn-primary" @click="selectAudioFileNative">
             {{ $t('audioplayer_component.select_audio_file') }}
           </button>
         </div>
@@ -71,13 +71,15 @@
 
     <!-- Playback Controls -->
     <div class="playback-controls">
-      <button class="button" @click="play">{{ $t('audioplayer_component.play') }}</button>
-      <button class="button" @click="pause">{{ $t('audioplayer_component.pause') }}</button>
-      <button class="button" @click="stop">{{ $t('audioplayer_component.stop') }}</button>
+      <button class="btn btn-success" @click="play">{{ $t('audioplayer_component.play') }}</button>
+      <button class="btn btn-warning" @click="pause">
+        {{ $t('audioplayer_component.pause') }}
+      </button>
+      <button class="btn btn-danger" @click="stop">{{ $t('audioplayer_component.stop') }}</button>
     </div>
 
     <!-- Speed Control -->
-    <div class="speed-control">
+    <div class="speed-control section-card">
       <h3 class="slider-label">{{ $t('audioplayer_component.playback_rate') }}</h3>
       <div class="slider">
         <input
@@ -91,7 +93,7 @@
       </div>
     </div>
 
-    <div class="time-controls">
+    <div class="time-controls section-card">
       <div class="slider-container">
         <label
           >{{ $t('audioplayer_component.start_time') }}:
@@ -314,19 +316,15 @@
     width: 100%;
     margin: 10px auto;
     padding: 15px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: var(--bg-main-gradient);
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #2c3e50;
+    box-shadow: var(--shadow-main);
+    font-family: var(--font-family);
+    color: var(--text-dark);
   }
 
   .training-section {
     margin-bottom: 10px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 12px;
-    padding: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
   .horizontal-list {
@@ -348,22 +346,22 @@
   }
 
   .selectedTrain {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     color: white;
-    border-color: #667eea;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-primary);
     transform: translateY(-2px);
   }
 
   .unselectedTrain {
     background: rgba(255, 255, 255, 0.9);
-    color: #2c3e50 !important;
-    border-color: #e0e6ed;
+    color: var(--text-dark) !important;
+    border-color: var(--border-light);
   }
 
   .unselectedTrain:hover {
     background: rgba(255, 255, 255, 1);
-    border-color: #667eea;
+    border-color: var(--primary-color);
     transform: translateY(-1px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
@@ -376,7 +374,7 @@
   .training-section input[type='text'] {
     width: 100%;
     padding: 12px 16px;
-    border: 2px solid #e0e6ed;
+    border: 2px solid var(--border-light);
     border-radius: 25px;
     font-size: 0.9rem;
     margin-bottom: 15px;
@@ -387,8 +385,8 @@
 
   .training-section input[type='text']:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px var(--bg-primary-border-light);
   }
 
   .training-controls {
@@ -408,58 +406,40 @@
   }
 
   .training-controls button:first-child {
-    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    background: var(--success-gradient);
     color: white;
-    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    box-shadow: var(--shadow-success);
   }
 
   .training-controls button:first-child:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    box-shadow: var(--shadow-success-hover);
   }
 
   .training-controls button:last-child {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    background: var(--danger-alt-gradient);
     color: white;
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    box-shadow: var(--shadow-danger-alt);
   }
 
   .training-controls button:last-child:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+    box-shadow: var(--shadow-danger-alt-hover);
   }
 
   .audio-files-section {
     margin-bottom: 30px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 12px;
-    padding: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
   .audio-files-list {
     max-height: 200px;
     overflow-y: auto;
-    border: 2px solid rgba(102, 126, 234, 0.1);
+    border: 2px solid var(--bg-primary-border);
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 15px;
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(10px);
-  }
-
-  .audio-files-list::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .audio-files-list::-webkit-scrollbar-track {
-    background: rgba(102, 126, 234, 0.1);
-    border-radius: 4px;
-  }
-
-  .audio-files-list::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 4px;
   }
 
   .audio-file-item {
@@ -468,10 +448,10 @@
     align-items: center;
     padding: 0px 15px;
     cursor: pointer;
-    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    border-bottom: 1px solid var(--bg-primary-border);
     border-radius: 8px;
     margin-bottom: 8px;
-    color: #2c3e50;
+    color: var(--text-dark);
     background: rgba(255, 255, 255, 0.7);
     transition: all 0.2s ease;
     font-weight: 500;
@@ -483,14 +463,14 @@
   }
 
   .audio-file-item:hover {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
+    background: var(--bg-primary-light);
+    color: var(--primary-color);
     transform: translateX(5px);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
 
   .button-cross {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    background: var(--danger-alt-gradient);
     color: white;
     border: none;
     border-radius: 50%;
@@ -503,16 +483,16 @@
     font-size: 12px;
     font-weight: bold;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    box-shadow: var(--shadow-danger-alt);
   }
 
   .button-cross:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+    box-shadow: var(--shadow-danger-alt-hover);
   }
 
   .button-cross::before {
-    content: '✕';
+    content: '\2715';
   }
 
   .file-selection {
@@ -524,34 +504,16 @@
     justify-content: center;
   }
 
-  .buttonbis {
-    padding: 12px 24px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  }
-
-  .buttonbis:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-  }
-
   .current-song {
     font-weight: 500;
     margin: 0px 0;
     padding: 15px 20px;
-    background: rgba(102, 126, 234, 0.1);
+    background: var(--bg-primary-light);
     border-radius: 10px;
-    color: #667eea;
+    color: var(--primary-color);
     text-align: center;
     font-size: 1rem;
-    border: 2px solid rgba(102, 126, 234, 0.2);
+    border: 2px solid var(--bg-primary-border);
   }
 
   audio {
@@ -559,7 +521,7 @@
     margin: 10px 0;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-card);
   }
 
   .playback-controls {
@@ -569,50 +531,8 @@
     margin: 5px 0;
   }
 
-  .button {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-    min-width: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .button:nth-child(1) {
-    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-  }
-
-  .button:nth-child(2) {
-    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
-  }
-
-  .button:nth-child(3) {
-    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
-  }
-
-  .button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  }
-
   .time-controls {
     margin: 10px 0;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 12px;
-    padding: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
   .slider-container {

@@ -309,7 +309,6 @@
   import { useTrainingStore } from '@/stores/trainingStore.js'
   import { useVideoStore } from '@/stores/videoStore.js'
   import { serviceManager } from '@/services/index.js'
-  import '../assets/css/global.css'
   export default {
     name: 'TrainingComponent',
 

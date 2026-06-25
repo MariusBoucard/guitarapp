@@ -7,18 +7,30 @@
         <span v-if="isLoaded" class="tab-filename">{{ currentLoadedFileName }}</span>
       </div>
       <div class="tab-header__right">
-        <input ref="fileInput" type="file" accept=".gp,.gp3,.gp4,.gp5,.gpx,.gp6,.ptb" @change="loadFile" style="display:none" />
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".gp,.gp3,.gp4,.gp5,.gpx,.gp6,.ptb"
+          @change="loadFile"
+          style="display: none"
+        />
         <button @click="openFileWithPicker" class="btn btn--sm" v-if="supportsFileSystemAccess">
           {{ $t('tab_reader.browse_file') }}
         </button>
         <button @click="openFileDialog" class="btn btn--sm" v-else>
           {{ $t('tab_reader.load_guitarpro') }}
         </button>
-        <button @click="openTexJSON()" class="btn btn--sm">{{ $t('tab_reader.open_tab_json') }}</button>
+        <button @click="openTexJSON()" class="btn btn--sm">
+          {{ $t('tab_reader.open_tab_json') }}
+        </button>
         <button v-if="isLoaded" @click="exportGP" class="btn btn--sm btn--accent">⬇ GP</button>
         <button v-if="isLoaded" @click="exportMidi" class="btn btn--sm btn--accent">⬇ MIDI</button>
-        <button @click="showPlaylists = !showPlaylists" class="btn btn--sm btn--outline">{{ $t('tab_reader.show_playlists') }}</button>
-        <button @click="showAudioSettings = !showAudioSettings" class="btn btn--sm btn--outline">{{ $t('tab_reader.audio_quality') }}</button>
+        <button @click="showPlaylists = !showPlaylists" class="btn btn--sm btn--outline">
+          {{ $t('tab_reader.show_playlists') }}
+        </button>
+        <button @click="showAudioSettings = !showAudioSettings" class="btn btn--sm btn--outline">
+          {{ $t('tab_reader.audio_quality') }}
+        </button>
       </div>
     </header>
 
@@ -27,7 +39,9 @@
       <div class="playlists-panel">
         <div class="panel-header">
           <h4>{{ $t('tab_reader.tab_playlists') }}</h4>
-          <button @click="showCreatePlaylistModal = true" class="btn btn--sm btn--primary">{{ $t('tab_reader.new_playlist') }}</button>
+          <button @click="showCreatePlaylistModal = true" class="btn btn--sm btn--primary">
+            {{ $t('tab_reader.new_playlist') }}
+          </button>
         </div>
         <div class="playlists-body">
           <div v-if="tabPlaylists.length === 0" class="empty-state">
@@ -35,22 +49,45 @@
           </div>
           <div v-for="playlist in tabPlaylists" :key="playlist.id" class="playlist-item">
             <div class="playlist-head" @click="togglePlaylist(playlist.id)">
-              <span class="playlist-arrow">{{ expandedPlaylists.includes(playlist.id) ? '▾' : '▸' }}</span>
+              <span class="playlist-arrow">{{
+                expandedPlaylists.includes(playlist.id) ? '▾' : '▸'
+              }}</span>
               <span class="playlist-name">{{ playlist.name }}</span>
               <span class="playlist-count">({{ playlist.tabs.length }})</span>
               <button @click.stop="renamePlaylistPrompt(playlist)" class="icon-btn">✎</button>
-              <button @click.stop="deletePlaylistConfirm(playlist)" class="icon-btn icon-btn--danger">×</button>
+              <button
+                @click.stop="deletePlaylistConfirm(playlist)"
+                class="icon-btn icon-btn--danger"
+              >
+                ×
+              </button>
             </div>
             <div v-if="expandedPlaylists.includes(playlist.id)" class="playlist-body">
               <div v-if="playlist.tabs.length === 0" class="empty-state">
                 <p>{{ $t('tab_reader.no_tabs_in_playlist') }}</p>
               </div>
-              <div v-for="tab in playlist.tabs" :key="tab.id" class="tab-entry" :class="{ 'tab-entry--handle': tab.fileHandleId }">
-                <span class="tab-entry__name" @click="loadTabFromPlaylist(tab)">{{ tab.name }}</span>
+              <div
+                v-for="tab in playlist.tabs"
+                :key="tab.id"
+                class="tab-entry"
+                :class="{ 'tab-entry--handle': tab.fileHandleId }"
+              >
+                <span class="tab-entry__name" @click="loadTabFromPlaylist(tab)">{{
+                  tab.name
+                }}</span>
                 <span v-if="tab.artist" class="tab-entry__artist">{{ tab.artist }}</span>
-                <button @click="removeTabFromPlaylist(playlist.id, tab.id)" class="icon-btn icon-btn--danger">×</button>
+                <button
+                  @click="removeTabFromPlaylist(playlist.id, tab.id)"
+                  class="icon-btn icon-btn--danger"
+                >
+                  ×
+                </button>
               </div>
-              <button v-if="isLoaded" @click="addCurrentTabToPlaylist(playlist.id)" class="btn btn--dashed">
+              <button
+                v-if="isLoaded"
+                @click="addCurrentTabToPlaylist(playlist.id)"
+                class="btn btn--dashed"
+              >
                 + {{ $t('tab_reader.add_current_tab') }}
               </button>
             </div>
@@ -69,7 +106,8 @@
           <label class="field-label">{{ $t('tab_reader.soundfont_selection') }}</label>
           <select v-model="selectedSoundFont" @change="changeSoundFont" class="select-field">
             <option v-for="sf in availableSoundFonts" :key="sf.path" :value="sf.path">
-              {{ sf.name }} {{ sf.recommended ? '★' : '' }} {{ sf.warning ? '⚠' : '' }} — {{ sf.size }}
+              {{ sf.name }} {{ sf.recommended ? '★' : '' }} {{ sf.warning ? '⚠' : '' }} —
+              {{ sf.size }}
             </option>
           </select>
           <label class="field-check">
@@ -85,13 +123,26 @@
       <div v-if="!isLoaded && !error" class="empty-state">
         <div class="empty-icon">♪</div>
         <p>{{ $t('tab_reader.no_file_loaded') }}</p>
-        <button @click="openFileWithPicker" class="btn btn--primary" v-if="supportsFileSystemAccess">{{ $t('tab_reader.browse_file') }}</button>
-        <button @click="openFileDialog" class="btn btn--primary" v-else>{{ $t('tab_reader.load_guitarpro') }}</button>
+        <button
+          @click="openFileWithPicker"
+          class="btn btn--primary"
+          v-if="supportsFileSystemAccess"
+        >
+          {{ $t('tab_reader.browse_file') }}
+        </button>
+        <button @click="openFileDialog" class="btn btn--primary" v-else>
+          {{ $t('tab_reader.load_guitarpro') }}
+        </button>
       </div>
       <div ref="alphaTab" class="alphatab-render"></div>
 
       <!-- Fret Editor Overlay -->
-      <div v-if="showFretEditor" class="fret-editor" :style="{ left: fretEditorX + 'px', top: fretEditorY + 'px' }" @click.stop>
+      <div
+        v-if="showFretEditor"
+        class="fret-editor"
+        :style="{ left: fretEditorX + 'px', top: fretEditorY + 'px' }"
+        @click.stop
+      >
         <input
           ref="fretInput"
           type="number"
@@ -110,7 +161,12 @@
     <!-- ─── Now Playing HUD ─── -->
     <transition name="hud-fade">
       <div v-if="isPlaying && currentBeatNotes.length" class="beat-hud">
-        <span v-for="(n, i) in currentBeatNotes" :key="i" class="beat-hud__note" :style="{ background: getNoteColor(n.note) }">
+        <span
+          v-for="(n, i) in currentBeatNotes"
+          :key="i"
+          class="beat-hud__note"
+          :style="{ background: getNoteColor(n.note) }"
+        >
           {{ n.string }}:{{ n.fret }}
         </span>
       </div>
@@ -119,7 +175,11 @@
     <!-- ─── Transport Bar (fixed bottom) ─── -->
     <footer class="transport">
       <div class="transport__left">
-        <button @click="playPause" class="transport-btn transport-btn--play" :class="{ active: isPlaying }">
+        <button
+          @click="playPause"
+          class="transport-btn transport-btn--play"
+          :class="{ active: isPlaying }"
+        >
           {{ isPlaying ? '⏸' : '▶' }}
         </button>
         <button @click="stop" class="transport-btn">⏹</button>
@@ -128,7 +188,11 @@
       <div class="transport__center">
         <div class="transport-track" v-if="tracks.length">
           <label>{{ $t('tab_reader.track') || 'Track' }}:</label>
-          <select v-model="selectedTrack" @change="changeTrack" class="select-field select-field--compact">
+          <select
+            v-model="selectedTrack"
+            @change="changeTrack"
+            class="select-field select-field--compact"
+          >
             <option v-for="(track, index) in tracks" :key="index" :value="index">
               {{ track.name }}
             </option>
@@ -137,15 +201,36 @@
 
         <div class="transport-loop">
           <label>Bars:</label>
-          <input type="number" v-model.number="loopStartBar" min="1" class="num-input" @change="updateLoopRange" />
+          <input
+            type="number"
+            v-model.number="loopStartBar"
+            min="1"
+            class="num-input"
+            @change="updateLoopRange"
+          />
           <span>—</span>
-          <input type="number" v-model.number="loopEndBar" min="1" class="num-input" @change="updateLoopRange" />
-          <button @click="toggleLoop" class="transport-btn" :class="{ active: isLooping }">🔁</button>
+          <input
+            type="number"
+            v-model.number="loopEndBar"
+            min="1"
+            class="num-input"
+            @change="updateLoopRange"
+          />
+          <button @click="toggleLoop" class="transport-btn" :class="{ active: isLooping }">
+            🔁
+          </button>
         </div>
 
         <div class="transport-speed">
           <label>{{ playbackSpeed }}%</label>
-          <input type="range" min="30" max="300" v-model="playbackSpeed" @input="updatePlaybackSpeed" class="range-field" />
+          <input
+            type="range"
+            min="30"
+            max="300"
+            v-model="playbackSpeed"
+            @input="updatePlaybackSpeed"
+            class="range-field"
+          />
         </div>
       </div>
 
@@ -153,17 +238,44 @@
         <span v-if="isLoaded && totalBars" class="transport-bar-pos">
           {{ currentBarNumber || '—' }} / {{ totalBars }}
         </span>
-        <button @click="showMixer = !showMixer" class="btn btn--sm btn--outline">{{ showMixer ? '🎚 Hide Mixer' : '🎚 Mixer' }}</button>
+        <button @click="showMixer = !showMixer" class="btn btn--sm btn--outline">
+          {{ showMixer ? '🎚 Hide Mixer' : '🎚 Mixer' }}
+        </button>
       </div>
 
       <!-- Inline Mixer -->
       <div v-if="showMixer" class="mixer-inline">
         <div v-for="(track, index) in tracks" :key="index" class="mixer-row">
-          <input type="checkbox" :checked="!track.playbackInfo.isMute" @change="toggleMute(index)" :id="'m'+index" />
-          <label :for="'m'+index" class="mixer-label">{{ track.name }}</label>
-          <input type="range" min="0" max="16" :value="track.playbackInfo.volume" @input="changeVolume(index, $event.target.value)" class="range-field range-field--sm" />
-          <input type="range" min="-64" max="63" :value="track.playbackInfo.balance" @input="changePanning(index, $event.target.value)" class="range-field range-field--sm" />
-          <button @click="toggleSolo(index)" class="transport-btn transport-btn--solo" :class="{ active: track.playbackInfo.isSolo }">S</button>
+          <input
+            type="checkbox"
+            :checked="!track.playbackInfo.isMute"
+            @change="toggleMute(index)"
+            :id="'m' + index"
+          />
+          <label :for="'m' + index" class="mixer-label">{{ track.name }}</label>
+          <input
+            type="range"
+            min="0"
+            max="16"
+            :value="track.playbackInfo.volume"
+            @input="changeVolume(index, $event.target.value)"
+            class="range-field range-field--sm"
+          />
+          <input
+            type="range"
+            min="-64"
+            max="63"
+            :value="track.playbackInfo.balance"
+            @input="changePanning(index, $event.target.value)"
+            class="range-field range-field--sm"
+          />
+          <button
+            @click="toggleSolo(index)"
+            class="transport-btn transport-btn--solo"
+            :class="{ active: track.playbackInfo.isSolo }"
+          >
+            S
+          </button>
         </div>
       </div>
     </footer>
@@ -197,8 +309,18 @@
         selectedSoundFont: './soundfont/sonivox.sf2',
         performanceMode: false,
         availableSoundFonts: [
-          { name: 'MuseScore General HQ', path: './soundfont/MuseScore_General.sf3', size: '35 MB', recommended: true },
-          { name: 'GeneralUser GS', path: './soundfont/GeneralUser_GS.sf2', size: '30 MB', recommended: true },
+          {
+            name: 'MuseScore General HQ',
+            path: './soundfont/MuseScore_General.sf3',
+            size: '35 MB',
+            recommended: true,
+          },
+          {
+            name: 'GeneralUser GS',
+            path: './soundfont/GeneralUser_GS.sf2',
+            size: '30 MB',
+            recommended: true,
+          },
           { name: 'Sonivox', path: './soundfont/sonivox.sf2', size: '2 MB' },
         ],
         currentLoadedFile: null,
@@ -226,10 +348,18 @@
       }
     },
     computed: {
-      canPlay() { return this.isLoaded && this.isPlayerReady },
-      tabStore() { return useTabStore() },
-      tabPlaylists() { return this.tabStore.tabPlaylists },
-      supportsFileSystemAccess() { return 'showOpenFilePicker' in window },
+      canPlay() {
+        return this.isLoaded && this.isPlayerReady
+      },
+      tabStore() {
+        return useTabStore()
+      },
+      tabPlaylists() {
+        return this.tabStore.tabPlaylists
+      },
+      supportsFileSystemAccess() {
+        return 'showOpenFilePicker' in window
+      },
     },
     async mounted() {
       const saved = localStorage.getItem('guitarapp_soundfont')
@@ -238,7 +368,9 @@
           const r = await fetch(saved, { method: 'HEAD' })
           if (r.ok) this.selectedSoundFont = saved
           else this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
-        } catch { this.selectedSoundFont = './soundfont/MuseScore_General.sf3' }
+        } catch {
+          this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
+        }
       } else {
         this.selectedSoundFont = './soundfont/MuseScore_General.sf3'
       }
@@ -325,8 +457,12 @@
           this._buildNoteBoundsMap()
         })
 
-        this.alphaTabApi.playerReady.on(() => { this.isPlayerReady = true })
-        this.alphaTabApi.playerStateChanged.on((e) => { this.isPlaying = e.state === 1 })
+        this.alphaTabApi.playerReady.on(() => {
+          this.isPlayerReady = true
+        })
+        this.alphaTabApi.playerStateChanged.on((e) => {
+          this.isPlaying = e.state === 1
+        })
         this.alphaTabApi.playerFinished.on(() => {
           this.isPlaying = false
           this.currentBeatNotes = []
@@ -334,7 +470,10 @@
 
         // Beat change — extract note info for HUD
         this.alphaTabApi.playedBeatChanged.on((beat) => {
-          if (!beat || !beat.notes) { this.currentBeatNotes = []; return }
+          if (!beat || !beat.notes) {
+            this.currentBeatNotes = []
+            return
+          }
           this.currentBeatNotes = beat.notes.map((n) => ({
             string: n.string,
             fret: n.fret,
@@ -385,7 +524,8 @@
 
           const scoreEl = this.$refs.alphaTab.closest('.tab-score')
           if (!scoreEl) return
-          const cursor = scoreEl.querySelector('.at-cursor-bar') || scoreEl.querySelector('.at-cursor-beat')
+          const cursor =
+            scoreEl.querySelector('.at-cursor-bar') || scoreEl.querySelector('.at-cursor-beat')
           if (!cursor) return
           const cRect = scoreEl.getBoundingClientRect()
           const y = cursor.getBoundingClientRect().top - cRect.top + scoreEl.scrollTop
@@ -397,9 +537,10 @@
         })
 
         this.alphaTabApi.error.on((err) => {
-          this.error = err.type === 'FormatError' && String(err.message).includes('Soundfont')
-            ? 'Invalid SoundFont. Try MuseScore_General.sf3'
-            : `Error: ${err.message || err}`
+          this.error =
+            err.type === 'FormatError' && String(err.message).includes('Soundfont')
+              ? 'Invalid SoundFont. Try MuseScore_General.sf3'
+              : `Error: ${err.message || err}`
         })
       },
 
@@ -419,9 +560,12 @@
       changeTrack() {
         if (!this.alphaTabApi || this.selectedTrack >= this.tracks.length) return
         this.alphaTabApi.renderTracks([this.tracks[this.selectedTrack]])
-        this.alphaTabApi.renderFinished.on(() => {
-          this._buildNoteBoundsMap()
-        }, { once: true })
+        this.alphaTabApi.renderFinished.on(
+          () => {
+            this._buildNoteBoundsMap()
+          },
+          { once: true }
+        )
       },
       changeVolume(i, v) {
         if (!this.alphaTabApi || !this.tracks[i]) return
@@ -466,9 +610,10 @@
         if (e >= this.score.masterBars.length) return
         if (this.isLooping) {
           const startTick = this.score.masterBars[s].start
-          const endTick = (e + 1 < this.score.masterBars.length)
-            ? this.score.masterBars[e + 1].start
-            : this.score.duration
+          const endTick =
+            e + 1 < this.score.masterBars.length
+              ? this.score.masterBars[e + 1].start
+              : this.score.duration
           this.alphaTabApi.player.playbackRange = { startTick, endTick }
         } else {
           this.alphaTabApi.playbackRange = null
@@ -476,11 +621,28 @@
       },
 
       // ── File Load ───────────────────────────────────────────
-      openFileDialog() { this.$refs.fileInput.click() },
+      openFileDialog() {
+        this.$refs.fileInput.click()
+      },
       async openFileWithPicker() {
         try {
           const [h] = await window.showOpenFilePicker({
-            types: [{ description: 'Guitar Pro', accept: { 'application/x-guitar-pro': ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb'] } }],
+            types: [
+              {
+                description: 'Guitar Pro',
+                accept: {
+                  'application/x-guitar-pro': [
+                    '.gp',
+                    '.gp3',
+                    '.gp4',
+                    '.gp5',
+                    '.gpx',
+                    '.gp6',
+                    '.ptb',
+                  ],
+                },
+              },
+            ],
             multiple: false,
           })
           if (h) await this.loadFileFromHandle(h)
@@ -498,7 +660,12 @@
           const file = await h.getFile()
           const text = await file.text()
           let songJson
-          try { songJson = JSON.parse(text) } catch { this.error = 'Invalid JSON'; return }
+          try {
+            songJson = JSON.parse(text)
+          } catch {
+            this.error = 'Invalid JSON'
+            return
+          }
           const tex = jsonToAlphaTex(songJson)
           this.alphaTabApi.tex(tex)
           this.currentLoadedFile = file
@@ -506,9 +673,12 @@
           this.isLoaded = true
           this.currentFileHandleId = await fileHandleService.storeFileHandle(h)
           this.tabStore.addTabToPlaylist('recent', {
-            name: songJson.name || file.name, path: file.name,
-            artist: songJson.artist || '', album: songJson.album || '',
-            fileHandleId: this.currentFileHandleId, fileType: 'json',
+            name: songJson.name || file.name,
+            path: file.name,
+            artist: songJson.artist || '',
+            album: songJson.album || '',
+            fileHandleId: this.currentFileHandleId,
+            fileType: 'json',
           })
         } catch (err) {
           if (err.name !== 'AbortError') this.error = `Failed: ${err.message}`
@@ -517,10 +687,18 @@
       async loadFile(event) {
         const file = event.target.files[0]
         if (!file) return
-        this.error = null; this.isLoaded = false; this.isPlayerReady = false
-        if (!this.alphaTabApi) { this.error = 'AlphaTab not initialized'; return }
+        this.error = null
+        this.isLoaded = false
+        this.isPlayerReady = false
+        if (!this.alphaTabApi) {
+          this.error = 'AlphaTab not initialized'
+          return
+        }
         const valid = ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb']
-        if (!valid.some((e) => file.name.toLowerCase().endsWith(e))) { this.error = 'Invalid file type'; return }
+        if (!valid.some((e) => file.name.toLowerCase().endsWith(e))) {
+          this.error = 'Invalid file type'
+          return
+        }
         this.currentLoadedFile = file
         this.currentLoadedFileName = file.name.replace(/\.[^/.]+$/, '')
         this.currentFileHandle = null
@@ -528,21 +706,42 @@
         if (!this.alphaTabApi.load(buf)) this.error = 'Failed to load file'
       },
       async loadFileFromHandle(fileHandle, handleId = null) {
-        this.error = null; this.isLoaded = false; this.isPlayerReady = false
-        if (!this.alphaTabApi) { this.error = 'AlphaTab not initialized'; return }
+        this.error = null
+        this.isLoaded = false
+        this.isPlayerReady = false
+        if (!this.alphaTabApi) {
+          this.error = 'AlphaTab not initialized'
+          return
+        }
         const p = await fileHandle.queryPermission({ mode: 'read' })
-        if (p !== 'granted') { const np = await fileHandle.requestPermission({ mode: 'read' }); if (np !== 'granted') { this.error = 'Permission denied'; return } }
+        if (p !== 'granted') {
+          const np = await fileHandle.requestPermission({ mode: 'read' })
+          if (np !== 'granted') {
+            this.error = 'Permission denied'
+            return
+          }
+        }
         const file = await fileHandle.getFile()
         const valid = ['.gp', '.gp3', '.gp4', '.gp5', '.gpx', '.gp6', '.ptb']
-        if (!valid.some((e) => file.name.toLowerCase().endsWith(e))) { this.error = 'Invalid file type'; return }
+        if (!valid.some((e) => file.name.toLowerCase().endsWith(e))) {
+          this.error = 'Invalid file type'
+          return
+        }
         this.currentLoadedFile = file
         this.currentLoadedFileName = file.name.replace(/\.[^/.]+$/, '')
         this.currentFileHandle = fileHandle
-        this.currentFileHandleId = handleId || await fileHandleService.storeFileHandle(fileHandle)
+        this.currentFileHandleId = handleId || (await fileHandleService.storeFileHandle(fileHandle))
         const buf = await this.fileToArrayBuffer(file)
         if (!this.alphaTabApi.load(buf)) this.error = 'Failed to load file'
       },
-      fileToArrayBuffer(file) { return new Promise((r, e) => { const rd = new FileReader(); rd.onload = (ev) => r(ev.target.result); rd.onerror = e; rd.readAsArrayBuffer(file) }) },
+      fileToArrayBuffer(file) {
+        return new Promise((r, e) => {
+          const rd = new FileReader()
+          rd.onload = (ev) => r(ev.target.result)
+          rd.onerror = e
+          rd.readAsArrayBuffer(file)
+        })
+      },
 
       // ── SoundFont ───────────────────────────────────────────
       async changeSoundFont() {
@@ -554,87 +753,189 @@
           const time = this.alphaTabApi.timePosition
           if (wasPlaying) this.alphaTabApi.pause()
           localStorage.setItem('guitarapp_soundfont', this.selectedSoundFont)
-          this.alphaTabApi.destroy(); this.alphaTabApi = null
+          this.alphaTabApi.destroy()
+          this.alphaTabApi = null
           await new Promise((r) => setTimeout(r, 100))
           this.initializeAlphaTab()
           await new Promise((r) => setTimeout(r, 500))
           if (cur && this.currentLoadedFile) {
             try {
               let data
-              if (this.currentLoadedFile instanceof File) data = await this.currentLoadedFile.arrayBuffer()
-              else if (this.currentFileHandle) { const f = await this.currentFileHandle.getFile(); data = await f.arrayBuffer() }
+              if (this.currentLoadedFile instanceof File)
+                data = await this.currentLoadedFile.arrayBuffer()
+              else if (this.currentFileHandle) {
+                const f = await this.currentFileHandle.getFile()
+                data = await f.arrayBuffer()
+              }
               if (data) {
                 this.alphaTabApi.load(data)
-                this.alphaTabApi.renderFinished.on(() => {
-                  this._buildNoteBoundsMap()
-                }, { once: true })
-                await new Promise((r) => { const t = setTimeout(() => { clearInterval(i); r() }, 10000); const i = setInterval(() => { if (this.isPlayerReady) { clearInterval(i); clearTimeout(t); r() } }, 100) })
+                this.alphaTabApi.renderFinished.on(
+                  () => {
+                    this._buildNoteBoundsMap()
+                  },
+                  { once: true }
+                )
+                await new Promise((r) => {
+                  const t = setTimeout(() => {
+                    clearInterval(i)
+                    r()
+                  }, 10000)
+                  const i = setInterval(() => {
+                    if (this.isPlayerReady) {
+                      clearInterval(i)
+                      clearTimeout(t)
+                      r()
+                    }
+                  }, 100)
+                })
                 if (wasPlaying && time > 0) this.alphaTabApi.timePosition = time
               }
-            } catch { this.error = 'SoundFont loaded! Please reload tab.'; setTimeout(() => { this.error = null }, 5000); return }
+            } catch {
+              this.error = 'SoundFont loaded! Please reload tab.'
+              setTimeout(() => {
+                this.error = null
+              }, 5000)
+              return
+            }
           }
-          this.error = ''; setTimeout(() => { this.error = null }, 3000)
-        } catch (err) { this.error = err.message; setTimeout(() => { this.error = null }, 5000) }
+          this.error = ''
+          setTimeout(() => {
+            this.error = null
+          }, 3000)
+        } catch (err) {
+          this.error = err.message
+          setTimeout(() => {
+            this.error = null
+          }, 5000)
+        }
       },
       togglePerformanceMode() {
         localStorage.setItem('guitarapp_performanceMode', this.performanceMode)
-        if (this.alphaTabApi) { this.error = 'Reloading...'; setTimeout(() => this.changeSoundFont(), 500) }
+        if (this.alphaTabApi) {
+          this.error = 'Reloading...'
+          setTimeout(() => this.changeSoundFont(), 500)
+        }
       },
 
       // ── Playlists ───────────────────────────────────────────
-      togglePlaylist(id) { const i = this.expandedPlaylists.indexOf(id); i > -1 ? this.expandedPlaylists.splice(i, 1) : this.expandedPlaylists.push(id) },
+      togglePlaylist(id) {
+        const i = this.expandedPlaylists.indexOf(id)
+        i > -1 ? this.expandedPlaylists.splice(i, 1) : this.expandedPlaylists.push(id)
+      },
       confirmCreatePlaylist() {
         if (this.newPlaylistName?.trim()) {
           const id = this.tabStore.createPlaylist(this.newPlaylistName.trim())
           this.expandedPlaylists.push(id)
-          this.showCreatePlaylistModal = false; this.newPlaylistName = ''
+          this.showCreatePlaylistModal = false
+          this.newPlaylistName = ''
         }
       },
-      renamePlaylistPrompt(p) { this.playlistToRename = p; this.newPlaylistName = p.name; this.showRenamePlaylistModal = true },
-      confirmRename() {
-        if (this.newPlaylistName?.trim() && this.playlistToRename && this.newPlaylistName !== this.playlistToRename.name)
-          this.tabStore.renamePlaylist(this.playlistToRename.id, this.newPlaylistName.trim())
-        this.showRenamePlaylistModal = false; this.playlistToRename = null; this.newPlaylistName = ''
+      renamePlaylistPrompt(p) {
+        this.playlistToRename = p
+        this.newPlaylistName = p.name
+        this.showRenamePlaylistModal = true
       },
-      deletePlaylistConfirm(p) { this.playlistToDelete = p; this.showDeleteConfirm = true },
+      confirmRename() {
+        if (
+          this.newPlaylistName?.trim() &&
+          this.playlistToRename &&
+          this.newPlaylistName !== this.playlistToRename.name
+        )
+          this.tabStore.renamePlaylist(this.playlistToRename.id, this.newPlaylistName.trim())
+        this.showRenamePlaylistModal = false
+        this.playlistToRename = null
+        this.newPlaylistName = ''
+      },
+      deletePlaylistConfirm(p) {
+        this.playlistToDelete = p
+        this.showDeleteConfirm = true
+      },
       confirmDelete() {
         if (this.playlistToDelete) {
           this.tabStore.deletePlaylist(this.playlistToDelete.id)
           const i = this.expandedPlaylists.indexOf(this.playlistToDelete.id)
           if (i > -1) this.expandedPlaylists.splice(i, 1)
         }
-        this.showDeleteConfirm = false; this.playlistToDelete = null
+        this.showDeleteConfirm = false
+        this.playlistToDelete = null
       },
       addCurrentTabToPlaylist(pid) {
-        if (!this.isLoaded || !this.currentLoadedFile) { this.error = 'No tab loaded'; setTimeout(() => { this.error = null }, 3000); return }
-        const d = { name: this.currentLoadedFileName, path: this.currentLoadedFile.name, artist: '', album: '', fileHandleId: this.currentFileHandleId, fileType: this.currentLoadedFile.name?.endsWith('.json') ? 'json' : 'gp' }
-        if (this.alphaTabApi?.score) { d.name = this.alphaTabApi.score.title || d.name; d.artist = this.alphaTabApi.score.artist || ''; d.album = this.alphaTabApi.score.album || '' }
+        if (!this.isLoaded || !this.currentLoadedFile) {
+          this.error = 'No tab loaded'
+          setTimeout(() => {
+            this.error = null
+          }, 3000)
+          return
+        }
+        const d = {
+          name: this.currentLoadedFileName,
+          path: this.currentLoadedFile.name,
+          artist: '',
+          album: '',
+          fileHandleId: this.currentFileHandleId,
+          fileType: this.currentLoadedFile.name?.endsWith('.json') ? 'json' : 'gp',
+        }
+        if (this.alphaTabApi?.score) {
+          d.name = this.alphaTabApi.score.title || d.name
+          d.artist = this.alphaTabApi.score.artist || ''
+          d.album = this.alphaTabApi.score.album || ''
+        }
         this.tabStore.addTabToPlaylist(pid, d)
       },
-      removeTabFromPlaylist(pid, tid) { this.tabStore.removeTabFromPlaylist(pid, tid) },
+      removeTabFromPlaylist(pid, tid) {
+        this.tabStore.removeTabFromPlaylist(pid, tid)
+      },
       async loadTabFromPlaylist(tab) {
-        if (!tab.fileHandleId) { this.error = 'No file access. Re-add via Browse.'; setTimeout(() => { this.error = null }, 5000); return }
+        if (!tab.fileHandleId) {
+          this.error = 'No file access. Re-add via Browse.'
+          setTimeout(() => {
+            this.error = null
+          }, 5000)
+          return
+        }
         try {
           const fh = await fileHandleService.getFileHandle(tab.fileHandleId)
           if (!fh) throw new Error('Handle not found')
           const p = await fh.queryPermission({ mode: 'read' })
-          if (p !== 'granted') { const np = await fh.requestPermission({ mode: 'read' }); if (np !== 'granted') throw new Error('Denied') }
+          if (p !== 'granted') {
+            const np = await fh.requestPermission({ mode: 'read' })
+            if (np !== 'granted') throw new Error('Denied')
+          }
           const file = await fh.getFile()
           if (tab.fileType === 'json' || file.name.endsWith('.json')) {
-            const text = await file.text(); const j = JSON.parse(text); const tex = jsonToAlphaTex(j)
-            this.alphaTabApi.tex(tex); this.currentLoadedFile = file; this.currentLoadedFileName = file.name; this.isLoaded = true
+            const text = await file.text()
+            const j = JSON.parse(text)
+            const tex = jsonToAlphaTex(j)
+            this.alphaTabApi.tex(tex)
+            this.currentLoadedFile = file
+            this.currentLoadedFileName = file.name
+            this.isLoaded = true
           } else {
             await this.loadFileFromHandle(fh, tab.fileHandleId)
           }
-        } catch (err) { this.error = `Failed: ${err.message}`; setTimeout(() => { this.error = null }, 5000) }
+        } catch (err) {
+          this.error = `Failed: ${err.message}`
+          setTimeout(() => {
+            this.error = null
+          }, 5000)
+        }
       },
 
       // ── Note Colors ─────────────────────────────────────────
       getNoteColor(noteName) {
         const colors = {
-          'C': '#3b82f6', 'CS': '#60a5fa', 'D': '#ef4444', 'DS': '#f87171',
-          'E': '#22c55e', 'F': '#92400e', 'FS': '#b45309', 'G': '#eab308',
-          'GS': '#facc15', 'A': '#111827', 'AS': '#6b7280', 'B': '#f5f5f4',
+          C: '#3b82f6',
+          CS: '#60a5fa',
+          D: '#ef4444',
+          DS: '#f87171',
+          E: '#22c55e',
+          F: '#92400e',
+          FS: '#b45309',
+          G: '#eab308',
+          GS: '#facc15',
+          A: '#111827',
+          AS: '#6b7280',
+          B: '#f5f5f4',
         }
         return colors[noteName] || '#8b5cf6'
       },
@@ -646,10 +947,10 @@
         const lookup = this.alphaTabApi?.boundsLookup
         if (!lookup?.staffSystems) return
         for (const sys of lookup.staffSystems) {
-          for (const mb of (sys.bars || [])) {
-            for (const bar of (mb.bars || [])) {
-              for (const beat of (bar.beats || [])) {
-                for (const nb of (beat.notes || [])) {
+          for (const mb of sys.bars || []) {
+            for (const bar of mb.bars || []) {
+              for (const beat of bar.beats || []) {
+                for (const nb of beat.notes || []) {
                   if (nb.note && nb.noteHeadBounds) {
                     this._noteBoundsMap.set(nb.note, nb.noteHeadBounds)
                   }
@@ -679,7 +980,7 @@
             // From noteMouseDown — use prebuilt bounds map (instant lookup)
             const b = this._noteBoundsMap?.get(note)
             if (b) {
-              this.fretEditorX = (b.x + b.w / 2) - sRect.left + scoreEl.scrollLeft
+              this.fretEditorX = b.x + b.w / 2 - sRect.left + scoreEl.scrollLeft
               this.fretEditorY = b.y - sRect.top + scoreEl.scrollTop - 5
             } else {
               this.fretEditorX = scoreEl.clientWidth / 2
@@ -691,7 +992,10 @@
         this.showFretEditor = true
         this.$nextTick(() => {
           const inp = this.$refs.fretInput
-          if (inp) { inp.focus(); inp.select() }
+          if (inp) {
+            inp.focus()
+            inp.select()
+          }
         })
       },
 
@@ -723,9 +1027,12 @@
         this.alphaTabApi.renderScore(score, [trackIdx])
 
         // Rebuild bounds map after render (note positions changed)
-        this.alphaTabApi.renderFinished.on(() => {
-          this._buildNoteBoundsMap()
-        }, { once: true })
+        this.alphaTabApi.renderFinished.on(
+          () => {
+            this._buildNoteBoundsMap()
+          },
+          { once: true }
+        )
 
         // Reload MIDI so playback reflects the change
         this.alphaTabApi.loadMidiForScore(score)
@@ -748,7 +1055,11 @@
       },
 
       handleOutsideClick(e) {
-        if (this.showFretEditor && this.$refs.fretInput && !this.$refs.fretInput.contains(e.target)) {
+        if (
+          this.showFretEditor &&
+          this.$refs.fretInput &&
+          !this.$refs.fretInput.contains(e.target)
+        ) {
           this.applyFretEdit()
         }
       },
@@ -835,10 +1146,32 @@
     flex-shrink: 0;
     min-height: 44px;
   }
-  .tab-header__left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
-  .tab-header__right { display: flex; align-items: center; gap: 0.375rem; flex-shrink: 0; }
-  .tab-title { margin: 0; font-size: 1rem; font-weight: 600; color: #f1f5f9; }
-  .tab-filename { font-size: 0.8rem; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+  .tab-header__left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+  .tab-header__right {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-shrink: 0;
+  }
+  .tab-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f1f5f9;
+  }
+  .tab-filename {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+  }
 
   /* ── Buttons ─── */
   .btn {
@@ -852,46 +1185,196 @@
     background: #334155;
     color: #e2e8f0;
   }
-  .btn:hover { background: #475569; }
-  .btn--sm { padding: 0.25rem 0.6rem; font-size: 0.72rem; }
-  .btn--primary { background: #3b82f6; color: #fff; }
-  .btn--primary:hover { background: #2563eb; }
-  .btn--outline { background: transparent; border: 1px solid #475569; color: #94a3b8; }
-  .btn--outline:hover { border-color: #64748b; color: #e2e8f0; }
-  .btn--accent { background: #8b5cf6; color: #fff; font-size: 0.7rem; padding: 0.2rem 0.5rem; }
-  .btn--accent:hover { background: #7c3aed; }
-  .btn--dashed { width: 100%; background: transparent; border: 1px dashed #475569; color: #64748b; margin-top: 0.375rem; }
-  .btn--dashed:hover { border-color: #3b82f6; color: #3b82f6; }
-  .icon-btn { background: none; border: none; color: #64748b; cursor: pointer; padding: 0.15rem 0.35rem; font-size: 0.85rem; border-radius: 4px; }
-  .icon-btn:hover { color: #e2e8f0; background: #334155; }
-  .icon-btn--danger:hover { color: #ef4444; }
+  .btn:hover {
+    background: #475569;
+  }
+  .btn--sm {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.72rem;
+  }
+  .btn--primary {
+    background: #3b82f6;
+    color: #fff;
+  }
+  .btn--primary:hover {
+    background: #2563eb;
+  }
+  .btn--outline {
+    background: transparent;
+    border: 1px solid #475569;
+    color: #94a3b8;
+  }
+  .btn--outline:hover {
+    border-color: #64748b;
+    color: #e2e8f0;
+  }
+  .btn--accent {
+    background: #8b5cf6;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+  .btn--accent:hover {
+    background: #7c3aed;
+  }
+  .btn--dashed {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed #475569;
+    color: #64748b;
+    margin-top: 0.375rem;
+  }
+  .btn--dashed:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+  }
+  .icon-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0.15rem 0.35rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+  }
+  .icon-btn:hover {
+    color: #e2e8f0;
+    background: #334155;
+  }
+  .icon-btn--danger:hover {
+    color: #ef4444;
+  }
 
   /* ── Panels ─── */
-  .panels { flex-shrink: 0; border-bottom: 1px solid #334155; }
-  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; background: #1e293b; }
-  .panel-header h4 { margin: 0; font-size: 0.85rem; font-weight: 600; color: #94a3b8; }
-  .playlists-panel, .audio-panel { max-height: 300px; display: flex; flex-direction: column; }
-  .playlists-body, .audio-body { flex: 1; overflow-y: auto; padding: 0.5rem 1rem; }
-  .empty-state { text-align: center; padding: 1.5rem; color: #64748b; font-size: 0.85rem; }
+  .panels {
+    flex-shrink: 0;
+    border-bottom: 1px solid #334155;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: #1e293b;
+  }
+  .panel-header h4 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+  }
+  .playlists-panel,
+  .audio-panel {
+    max-height: 300px;
+    display: flex;
+    flex-direction: column;
+  }
+  .playlists-body,
+  .audio-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem 1rem;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 1.5rem;
+    color: #64748b;
+    font-size: 0.85rem;
+  }
 
-  .playlist-item { margin-bottom: 0.375rem; border: 1px solid #334155; border-radius: 6px; overflow: hidden; }
-  .playlist-head { display: flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.6rem; cursor: pointer; background: #1e293b; }
-  .playlist-head:hover { background: #263348; }
-  .playlist-arrow { color: #3b82f6; font-size: 0.7rem; width: 14px; }
-  .playlist-name { font-weight: 600; flex: 1; font-size: 0.85rem; }
-  .playlist-count { color: #64748b; font-size: 0.75rem; }
-  .playlist-body { padding: 0.375rem 0.6rem; background: #0f172a; }
-  .tab-entry { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.4rem; border-radius: 4px; font-size: 0.82rem; }
-  .tab-entry:hover { background: #1e293b; }
-  .tab-entry--handle { border-left: 2px solid #3b82f6; padding-left: 0.5rem; }
-  .tab-entry__name { flex: 1; cursor: pointer; }
-  .tab-entry__name:hover { color: #3b82f6; }
-  .tab-entry__artist { color: #64748b; font-size: 0.75rem; }
+  .playlist-item {
+    margin-bottom: 0.375rem;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .playlist-head {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+    background: #1e293b;
+  }
+  .playlist-head:hover {
+    background: #263348;
+  }
+  .playlist-arrow {
+    color: #3b82f6;
+    font-size: 0.7rem;
+    width: 14px;
+  }
+  .playlist-name {
+    font-weight: 600;
+    flex: 1;
+    font-size: 0.85rem;
+  }
+  .playlist-count {
+    color: #64748b;
+    font-size: 0.75rem;
+  }
+  .playlist-body {
+    padding: 0.375rem 0.6rem;
+    background: #0f172a;
+  }
+  .tab-entry {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.82rem;
+  }
+  .tab-entry:hover {
+    background: #1e293b;
+  }
+  .tab-entry--handle {
+    border-left: 2px solid #3b82f6;
+    padding-left: 0.5rem;
+  }
+  .tab-entry__name {
+    flex: 1;
+    cursor: pointer;
+  }
+  .tab-entry__name:hover {
+    color: #3b82f6;
+  }
+  .tab-entry__artist {
+    color: #64748b;
+    font-size: 0.75rem;
+  }
 
-  .field-label { display: block; font-size: 0.8rem; font-weight: 500; color: #94a3b8; margin: 0.5rem 0 0.25rem; }
-  .field-check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: #94a3b8; margin-top: 0.5rem; cursor: pointer; }
-  .select-field { width: 100%; padding: 0.4rem 0.6rem; background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; font-size: 0.82rem; }
-  .select-field--compact { width: auto; min-width: 140px; padding: 0.2rem 0.4rem; font-size: 0.75rem; }
+  .field-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #94a3b8;
+    margin: 0.5rem 0 0.25rem;
+  }
+  .field-check {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: #94a3b8;
+    margin-top: 0.5rem;
+    cursor: pointer;
+  }
+  .select-field {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    font-size: 0.82rem;
+  }
+  .select-field--compact {
+    width: auto;
+    min-width: 140px;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+  }
 
   /* ── Score Area ─── */
   .tab-score {
@@ -901,9 +1384,24 @@
     position: relative;
     min-height: 0;
   }
-  .tab-score .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #0f172a; color: #64748b; }
-  .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
-  .alphatab-render { width: 100%; min-height: 100%; }
+  .tab-score .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: #0f172a;
+    color: #64748b;
+  }
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+  }
+  .alphatab-render {
+    width: 100%;
+    min-height: 100%;
+  }
 
   /* AlphaTab cursor & highlight styling */
   .tab-score :deep(.at-cursor-bar) {
@@ -917,7 +1415,19 @@
     background: rgba(250, 204, 21, 0.35) !important;
   }
 
-  .error-bar { position: absolute; top: 0.5rem; left: 0.5rem; right: 0.5rem; padding: 0.5rem 0.75rem; background: #991b1b; color: #fecaca; border-radius: 6px; font-size: 0.82rem; z-index: 50; white-space: pre-line; }
+  .error-bar {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #991b1b;
+    color: #fecaca;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    z-index: 50;
+    white-space: pre-line;
+  }
 
   /* ── Fret Editor ─── */
   .fret-editor {
@@ -947,9 +1457,21 @@
     -moz-appearance: textfield;
   }
   .fret-input::-webkit-outer-spin-button,
-  .fret-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .fret-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
-  .fret-label { font-size: 0.65rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+  .fret-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .fret-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  }
+  .fret-label {
+    font-size: 0.65rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 
   /* ── Beat HUD ─── */
   .beat-hud {
@@ -976,10 +1498,19 @@
     font-weight: 700;
     color: #fff;
     font-family: 'JetBrains Mono', monospace;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   }
-  .hud-fade-enter-active, .hud-fade-leave-active { transition: opacity 0.15s, transform 0.15s; }
-  .hud-fade-enter-from, .hud-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  .hud-fade-enter-active,
+  .hud-fade-leave-active {
+    transition:
+      opacity 0.15s,
+      transform 0.15s;
+  }
+  .hud-fade-enter-from,
+  .hud-fade-leave-to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
 
   /* ── Transport Bar ─── */
   .transport {
@@ -993,21 +1524,61 @@
     position: relative;
     flex-wrap: wrap;
   }
-  .transport__left, .transport__center, .transport__right { display: flex; align-items: center; gap: 0.375rem; }
-  .transport__center { flex: 1; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
-  .transport__right { gap: 0.75rem; }
+  .transport__left,
+  .transport__center,
+  .transport__right {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  .transport__center {
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+  .transport__right {
+    gap: 0.75rem;
+  }
 
   .transport-btn {
-    width: 36px; height: 36px;
-    display: flex; align-items: center; justify-content: center;
-    border: 1px solid #475569; background: #0f172a; color: #e2e8f0;
-    border-radius: 8px; cursor: pointer; font-size: 1rem; transition: all 0.15s;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #475569;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.15s;
   }
-  .transport-btn:hover { background: #334155; }
-  .transport-btn.active { background: #3b82f6; border-color: #3b82f6; }
-  .transport-btn--play { width: 44px; height: 44px; font-size: 1.2rem; }
-  .transport-btn--solo { width: 28px; height: 28px; font-size: 0.7rem; font-weight: 700; border-radius: 4px; }
-  .transport-btn--solo.active { background: #eab308; border-color: #eab308; color: #000; }
+  .transport-btn:hover {
+    background: #334155;
+  }
+  .transport-btn.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+  }
+  .transport-btn--play {
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+  }
+  .transport-btn--solo {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 4px;
+  }
+  .transport-btn--solo.active {
+    background: #eab308;
+    border-color: #eab308;
+    color: #000;
+  }
 
   .transport-bar-pos {
     font-size: 0.78rem;
@@ -1021,14 +1592,64 @@
     white-space: nowrap;
   }
 
-  .transport-track, .transport-loop, .transport-speed { display: flex; align-items: center; gap: 0.375rem; font-size: 0.78rem; color: #94a3b8; }
-  .transport-track label, .transport-loop label, .transport-speed label { font-weight: 500; white-space: nowrap; }
-  .num-input { width: 44px; padding: 0.2rem 0.3rem; background: #0f172a; border: 1px solid #334155; color: #e2e8f0; border-radius: 4px; font-size: 0.75rem; text-align: center; }
-  .num-input:focus { outline: none; border-color: #3b82f6; }
-  .range-field { width: 120px; height: 4px; -webkit-appearance: none; appearance: none; background: #475569; border-radius: 2px; outline: none; cursor: pointer; }
-  .range-field::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: #3b82f6; border-radius: 50%; cursor: pointer; }
-  .range-field::-moz-range-thumb { width: 14px; height: 14px; background: #3b82f6; border-radius: 50%; cursor: pointer; border: none; }
-  .range-field--sm { width: 60px; }
+  .transport-track,
+  .transport-loop,
+  .transport-speed {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.78rem;
+    color: #94a3b8;
+  }
+  .transport-track label,
+  .transport-loop label,
+  .transport-speed label {
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .num-input {
+    width: 44px;
+    padding: 0.2rem 0.3rem;
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    text-align: center;
+  }
+  .num-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+  }
+  .range-field {
+    width: 120px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #475569;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  .range-field::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #3b82f6;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .range-field::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #3b82f6;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+  .range-field--sm {
+    width: 60px;
+  }
 
   /* ── Mixer ─── */
   .mixer-inline {
@@ -1039,26 +1660,64 @@
     gap: 0.25rem;
     border-top: 1px solid #334155;
   }
-  .mixer-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
-  .mixer-row input[type='checkbox'] { width: 16px; height: 16px; accent-color: #3b82f6; }
-  .mixer-label { min-width: 100px; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mixer-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+  }
+  .mixer-row input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: #3b82f6;
+  }
+  .mixer-label {
+    min-width: 100px;
+    color: #94a3b8;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
   /* ── Scrollbar ─── */
   .tab-score::-webkit-scrollbar,
   .playlists-body::-webkit-scrollbar,
-  .audio-body::-webkit-scrollbar { width: 6px; }
+  .audio-body::-webkit-scrollbar {
+    width: 6px;
+  }
   .tab-score::-webkit-scrollbar-track,
   .playlists-body::-webkit-scrollbar-track,
-  .audio-body::-webkit-scrollbar-track { background: transparent; }
+  .audio-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
   .tab-score::-webkit-scrollbar-thumb,
   .playlists-body::-webkit-scrollbar-thumb,
-  .audio-body::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+  .audio-body::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 3px;
+  }
 
   @media (max-width: 768px) {
-    .tab-header { flex-direction: column; gap: 0.375rem; padding: 0.375rem 0.5rem; }
-    .tab-header__right { flex-wrap: wrap; justify-content: center; }
-    .transport { flex-direction: column; align-items: stretch; }
-    .transport__left, .transport__center, .transport__right { justify-content: center; }
-    .transport__center { flex-direction: column; }
+    .tab-header {
+      flex-direction: column;
+      gap: 0.375rem;
+      padding: 0.375rem 0.5rem;
+    }
+    .tab-header__right {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .transport {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .transport__left,
+    .transport__center,
+    .transport__right {
+      justify-content: center;
+    }
+    .transport__center {
+      flex-direction: column;
+    }
   }
 </style>

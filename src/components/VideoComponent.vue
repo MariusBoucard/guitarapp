@@ -138,7 +138,6 @@
 </template>
 
 <script>
-  import '../assets/css/global.css'
   import { useVideoStore } from '../stores/videoStore.js'
 
   export default {

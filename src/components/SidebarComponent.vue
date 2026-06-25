@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar">
+  <div class="sidebar custom-scrollbar">
     <div class="sidebar-header">
       <h3>Guitar App</h3>
     </div>
@@ -445,23 +445,5 @@
   .status-indicator {
     color: var(--accent-green);
     font-size: 0.6rem;
-  }
-
-  /* Custom scrollbar */
-  .sidebar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .sidebar::-webkit-scrollbar-track {
-    background: var(--primary-dark);
-  }
-
-  .sidebar::-webkit-scrollbar-thumb {
-    background: var(--primary-medium);
-    border-radius: var(--radius-sm);
-  }
-
-  .sidebar::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-accent);
   }
 </style>

@@ -1,8 +1,11 @@
 <template>
   <div class="chords-container">
     <!-- Stacking Thirds -->
-    <div class="columnchords" :class="{ collapsed: collapsed.stackingThirds }">
-      <p @click="toggleCollapse('stackingThirds')" class="chord-header">
+    <div
+      class="columnchords section-card custom-scrollbar"
+      :class="{ collapsed: collapsed.stackingThirds }"
+    >
+      <p @click="toggleCollapse('stackingThirds')" class="chord-header gradient-header">
         <span class="title-text">{{ $t('suggestion_accords.stacking_thirds') }}</span>
         <span class="toggle-icon">{{ collapsed.stackingThirds ? '▼' : '▲' }}</span>
       </p>
@@ -16,8 +19,11 @@
     </div>
 
     <!-- Diatonic Chords -->
-    <div class="columnchords" :class="{ collapsed: collapsed.diatonic }">
-      <p @click="toggleCollapse('diatonic')" class="chord-header">
+    <div
+      class="columnchords section-card custom-scrollbar"
+      :class="{ collapsed: collapsed.diatonic }"
+    >
+      <p @click="toggleCollapse('diatonic')" class="chord-header gradient-header">
         <span class="title-text">{{ $t('suggestion_accords.diatonic_chords') }}</span>
         <span class="toggle-icon">{{ collapsed.diatonic ? '▼' : '▲' }}</span>
       </p>
@@ -31,8 +37,11 @@
     </div>
 
     <!-- Seventh Chords -->
-    <div class="columnchords" :class="{ collapsed: collapsed.seventh }">
-      <p @click="toggleCollapse('seventh')" class="chord-header">
+    <div
+      class="columnchords section-card custom-scrollbar"
+      :class="{ collapsed: collapsed.seventh }"
+    >
+      <p @click="toggleCollapse('seventh')" class="chord-header gradient-header">
         <span class="title-text">{{ $t('suggestion_accords.seventh_chords') }}</span>
         <span class="toggle-icon">{{ collapsed.seventh ? '▼' : '▲' }}</span>
       </p>
@@ -436,40 +445,17 @@
   .chords-container {
     margin: 20px auto;
     padding: 15px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: var(--bg-main-gradient);
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: var(--shadow-main);
+    font-family: var(--font-family);
     display: flex;
     flex-direction: column;
     gap: 20px;
   }
 
-  .columnchords {
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-  }
-
-  .columnchords:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-
   .chord-header {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #2c3e50;
     margin: 0 0 20px 0;
-    text-align: center;
-    padding: 10px 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 25px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     position: relative;
     overflow: hidden;
     cursor: pointer;
@@ -477,11 +463,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-
-  .chord-header:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
   }
 
   .chord-header:active {
@@ -517,7 +498,6 @@
     left: 100%;
   }
 
-  /* Slide fade transitions for collapse/expand */
   .slide-fade-enter-active {
     transition: all 0.3s ease-out;
   }
@@ -546,11 +526,11 @@
   .chordtext {
     font-size: 1rem;
     font-weight: 500;
-    color: #2c3e50;
+    color: var(--text-dark);
     margin: 0;
     padding: 12px 16px;
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     border: 2px solid transparent;
     transition: all 0.2s ease;
     cursor: pointer;
@@ -566,7 +546,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     opacity: 0;
     transition: all 0.3s ease;
     z-index: -1;
@@ -574,7 +554,7 @@
 
   .chordtext:hover {
     transform: translateX(5px);
-    border-color: #667eea;
+    border-color: var(--primary-color);
     color: white;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
   }
@@ -587,30 +567,28 @@
     transform: translateX(5px) scale(0.98);
   }
 
-  /* Musical notation styling */
   .chordtext:nth-child(1) {
-    border-left: 4px solid #e74c3c;
+    border-left: 4px solid var(--accent-red);
   }
   .chordtext:nth-child(2) {
-    border-left: 4px solid #f39c12;
+    border-left: 4px solid var(--accent-orange);
   }
   .chordtext:nth-child(3) {
     border-left: 4px solid #f1c40f;
   }
   .chordtext:nth-child(4) {
-    border-left: 4px solid #2ecc71;
+    border-left: 4px solid var(--accent-green);
   }
   .chordtext:nth-child(5) {
-    border-left: 4px solid #3498db;
+    border-left: 4px solid var(--secondary-blue);
   }
   .chordtext:nth-child(6) {
-    border-left: 4px solid #9b59b6;
+    border-left: 4px solid var(--accent-purple);
   }
   .chordtext:nth-child(7) {
-    border-left: 4px solid #e67e22;
+    border-left: 4px solid var(--accent-orange);
   }
 
-  /* Responsive Design */
   @media (max-width: 768px) {
     .chords-container {
       width: 95%;
@@ -631,7 +609,6 @@
     }
   }
 
-  /* Animation for loading */
   @keyframes slideInUp {
     from {
       opacity: 0;
@@ -657,27 +634,8 @@
     animation-delay: 0.3s;
   }
 
-  /* Scroll enhancement for long chord lists */
   .columnchords {
     max-height: 500px;
     overflow-y: auto;
-  }
-
-  .columnchords::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .columnchords::-webkit-scrollbar-track {
-    background: rgba(102, 126, 234, 0.1);
-    border-radius: 3px;
-  }
-
-  .columnchords::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 3px;
-  }
-
-  .columnchords::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
   }
 </style>

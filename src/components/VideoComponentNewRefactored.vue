@@ -280,7 +280,6 @@
 </template>
 
 <script>
-  import '../assets/css/global.css'
   import { useVideoStore } from '@/stores/videoStore'
   import { serviceManager } from '@/services'
   import AutomationLineComponent from './AutomationLineComponent.vue'
